@@ -1,9 +1,9 @@
 # Settings for ros_control control loop
-hardware_control_loop:
+$(arg prefix)hardware_control_loop:
    loop_hz: &loop_hz $(arg frequency)
 
 # Settings for ros_control hardware interface
-hardware_interface:
+$(arg prefix)ur_hardware_interface:
    joints: &robot_joints
      - $(arg prefix)shoulder_pan_joint
      - $(arg prefix)shoulder_lift_joint
@@ -13,7 +13,7 @@ hardware_interface:
      - $(arg prefix)wrist_3_joint
 
 # Publish all joint states ----------------------------------
-joint_state_controller:
+$(arg prefix)joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: *loop_hz
 

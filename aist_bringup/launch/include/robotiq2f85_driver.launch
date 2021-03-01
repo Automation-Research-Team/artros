@@ -5,7 +5,7 @@
   <arg name="device"	 default="robotiq_85"/>
   <arg name="driver_arg" default=""/>
 
-  <arg name="config"	 value="$(find aist_robotiq2f85_controller)/config/default_controllers.yaml" />
+  <arg name="config"	 value="$(find aist_robotiq2f85_controller)/config/artros_controllers.yaml" />
 
   <include file="$(find aist_robotiq2f85_controller
 		 )/launch/controller.launch">
