@@ -2,9 +2,9 @@ import sys
 import copy
 import collections
 import rospy
-from math import pi, radians, degrees
-from numpy import clip
+import numpy as np
 
+from math import pi, radians, degrees
 from tf import TransformListener, transformations as tfs
 import moveit_commander
 from moveit_commander.conversions import pose_to_list
@@ -147,7 +147,7 @@ class AISTBaseRoutines(object):
     def go_to_pose_goal(self, robot_name, target_pose,
                         speed=1.0, end_effector_link='',
                         high_precision=False, move_lin=True):
-        self.add_marker(target_pose, 'pose')
+        self.add_marker('pose', target_pose)
         self.publish_marker()
 
         if move_lin:
@@ -161,7 +161,7 @@ class AISTBaseRoutines(object):
 
         group = self._cmd.get_group(robot_name)
         group.set_end_effector_link(end_effector_link)
-        group.set_max_velocity_scaling_factor(clip(speed, 0.0, 1.0))
+        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_pose_target(target_pose)
         success      = group.go(wait=True)
         current_pose = group.get_current_pose()
@@ -176,7 +176,7 @@ class AISTBaseRoutines(object):
 
         group = self._cmd.get_group(robot_name)
         group.set_end_effector_link(end_effector_link)
-        group.set_max_velocity_scaling_factor(clip(speed, 0.0, 1.0))
+        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
 
         try:
             transformed_poses = self.transform_poses_to_target_frame(
@@ -269,12 +269,12 @@ class AISTBaseRoutines(object):
     def delete_all_markers(self):
         self._markerPublisher.delete_all()
 
-    def add_marker(self, pose_stamped, marker_type,
-                   endpoint=None, text='', lifetime=15):
-        self._markerPublisher.add(pose_stamped, marker_type,
+    def add_marker(self, marker_type, pose_stamped, endpoint=None,
+                   text='', lifetime=15):
+        self._markerPublisher.add(marker_type, pose_stamped,
                                   endpoint, text, lifetime)
 
-    def publish_marker():
+    def publish_marker(self):
         self._markerPublisher.publish()
 
     # Graspability stuffs
@@ -301,13 +301,15 @@ class AISTBaseRoutines(object):
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
-        poses          = self.transform_poses_to_target_frame(poses)
         contact_points = self._transform_points_to_reference_frame(
                                 poses.header, contact_points)
+        poses          = self.transform_poses_to_target_frame(poses)
         for i, pose in enumerate(poses.poses):
-            self.add_marker(gmsg.PoseStamped(poses.header, pose),
-                            'graspability', '{}[{:.3f}]'.format(i, gscores[i]),
-                            contact_points[i], lifetime=marker_lifetime)
+            self.add_marker('graspability',
+                            gmsg.PoseStamped(poses.header, pose),
+                            contact_points[i],
+                            '{}[{:.3f}]'.format(i, gscores[i]),
+                            lifetime=marker_lifetime)
         self.publish_marker()
 
         return poses, gscores
