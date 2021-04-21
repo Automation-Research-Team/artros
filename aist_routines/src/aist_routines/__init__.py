@@ -220,6 +220,28 @@ class AISTBaseRoutines(object):
                                        current_pose.pose, 0.01)
         return (success, is_all_close, current_pose)
 
+    def move_relative(self, robot_name, xyz=(0, 0, 0), rpy=(0, 0, 0),
+                      speed=1.0, end_effector_link='',
+                      high_precision=False, move_lin=True):
+        pose = self.get_current_pose(robot_name, end_effector_link)
+        m44 = tfs.concatenate_matrices(self._listener.fromTranslationRotation(
+                                           (pose.pose.position.x,
+                                            pose.pose.position.y,
+                                            pose.pose.position.z),
+                                           (pose.pose.orientation.x,
+                                            pose.pose.orientation.y,
+                                            pose.pose.orientation.z,
+                                            pose.pose.orientation.w)),
+                                       tfs.translation_matrix(xyz),
+                                       tfs.euler_matrix(rpy[0], rpy[1], rpy[2],
+                                                        'sxyz'))
+        pose.pose.position    = gmsg.Point(
+                                    *tuple(tfs.translation_from_matrix(m44)))
+        pose.pose.orientation = gmsg.Quaternion(
+                                    *tuple(tfs.quaternion_from_matrix(m44)))
+        return self.go_to_pose_goal(robot_name, pose, speed, end_effector_link,
+                                    high_precision, move_lin)
+
     def stop(self, robot_name):
         group = self._cmd.get_group(robot_name)
         group.stop()
