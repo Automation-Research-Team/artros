@@ -5,25 +5,32 @@
   <arg name="scene"			default=""/>
   <arg name="joint_state_frequency"	default="50"/>
   <arg name="robot_state_frequency"	default="50"/>
-  <arg name="moveit_config"		default="$(find ur_trial_a_moveit_config)"/>
+  <arg name="moveit_config"		default="$(find ur_trial_moveit_config)"/>
   <arg name="rviz_config"		default=""/>
 
   <!-- Setup "ur5e" configuration -->
-  <arg name="config"		value="ur_trial_a"/>
+  <arg name="config"		value="aist"/>
   <arg name="gazebo_init_args"  value="-J a_bot_shoulder_pan_joint 1.5708
                                        -J a_bot_shoulder_lift_joint -2.1
                                        -J a_bot_elbow_joint 1.4
                                        -J a_bot_wrist_1_joint -0.85
                                        -J a_bot_wrist_2_joint -1.5708
-                                       -J a_bot_wrist_3_joint 0.0"/>
+                                       -J a_bot_wrist_3_joint 0.0
+  				       -J b_bot_shoulder_pan_joint 1.5708
+  				       -J b_bot_shoulder_lift_joint -2.1
+  				       -J b_bot_elbow_joint 1.4
+  				       -J b_bot_wrist_1_joint -0.85
+  				       -J b_bot_wrist_2_joint -1.5708
+  				       -J b_bot_wrist_3_joint 0.0"/>
   <!-- <arg name="prefixes"		value="a_bot_, a_bot_"/> -->
   <!-- <arg name="devices"		value="ur5, robotiq2f85"/> -->
   <!-- <arg name="controllers"	value="ur_robot, robotiq2f85"/> -->
-  <arg name="prefixes"		value="a_bot_"/>
-  <arg name="devices"		value="ur5"/>
-  <arg name="controllers"	value="ur_robot"/>
-  <arg name="drivers"		value="ur_robot"/>
-  <arg name="driver_args"	value="10.66.171.52, 50003, 50004, false;" />
+  <arg name="prefixes"		value="a_bot_, b_bot_"/>
+  <arg name="devices"		value="ur5, ur5"/>
+  <arg name="controllers"	value="ur_robot, ur_robot"/>
+  <arg name="drivers"		value="ur_robot, ur_robot"/>
+  <arg name="driver_args"	value="10.66.171.52, 50003, 50004, false;
+				       10.66.171.51, 50001, 50002, false;" />
 
   <!-- Bringup robots -->
   <include file="$(find aist_bringup)/launch/include/connect_robots.launch">
@@ -60,11 +67,11 @@
     <!-- </include> -->
 
     <!-- Launch PhoXi camera -->
-    <include file="$(find aist_phoxi_camera)/launch/run.launch">
-        <arg name="camera_name"	value="a_phoxi_m_camera"/>
-    	<arg name="id"		value="2018-09-016-LC3"/>
-    	<arg name="frame"	value="calibrated_a_phoxi_m_camera"/>
-    </include>
+    <!-- <include file="$(find aist_phoxi_camera)/launch/run.launch"> -->
+    <!--     <arg name="camera_name"	value="a_phoxi_m_camera"/> -->
+    <!-- 	<arg name="id"		value="2018-09-016-LC3"/> -->
+    <!-- 	<arg name="frame"	value="calibrated_a_phoxi_m_camera"/> -->
+    <!-- </include> -->
   </group>
 
 </launch>

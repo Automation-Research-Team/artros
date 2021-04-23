@@ -4,7 +4,6 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
         - /TF1
       Splitter Ratio: 0.7425600290298462
     Tree Height: 601
@@ -39,6 +38,92 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        a_bot_base:
+          Value: true
+        a_bot_base_link:
+          Value: true
+        a_bot_ee_link:
+          Value: true
+        a_bot_forearm_link:
+          Value: true
+        a_bot_ft300_flange_link:
+          Value: true
+        a_bot_ft300_link:
+          Value: true
+        a_bot_ft300_wrench_link:
+          Value: true
+        a_bot_shoulder_link:
+          Value: true
+        a_bot_tool0:
+          Value: true
+        a_bot_upper_arm_link:
+          Value: true
+        a_bot_wrist_1_link:
+          Value: true
+        a_bot_wrist_2_link:
+          Value: true
+        a_bot_wrist_3_link:
+          Value: true
+        a_phoxi_m_camera:
+          Value: true
+        a_phoxi_m_camera_link:
+          Value: true
+        a_phoxi_m_sensor:
+          Value: true
+        base:
+          Value: true
+        ground:
+          Value: true
+        tool0_controller:
+          Value: true
+        vwall1:
+          Value: true
+        workbox:
+          Value: true
+        workspace_center:
+          Value: true
+        world:
+          Value: true
+      Marker Scale: 0.30000001192092896
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          ground:
+            a_bot_base_link:
+              a_bot_base:
+                {}
+              a_bot_shoulder_link:
+                a_bot_upper_arm_link:
+                  a_bot_forearm_link:
+                    a_bot_wrist_1_link:
+                      a_bot_wrist_2_link:
+                        a_bot_wrist_3_link:
+                          a_bot_ee_link:
+                            a_bot_ft300_link:
+                              a_bot_ft300_flange_link:
+                                a_bot_ft300_wrench_link:
+                                  {}
+                          a_bot_tool0:
+                            {}
+            vwall1:
+              {}
+            workbox:
+              {}
+            workspace_center:
+              a_phoxi_m_camera:
+                a_phoxi_m_sensor:
+                  a_phoxi_m_camera_link:
+                    {}
+      Update Interval: 0
       Value: true
     - Acceleration_Scaling_Factor: 1
       Class: moveit_rviz_plugin/MotionPlanning
@@ -147,76 +232,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_base:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_ee_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_forearm_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_ft300_flange_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_ft300_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_ft300_wrench_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_shoulder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_single_suction_gripper_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_single_suction_gripper_pad_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_tool0:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_upper_arm_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_wrist_1_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_wrist_2_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_wrist_3_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           ground:
             Alpha: 1
             Show Axes: false
@@ -261,7 +276,7 @@ Visualization Manager:
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
-        Planning Group: b_bot
+        Planning Group: a_bot
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
@@ -358,76 +373,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_base:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_ee_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_forearm_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_ft300_flange_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_ft300_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_ft300_wrench_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_shoulder_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_single_suction_gripper_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_single_suction_gripper_pad_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_tool0:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_upper_arm_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_wrist_1_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_wrist_2_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_bot_wrist_3_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           ground:
             Alpha: 1
             Show Axes: false
@@ -455,92 +400,6 @@ Visualization Manager:
         Show Robot Visual: true
       Value: true
       Velocity_Scaling_Factor: 1
-    - Class: rviz/TF
-      Enabled: true
-      Frame Timeout: 15
-      Frames:
-        All Enabled: true
-        a_bot_base:
-          Value: true
-        a_bot_base_link:
-          Value: true
-        a_bot_ee_link:
-          Value: true
-        a_bot_ft300_flange_link:
-          Value: true
-        a_bot_ft300_link:
-          Value: true
-        a_bot_ft300_wrench_link:
-          Value: true
-        a_bot_tool0:
-          Value: true
-        a_bot_wrist_3_link:
-          Value: true
-        a_phoxi_m_camera:
-          Value: true
-        a_phoxi_m_camera_link:
-          Value: true
-        a_phoxi_m_sensor:
-          Value: true
-        b_bot_base:
-          Value: true
-        b_bot_base_link:
-          Value: true
-        b_bot_ee_link:
-          Value: true
-        b_bot_ft300_flange_link:
-          Value: true
-        b_bot_ft300_link:
-          Value: true
-        b_bot_ft300_wrench_link:
-          Value: true
-        b_bot_single_suction_gripper_base_link:
-          Value: true
-        b_bot_single_suction_gripper_pad_link:
-          Value: true
-        b_bot_tool0:
-          Value: true
-        b_bot_wrist_3_link:
-          Value: true
-        base:
-          Value: true
-        ground:
-          Value: true
-        tool0_controller:
-          Value: true
-        vwall1:
-          Value: true
-        workbox:
-          Value: true
-        workspace_center:
-          Value: true
-        world:
-          Value: true
-      Marker Scale: 1
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
-      Tree:
-        world:
-          ground:
-            a_bot_base_link:
-              a_bot_base:
-                {}
-            b_bot_base_link:
-              b_bot_base:
-                {}
-            vwall1:
-              {}
-            workbox:
-              {}
-            workspace_center:
-              a_phoxi_m_camera:
-                a_phoxi_m_sensor:
-                  a_phoxi_m_camera_link:
-                    {}
-      Update Interval: 0
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -589,7 +448,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002a2000004dffc0200000007fb000000100044006900730070006c006100790073010000003d000002ea000000c900fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000032d000001ef0000018800ffffff0000047c000004df00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002a2000004dffc0200000007fb000000100044006900730070006c006100790073010000003d000002ea000000c900fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000032d000001ef0000017d00ffffff0000047c000004df00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1828
