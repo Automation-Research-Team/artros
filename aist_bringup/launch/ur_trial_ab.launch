@@ -29,8 +29,8 @@
   <arg name="devices"		value="ur5, ur5"/>
   <arg name="controllers"	value="ur_robot, ur_robot"/>
   <arg name="drivers"		value="ur_robot, ur_robot"/>
-  <arg name="driver_args"	value="10.66.171.52, 50003, 50004, false;
-				       10.66.171.51, 50001, 50002, false;" />
+  <arg name="driver_args"	value="10.66.171.52, 50003, 50004, 0;
+				       10.66.171.51, 50001, 50002, 0;" />
 
   <!-- Bringup robots -->
   <include file="$(find aist_bringup)/launch/include/connect_robots.launch">

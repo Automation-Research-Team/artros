@@ -20,7 +20,7 @@
   <arg name="devices"		value="ur5e, robotiq2f85"/>
   <arg name="controllers"	value="ur_robot, robotiq2f85"/>
   <arg name="drivers"		value="ur_robot"/>
-  <arg name="driver_args"	value="10.66.171.52, 50003, 50004, false;" />
+  <arg name="driver_args"	value="10.66.171.52, 50003, 50004, 54321;" />
 
   <!-- Bringup robots -->
   <include file="$(find aist_bringup)/launch/include/connect_robots.launch">
