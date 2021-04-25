@@ -3,7 +3,7 @@ $(arg prefix)gripper_controller:
   action_ns: gripper_action_controller              # for moveit
   action_type: CModelCommand         # for moveit (==>type)
   action_default: true                # for moveit (==>default)
-  joint: $(arg prefix)robotiq_85_left_knuckle_joint
+  joint: $(arg prefix)finger_joint
   goal_tolerance: 0.01
   stalled_velocity_threshold: 0.01
   stall_timeout: 0.2
