@@ -8,12 +8,13 @@ from numpy              import clip
 ######################################################################
 class GripperClient(object):
     def __init__(self, name, type, base_link, tip_link, timeout):
-        self._name       = name
-        self._type       = type
-        self._base_link  = base_link
-        self._tip_link   = tip_link
-        self._timeout    = timeout
-        self._parameters = {}
+        self._name             = name
+        self._type             = type
+        self._base_link        = base_link
+        self._default_tip_link = tip_link
+        self._tip_link         = tip_link
+        self._timeout          = timeout
+        self._parameters       = {}
 
     @staticmethod
     def create(type_name, kwargs):
@@ -39,6 +40,10 @@ class GripperClient(object):
     def tip_link(self):
         return self._tip_link
 
+    @tip_link.setter
+    def tip_link(self, tip_link):
+        self._tip_link = tip_link
+
     @property
     def timeout(self):
         return self._timeout
@@ -51,6 +56,9 @@ class GripperClient(object):
     def parameters(self, parameters):
         for key, value in parameters.items():
             self._parameters[key] = value
+
+    def reset_tip_link(self):
+        self._tip_link = self._default_tip_link
 
     def pregrasp(self, wait=True):
         return self.release(wait)
@@ -236,7 +244,7 @@ class Robotiq2f85Gripper(GripperClient):
 
         super(Robotiq2f85Gripper, self) \
             .__init__(*Robotiq2f85Gripper._initargs(prefix, product,
-                                                force, velocity, timeout))
+                                                    force, velocity, timeout))
         self._client = actionlib.SimpleActionClient(
                            prefix
                              + 'gripper_controller/gripper_action',
@@ -256,8 +264,8 @@ class Robotiq2f85Gripper(GripperClient):
     @staticmethod
     def base(prefix, product, force, velocity, timeout):
         return GripperClient(*Robotiq2f85Gripper._initargs(prefix, product,
-                                                       force, velocity,
-                                                       timeout))
+                                                           force, velocity,
+                                                           timeout))
         # return Robotiq2f85Gripper(prefix, product, force, velocity, timeout)
 
     @staticmethod
