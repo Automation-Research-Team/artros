@@ -15,7 +15,7 @@ hardware_interface:
     - a_bot_wrist_1_joint
     - a_bot_wrist_2_joint
     - a_bot_wrist_3_joint
-    - a_bot_robotiq_85_left_knuckle_joint
+    - a_bot_finger_joint
     - b_bot_shoulder_pan_joint
     - b_bot_shoulder_lift_joint
     - b_bot_elbow_joint
@@ -40,3 +40,14 @@ controller_list:
       - a_bot_wrist_1_joint
       - a_bot_wrist_2_joint
       - a_bot_wrist_3_joint
+  - name: b_bot_scaled_pos_joint_traj_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - b_bot_shoulder_pan_joint
+      - b_bot_shoulder_lift_joint
+      - b_bot_elbow_joint
+      - b_bot_wrist_1_joint
+      - b_bot_wrist_2_joint
+      - b_bot_wrist_3_joint
