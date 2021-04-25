@@ -1,5 +1,5 @@
 # Settings for ros_control control loop
-$(arg prefix)hardware_control_loop:
+hardware_control_loop:
    loop_hz: &loop_hz $(arg frequency)
 
 # Settings for ros_control hardware interface

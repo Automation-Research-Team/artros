@@ -12,6 +12,7 @@
   <rosparam file="$(find aist_bringup)/config/ur_robot_controller.yaml"
 	    subst_value="true" />
 
+  <!-- Spawn controller manager -->
   <arg name="controllers" value="$(arg prefix)joint_state_controller
 				 $(arg prefix)scaled_pos_joint_traj_controller
 				 $(arg prefix)speed_scaling_state_controller
@@ -21,6 +22,7 @@
 	pkg="controller_manager" type="spawner" output="screen" respawn="false"
 	args="$(arg controllers)"/>
 
+  <!-- Load other controllers -->
   <arg name="stopped_controllers"
        default="$(arg prefix)joint_group_vel_controller"/>
   <node name="$(arg prefix)stopped_spawner"
