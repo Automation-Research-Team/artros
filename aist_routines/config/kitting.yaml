@@ -213,7 +213,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 15
     min_distance: 30
-    contact_radius: 8
+    contact_radius: 15
     open_width: 100
     finger_width: 1
     finger_thickness: 5
@@ -221,13 +221,13 @@ graspability_parameters:
   05_MBRFA30-2-P6:
     ns: 2
     nz: 0.7
-    object_size: 8
+    object_size: 15
     min_distance: 30
-    contact_radius: 6
+    contact_radius: 15
     open_width: 45
     finger_width: 1
     finger_thickness: 5
-    insertion_depth: 0.003
+    insertion_depth: 0.002
   06_MBT4-400:
     ns: 2
     nz: 0.7
@@ -241,13 +241,13 @@ graspability_parameters:
   07_SBARB6200ZZ_30:
     ns: 2
     nz: 0.7
-    object_size: 12
+    object_size: 15
     min_distance: 30
-    contact_radius: 12
+    contact_radius: 10
     open_width: 20
     finger_width: 1
     finger_thickness: 5
-    insertion_depth: 0.005
+    insertion_depth: 0.003
   08_KZAF1075NA4WA55GA20AA0:
     ns: 0
     detect_edge: false
