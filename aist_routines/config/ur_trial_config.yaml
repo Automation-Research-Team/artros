@@ -23,6 +23,6 @@ grippers:
       timeout: 2.0
 
 cameras:
-  a_phoxi_m_camera: PhoXiCamera
+#  a_phoxi_m_camera: PhoXiCamera
 #  a_bot_inside_camera: RealSenseCamera
 #  a_bot_outside_camera: RealSenseCamera

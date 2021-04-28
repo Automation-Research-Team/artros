@@ -1,10 +1,10 @@
 moveit_setup_assistant_config:
   URDF:
     package: aist_description
-    relative_path: scenes/urdf/aist_base_scene.urdf.xacro
+    relative_path: scenes/urdf/ur_trial_base_scene.urdf.xacro
     xacro_args: ""
   SRDF:
-    relative_path: config/aist_base_scene.srdf
+    relative_path: config/ur_trial_base_scene.srdf
   CONFIG:
     author_name: Jun Miyoshi
     author_email: j.miyoshi@aist.go.jp

@@ -9,7 +9,7 @@
   <arg name="rviz_config"		default=""/>
 
   <!-- Setup "ur5e" configuration -->
-  <arg name="config"		value="aist"/>
+  <arg name="config"		value="ur_trial"/>
   <arg name="gazebo_init_args"  value="-J a_bot_shoulder_pan_joint 1.5708
                                        -J a_bot_shoulder_lift_joint -2.1
                                        -J a_bot_elbow_joint 1.4
