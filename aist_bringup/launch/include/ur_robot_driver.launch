@@ -10,11 +10,9 @@
   <arg name="script_sender_port"     value="$(eval driver_arg.split(',')[2])"/>
   <arg name="tool_tcp_port"	     value="$(eval driver_arg.split(',')[3])"/>
   <arg name="use_tool_communication" value="$(eval tool_tcp_port != 0)"/>
-  <arg name="namespace"		     value="$(eval '/' + prefix.rstrip('_'))"/>
+  <arg name="namespace"		     value="$(eval prefix.rstrip('_'))"/>
 
-  <remap from="$(arg namespace)/joint_states" to="/joint_states"/>
-  
-  <gourp ns="$(arg namespace)">
+  <group ns="$(arg namespace)">
     <!-- Load hardware interface -->
     <node name="ur_hardware_interface"
 	  pkg="ur_robot_driver" type="ur_robot_driver_node"
@@ -23,7 +21,7 @@
 		      )/config/$(arg prefix)calibration.yaml"/>
       <rosparam file="$(find aist_bringup)/config/ur_robot_driver.yaml"
 		subst_value="true"/>
-      <!-- <remap from="joint_states" to="/joint_states"/> -->
+      <remap from="joint_states" to="/joint_states"/>
     </node>
 
     <!-- Starts socat to bridge the robot's tool communication
@@ -39,6 +37,6 @@
     <node ns="ur_hardware_interface" name="ur_robot_state_helper"
 	  pkg="ur_robot_driver" type="robot_state_helper"
 	  respawn="false" output="screen"/>
-  </gourp>
+  </group>
 
 </launch>
