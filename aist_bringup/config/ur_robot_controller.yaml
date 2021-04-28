@@ -3,7 +3,7 @@ hardware_control_loop:
    loop_hz: &loop_hz $(arg frequency)
 
 # Settings for ros_control hardware interface
-$(arg prefix)ur_hardware_interface:
+ur_hardware_interface:
    joints: &robot_joints
      - $(arg prefix)shoulder_pan_joint
      - $(arg prefix)shoulder_lift_joint
@@ -13,23 +13,23 @@ $(arg prefix)ur_hardware_interface:
      - $(arg prefix)wrist_3_joint
 
 # Publish all joint states ----------------------------------
-$(arg prefix)joint_state_controller:
+joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: *loop_hz
 
 # Publish wrench ----------------------------------
-$(arg prefix)force_torque_sensor_controller:
+force_torque_sensor_controller:
    type:         force_torque_sensor_controller/ForceTorqueSensorController
    publish_rate: *loop_hz
 
 # Publish speed_scaling factor
-$(arg prefix)speed_scaling_state_controller:
+speed_scaling_state_controller:
    type:         ur_controllers/SpeedScalingStateController
    publish_rate: *loop_hz
 
 # Joint Trajectory Controller - position based -------------------------------
 # For detailed explanations of parameter see http://wiki.ros.org/joint_trajectory_controller
-$(arg prefix)scaled_pos_joint_traj_controller:
+scaled_pos_joint_traj_controller:
    type: position_controllers/$(arg scaled)JointTrajectoryController
    joints: *robot_joints
    constraints:
@@ -45,7 +45,7 @@ $(arg prefix)scaled_pos_joint_traj_controller:
    state_publish_rate: *loop_hz
    action_monitor_rate: 20
 
-$(arg prefix)pos_joint_traj_controller:
+pos_joint_traj_controller:
    type: position_controllers/JointTrajectoryController
    joints: *robot_joints
    constraints:
@@ -61,7 +61,7 @@ $(arg prefix)pos_joint_traj_controller:
    state_publish_rate: *loop_hz
    action_monitor_rate: 20
 
-$(arg prefix)scaled_vel_joint_traj_controller:
+scaled_vel_joint_traj_controller:
    type: velocity_controllers/$(arg scaled)JointTrajectoryController
    joints: *robot_joints
    constraints:
@@ -93,7 +93,7 @@ $(arg prefix)scaled_vel_joint_traj_controller:
    state_publish_rate: *loop_hz
    action_monitor_rate: 20
 
-$(arg prefix)vel_joint_traj_controller:
+vel_joint_traj_controller:
    type: velocity_controllers/JointTrajectoryController
    joints: *robot_joints
    constraints:
@@ -126,11 +126,11 @@ $(arg prefix)vel_joint_traj_controller:
    action_monitor_rate: 20
 
 # Pass an array of joint velocities directly to the joints
-$(arg prefix)joint_group_vel_controller:
+joint_group_vel_controller:
    type: velocity_controllers/JointGroupVelocityController
    joints: *robot_joints
 
-$(arg prefix)robot_status_controller:
+robot_status_controller:
    type: industrial_robot_status_controller/IndustrialRobotStatusController
    handle_name: industrial_robot_status_handle
    publish_rate: 10
