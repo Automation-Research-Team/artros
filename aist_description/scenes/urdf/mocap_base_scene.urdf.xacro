@@ -48,10 +48,17 @@
   </joint>
 
   <!-- Spawn and attach gripper -->
+  <xacro:include filename="$(find robotiq_description
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="c_bot_"
+				parent="c_bot_ee_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/robotiq_85_gripper_with_tip_link.urdf.xacro"/>
   <xacro:robotiq_85_gripper_with_tip_link prefix="c_bot_"
-					  parent="c_bot_ee_link">
+					  parent="c_bot_robotiq_arg2f_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_85_gripper_with_tip_link>
 

@@ -36,7 +36,6 @@
       <parent link="${parent}"/>
       <child  link="${prefix}ft300_link"/>
       <xacro:insert_block name="origin"/>
-
     </joint>
 
     <link name="${prefix}ft300_flange_link"/>
