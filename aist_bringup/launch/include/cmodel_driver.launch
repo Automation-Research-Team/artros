@@ -10,11 +10,12 @@
 				'cmodel_action_controller_140'
 				if device == 'robotiq_140' else
 				'cmodel_action_controller')"/>
+  <arg name="namespace"	 value="$(eval prefix.rstrip('_'))"/>
 
   <include file="$(find robotiq_control
 		 )/launch/ur_cmodel_action_controller.launch">
-    <arg name="topic"		value="/$(arg prefix
-				       )ur_hardware_interface/script_commnd"/>
+    <arg name="topic"		value="/$(arg namespace
+				       )/ur_hardware_interface/script_command"/>
     <arg name="namespace"	value="$(arg prefix)gripper_controller"/>
     <arg name="gripper_prefix"	value="$(arg prefix)"/>
     <arg name="config"		value="$(arg config)"/>

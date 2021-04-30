@@ -12,5 +12,5 @@ grippers:
       velocity: 0.1
       timeout: 6.0
 
-cameras:
-  realsenseD435: DepthCamera
+#cameras:
+#  realsenseD435: DepthCamera
