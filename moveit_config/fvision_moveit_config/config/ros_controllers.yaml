@@ -22,7 +22,7 @@ joint_state_controller:
   type: joint_state_controller/JointStateController
   publish_rate: 50
 controller_list:
-  - name: /d_bot_scaled_pos_joint_traj_controller
+  - name: d_bot_scaled_pos_joint_traj_controller
     action_ns: follow_joint_trajectory
     default: True
     type: FollowJointTrajectory
@@ -33,3 +33,9 @@ controller_list:
       - d_bot_wrist_1_joint
       - d_bot_wrist_2_joint
       - d_bot_wrist_3_joint
+  - name: d_bot_robotiq_hande_controller
+    action_ns: gripper_cmd
+    default: True
+    type: GripperCommand
+    joints:
+      - c_bot_finger_joint
