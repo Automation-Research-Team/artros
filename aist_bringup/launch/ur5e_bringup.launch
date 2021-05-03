@@ -27,7 +27,9 @@
   <arg name="controllers"	value="ur_robot, ur_robot, ros, ros"/>
   <arg name="drivers"		value="ur_robot, ur_robot, cmodel, cmodel"/>
   <arg name="driver_args"	value="10.66.171.53, 50001, 50002, 0;
-				       10.66.171.54, 50003, 50004, 0;"/>
+				       10.66.171.54, 50003, 50004, 0;
+				       10.66.171.53;
+				       10.66.171.54"/>
 
   <!-- Bringup robots -->
   <include file="$(find aist_bringup)/launch/include/connect_robots.launch">

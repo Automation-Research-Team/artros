@@ -6,7 +6,6 @@
   <arg name="sim"    default="false"/>
 
   <!-- Setup controller parameters. -->
-  <arg name="namespace"	value="$(eval prefix.rstrip('_'))"/>
   <arg name="scaled"	value="$(eval '' if sim else 'Scaled')"/>
   <arg name="frequency" value="$(eval 500 if device[-1] == 'e' else 125)"/>
 
