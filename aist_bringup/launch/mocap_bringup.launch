@@ -16,7 +16,7 @@
 				       -J c_bot_wrist_1_joint -0.85
 				       -J c_bot_wrist_2_joint -1.5708
 				       -J c_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="c_bot_, c_bot_"/>
+  <arg name="prefixes"		value="c_bot_, c_bot_gripper_"/>
   <arg name="devices"		value="ur5e, robotiq_85"/>
   <arg name="controllers"	value="ur_robot, ros"/>
   <arg name="drivers"		value="ur_robot, cmodel"/>

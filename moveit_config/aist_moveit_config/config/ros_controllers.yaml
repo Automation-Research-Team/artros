@@ -51,10 +51,9 @@ controller_list:
       - b_bot_wrist_1_joint
       - b_bot_wrist_2_joint
       - b_bot_wrist_3_joint
-  - name: a_bot_robotiq_85_controller
+  - name: a_bot_gripper_controller
     action_ns: gripper_cmd
     default: True
     type: GripperCommand
     joints:
       - a_bot_finger_joint
-    

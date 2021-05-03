@@ -1,4 +1,4 @@
-$(arg prefix)$(arg device)_controller:
+$(arg prefix)controller:
   type: position_controllers/GripperActionController
 #  action_ns: gripper_action_controller              # for moveit
 #  action_type: CModelCommand         # for moveit (==>type)

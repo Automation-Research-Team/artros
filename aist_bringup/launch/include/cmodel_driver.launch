@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"	 default="a_bot_"/>
+  <arg name="prefix"	 default="a_bot_gripper_"/>
   <arg name="device"	 default="robotiq_85"/>
   <arg name="driver_arg" default=""/>
 
@@ -10,12 +10,11 @@
 				'cmodel_action_controller_140'
 				if device == 'robotiq_140' else
 				'cmodel_action_controller')"/>
-  <arg name="namespace"	 value="$(eval prefix.rstrip('_'))"/>
 
   <include file="$(find robotiq_control
 		 )/launch/urcap_cmodel_action_controller.launch">
     <arg name="address"		value="$(arg driver_arg)"/>
-    <arg name="namespace"	value="$(arg prefix)gripper_controller"/>
+    <arg name="namespace"	value="$(arg prefix)controller"/>
     <arg name="gripper_prefix"	value="$(arg prefix)"/>
     <arg name="config"		value="$(arg config)"/>
   </include>

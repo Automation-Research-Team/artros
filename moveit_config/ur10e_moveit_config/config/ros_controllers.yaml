@@ -33,7 +33,7 @@ controller_list:
       - a_bot_wrist_1_joint
       - a_bot_wrist_2_joint
       - a_bot_wrist_3_joint
-  - name: a_bot_robotiq_140_controller
+  - name: a_bot_gripper_controller
     action_ns: gripper_cmd
     default: True
     type: GripperCommand

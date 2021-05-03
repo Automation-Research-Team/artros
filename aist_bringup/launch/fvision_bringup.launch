@@ -16,7 +16,7 @@
 				       -J d_bot_wrist_1_joint -0.85
 				       -J d_bot_wrist_2_joint -1.5708
 				       -J d_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="d_bot_, d_bot_"/>
+  <arg name="prefixes"		value="d_bot_, d_bot_gripper_"/>
   <arg name="devices"		value="ur5e, robotiq_hande"/>
   <arg name="controllers"	value="ur_robot, ros"/>
   <arg name="drivers"		value="ur_robot, cmodel"/>
@@ -60,7 +60,7 @@
     <!-- 	<arg name="id"		value='"1711015"'/> -->
     <!-- 	<arg name="frame"	value="calibrated_b_phoxi_m_camera"/> -->
     <!-- </include> -->
-    
+
   </group>
 
 </launch>
