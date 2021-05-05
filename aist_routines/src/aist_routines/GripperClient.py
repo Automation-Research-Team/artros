@@ -151,40 +151,22 @@ class GenericGripper(GripperClient):
 #  class RobotiqGripper                                              #
 ######################################################################
 class RobotiqGripper(GripperClient):
-    def __init__(self, prefix='a_bot_', product='robotiq_85',
-                 force=5.0, velocity=0.1, timeout=6.0):
-        import robotiq_msgs.msg
+    import robotiq_msgs.msg
+
+    def __init__(self, prefix, force=5.0, velocity=0.1, timeout=6.0):
 
         super(RobotiqGripper, self) \
-            .__init__(*RobotiqGripper._initargs(prefix, product,
+            .__init__(*RobotiqGripper._initargs(prefix,
                                                 force, velocity, timeout))
-        self._client = actionlib.SimpleActionClient(
-                           prefix
-                             + 'gripper_controller/gripper_action_controller',
-                           robotiq_msgs.msg.CModelCommandAction)
-        self._goal   = robotiq_msgs.msg.CModelCommandGoal()
-
-        if product == 'robotiq_hande':
-            self._min_gap   = 0.0
-            self._max_gap   = 0.026
-            self._min_speed = 0.02
-            self._max_speed = 0.15
-            self._min_force = 20.0
-            self._max_force = 130.0
-        elif product == 'robotiq_85':
-            self._min_gap   = 0.0
-            self._max_gap   = 0.085
-            self._min_speed = 0.013
-            self._max_speed = 0.1
-            self._min_force = 20.0
-            self._max_force = 235.0
-        else:
-            self._min_gap   = 0.0
-            self._max_gap   = 0.140
-            self._min_speed = 0.03
-            self._max_speed = 0.25
-            self._min_force = 10.0
-            self._max_force = 125.0
+        self._client    = actionlib.SimpleActionClient(
+                              prefix + 'controller/gripper_action_controller',
+                              robotiq_msgs.msg.CModelCommandAction)
+        self._min_gap   = rospy.get_param(prefix + 'controller/min_gap')
+        self._max_gap   = rospy.get_param(prefix + 'controller/max_gap')
+        self._min_speed = rospy.get_param(prefix + 'controller/min_speed')
+        self._max_speed = rospy.get_param(prefix + 'controller/max_speed')
+        self._min_force = rospy.get_param(prefix + 'controller/min_force')
+        self._max_force = rospy.get_param(prefix + 'controller/max_force')
 
         self.parameters = {'max_effort':       force,
                            'velocity':         velocity,
@@ -192,17 +174,15 @@ class RobotiqGripper(GripperClient):
                            'release_position': self._max_gap}
 
     @staticmethod
-    def base(prefix, product, force, velocity, timeout):
-        return GripperClient(*RobotiqGripper._initargs(prefix, product,
-                                                       force, velocity,
+    def base(prefix, force, velocity, timeout):
+        return GripperClient(*RobotiqGripper._initargs(prefix, force, velocity,
                                                        timeout))
         # return RobotiqGripper(prefix, product, force, velocity, timeout)
 
     @staticmethod
-    def _initargs(prefix, product, force, velocity, timeout):
-        return (prefix + product + '_gripper', 'two_finger',
-                prefix + product + '_base_link',
-                prefix + product + '_tip_link', timeout)
+    def _initargs(prefix, force, velocity, timeout):
+        return (prefix.rstrip('_'), 'two_finger',
+                prefix + 'base_link', prefix + 'tip_link', timeout)
 
     def grasp(self, wait=True):
         return self.move(self.parameters['grasp_position'], wait)
@@ -211,12 +191,13 @@ class RobotiqGripper(GripperClient):
         return self.move(self.parameters['release_position'], wait)
 
     def move(self, position, wait=True):
-        self._goal.force    = clip(self.parameters['max_effort'],
-                                   self._min_force, self._max_force)
-        self._goal.velocity = clip(self.parameters['velocity'],
-                                   self._min_speed, self._max_speed)
-        self._goal.position = clip(position, self._min_gap, self._max_gap)
-        self._client.send_goal(self._goal)
+        goal = robotiq_msgs.msg.CModelCommandGoal()
+        goal.force    = clip(self.parameters['max_effort'],
+                             self._min_force, self._max_force)
+        goal.velocity = clip(self.parameters['velocity'],
+                             self._min_speed, self._max_speed)
+        goal.position = clip(position, self._min_gap, self._max_gap)
+        self._client.send_goal(goal)
         # This sleep is necessary for robotiq gripper to work just as intended.
         rospy.sleep(.5)
         return self.wait() if wait else True
@@ -226,8 +207,7 @@ class RobotiqGripper(GripperClient):
             rospy.logerr('Timeout[%f] has expired before goal finished',
                          self.timeout)
             return False
-        result = self._client.get_result()
-        return result.reached_goal
+        return self._client.get_result().reached_goal
 
     def cancel(self):
         if self._client.get_state() in ( GoalStatus.PENDING,
@@ -307,13 +287,12 @@ class Robotiq2f85Gripper(GripperClient):
 #  class SuctionGripper                                              #
 ######################################################################
 class SuctionGripper(GripperClient):
-    def __init__(self, name, base_link, tip_link, eject=False, timeout=2.0):
+    def __init__(self, prefix, eject=False, timeout=2.0):
         import o2as_msgs.msg
         import std_msgs.msg
 
         super(SuctionGripper, self) \
-            .__init__(*SuctionGripper._initargs(name, base_link, tip_link,
-                                                eject, timeout))
+            .__init__(*SuctionGripper._initargs(prefix, timeout))
         self._client    = actionlib.SimpleActionClient(
                               'o2as_fastening_tools/suction_control',
                               o2as_msgs.msg.SuctionControlAction)
@@ -328,14 +307,13 @@ class SuctionGripper(GripperClient):
         self._goal.eject_screw         = False
 
     @staticmethod
-    def base(name, base_link, tip_link, eject, timeout):
-        return GripperClient(*SuctionGripper._initargs(name,
-                                                       base_link, tip_link,
-                                                       eject, timeout))
+    def base(prefix, eject, timeout):
+        return GripperClient(*SuctionGripper._initargs(prefix, eject, timeout))
 
     @staticmethod
-    def _initargs(name, base_link, tip_link, eject, timeout):
-        return (name, 'suction', base_link, tip_link, timeout)
+    def _initargs(prefix, eject, timeout):
+        return (prefix.rstrip('_'), 'suction',
+                prefix + 'base_link', prefix + 'pad_link', timeout)
 
     def pregrasp(self, wait=True):
         return self._send_command(True)
