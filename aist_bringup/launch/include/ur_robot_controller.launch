@@ -34,20 +34,20 @@
 
     <!-- Load other controllers -->
     <arg name="stopped_controllers" value="$(arg prefix
-					   )joint_group_vel_controller"/>
+    					   )joint_group_vel_controller"/>
     <node name="$(arg prefix)stopped_spawner"
-	  pkg="controller_manager" type="spawner"
+    	  pkg="controller_manager" type="spawner"
     	  respawn="false" output="screen"
     	  args="--stopped $(arg stopped_controllers)" />
 
     <node name="$(arg prefix)controller_stopper"
-	  pkg="controller_stopper" type="node" respawn="false" output="screen">
+    	  pkg="controller_stopper" type="node" respawn="false" output="screen">
       <remap from="robot_running"
-	     to="$(arg prefix)ur_hardware_interface/robot_program_running"/>
+    	     to="$(arg prefix)ur_hardware_interface/robot_program_running"/>
       <rosparam param="consistent_controllers" subst_value="true">
-	- "$(arg prefix)speed_scaling_state_controller"
-	- "$(arg prefix)force_torque_sensor_controller"
-	- "$(arg prefix)robot_status_controller"
+        - "$(arg prefix)speed_scaling_state_controller"
+        - "$(arg prefix)force_torque_sensor_controller"
+        - "$(arg prefix)robot_status_controller"
       </rosparam>
     </node>
   </group>
