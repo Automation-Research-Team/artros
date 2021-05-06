@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="prefix" default="ros_"/>
+  <arg name="device" default="gripper"/>
+  <arg name="sim"/>
+
+</launch>
