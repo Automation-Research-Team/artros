@@ -45,9 +45,9 @@
       <remap from="robot_running"
 	     to="$(arg prefix)ur_hardware_interface/robot_program_running"/>
       <rosparam param="consistent_controllers" subst_value="true">
-	- "$(arg prefix)speed_scaling_state_controller"
-	- "$(arg prefix)force_torque_sensor_controller"
-	- "$(arg prefix)robot_status_controller"
+        - "$(arg prefix)speed_scaling_state_controller"
+        - "$(arg prefix)force_torque_sensor_controller"
+        - "$(arg prefix)robot_status_controller"
       </rosparam>
     </node>
   </group>

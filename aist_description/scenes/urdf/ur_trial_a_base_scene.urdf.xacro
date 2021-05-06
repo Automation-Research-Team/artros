@@ -52,7 +52,7 @@
 
   <!-- Spawn and attach force sensor -->
   <xacro:include filename="$(find aist_ftsensor)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="a_bot_"
+  <xacro:ft300 prefix="a_bot_ftsensor_"
 	       parent="a_bot_ee_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ft300>
@@ -61,7 +61,7 @@
   <xacro:include filename="$(find robotiq_description
 			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
   <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
-				parent="a_bot_ft300_flange_link">
+				parent="a_bot_ftsensor_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
