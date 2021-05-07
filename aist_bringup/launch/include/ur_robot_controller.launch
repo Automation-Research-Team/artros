@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix" default="b_bot_"/>
+  <arg name="prefix" default="a_bot_"/>
   <arg name="device" default="ur5"/>
   <arg name="sim"    default="false"/>
 
@@ -23,7 +23,8 @@
 
   <group unless="$(arg sim)">
     <arg name="controllers"
-	 value="$(arg prefix)scaled_pos_joint_traj_controller
+	 value="joint_state_controller
+		$(arg prefix)scaled_pos_joint_traj_controller
 		$(arg prefix)speed_scaling_state_controller
 		$(arg prefix)force_torque_sensor_controller
 		$(arg prefix)robot_status_controller"/>

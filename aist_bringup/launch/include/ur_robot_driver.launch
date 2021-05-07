@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"	 default="b_bot_"/>
+  <arg name="prefix"	 default="a_bot_"/>
   <arg name="device"	 default="ur5"/>
-  <arg name="driver_arg" default="10.66.171.51, 50001, 50002, 0"/>
+  <arg name="driver_arg" default="10.66.171.52, 50003, 50004, 0"/>
 
   <arg name="ip"		     value="$(eval driver_arg.split(',')[0])"/>
   <arg name="reverse_port"	     value="$(eval driver_arg.split(',')[1])"/>
