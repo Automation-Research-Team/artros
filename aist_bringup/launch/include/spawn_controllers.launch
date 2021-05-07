@@ -60,12 +60,12 @@
 
   <group if="$(eval devices.strip() == '')">
     <!-- Setup parameters and spawn joint_state_controller -->
-    <!-- <rosparam file="$(find aist_bringup)/config/joint_state_controller.yaml" -->
-    <!--           subst_value="true"/> -->
-    <!-- <node name="joint_state_controller_spawner" -->
-    <!--       pkg ="controller_manager" type="spawner" -->
-    <!--       args="joint_state_controller" -->
-    <!--       output="screen"/> -->
+    <rosparam file="$(find aist_bringup)/config/joint_state_controller.yaml"
+              subst_value="true"/>
+    <node name="joint_state_controller_spawner"
+          pkg ="controller_manager" type="spawner"
+          args="joint_state_controller"
+          output="screen"/>
 
     <group if="$(eval torobo_controllers.strip() != '')">
       <!-- Setup joint_state_controller parameters -->
