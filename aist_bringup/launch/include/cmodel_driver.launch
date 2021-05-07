@@ -19,4 +19,5 @@
     <arg name="config"		value="$(arg config)"/>
   </include>
   <remap from="$(arg prefix)controller/joint_states" to="/joint_states"/>
+  
 </launch>

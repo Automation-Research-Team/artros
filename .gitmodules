@@ -17,9 +17,6 @@
 	path = third_party/universal_robot
 	url = https://github.com/fmauch/universal_robot.git
 	branch = calibration_devel
-[submodule "ur_modern_driver"]
-	path = third_party/ur_modern_driver
-	url = https://gitlab.com/art-aist/ur_modern_driver
 [submodule "third_party/aruco_ros"]
 	path = third_party/aruco_ros
 	url = https://gitlab.com/art-aist/aruco_ros

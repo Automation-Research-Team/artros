@@ -19,10 +19,10 @@ class SuctionController(object):
         config_dir = rospy.get_param("~config_dir")
         config_file = rospy.get_param("~suction_control")
         operation_mode_file = rospy.get_param("~operation_mode")
-        
-        rospy.Subscriber("b_bot_controller/ur_driver/io_states", IOStates, self.io_state_callback, queue_size=1)
-        
-        self.set_io = rospy.ServiceProxy('b_bot_controller/ur_driver/set_io', SetIO)
+
+        rospy.Subscriber("b_bot/ur_hardware_interface/io_states", IOStates, self.io_state_callback, queue_size=1)
+
+        self.set_io = rospy.ServiceProxy('b_bot/ur_hardware_interface/set_io', SetIO)
 
         # get data for .yaml
         conf_suction_filename = config_dir + "/" + config_file + ".yaml"
@@ -61,7 +61,7 @@ class SuctionController(object):
         self._action_name = 'o2as_fastening_tools/suction_control'
         self._as = actionlib.SimpleActionServer(self._action_name, SuctionControlAction, execute_cb=self.suction_control, auto_start = False)
         self._as.start()
-    
+
     def io_state_callback(self, data):
         for read_in_status in data.digital_in_states:
             self.in_state.update({read_in_status.pin: read_in_status.state})
@@ -102,8 +102,8 @@ class SuctionController(object):
             rospy.logerr("Error. Digital_out_port(%d) can't be changed." % (port))
 
         return success_flag
-        
-        
+
+
     def suction_control(self, goal):
         success_flag = True
         res = SuctionControlResult()
@@ -120,7 +120,7 @@ class SuctionController(object):
         if (goal.fastening_tool_name in self.digital_out_port_blow) == False:
             rospy.logerr("yaml file: '%s' does not exist in %s." % (goal.fastening_tool_name, self.digital_out_port_blow))
             success_flag = False
-            
+
         if not success_flag:
             res.success = success_flag
             self._as.set_aborted(res)
@@ -128,7 +128,7 @@ class SuctionController(object):
 
         vac_port = self.digital_out_port_vac[goal.fastening_tool_name]
         blow_port = self.digital_out_port_blow[goal.fastening_tool_name]
-        
+
         if goal.turn_suction_on:
             if not self.set_out_pin_switch(blow_port, 0):
                 success_flag = False
@@ -150,7 +150,7 @@ class SuctionController(object):
                 success_flag = False
             if not self.set_out_pin_switch(vac_port, 0):
                 success_flag = False
-        
+
         res.success = success_flag
         if not success_flag:
             self._as.set_aborted(res)

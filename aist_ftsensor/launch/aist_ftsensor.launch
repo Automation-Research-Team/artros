@@ -1,7 +1,8 @@
 <launch>
   <arg name="robot_name"        default="b_bot"/>
   <arg name="reference_frame"	default="workspace_center"/>
-  <arg name="sensor_frame"	default="$(arg robot_name)_ftsensor_wrench_link"/>
+  <arg name="sensor_frame"	default="$(arg robot_name
+					 )_ftsensor_wrench_link"/>
   <arg name="rate"              default="125"/>
 
   <!--
