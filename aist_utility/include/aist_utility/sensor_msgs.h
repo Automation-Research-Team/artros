@@ -1,0 +1,262 @@
+/*!
+ *  \file	sensor_msgs.h
+ *  \author	Toshio UESHIBA
+ *  \brief	Utilities
+ */
+#ifndef AIST_UTILITY_SENSOR_MSGS_H
+#define AIST_UTILITY_SENSOR_MSGS_H
+
+#include <array>
+#include <algorithm>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/calib3d.hpp>
+
+namespace aist_utility
+{
+//! Get intensity value
+template <class T>
+inline float	intensity(const T& grey)	{ return grey; }
+template <>
+inline float	intensity(const std::array<uint8_t, 3>& rgb)
+		{
+		    return 0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2];
+		}
+
+//! Get depth value in meters.
+template <class T>
+inline float	meters(T depth)			{ return depth; }
+template <>
+inline float	meters(uint16_t depth)		{ return 0.001f * depth; }
+
+//! Get depth value in milimeters.
+template <class T>
+inline float	milimeters(T depth)		{ return 1000.0f * depth; }
+template <>
+inline float	milimeters(uint16_t depth)	{ return depth; }
+
+//! Get pointer to the leftmost pixel of v-th scanline of the image.
+template <class T> inline T*
+ptr(sensor_msgs::Image& image, int v)
+{
+    return reinterpret_cast<T*>(image.data.data() + v*image.step);
+}
+
+//! Get const pointer to the leftmost pixel of v-th scanline of the image.
+template <class T> inline const T*
+ptr(const sensor_msgs::Image& image, int v)
+{
+    return reinterpret_cast<const T*>(image.data.data() + v*image.step);
+}
+
+//! Convert depth image to sequence of 3D points.
+template <class T, class ITER, class UNIT> ITER
+depth_to_points(const sensor_msgs::CameraInfo& camera_info,
+		const sensor_msgs::Image& depth, ITER out, UNIT unit)
+{
+    cv::Mat_<float>	K(3, 3);
+    std::copy_n(std::begin(camera_info.K), 9, K.begin());
+    cv::Mat_<float>	D(1, 4);
+    std::copy_n(std::begin(camera_info.D), 4, D.begin());
+
+    cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
+    for (int u = 0; u < depth.width; ++u)
+	uv(u).x = u;
+
+    for (int v = 0; v < depth.height; ++v)
+    {
+	for (int u = 0; u < depth.width; ++u)
+	    uv(u).y = v;
+
+	cv::undistortPoints(uv, xy, K, D);
+
+	auto	p = ptr<T>(depth, v);
+	for (int u = 0; u < depth.width; ++u)
+	{
+	    const auto	d = unit(*p++);		// meters or milimeters
+	    *out++ = {xy(u).x * d, xy(u).y * d, d};
+	}
+    }
+
+    return out;
+}
+
+template <class IN> sensor_msgs::PointCloud2
+create_pointcloud(IN in, IN ie,
+		  const ros::Time& stamp, const std::string& frame)
+{
+    using namespace	sensor_msgs;
+
+    PointCloud2	cloud;
+    cloud.is_bigendian	  = false;
+    cloud.is_dense	  = true;
+    cloud.header.stamp	  = stamp;
+    cloud.header.frame_id = frame;
+    cloud.height	  = 1;
+    cloud.width		  = std::distance(in, ie);
+
+    PointCloud2Modifier	modifier(cloud);
+    modifier.setPointCloud2Fields(3,
+				  "x", 1, PointField::FLOAT32,
+				  "y", 1, PointField::FLOAT32,
+				  "z", 1, PointField::FLOAT32);
+    modifier.resize(cloud.width);
+    cloud.row_step = cloud.width * cloud.point_step;
+
+    PointCloud2Iterator<float>	out(cloud, "x");
+    for (; in != ie; ++in, ++out)
+    {
+	const auto&	xyz = *in;
+	out[0] = xyz(0);
+	out[1] = xyz(1);
+	out[2] = xyz(2);
+    }
+
+    return cloud;
+}
+
+template <class T> sensor_msgs::PointCloud2
+create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
+		  const sensor_msgs::Image& depth)
+{
+    using namespace	sensor_msgs;
+
+    PointCloud2	cloud;
+    cloud.is_bigendian	= false;
+    cloud.is_dense	= false;
+
+    PointCloud2Modifier	modifier(cloud);
+    modifier.setPointCloud2Fields(3,
+				  "x", 1, PointField::FLOAT32,
+				  "y", 1, PointField::FLOAT32,
+				  "z", 1, PointField::FLOAT32);
+    modifier.resize(depth.height * depth.width);
+
+    cloud.header	= depth.header;
+    cloud.height	= depth.height;
+    cloud.width		= depth.width;
+    cloud.row_step	= cloud.width * cloud.point_step;
+
+    cv::Mat_<float>	K(3, 3);
+    std::copy_n(std::begin(camera_info.K), 9, K.begin());
+    cv::Mat_<float>	D(1, 4);
+    std::copy_n(std::begin(camera_info.D), 4, D.begin());
+
+    cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
+    for (int u = 0; u < depth.width; ++u)
+	uv(u).x = u;
+
+    for (int v = 0; v < depth.height; ++v)
+    {
+	PointCloud2Iterator<float>	xyz(cloud, "x");
+	xyz += v * cloud.width;
+
+	for (int u = 0; u < depth.width; ++u)
+	    uv(u).y = v;
+
+	cv::undistortPoints(uv, xy, K, D);
+
+	auto	p = ptr<T>(depth, v);
+	for (int u = 0; u < depth.width; ++u)
+	{
+	    const auto	d = meters<T>(*p++);
+
+	    if (float(d) == 0.0f)
+	    {
+	    	xyz[0] = xyz[1] = xyz[2]
+	    	       = std::numeric_limits<float>::quiet_NaN();
+	    }
+	    else
+	    {
+	    	xyz[0] = xy(u).x * d;
+	    	xyz[1] = xy(u).y * d;
+	    	xyz[2] = d;
+	    }
+
+	    ++xyz;
+	}
+    }
+
+    return cloud;
+}
+
+template <class T> sensor_msgs::PointCloud2
+create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
+		  const sensor_msgs::Image& depth,
+		  const sensor_msgs::Image& normal)
+{
+    using namespace	sensor_msgs;
+
+    PointCloud2	cloud;
+    cloud.is_bigendian	= false;
+    cloud.is_dense	= false;
+
+    PointCloud2Modifier	modifier(cloud);
+    modifier.setPointCloud2Fields(6,
+				  "x",	      1, PointField::FLOAT32,
+				  "y",	      1, PointField::FLOAT32,
+				  "z",	      1, PointField::FLOAT32,
+				  "normal_x", 1, PointField::FLOAT32,
+				  "normal_y", 1, PointField::FLOAT32,
+				  "normal_z", 1, PointField::FLOAT32);
+    modifier.resize(depth.height * depth.width);
+
+    cloud.header	= depth.header;
+    cloud.height	= depth.height;
+    cloud.width		= depth.width;
+    cloud.row_step	= cloud.width * cloud.point_step;
+
+    cv::Mat_<float>	K(3, 3);
+    std::copy_n(std::begin(camera_info.K), 9, K.begin());
+    cv::Mat_<float>	D(1, 4);
+    std::copy_n(std::begin(camera_info.D), 4, D.begin());
+
+    cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
+    for (int u = 0; u < depth.width; ++u)
+	uv(u).x = u;
+
+    for (int v = 0; v < depth.height; ++v)
+    {
+	PointCloud2Iterator<float>	xyzn(cloud, "x");
+	xyzn += v * cloud.width;
+
+	for (int u = 0; u < depth.width; ++u)
+	    uv(u).y = v;
+
+	cv::undistortPoints(uv, xy, K, D);
+
+	using	vec3_t = float[3];
+	auto	p = ptr<T>(depth, v);
+	auto	n = ptr<vec3_t>(normal, v);
+	for (int u = 0; u < depth.width; ++u)
+	{
+	    const auto	d = meters<T>(*p++);
+
+	    if (float(d) == 0.0f)
+	    {
+	    	xyzn[0] = xyzn[1] = xyzn[2] = xyzn[3] = xyzn[4] = xyzn[5]
+	    	       = std::numeric_limits<float>::quiet_NaN();
+	    }
+	    else
+	    {
+	    	xyzn[0] = xy(u).x * d;
+	    	xyzn[1] = xy(u).y * d;
+	    	xyzn[2] = d;
+		xyzn[3] = (*n)[0];
+		xyzn[4] = (*n)[1];
+		xyzn[5] = (*n)[2];
+	    }
+
+	    ++xyzn;
+	    ++n;
+	}
+    }
+
+    return cloud;
+}
+
+}	// namespace aist_utility
+#endif	// !AIST_UTILITY_SENSOR_MSGS_H
