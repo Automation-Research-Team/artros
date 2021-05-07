@@ -3,7 +3,7 @@
 
   <arg name="prefix"	 default="a_bot_gripper_"/>
   <arg name="device"	 default="robotiq_85"/>
-  <arg name="driver_arg" default=""/>
+  <arg name="driver_arg" default="10.66.171.52"/>
 
   <arg name="config"	 value="$(eval 'cmodel_action_controller_hande'
 				if device == 'robotiq_hande' else
