@@ -10,7 +10,6 @@
 				'cmodel_action_controller_140'
 				if device == 'robotiq_140' else
 				'cmodel_action_controller')"/>
-  <arg name="namespace"	 value="$(eval prefix.rstrip('_'))"/>
 
   <include file="$(find robotiq_control
 		 )/launch/urcap_cmodel_action_controller.launch">
@@ -19,5 +18,6 @@
     <arg name="gripper_prefix"	value="$(arg prefix)"/>
     <arg name="config"		value="$(arg config)"/>
   </include>
-
+  <remap from="$(arg prefix)controller/joint_states" to="/joint_states"/>
+  
 </launch>

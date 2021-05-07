@@ -57,7 +57,7 @@ ftsensor::ftsensor(const std::string& name, const Input input)
 			   &ftsensor::save_calibration_callback, this)),
      _listener(),
      _reference_frame("workspace_center"),
-     _sensor_frame("ftsensor_wrench_link"),
+     _sensor_frame("wrench_link"),
      _rate(100),
      _get_sample(false),
      _mass(0),
@@ -71,8 +71,7 @@ ftsensor::ftsensor(const std::string& name, const Input input)
 {
     _nh.param<std::string>("reference_frame", _reference_frame,
 			   "workspace_center");
-    _nh.param<std::string>("sensor_frame", _sensor_frame,
-			   "ftsensor_wrench_link");
+    _nh.param<std::string>("sensor_frame", _sensor_frame, "wrench_link");
     _nh.param<double>("rate", _rate, 100);
 
     ROS_INFO_STREAM("reference_frame=" << _reference_frame <<
