@@ -1,23 +1,23 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"	 default="a_bot_"/>
+  <arg name="prefix"	 default="a_bot_gripper_"/>
   <arg name="device"	 default="robotiq_85"/>
-  <arg name="driver_arg" default=""/>
+  <arg name="driver_arg" default="10.66.171.52"/>
 
   <arg name="config"	 value="$(eval 'cmodel_action_controller_hande'
 				if device == 'robotiq_hande' else
 				'cmodel_action_controller_140'
 				if device == 'robotiq_140' else
 				'cmodel_action_controller')"/>
-  <arg name="namespace"	 value="$(eval prefix.rstrip('_'))"/>
 
   <include file="$(find robotiq_control
 		 )/launch/urcap_cmodel_action_controller.launch">
     <arg name="address"		value="$(arg driver_arg)"/>
-    <arg name="namespace"	value="$(arg namespace)"/>
+    <arg name="namespace"	value="$(arg prefix)controller"/>
     <arg name="gripper_prefix"	value="$(arg prefix)"/>
     <arg name="config"		value="$(arg config)"/>
   </include>
-
+  <remap from="$(arg prefix)controller/joint_states" to="/joint_states"/>
+  
 </launch>

@@ -37,13 +37,13 @@ class InteractiveRoutines(AISTBaseRoutines):
         self._speed       = rospy.get_param('~speed',       0.1)
         self._ur_movel    = False
 
-    def move(self, pose):
+    def move(self, xyzrpy):
         target_pose = gmsg.PoseStamped()
         target_pose.header.frame_id = self.reference_frame
         target_pose.pose = gmsg.Pose(
-            gmsg.Point(pose[0], pose[1], pose[2]),
+            gmsg.Point(xyzrpy[0], xyzrpy[1], xyzrpy[2]),
             gmsg.Quaternion(
-                *tfs.quaternion_from_euler(pose[3], pose[4], pose[5])))
+                *tfs.quaternion_from_euler(xyzrpy[3], xyzrpy[4], xyzrpy[5])))
         if self._ur_movel:
             (success, _, current_pose) = self.ur_movel(self._robot_name,
                                                        target_pose,
@@ -119,6 +119,21 @@ class InteractiveRoutines(AISTBaseRoutines):
                 else:
                     rpy[2] = radians(-10)
                 self.move_relative(self._robot_name, xyz, rpy, self._speed)
+            elif is_num(key):
+                goal_pose = self.xyz_rpy(current_pose)
+                if axis == 'X':
+                    goal_pose[0] = float(key)
+                elif axis == 'Y':
+                    goal_pose[1] = float(key)
+                elif axis == 'Z':
+                    goal_pose[2] = float(key)
+                elif axis == 'Roll':
+                    goal_pose[3] = radians(float(key))
+                elif axis == 'Pitch':
+                    goal_pose[4] = radians(float(key))
+                else:
+                    goal_pose[5] = radians(float(key))
+                self.move(goal_pose)
             elif key == 's':
                 self.stop(self._robot_name)
             elif key == 'f':

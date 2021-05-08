@@ -22,9 +22,9 @@
   				       -J b_bot_wrist_1_joint -0.85
   				       -J b_bot_wrist_2_joint -1.5708
   				       -J b_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="a_bot_, b_bot_, a_bot_"/>
+  <arg name="prefixes"		value="a_bot_, b_bot_, a_bot_gripper_"/>
   <arg name="devices"		value="ur5, ur5, robotiq_85"/>
-  <arg name="controllers"	value="ur_robot, ur_robot, ros"/>
+  <arg name="controllers"	value="ur_robot, ur_robot, cmodel"/>
   <arg name="drivers"		value="ur_robot, ur_robot, cmodel"/>
   <arg name="driver_args"	value="10.66.171.52, 50003, 50004, 0;
 				       10.66.171.51, 50001, 50002, 0;

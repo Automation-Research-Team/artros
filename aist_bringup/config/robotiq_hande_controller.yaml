@@ -1,9 +1,1 @@
-$(arg prefix)robotiq_hande_controller:
-  type: position_controllers/JointTrajectoryController
-  joints:
-    - $(arg prefix)finger_joint
-  constraints:
-    goal_time: 0.5
-  state_publish_rate:  25
-  action_monitor_rate: 30
-  stop_trajectory_duration: 0.5
+robotiq_85_controller.yaml
