@@ -2,13 +2,13 @@
   \file		robotiq_driver.h
   \author	Toshio UESHIBA
 */
-#if !defined(AIST_ROBOTIQ_ROBOTIQ_DRIVER_H)
+#if !defined(AIST_CONTROLLERS_ROBOTIQ_DRIVER_H)
 #  include <cstdint>
 #  include <hardware_interface/robot_hw.h>
 #  include <hardware_interface/joint_state_interface.h>
 #  include <hardware_interface/joint_command_interface.h>
 
-namespace aist_robotiq
+namespace aist_controllers
 {
 /************************************************************************
 *  class robotiq_driver_base						*
@@ -102,5 +102,5 @@ class robotiq_urcap_driver : public robotiq_driver_base
     const int		_socket;
 };
 
-}	// namespace aist_roibotiq
-#endif	// AIST_ROBOTIQ_ROBOTIQ_DRIVER_H
+}	// namespace aist_controllers
+#endif	// AIST_CONTROLLERS_ROBOTIQ_DRIVER_H

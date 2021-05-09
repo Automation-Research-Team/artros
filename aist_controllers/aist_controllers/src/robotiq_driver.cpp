@@ -3,7 +3,7 @@
   \author	Toshio UESHIBA
 */
 #include <ros/ros.h>
-#include <aist_robotiq/robotiq_driver.h>
+#include <aist_controllers/robotiq_driver.h>
 #include <controller_manager/controller_manager.h>
 #include <sys/socket.h>
 #include <netinet/in.h>		// for struct sockaddr_in
@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <fstream>
 
-namespace aist_robotiq
+namespace aist_controllers
 {
 /************************************************************************
 *  static functions							*
@@ -264,7 +264,7 @@ robotiq_urcap_driver::getVar(const std::string& name) const
     return strtol(strtok(nullptr, " \t\n"), nullptr, 0);
 }
 
-}	// namespace aist_robotiq
+}	// namespace aist_controllers
 
 /************************************************************************
 *  global functions							*
@@ -277,7 +277,7 @@ main(int argc, char* argv[])
 
     try
     {
-	aist_robotiq::robotiq_urcap_driver	driver(nh);
+	aist_controllers::robotiq_urcap_driver	driver(nh);
 	driver.run();
     }
     catch (const std::exception& err)
