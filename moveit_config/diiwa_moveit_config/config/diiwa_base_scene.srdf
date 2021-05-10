@@ -94,6 +94,7 @@
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_gripper_right_outer_finger" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_gripper_right_outer_knuckle" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_gripper_robotiq_arg2f_base_link" reason="Adjacent" />
+    <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_link_0" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_link_3" reason="Never" />
@@ -101,7 +102,6 @@
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="a_iiwa_link_7" reason="Adjacent" />
-    <disable_collisions link1="a_iiwa_gripper_coupling_base_link" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_gripper_left_inner_finger_pad" reason="Adjacent" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_gripper_left_inner_knuckle" reason="Default" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_gripper_left_outer_finger" reason="Adjacent" />
@@ -112,6 +112,7 @@
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_gripper_right_outer_finger" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_gripper_right_outer_knuckle" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_link_3" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_link_4" reason="Never" />
@@ -119,7 +120,6 @@
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="a_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="b_iiwa_gripper_base_link" reason="Never" />
-    <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="b_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger_pad" link2="a_iiwa_gripper_left_inner_knuckle" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_finger_pad" link2="a_iiwa_gripper_left_outer_finger" reason="Never" />
@@ -146,12 +146,14 @@
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_gripper_right_outer_finger" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_gripper_right_outer_knuckle" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_gripper_robotiq_arg2f_base_link" reason="Adjacent" />
+    <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_link_3" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_link_4" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="a_iiwa_link_7" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="b_iiwa_gripper_base_link" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_inner_knuckle" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_gripper_left_outer_knuckle" reason="Adjacent" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_gripper_right_inner_finger" reason="Never" />
@@ -160,6 +162,7 @@
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_gripper_right_outer_finger" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_gripper_right_outer_knuckle" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_link_3" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_link_4" reason="Never" />
@@ -167,7 +170,6 @@
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="a_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="b_iiwa_gripper_base_link" reason="Never" />
-    <disable_collisions link1="a_iiwa_gripper_left_outer_finger" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="a_iiwa_gripper_right_inner_finger" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="a_iiwa_gripper_right_inner_finger_pad" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="a_iiwa_gripper_right_inner_knuckle" reason="Never" />
@@ -181,7 +183,7 @@
     <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="a_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="a_iiwa_link_7" reason="Never" />
-    <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="b_iiwa_link_7" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_left_outer_knuckle" link2="b_iiwa_gripper_base_link" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="a_iiwa_gripper_right_inner_finger_pad" reason="Adjacent" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="a_iiwa_gripper_right_inner_knuckle" reason="Default" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="a_iiwa_gripper_right_outer_finger" reason="Adjacent" />
@@ -194,18 +196,19 @@
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="a_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="a_iiwa_link_7" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="b_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_gripper_right_inner_knuckle" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_gripper_right_outer_finger" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_gripper_right_outer_knuckle" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_link_3" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_link_4" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="a_iiwa_link_7" reason="Never" />
-    <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="b_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_finger_pad" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_knuckle" link2="a_iiwa_gripper_right_outer_finger" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_knuckle" link2="a_iiwa_gripper_right_outer_knuckle" reason="Never" />
@@ -217,6 +220,8 @@
     <disable_collisions link1="a_iiwa_gripper_right_inner_knuckle" link2="a_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_knuckle" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_inner_knuckle" link2="a_iiwa_link_7" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_right_inner_knuckle" link2="b_iiwa_link_6" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_right_inner_knuckle" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_outer_finger" link2="a_iiwa_gripper_right_outer_knuckle" reason="Adjacent" />
     <disable_collisions link1="a_iiwa_gripper_right_outer_finger" link2="a_iiwa_gripper_robotiq_arg2f_base_link" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_outer_finger" link2="a_iiwa_link_1" reason="Never" />
@@ -234,7 +239,7 @@
     <disable_collisions link1="a_iiwa_gripper_right_outer_knuckle" link2="a_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_outer_knuckle" link2="a_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_right_outer_knuckle" link2="a_iiwa_link_7" reason="Never" />
-    <disable_collisions link1="a_iiwa_gripper_right_outer_knuckle" link2="b_iiwa_gripper_base_link" reason="Never" />
+    <disable_collisions link1="a_iiwa_gripper_right_outer_knuckle" link2="b_iiwa_link_6" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_robotiq_arg2f_base_link" link2="a_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_robotiq_arg2f_base_link" link2="a_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_gripper_robotiq_arg2f_base_link" link2="a_iiwa_link_3" reason="Never" />
@@ -246,6 +251,7 @@
     <disable_collisions link1="a_iiwa_link_0" link2="a_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_link_0" link2="a_iiwa_link_3" reason="Never" />
     <disable_collisions link1="a_iiwa_link_0" link2="a_iiwa_link_4" reason="Never" />
+    <disable_collisions link1="a_iiwa_link_0" link2="a_iiwa_link_7" reason="Never" />
     <disable_collisions link1="a_iiwa_link_0" link2="b_iiwa_link_0" reason="Adjacent" />
     <disable_collisions link1="a_iiwa_link_0" link2="b_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_link_0" link2="b_iiwa_link_2" reason="Never" />
@@ -277,6 +283,7 @@
     <disable_collisions link1="a_iiwa_link_2" link2="b_iiwa_link_2" reason="Never" />
     <disable_collisions link1="a_iiwa_link_2" link2="b_iiwa_link_3" reason="Never" />
     <disable_collisions link1="a_iiwa_link_2" link2="b_iiwa_link_4" reason="Never" />
+    <disable_collisions link1="a_iiwa_link_2" link2="b_iiwa_link_5" reason="Never" />
     <disable_collisions link1="a_iiwa_link_2" link2="workbox" reason="Never" />
     <disable_collisions link1="a_iiwa_link_3" link2="a_iiwa_link_4" reason="Adjacent" />
     <disable_collisions link1="a_iiwa_link_3" link2="a_iiwa_link_5" reason="Never" />
@@ -299,8 +306,6 @@
     <disable_collisions link1="a_iiwa_link_5" link2="b_iiwa_link_1" reason="Never" />
     <disable_collisions link1="a_iiwa_link_6" link2="a_iiwa_link_7" reason="Adjacent" />
     <disable_collisions link1="a_iiwa_link_6" link2="b_iiwa_link_0" reason="Never" />
-    <disable_collisions link1="a_iiwa_link_6" link2="b_iiwa_link_1" reason="Never" />
-    <disable_collisions link1="b_iiwa_gripper_base_link" link2="b_iiwa_link_1" reason="Never" />
     <disable_collisions link1="b_iiwa_gripper_base_link" link2="b_iiwa_link_2" reason="Never" />
     <disable_collisions link1="b_iiwa_gripper_base_link" link2="b_iiwa_link_3" reason="Never" />
     <disable_collisions link1="b_iiwa_gripper_base_link" link2="b_iiwa_link_4" reason="Never" />
@@ -311,7 +316,6 @@
     <disable_collisions link1="b_iiwa_link_0" link2="b_iiwa_link_2" reason="Never" />
     <disable_collisions link1="b_iiwa_link_0" link2="b_iiwa_link_3" reason="Never" />
     <disable_collisions link1="b_iiwa_link_0" link2="b_iiwa_link_4" reason="Never" />
-    <disable_collisions link1="b_iiwa_link_0" link2="b_iiwa_link_7" reason="Never" />
     <disable_collisions link1="b_iiwa_link_0" link2="workbox" reason="Adjacent" />
     <disable_collisions link1="b_iiwa_link_1" link2="b_iiwa_link_2" reason="Adjacent" />
     <disable_collisions link1="b_iiwa_link_1" link2="b_iiwa_link_3" reason="Never" />

@@ -9,8 +9,7 @@ find_package(catkin
     control_toolbox
     robot_controllers
     robot_controllers_interface
-    robotiq_msgs
-    ur_modern_driver
+    aist_robotiq
 )
 
 include_directories(
@@ -57,4 +56,3 @@ install(FILES robotiq_controllers.xml
 
 add_executable(aist_robotiq2f85_controller_node src/node.cpp)
 target_link_libraries(aist_robotiq2f85_controller_node ${catkin_LIBRARIES})
-

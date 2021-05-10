@@ -45,7 +45,7 @@
   </xacro:iiwa14>
 
   <!-- Attach grippers -->
-  <xacro:include filename="$(find robotiq_description
+  <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
   <xacro:robotiq_arg2f_coupling prefix="a_iiwa_gripper_coupling_"
 				parent="a_iiwa_ee_link">

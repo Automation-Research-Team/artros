@@ -1,6 +1,3 @@
-[submodule "robotiq-cri"]
-	path = third_party/robotiq-cri
-	url = https://gitlab.com/art-aist/robotiq-cri
 [submodule "realsense-ros"]
 	path = third_party/realsense-ros
 	url = https://gitlab.com/art-aist/realsense-ros

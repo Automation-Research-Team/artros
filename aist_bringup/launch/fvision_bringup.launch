@@ -18,10 +18,10 @@
 				       -J d_bot_wrist_3_joint 0.0"/>
   <arg name="prefixes"		value="d_bot_, d_bot_gripper_"/>
   <arg name="devices"		value="ur5e, robotiq_hande"/>
-  <arg name="controllers"	value="ur_robot, ros"/>
+  <arg name="controllers"	value="ur_robot, cmodel"/>
   <arg name="drivers"		value="ur_robot, cmodel"/>
   <arg name="driver_args"	value="10.66.171.54, 50003, 50004, False;
-				       10.66.171.54"/>
+				       urcap, 10.66.171.54"/>
 
   <!-- Bringup robots -->
   <include file="$(find aist_bringup)/launch/include/connect_robots.launch">

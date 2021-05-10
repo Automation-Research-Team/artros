@@ -11,8 +11,8 @@
 #include <std_msgs/String.h>
 #include <actionlib/server/simple_action_server.h>
 
-#include <robotiq_msgs/CModelCommand.h>
-#include <robotiq_msgs/CModelStatus.h>
+#include <aist_robotiq/CModelCommand.h>
+#include <aist_robotiq/CModelStatus.h>
 #include <ur_msgs/RobotModeDataMsg.h>
 
 #include <aist_robotiq2f85_controller/joint_handle.h>

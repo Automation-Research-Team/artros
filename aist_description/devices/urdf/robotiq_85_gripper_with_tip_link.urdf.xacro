@@ -8,7 +8,7 @@
 
   <xacro:macro name="robotiq_85_gripper_with_tip_link"
 	       params="prefix parent *origin">
-    <xacro:include filename="$(find robotiq_description)/urdf/robotiq_85_gripper.urdf.xacro"/>
+    <xacro:include filename="$(find aist_robotiq)/urdf/robotiq_85_gripper.urdf.xacro"/>
 
     <xacro:robotiq_85_gripper prefix="${prefix}" parent="${parent}">
       <xacro:insert_block name="origin"/>
