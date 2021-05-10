@@ -54,9 +54,7 @@ class AISTBaseRoutines(object):
 
         # Grippers
         d = rospy.get_param('~grippers', {})
-        self._grippers = {'void_gripper':
-                          VoidGripper('void_gripper',
-                                      'void_gripper_base_link')}
+        self._grippers = {'void_gripper': VoidGripper('void_gripper_base_link')}
         for gripper_name, props in d.items():
             self._grippers[gripper_name] = GripperClient.create(props['type'],
                                                                 props['args'])
