@@ -29,7 +29,7 @@ joint_state_controller:
   type: joint_state_controller/JointStateController
   publish_rate: 50
 controller_list:
-  - name: c_bot_scaled_pos_joint_traj_controller
+  - name: /c_bot/scaled_pos_joint_traj_controller
     action_ns: follow_joint_trajectory
     default: True
     type: FollowJointTrajectory
@@ -40,7 +40,7 @@ controller_list:
       - c_bot_wrist_1_joint
       - c_bot_wrist_2_joint
       - c_bot_wrist_3_joint
-  - name: d_bot_scaled_pos_joint_traj_controller
+  - name: /d_bot/scaled_pos_joint_traj_controller
     action_ns: follow_joint_trajectory
     default: True
     type: FollowJointTrajectory
@@ -56,10 +56,10 @@ controller_list:
     default: True
     type: GripperCommand
     joints:
-      - c_bot_finger_joint
+      - c_bot_gripper_finger_joint
   - name: d_bot_gripper_controller
     action_ns: gripper_cmd
     default: True
     type: GripperCommand
     joints:
-      - c_bot_finger_joint
+      - c_bot_gripper_finger_joint
