@@ -37,6 +37,9 @@
 
   <!-- robot arms -->
   <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro"/>
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/scenes/urdf/gazebo_ros_control.gazebo.xacro"/> -->
+  <!-- <xacro:gazebo_ros_control ns="/"/> -->
   <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro"/>
   <xacro:ur5_robot prefix="a_bot_" joint_limited="false"
     shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
@@ -48,6 +51,7 @@
     kinematics_file="${load_yaml('$(find aist_bringup
 		     )/config/a_bot_calibration.yaml')}"/>
 
+  <!-- <xacro:gazebo_ros_control ns="/b_bot"/> -->
   <xacro:ur5_robot prefix="b_bot_" joint_limited="false"
     shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
     shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"

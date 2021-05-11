@@ -6,12 +6,12 @@ grippers:
   magnet:
     type: MagswitchGripper
     args:
-      prefix: ''
+      prefix: magnet_
       timeout: 2.5
   gripper:
     type: Lecp6Gripper
     args:
-      prefix: ''
+      prefix: gripper_
       timeout: 2.0
 
 cameras:

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix" default="ros_"/>
+  <arg name="prefix" default="a_bot_gripper_"/>
   <arg name="device" default="gripper"/>
   <arg name="sim"/>
 
@@ -10,7 +10,7 @@
 	    subst_value="true"/>
 
   <!-- Load and start controllers. -->
-  <node name="$(arg prefix)$(arg device)_controller_spawner"
+  <node name="$(arg prefix)controller_spawner"
 	pkg="controller_manager" type="spawner"
 	output="screen" args="$(arg prefix)controller"/>
 
