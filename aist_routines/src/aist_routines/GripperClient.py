@@ -491,7 +491,7 @@ class MagswitchGripper(GripperClient):
         # return self._send_command(self.parameters['grasp_position'], wait)
 
     def postgrasp(self, wait=True):
-        return self._send_command(self.parameters['grasp_position', wait)
+        return self._send_command(self.parameters['grasp_position'], wait)
 
     def release(self, wait=True):
         return self._send_command(0, wait)
