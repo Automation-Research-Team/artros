@@ -16,7 +16,7 @@
   <arg name="driver_args"		value="192.168.0.2, 4, '',"/>
 
   <!-- Bringup robots -->
-  <include file="$(find aist_bringup)/launch/include/connect_robots.launch">
+  <include file="$(dirname)/include/connect_robots.launch">
     <arg name="robot_description_file"
 	 value="$(find aist_description)/scenes/urdf/$(arg scene).urdf.xacro"/>
     <arg name="sim"			value="$(arg sim)"/>
@@ -29,7 +29,7 @@
   </include>
 
   <!-- Start MoveIt! -->
-  <include file="$(find aist_bringup)/launch/include/move_group.launch">
+  <include file="$(dirname)/include/move_group.launch">
     <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
     <arg name="moveit_config"		value="$(arg moveit_config)"/>
     <arg name="rviz_config"		value="$(arg rviz_config)"/>

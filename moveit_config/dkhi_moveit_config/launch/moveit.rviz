@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Planned Path1
-        - /Image1
         - /TF1/Frames1
       Splitter Ratio: 0.6383928656578064
     Tree Height: 155
@@ -49,7 +48,6 @@ Visualization Manager:
       MoveIt_Allow_External_Program: false
       MoveIt_Allow_Replanning: false
       MoveIt_Allow_Sensor_Positioning: false
-      MoveIt_Goal_Tolerance: 0
       MoveIt_Planning_Attempts: 10
       MoveIt_Planning_Time: 5
       MoveIt_Use_Cartesian_Path: false
@@ -93,20 +91,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_gripper_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_khi_gripper_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_khi_l_finger_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           a_khi_link1:
             Alpha: 1
             Show Axes: false
@@ -137,47 +121,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_khi_magnet_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_khi_magnet_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_khi_magripper_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          a_khi_magripper_base_link_flange:
+          a_khi_magripper_camera_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_magripper_gripper_branch:
+          a_khi_magripper_gripper_axis_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          a_khi_magripper_gripper_branch_flange:
+          a_khi_magripper_gripper_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_magripper_magnet_branch:
+          a_khi_magripper_magnet_axis_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          a_khi_magripper_magnet_branch_flange:
+          a_khi_magripper_magnet_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_r_finger_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           a_khi_sensor:
             Alpha: 1
             Show Axes: false
@@ -260,7 +228,7 @@ Visualization Manager:
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
-        Planning Group: a_khi
+        Planning Group: b_khi
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
@@ -301,20 +269,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_gripper_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_khi_gripper_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_khi_l_finger_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           a_khi_link1:
             Alpha: 1
             Show Axes: false
@@ -345,47 +299,31 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_khi_magnet_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_khi_magnet_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_khi_magripper_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          a_khi_magripper_base_link_flange:
+          a_khi_magripper_camera_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_magripper_gripper_branch:
+          a_khi_magripper_gripper_axis_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          a_khi_magripper_gripper_branch_flange:
+          a_khi_magripper_gripper_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_magripper_magnet_branch:
+          a_khi_magripper_magnet_axis_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-            Value: true
-          a_khi_magripper_magnet_branch_flange:
+          a_khi_magripper_magnet_flange:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          a_khi_r_finger_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           a_khi_sensor:
             Alpha: 1
             Show Axes: false
@@ -476,10 +414,6 @@ Visualization Manager:
           Value: true
         a_khi_ee_link:
           Value: false
-        a_khi_gripper_base_link:
-          Value: false
-        a_khi_gripper_link:
-          Value: true
         a_khi_link1:
           Value: false
         a_khi_link2:
@@ -492,22 +426,18 @@ Visualization Manager:
           Value: false
         a_khi_link6:
           Value: false
-        a_khi_magnet_base_link:
-          Value: false
-        a_khi_magnet_link:
-          Value: true
         a_khi_magripper_base_link:
           Value: false
-        a_khi_magripper_base_link_flange:
-          Value: false
-        a_khi_magripper_gripper_branch:
-          Value: false
-        a_khi_magripper_gripper_branch_flange:
-          Value: false
-        a_khi_magripper_magnet_branch:
-          Value: false
-        a_khi_magripper_magnet_branch_flange:
-          Value: false
+        a_khi_magripper_camera_flange:
+          Value: true
+        a_khi_magripper_gripper_axis_link:
+          Value: true
+        a_khi_magripper_gripper_flange:
+          Value: true
+        a_khi_magripper_magnet_axis_link:
+          Value: true
+        a_khi_magripper_magnet_flange:
+          Value: true
         a_khi_sensor:
           Value: true
         b_khi_base_link:
@@ -551,21 +481,17 @@ Visualization Manager:
                         a_khi_link6:
                           a_khi_ee_link:
                             a_khi_magripper_base_link:
-                              a_khi_magripper_base_link_flange:
+                              a_khi_magripper_camera_flange:
                                 a_khi_camera:
                                   a_khi_sensor:
                                     a_khi_camera_link:
                                       {}
-                              a_khi_magripper_gripper_branch:
-                                a_khi_magripper_gripper_branch_flange:
-                                  a_khi_gripper_base_link:
-                                    a_khi_gripper_link:
-                                      {}
-                              a_khi_magripper_magnet_branch:
-                                a_khi_magripper_magnet_branch_flange:
-                                  a_khi_magnet_base_link:
-                                    a_khi_magnet_link:
-                                      {}
+                              a_khi_magripper_gripper_axis_link:
+                                a_khi_magripper_gripper_flange:
+                                  {}
+                              a_khi_magripper_magnet_axis_link:
+                                a_khi_magripper_magnet_flange:
+                                  {}
             b_khi_base_link:
               b_khi_link1:
                 b_khi_link2:
@@ -612,10 +538,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.32479697465896606
+      Pitch: 0.13979698717594147
       Target Frame: world
       Value: XYOrbit (rviz)
-      Yaw: 6.269948959350586
+      Yaw: 0.031763821840286255
     Saved: ~
 Window Geometry:
   Displays:
@@ -631,9 +557,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002a2000003a7fc0200000008fb000000100044006900730070006c006100790073010000003d000000d8000000c900fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000011b000001c60000019b00fffffffb0000000a0049006d00610067006501000002e7000000fd0000001600ffffff000004ab000003a700000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002a2000003a7fc0200000008fb000000100044006900730070006c006100790073010000003d000000d8000000c900fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000011b000001c60000017d00fffffffb0000000a0049006d00610067006501000002e7000000fd0000001600ffffff000004a5000003a700000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1875
-  X: 45
+  Width: 1869
+  X: 51
   Y: 27

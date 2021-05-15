@@ -6,7 +6,7 @@
   <arg name="sim"/>
 
   <!-- Setup controller parameters. -->
-  <rosparam file="$(find aist_bringup)/config/khi_controller.yaml"
+  <rosparam file="$(dirname)/../../config/khi_controller.yaml"
 	    subst_value="true"/>
 
   <!-- Load and start controllers. -->

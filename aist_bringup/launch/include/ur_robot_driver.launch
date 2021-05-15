@@ -17,9 +17,8 @@
     <node name="ur_hardware_interface"
 	  pkg="ur_robot_driver" type="ur_robot_driver_node"
 	  output="screen" required="true">
-      <rosparam file="$(find aist_bringup
-		      )/config/$(arg prefix)calibration.yaml"/>
-      <rosparam file="$(find aist_bringup)/config/ur_robot_driver.yaml"
+      <rosparam file="$(dirname)/../../config/$(arg prefix)calibration.yaml"/>
+      <rosparam file="$(dirname)/../../config/ur_robot_driver.yaml"
 		subst_value="true"/>
       <remap from="joint_states" to="/joint_states"/>
     </node>
@@ -29,7 +28,7 @@
     <node if="$(arg use_tool_communication)"
 	  name="ur_tool_communication_bridge"
 	  pkg="ur_robot_driver" type="tool_communication" output="screen">
-      <rosparam file="$(find aist_bringup)/config/ur_tool_communication.yaml"
+      <rosparam file="$(dirname)/../../config/ur_tool_communication.yaml"
 		subst_value="true"/>
     </node>
 

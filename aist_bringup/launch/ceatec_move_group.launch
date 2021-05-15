@@ -3,7 +3,7 @@
 
   <arg name="rviz_config"	default=""/>
 
-  <include file="$(find aist_bringup)/launch/include/move_group.launch">
+  <include file="$(dirname)/include/move_group.launch">
     <arg name="robot_description_file"
 	 value="$(find aist_description
 		)/scenes/urdf/fetch_base_scene.urdf.xacro scene:=ceatec"/>

@@ -14,9 +14,9 @@
   </node>
 
   <include if="$(arg sim)"
-	   file="$(find aist_bringup)/launch/include/ros_controller.launch">
+	   file="$(dirname)/ros_controller.launch">
     <arg name="prefix"	value="$(arg prefix)"/>
-    <arg name="device"	value="$(arg device)"/>
+    <arg name="device"	value="gripper"/>
     <arg name="sim"	value="$(arg sim)"/>
   </include>
 

@@ -6,7 +6,7 @@
   <arg name="sim"/>
 
   <!-- Setup controller parameters. -->
-  <rosparam file="$(find aist_bringup)/config/iiwa_controller.yaml"
+  <rosparam file="$(dirname)/../../config/iiwa_controller.yaml"
 	    subst_value="true"/>
 
   <!-- Load and start controllers. -->
