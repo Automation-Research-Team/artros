@@ -59,22 +59,11 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_hande_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_hande_gripper_with_tip_link prefix="d_bot_gripper_"
-					     parent="d_bot_gripper_coupling_flange_link">
+  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_140_gripper_with_tip_link.urdf.xacro"/>
+  <xacro:robotiq_140_gripper_with_tip_link prefix="d_bot_gripper_"
+					   parent="d_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_hande_gripper_with_tip_link>
-
-  <!-- Add PhoXi 3D scanner -->
-  <xacro:include filename="$(find aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
-  <xacro:phoxi_m_camera prefix="b_" parent="ground">
-    <origin xyz="0.547941636523
-		 -0.00827443204237
-		 1.67030171767"
-	    rpy="${-151.493605482*pi/180}
-		 ${0.698490882792*pi/180}
-		 ${85.0482907121*pi/180}"/>
-  </xacro:phoxi_m_camera>
+  </xacro:robotiq_140_gripper_with_tip_link>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

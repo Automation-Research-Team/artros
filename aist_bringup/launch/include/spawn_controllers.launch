@@ -6,7 +6,6 @@
   <arg name="controllers"		default=""/>
   <arg name="torobo_controllers"	default=""/>
   <arg name="fetch_controllers"		default=""/>
-  <arg name="source_list"		default=""/>
   <arg name="joint_state_frequency"	default="50.0"/>
   <arg name="sim"			default="false"/>
   <arg name="manager"			default="torobo_nodelet_manager"/>
@@ -35,13 +34,6 @@
 	 value="$(eval fetch_controllers + ' ' + fetch_controller
 		if controller == 'fetch' else fetch_controllers)"/>
 
-    <!-- If "controller" is a ur_robot controller,
-	 add joint_states to the list. -->
-    <arg name ="updated_source_list"
-	 value="$(eval
-		source_list + ' /' + prefix.rstrip('_') + '/joint_states'
-		if controller == 'ur_robot' else source_list)"/>
-
     <!-- Recursively setup parameters for the remaining devices. -->
     <arg name ="remained_prefixes"
 	 value="$(eval ','.join(prefixes.split(',')[1:]))"/>
@@ -58,7 +50,6 @@
       <arg name="controllers"	     value="$(arg remained_controllers)"/>
       <arg name="torobo_controllers" value="$(arg updated_torobo_controllers)"/>
       <arg name="fetch_controllers"  value="$(arg updated_fetch_controllers)"/>
-      <arg name="source_list"	     value="$(arg updated_source_list)"/>
       <arg name="joint_state_frequency"	value="$(arg kept_frequency)"/>
       <arg name="sim"			value="$(arg kept_sim)"/>
       <arg name="manager"		value="$(arg kept_manager)"/>
@@ -99,16 +90,6 @@
 	     value="$(eval '[' + ','.join(fetch_controllers.split()) + ']')"/>
     </group>
 
-    <group if="$(eval source_list.strip() != '')">
-      <!-- Setup joint_state_publisher -->
-      <node name="joint_state_publihser"
-	    pkg="joint_state_publisher" type="joint_state_publisher"
-	    respawn="false">
-	<param name="source_list" type="yaml"
-	       value="$(eval '[' + ','.join(source_list.split()) + ']')"/>
-      </node>
-    </group>
-    
   </group>
 
 </launch>
