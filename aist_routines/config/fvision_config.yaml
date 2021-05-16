@@ -10,3 +10,6 @@ grippers:
       effort: 5.0
       velocity: 0.1
       timeout: 6.0
+
+cameras:
+  d_bot_camera: DepthCamera
