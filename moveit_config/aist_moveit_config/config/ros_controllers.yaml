@@ -15,7 +15,7 @@ hardware_interface:
     - a_bot_wrist_1_joint
     - a_bot_wrist_2_joint
     - a_bot_wrist_3_joint
-    - a_bot_finger_joint
+    - a_bot_gripper_finger_joint
     - b_bot_shoulder_pan_joint
     - b_bot_shoulder_lift_joint
     - b_bot_elbow_joint
@@ -53,7 +53,7 @@ controller_list:
       - b_bot_wrist_3_joint
   - name: a_bot_gripper_controller
     action_ns: gripper_cmd
-    default: True
     type: GripperCommand
+    default: True
     joints:
       - a_bot_gripper_finger_joint
