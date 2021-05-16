@@ -18,7 +18,7 @@
 	  pkg="ur_robot_driver" type="ur_robot_driver_node"
 	  output="screen" required="true">
       <rosparam file="$(dirname)/../../config/$(arg prefix)calibration.yaml"/>
-      <rosparam file="$(dirname)/../../config/ur_robot_driver.yaml"
+      <rosparam file="$(dirname)/../../config/ur_driver.yaml"
 		subst_value="true"/>
       <remap from="joint_states" to="/joint_states"/>
     </node>

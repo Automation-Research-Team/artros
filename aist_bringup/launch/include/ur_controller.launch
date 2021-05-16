@@ -11,7 +11,7 @@
   <arg name="frequency" value="$(eval 500 if device[-1] == 'e' else 125)"/>
 
   <rosparam ns="$(arg namespace)"
-	    file="$(dirname)/../../config/ur_robot_controller.yaml"
+	    file="$(dirname)/../../config/ur_controller.yaml"
 	    subst_value="true"/>
 
   <!-- The controller_spawner must be launched in the root namespace
