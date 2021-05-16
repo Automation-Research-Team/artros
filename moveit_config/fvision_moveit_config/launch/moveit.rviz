@@ -489,25 +489,25 @@ Visualization Manager:
         d_bot_base_link:
           Value: false
         d_bot_camera_bottom_screw_frame:
-          Value: true
+          Value: false
         d_bot_camera_color_frame:
-          Value: true
+          Value: false
         d_bot_camera_color_optical_frame:
           Value: true
         d_bot_camera_depth_frame:
-          Value: true
+          Value: false
         d_bot_camera_depth_optical_frame:
-          Value: true
+          Value: false
         d_bot_camera_infra1_frame:
-          Value: true
+          Value: false
         d_bot_camera_infra1_optical_frame:
-          Value: true
+          Value: false
         d_bot_camera_infra2_frame:
-          Value: true
+          Value: false
         d_bot_camera_infra2_optical_frame:
-          Value: true
+          Value: false
         d_bot_camera_link:
-          Value: true
+          Value: false
         d_bot_ee_link:
           Value: false
         d_bot_forearm_link:
@@ -679,10 +679,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7297971248626709
+      Pitch: 0.634797215461731
       Target Frame: world
       Value: XYOrbit (rviz)
-      Yaw: 5.564942836761475
+      Yaw: 5.384939193725586
     Saved: ~
 Window Geometry:
   Displays:
