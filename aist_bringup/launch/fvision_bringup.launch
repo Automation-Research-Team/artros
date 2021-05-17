@@ -20,7 +20,7 @@
   <arg name="devices"		value="ur5e, robotiq_140"/>
   <arg name="controllers"	value="ur, cmodel"/>
   <arg name="drivers"		value="ur, cmodel"/>
-  <arg name="driver_args"	value="10.66.171.54, 50003, 50004, False;
+  <arg name="driver_args"	value="10.66.171.54, 50003, 50004, 0;
 				       urcap, 10.66.171.54"/>
 
   <!-- Bringup robots -->
@@ -50,9 +50,9 @@
   <group if="$(eval not sim)">
 
     <!-- Drivers for the force sensors -->
-    <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch">
-      <arg name="robot_name"	value="d_bot"/>
-    </include>
+    <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->
+    <!--   <arg name="robot_name"	value="d_bot"/> -->
+    <!-- </include> -->
 
     <!-- Launch Realsense camera -->
     <arg name="camera_name"		default="d_bot_camera"/>
