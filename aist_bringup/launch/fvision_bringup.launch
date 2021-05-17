@@ -46,6 +46,7 @@
     <arg name="rviz_config"		value="$(arg rviz_config)"/>
   </include>
 
+
   <!-- Launch other hardware drivers -->
   <group if="$(eval not sim)">
 
@@ -62,7 +63,7 @@
     <arg name="manager"			default=""/>
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
       <arg name="camera"		value="$(arg camera_name)"/>
-      <arg name="tf_prefix"		value="calibrated_$(arg camera_name)"/>
+      <arg name="tf_prefix"		value="$(arg camera_name)"/>
       <arg name="enable_depth"		value="true"/>
       <arg name="enable_infra1"		value="true"/>
       <arg name="enable_infra2"		value="false"/>
@@ -80,6 +81,13 @@
       <arg name="enable_streaming"	value="true"/>
       <arg name="manager"		value="$(arg manager)"
     	   unless="$(eval manager == '')"/>
+    </include>
+    
+    <!-- Load and publish hand-eye calibration -->
+    <include file="$(find aist_handeye_calibration
+    		   )/launch/publish_calibration.launch">
+      <arg name="config"	value="$(arg config)" />
+      <arg name="camera_name"	value="$(arg camera_name)" />
     </include>
     
   </group>

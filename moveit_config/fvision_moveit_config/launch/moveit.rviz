@@ -6,8 +6,9 @@ Panels:
       Expanded:
         - /MotionPlanning1/Planning Request1
         - /TF1/Frames1
+        - /DepthCloud1/Auto Size1
       Splitter Ratio: 0.7425600290298462
-    Tree Height: 392
+    Tree Height: 331
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -484,10 +485,14 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        calibrated_d_bot_camera_color_optical_frame:
+          Value: true
         d_bot_base:
           Value: false
         d_bot_base_link:
           Value: false
+        d_bot_camera_aligned_depth_to_color_frame:
+          Value: true
         d_bot_camera_bottom_screw_frame:
           Value: false
         d_bot_camera_color_frame:
@@ -546,6 +551,8 @@ Visualization Manager:
           Value: false
         d_bot_tool0:
           Value: false
+        d_bot_tool0_controller:
+          Value: true
         d_bot_upper_arm_link:
           Value: false
         d_bot_wrist_1_link:
@@ -572,7 +579,8 @@ Visualization Manager:
           ground:
             d_bot_base_link:
               d_bot_base:
-                {}
+                d_bot_tool0_controller:
+                  {}
               d_bot_shoulder_link:
                 d_bot_upper_arm_link:
                   d_bot_forearm_link:
@@ -580,14 +588,18 @@ Visualization Manager:
                       d_bot_wrist_2_link:
                         d_bot_wrist_3_link:
                           d_bot_ee_link:
+                            calibrated_d_bot_camera_color_optical_frame:
+                              {}
                             d_bot_gripper_coupling_base_link:
                               d_bot_gripper_coupling_flange_link:
                                 d_bot_gripper_base_link:
                                   d_bot_camera_bottom_screw_frame:
                                     d_bot_camera_link:
-                                      d_bot_camera_color_frame:
+                                      d_bot_camera_aligned_depth_to_color_frame:
                                         d_bot_camera_color_optical_frame:
                                           {}
+                                      d_bot_camera_color_frame:
+                                        {}
                                       d_bot_camera_depth_frame:
                                         d_bot_camera_depth_optical_frame:
                                           {}
@@ -648,6 +660,44 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
+    - Alpha: 1
+      Auto Size:
+        Auto Size Factor: 1
+        Value: true
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/DepthCloud
+      Color: 255; 255; 255
+      Color Image Topic: /d_bot_camera/color/image_raw
+      Color Transformer: RGB8
+      Color Transport Hint: raw
+      Decay Time: 0
+      Depth Map Topic: /d_bot_camera/aligned_depth_to_color/image_raw
+      Depth Map Transport Hint: raw
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: DepthCloud
+      Occlusion Compensation:
+        Occlusion Time-Out: 30
+        Value: false
+      Position Transformer: XYZ
+      Queue Size: 5
+      Selectable: true
+      Size (Pixels): 3
+      Style: Flat Squares
+      Topic Filter: true
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -664,7 +714,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.4815521240234375
+      Distance: 2.7793383598327637
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -679,15 +729,15 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.634797215461731
+      Pitch: 0.4547972083091736
       Target Frame: world
       Value: XYOrbit (rviz)
-      Yaw: 5.384939193725586
+      Yaw: 5.429945468902588
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1025
+  Height: 759
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -698,9 +748,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002ad000003a7fc0200000007fc0000003d000001e20000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000000a0049006d0061006700650100000225000001bf0000001600ffffff0000049a000003a700000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002ad0000029dfc0200000007fc0000003d000001a50000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000000a0049006d00610067006501000001e8000000f20000001600ffffff000002ba0000029d00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1869
-  X: 51
-  Y: 27
+  Width: 1389
+  X: 2129
+  Y: 325
