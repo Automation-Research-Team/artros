@@ -9,8 +9,8 @@
   <arg name="rviz_config"		default=""/>
 
   <!-- Setup "skhi" configuration -->
-  <arg name="prefixes"			value="a_khi_, a_khi_"/>
-  <arg name="devices"			value="RS007L, gripper"/>
+  <arg name="prefixes"			value="a_khi_, a_khi_grippeer_"/>
+  <arg name="devices"			value="RS007L, lehz40k2_30"/>
   <arg name="controllers"		value="khi, fetch"/>
   <arg name="drivers"			value="khi"/>
   <arg name="driver_args"		value="192.168.0.2, 4, '',"/>
@@ -42,7 +42,7 @@
     <include file="$(find aist_phoxi_camera)/launch/run.launch">
       <arg name="camera_name"		value="a_khi_camera"/>
       <arg name="id"			value="2020-01-098-LC3"/>
-      <arg name="frame"			value="calibrated_a_khi_camera"/>
+      <arg name="frame"			value="a_khi_calibrated_camera"/>
       <arg name="intensity_scale"	value="0.05"/>
     </include>
 
