@@ -72,23 +72,30 @@
 
   <!-- Spawn and attach force sensor -->
   <xacro:include filename="$(find aist_ftsensor)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="a_bot_" parent="a_bot_ee_link">
+  <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_ee_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ft300>
-  <xacro:ft300 prefix="b_bot_" parent="b_bot_ee_link">
+  <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_ee_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ft300>
 
   <!-- Spawn and attach gripper -->
+  <xacro:include filename="$(find robotiq_description
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
+				parent="a_bot_ftsensor_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
   <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_85_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_85_gripper_with_tip_link prefix="a_bot_"
-					  parent="a_bot_ft300_flange_link">
+  <xacro:robotiq_85_gripper_with_tip_link prefix="a_bot_gripper_"
+					  parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_85_gripper_with_tip_link>
 
   <xacro:include filename="$(find aist_description)/devices/urdf/single_suction_gripper.urdf.xacro"/>
-  <xacro:single_suction_gripper prefix="b_bot_"
-  				parent="b_bot_ft300_flange_link">
+  <xacro:single_suction_gripper prefix="b_bot_gripper_"
+  				parent="b_bot_ftsensor_flange_link">
     <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->
     <origin xyz="0 0 0" rpy="0 ${-0.1*pi/180} ${0.45*pi/180}"/>
   </xacro:single_suction_gripper>
@@ -115,7 +122,7 @@
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/wrist_cameras.urdf.xacro" />
   <xacro:wrist_cameras prefix="a_bot_"
-		       parent="a_bot_robotiq_85_base_link"/>
+		       parent="a_bot_gripper_base_link"/>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

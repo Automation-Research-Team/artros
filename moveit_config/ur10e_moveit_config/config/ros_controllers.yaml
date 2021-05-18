@@ -15,13 +15,6 @@ hardware_interface:
     - a_bot_wrist_1_joint
     - a_bot_wrist_2_joint
     - a_bot_wrist_3_joint
-    - a_bot_finger_joint
-    - b_bot_shoulder_pan_joint
-    - b_bot_shoulder_lift_joint
-    - b_bot_elbow_joint
-    - b_bot_wrist_1_joint
-    - b_bot_wrist_2_joint
-    - b_bot_wrist_3_joint
   sim_control_mode: 1  # 0: position, 1: velocity
 # Publish all joint states
 # Creates the /joint_states topic necessary in ROS
@@ -40,14 +33,9 @@ controller_list:
       - a_bot_wrist_1_joint
       - a_bot_wrist_2_joint
       - a_bot_wrist_3_joint
-  - name: b_bot_scaled_pos_joint_traj_controller
-    action_ns: follow_joint_trajectory
+  - name: a_bot_gripper_controller
+    action_ns: gripper_cmd
     default: True
-    type: FollowJointTrajectory
+    type: GripperCommand
     joints:
-      - b_bot_shoulder_pan_joint
-      - b_bot_shoulder_lift_joint
-      - b_bot_elbow_joint
-      - b_bot_wrist_1_joint
-      - b_bot_wrist_2_joint
-      - b_bot_wrist_3_joint
+      - a_bot_finger_joint
