@@ -17,7 +17,3 @@
 [submodule "third_party/aruco_ros"]
 	path = third_party/aruco_ros
 	url = https://gitlab.com/art-aist/aruco_ros
-[submodule "third_party/ur_client_library"]
-	path = third_party/ur_client_library
-	url = https://github.com/UniversalRobots/Universal_Robots_Client_Library.git
-	branch = boost
