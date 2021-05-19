@@ -430,7 +430,7 @@ class Lecp6Gripper(GripperClient):
 ######################################################################
 class MagswitchGripper(GripperClient):
     def __init__(self, prefix='a_bot_magnet_', timeout=10.0,
-                 sensitivity=0, contact_position=100, grasp_position=100):
+                 sensitivity=0, contact_position=30, grasp_position=100):
         import tranbo_control.msg
 
         super(MagswitchGripper, self) \
