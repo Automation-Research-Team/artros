@@ -7,12 +7,10 @@ grippers:
     type: MagswitchGripper
     args:
       prefix: magnet_
-      timeout: 2.5
   gripper:
     type: Lecp6Gripper
     args:
       prefix: gripper_
-      timeout: 2.0
 
 cameras:
   camera: PhoXiCamera

@@ -6,13 +6,13 @@ grippers:
   gripper:
     type: GenericGripper
     args:
+      name: gripper
       action_ns: gripper_controller/gripper_action
       base_link: wrist_roll_link
       tip_link: gripper_link
       min_position: 0.0
       max_position: 0.1
       max_effort: 0.0
-      timeout: 10.0
 
 cameras:
   head_camera: DepthCamera

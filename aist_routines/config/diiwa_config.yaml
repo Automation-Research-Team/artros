@@ -11,10 +11,8 @@ grippers:
       prefix: a_iiwa_gripper_
       effort: 5.0
       velocity: 0.1
-      timeout: 6.0
   b_iiwa_gripper:
     type: SuctionGripper
     args:
       prefix: b_iiwa_gripper_
       eject: false
-      timeout: 2.0

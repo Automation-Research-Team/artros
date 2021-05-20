@@ -11,11 +11,9 @@ grippers:
       prefix: c_bot_gripper_
       effort: 5.0
       velocity: 0.1
-      timeout: 6.0
   d_bot_gripper:
     type: RobotiqGripper
     args:
       prefix: d_bot_gripper_
       effort: 5.0
       velocity: 0.1
-      timeout: 6.0

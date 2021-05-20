@@ -8,4 +8,3 @@ grippers:
     args:
       name: b_torobo_gripper
       base_link: b_torobo_arm/ee_link
-      timeout: 10.0
