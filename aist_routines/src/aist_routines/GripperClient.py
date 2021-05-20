@@ -80,8 +80,8 @@ class GripperClient(object):
 ######################################################################
 class VoidGripper(GripperClient):
     def __init__(self, base_link):
-        GripperClient.__init__(self,
-                               'void_gripper', 'void', base_link, base_link)
+        super(VoidGripper, self).__init__('void_gripper', 'void',
+                                          base_link, base_link)
         rospy.loginfo('void_gripper initialized.')
 
     @staticmethod
@@ -94,7 +94,8 @@ class VoidGripper(GripperClient):
 class GenericGripper(GripperClient):
     def __init__(self, name, action_ns, base_link, tip_link,
                  min_position=0.0, max_position=0.1, max_effort=5.0):
-        GripperClient.__init__(self, name, 'two_finger', base_link, tip_link)
+        super(GenericGripper, self).__init__(name, 'two_finger',
+                                             base_link, tip_link)
         self._client = actionlib.SimpleActionClient(action_ns,
                                                     cmsg.GripperCommandAction)
         self._client.wait_for_server()
@@ -152,20 +153,23 @@ class RobotiqGripper(GenericGripper):
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
 
-        GenericGripper.__init__(self, prefix.rstrip('_'), ns + '/gripper_cmd',
-                                prefix + 'base_link', prefix + 'tip_link',
-                                self._min_gap, self._max_gap, effort)
+        super(RobotiqGripper, self).__init__(prefix.rstrip('_'),
+                                             ns + '/gripper_cmd',
+                                             prefix + 'base_link',
+                                             prefix + 'tip_link',
+                                             self._min_gap, self._max_gap,
+                                             effort)
 
     @staticmethod
     def base(prefix, effort, velocity):
         return RobotiqGripper(prefix, effort, velocity)
 
     def move(self, gap, max_effort=0, timeout=0):
-        return GenericGripper.move(self,
-                                   self._position(gap), max_effort, timeout)
+        return super(RobotiqGripper, self).move(self._position(gap),
+                                                max_effort, timeout)
 
     def wait(self, timeout=0):
-        result = GenericGripper.wait(self, timeout)
+        result = super(RobotiqGripper, self).wait(timeout)
         return result
 
     def _position(self, gap):
@@ -189,7 +193,8 @@ class SuctionGripper(GripperClient):
         import o2as_msgs.msg
         import std_msgs.msg
 
-        GripperClient.__init__(self, *SuctionGripper._initargs(prefix, eject))
+        super(SuctionGripper, self).__init__(*SuctionGripper._initargs(prefix,
+                                                                       eject))
         self._client    = actionlib.SimpleActionClient(
                               'o2as_fastening_tools/suction_control',
                               o2as_msgs.msg.SuctionControlAction)
@@ -255,7 +260,8 @@ class PrecisionGripper(GripperClient):
     def __init__(self, prefix='a_bot_gripper_'):
         import o2as_msgs.msg
 
-        GripperClient.__init__(self, *PrecisionGripper._initargs(prefix))
+        super(PrecisionGripper, self).__init__(
+            *PrecisionGripper._initargs(prefix))
         self._client = actionlib.SimpleActionClient(
                            'precision_gripper_action',
                            # str(prefix) + 'gripper/gripper_action_controller',
@@ -377,7 +383,7 @@ class Lecp6Gripper(GripperClient):
     def __init__(self, prefix='a_bot_gripper_', open_no=1, close_no=2):
         import tranbo_control.msg
 
-        GripperClient.__init__(self, *Lecp6Gripper._initargs(prefix))
+        super(Lecp6Gripper, self).__init__(*Lecp6Gripper._initargs(prefix))
         self._client = actionlib.SimpleActionClient(
                            '/arm_driver/lecp6_driver/lecp6',
                            tranbo_control.msg.Lecp6CommandAction)
@@ -429,7 +435,8 @@ class MagswitchGripper(GripperClient):
                  sensitivity=0, grasp_position=30, confirm_position=100):
         import tranbo_control.msg
 
-        GripperClient.__init__(self, *MagswitchGripper._initargs(prefix))
+        super(MagswitchGripper, self).__init__(
+            *MagswitchGripper._initargs(prefix))
         self._client = actionlib.SimpleActionClient(
                               '/arm_driver/magswitch_driver/magswitch',
                               tranbo_control.msg.MagswitchCommandAction)
