@@ -16,14 +16,15 @@
 				       -J c_bot_wrist_1_joint -0.85
 				       -J c_bot_wrist_2_joint -1.5708
 				       -J c_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="c_bot_, c_bot_"/>
+  <arg name="prefixes"		value="c_bot_, c_bot_gripper_"/>
   <arg name="devices"		value="ur5e, robotiq_85"/>
-  <arg name="controllers"	value="ur, ros"/>
+  <arg name="controllers"	value="ur, cmodel"/>
   <arg name="drivers"		value="ur, cmodel"/>
-  <arg name="driver_args"	value="10.66.171.53, 50002"/>
+  <arg name="driver_args"	value="10.66.171.53, 50001, 50002, 0;
+				       urcap, 10.66.171.53"/>
 
   <!-- Bringup robots -->
-  <include file="$(find aist_bringup)/launch/include/connect_robots.launch">
+  <include file="$(dirname)/include/connect_robots.launch">
     <arg name="robot_description_file"
 	 value="$(find aist_description
 		)/scenes/urdf/$(arg config)_base_scene.urdf.xacro
@@ -39,7 +40,7 @@
   </include>
 
   <!-- Start MoveIt! -->
-  <include file="$(find aist_bringup)/launch/include/move_group.launch">
+  <include file="$(dirname)/include/move_group.launch">
     <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
     <arg name="moveit_config"		value="$(arg moveit_config)"/>
     <arg name="rviz_config"		value="$(arg rviz_config)"/>
@@ -56,28 +57,28 @@
     <arg name="manager"			default=""/>
 
     <!-- Launch RealSense cameras -->
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-      <arg name="camera"		value="$(arg camera_name)"/>
-      <arg name="tf_prefix"		value="calibrated_$(arg camera_name)"/>
-      <arg name="enable_depth"		value="true"/>
-      <arg name="enable_infra1"		value="true"/>
-      <arg name="enable_infra2"		value="false"/>
-      <arg name="enable_pointcloud"	value="false"/>
-      <arg name="align_depth"		value="true"/>
-      <arg name="depth_width"		value="$(arg camera_width)"/>
-      <arg name="depth_height"		value="$(arg camera_height)"/>
-      <arg name="depth_fps"		value="$(arg fps)"/>
-      <arg name="infra_width"		value="$(arg camera_width)"/>
-      <arg name="infra_height"		value="$(arg camera_height)"/>
-      <arg name="infra_fps"		value="$(arg fps)"/>
-      <arg name="color_width"		value="$(arg camera_width)"/>
-      <arg name="color_height"		value="$(arg camera_height)"/>
-      <arg name="color_fps"		value="$(arg fps)"/>
-      <arg name="enable_streaming"	value="true"/>
-      <arg name="publish_tf"		value="false"/>
-      <arg name="manager"		value="$(arg manager)"
-    	   unless="$(eval manager == '')"/>
-    </include>
+    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch"> -->
+    <!--   <arg name="camera"		value="$(arg camera_name)"/> -->
+    <!--   <arg name="tf_prefix"		value="calibrated_$(arg camera_name)"/> -->
+    <!--   <arg name="enable_depth"		value="true"/> -->
+    <!--   <arg name="enable_infra1"		value="true"/> -->
+    <!--   <arg name="enable_infra2"		value="false"/> -->
+    <!--   <arg name="enable_pointcloud"	value="false"/> -->
+    <!--   <arg name="align_depth"		value="true"/> -->
+    <!--   <arg name="depth_width"		value="$(arg camera_width)"/> -->
+    <!--   <arg name="depth_height"		value="$(arg camera_height)"/> -->
+    <!--   <arg name="depth_fps"		value="$(arg fps)"/> -->
+    <!--   <arg name="infra_width"		value="$(arg camera_width)"/> -->
+    <!--   <arg name="infra_height"		value="$(arg camera_height)"/> -->
+    <!--   <arg name="infra_fps"		value="$(arg fps)"/> -->
+    <!--   <arg name="color_width"		value="$(arg camera_width)"/> -->
+    <!--   <arg name="color_height"		value="$(arg camera_height)"/> -->
+    <!--   <arg name="color_fps"		value="$(arg fps)"/> -->
+    <!--   <arg name="enable_streaming"	value="true"/> -->
+    <!--   <arg name="publish_tf"		value="false"/> -->
+    <!--   <arg name="manager"		value="$(arg manager)" -->
+    <!-- 	   unless="$(eval manager == '')"/> -->
+    <!-- </include> -->
 
     <!-- Drivers for the force sensors -->
     <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->

@@ -1,10 +1,22 @@
-prefix: $(arg prefix)
-robot_ip_address: $(arg ip)
-reverse_port: $(arg port)
-min_payload: 0.0
-max_payload: 1.0
-servoj_time: 0.008
-base_frame: $(arg prefix)base
-tool_frame: $(arg prefix)tool0_controller
-require_activation: Never
-shutdown_on_disconnect: true
+robot_ip: $(arg ip)
+reverse_port: $(arg reverse_port)
+script_sender_port: $(arg script_sender_port)
+script_file: $(find ur_robot_driver)/resources/ros_control.urscript
+output_recipe_file: $(find ur_robot_driver)/resources/rtde_output_recipe.txt
+input_recipe_file: $(find ur_robot_driver)/resources/rtde_input_recipe.txt
+headless_mode: false
+tf_prefix: $(arg prefix)
+use_tool_communication: $(arg use_tool_communication)
+tool_voltage: 0
+tool_parity: 0
+tool_baud_rate: 115200
+tool_stop_bits: 1
+tool_rx_idle_chars: 1.5
+tool_tx_idle_chars: 3.5
+joints:
+  - $(arg prefix)shoulder_pan_joint
+  - $(arg prefix)shoulder_lift_joint
+  - $(arg prefix)elbow_joint
+  - $(arg prefix)wrist_1_joint
+  - $(arg prefix)wrist_2_joint
+  - $(arg prefix)wrist_3_joint

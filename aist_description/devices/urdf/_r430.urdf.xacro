@@ -9,122 +9,62 @@ aluminum peripherial evaluation case.
 -->
 
 <robot name="sensor_r430" xmlns:xacro="http://wiki.ros.org/xacro">
-  <xacro:property name="M_PI" value="3.1415926535897931" />
 
-  <!-- The following values are approximate, and the camera node
-   publishing TF values with actual calibrated camera extrinsic values -->
-  <xacro:property name="r430_cam_depth_to_left_ir_offset" value="-0.025"/>
-  <xacro:property name="r430_cam_depth_to_right_ir_offset" value="0.025"/>
-  <xacro:property name="r430_cam_depth_to_fisheye_offset" value="0.042"/>
+  <xacro:macro name="sensor_r430"
+  	       params="parent *origin name:=camera use_nominal_extrinsics:=false">
 
-  <!-- The following values model the aluminum peripherial case for the
-    R430 camera, with the camera joint represented by the actual
-    peripherial camera tripod mount -->
-  <xacro:property name="r430_cam_width" value="0.105"/>
-  <xacro:property name="r430_cam_height" value="0.039"/>
-  <xacro:property name="r430_cam_depth" value="0.019"/>
-  <xacro:property name="r430_cam_mount_from_center_offset" value=".0275"/>
+    <xacro:include filename="$(find realsense2_description
+			     )/urdf/_r430.urdf.xacro" />
+    <xacro:sensor_r430 parent="${parent}" name="${name}"
+		       use_nominal_extrinsics="${use_nominal_extrinsics}">
+      <xacro:insert_block name="origin"/>
+    </xacro:sensor_r430>
 
-  <!-- The following offset is relative the the physical R430 camera peripherial
-    camera tripod mount -->
-  <xacro:property name="r430_cam_depth_px" value="0.00"/>
-  <xacro:property name="r430_cam_depth_py" value="-0.035"/>
-  <xacro:property name="r430_cam_depth_pz" value="0.028"/>
+    <gazebo reference="${name}_depth_frame">
+      <sensor type="depth" name="${name}">
+	<always_on>true</always_on>
+	<visualize>true</visualize>
+	<camera>
+          <horizontal_fov>1.034</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <depth_camera>
+          </depth_camera>
+          <clip>
+            <near>0.1</near>
+            <far>100</far>
+          </clip>
+	</camera>
+	<plugin name="${name}_controller"
+		filename="libgazebo_ros_openni_kinect.so">
+          <baseline>0.2</baseline>
+          <alwaysOn>true</alwaysOn>
+          <updateRate>10.0</updateRate>
+          <cameraName>${name}</cameraName>
+          <frameName>${name}_color_optical_frame</frameName>
+          <imageTopicName>color/image_raw</imageTopicName>
+          <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>aligned_depth_to_color/image_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>depth/points</pointCloudTopicName>
+          <pointCloudCutoff>0.1</pointCloudCutoff>
+          <!-- <hackBaseline>0.07</hackBaseline> -->
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+          <CxPrime>0.0</CxPrime>
+          <Cx>0.0</Cx>
+          <Cy>0.0</Cy>
+          <focalLength>0.0</focalLength>
+	</plugin>
+      </sensor>
+    </gazebo>
 
-  <material name="aluminum">
-    <color rgba="0.5 0.5 0.5 1"/>
-  </material>
-
-  <xacro:macro name="sensor_r430" params="parent prefix *origin">
-
-    <!-- camera body, with origin at bottom screw mount -->
-    <joint name="${prefix}camera_joint" type="fixed">
-      <xacro:insert_block name="origin" />
-      <parent link="${parent}"/>
-      <child link="${prefix}camera_link" />
-    </joint>
-
-    <link name="${prefix}camera_link">
-      <visual>
-      <origin xyz="0 ${-r430_cam_mount_from_center_offset} ${r430_cam_height/2}" rpy="${M_PI/2} 0 ${M_PI/2}"/>
-        <geometry>
-          <box size="${r430_cam_width} ${r430_cam_height} ${r430_cam_depth}"/>
-          <!--<mesh filename="package://realsense2_camera/meshes/r430/r430.dae" />-->
-        </geometry>
-        <material name="aluminum"/>
-      </visual>
-      <collision>
-        <origin xyz="0.0 0.0 ${r430_cam_height/2}" rpy="0 0 0"/>
-        <geometry>
-        <box size="${r430_cam_depth} ${r430_cam_width} ${r430_cam_height}"/>
-        </geometry>
-      </collision>
-      <inertial>
-        <!-- The following are not reliable values, and should not be used for modeling -->
-        <mass value="0.564" />
-        <origin xyz="0 0 0" />
-        <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257" />
-      </inertial>
-    </link>
-
-    <!-- camera depth joints and links -->
-    <joint name="${prefix}camera_depth_joint" type="fixed">
-      <origin xyz="${r430_cam_depth_px} ${r430_cam_depth_py} ${r430_cam_depth_pz}" rpy="0 0 0"/>
-      <parent link="${prefix}camera_link"/>
-      <child link="${prefix}camera_depth_frame" />
-    </joint>
-    <link name="${prefix}camera_depth_frame"/>
-
-    <joint name="${prefix}camera_depth_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${prefix}camera_depth_frame" />
-      <child link="${prefix}camera_depth_optical_frame" />
-    </joint>
-    <link name="${prefix}camera_depth_optical_frame"/>
-
-    <!-- camera left IR joints and links -->
-    <joint name="${prefix}camera_left_ir_joint" type="fixed">
-      <origin xyz="0 ${r430_cam_depth_to_left_ir_offset} 0" rpy="0 0 0" />
-      <parent link="${prefix}camera_depth_frame" />
-      <child link="${prefix}camera_left_ir_frame" />
-    </joint>
-    <link name="${prefix}camera_left_ir_frame"/>
-
-    <joint name="${prefix}camera_left_ir_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${prefix}camera_left_ir_frame" />
-      <child link="${prefix}camera_left_ir_optical_frame" />
-    </joint>
-    <link name="${prefix}camera_left_ir_optical_frame"/>
-
-    <!-- camera right IR joints and links -->
-    <joint name="${prefix}camera_right_ir_joint" type="fixed">
-      <origin xyz="0 ${r430_cam_depth_to_right_ir_offset} 0" rpy="0 0 0" />
-      <parent link="${prefix}camera_depth_frame" />
-      <child link="${prefix}camera_right_ir_frame" />
-    </joint>
-    <link name="${prefix}camera_right_ir_frame"/>
-
-    <joint name="${prefix}camera_right_ir_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${prefix}camera_right_ir_frame" />
-      <child link="${prefix}camera_right_ir_optical_frame" />
-    </joint>
-    <link name="${prefix}camera_right_ir_optical_frame"/>
-
-    <!-- camera fisheye joints and links -->
-    <joint name="${prefix}camera_fisheye_joint" type="fixed">
-      <origin xyz="0 ${r430_cam_depth_to_fisheye_offset} 0" rpy="0 0 0" />
-      <parent link="${prefix}camera_depth_frame" />
-      <child link="${prefix}camera_fisheye_frame" />
-    </joint>
-    <link name="${prefix}camera_fisheye_frame"/>
-
-    <joint name="${prefix}camera_fisheye_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${prefix}camera_fisheye_frame" />
-      <child link="${prefix}camera_fisheye_optical_frame" />
-    </joint>
-    <link name="${prefix}camera_fisheye_optical_frame"/>
   </xacro:macro>
+
 </robot>

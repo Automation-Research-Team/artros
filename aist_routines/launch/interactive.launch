@@ -3,7 +3,8 @@
 
   <arg name="config"		default="aist"/>
   <arg name="robot_name"	default="b_bot"/>
-  <arg name="camera_name"	default="a_phoxi_m_camera"/>
+  <!-- <arg name="camera_name"	default="a_phoxi_m_camera"/> -->
+  <arg name="camera_name"	default=""/>
   <arg name="speed"		default="0.1"/>
   <arg name="ns"		default="/"/>
 

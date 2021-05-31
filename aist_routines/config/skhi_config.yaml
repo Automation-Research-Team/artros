@@ -6,16 +6,13 @@ grippers:
   a_khi_magnet:
     type: SuctionGripper
     args:
-      name: a_khi_magnet
-      base_link: a_khi_magnet_base_link
+      prefix: a_khi_magnet_
       tip_link: a_khi_magnet_link
       eject: false
-      timeout: 2.0
   a_khi_gripper:
     type: Lecp6Gripper
     args:
       prefix: a_khi_
-      timeout: 3.0
 
 cameras:
   a_khi_camera: PhoXiCamera

@@ -86,7 +86,7 @@ class PickOrPlaceAction(object):
         if not self._is_active(amsg.pickOrPlaceFeedback.APPROACHING):
             return
         if goal.pick:
-            gripper.pregrasp(False)             # Pregrasp
+            gripper.pregrasp()               # Pregrasp (not wait)
         target_pose = routines.effector_target_pose(goal.pose,
                                                     (goal.grasp_offset.x,
                                                      goal.grasp_offset.y,
@@ -117,7 +117,7 @@ class PickOrPlaceAction(object):
             if not self._is_active(amsg.pickOrPlaceFeedback.DEPARTING):
                 return
             if goal.pick:
-                gripper.postgrasp(False)
+                gripper.postgrasp(-1)    # Postgrap (not wait)
             (success, _, _) \
                 = routines.go_to_pose_goal(goal.robot_name,
                                            routines.effector_target_pose(

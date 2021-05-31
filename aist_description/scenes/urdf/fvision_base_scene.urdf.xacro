@@ -52,21 +52,26 @@
   </joint>
 
   <!-- Spawn and attach gripper -->
-  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_hande_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_hande_with_tip_link prefix="d_bot_" parent="d_bot_ee_link">
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="d_bot_gripper_coupling_"
+				parent="d_bot_ee_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_hande_with_tip_link>
+  </xacro:robotiq_arg2f_coupling>
 
-  <!-- Add PhoXi 3D scanner -->
-  <xacro:include filename="$(find aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
-  <xacro:phoxi_m_camera prefix="b_" parent="ground">
-    <origin xyz="0.547941636523
-		 -0.00827443204237
-		 1.67030171767"
-	    rpy="${-151.493605482*pi/180}
-		 ${0.698490882792*pi/180}
-		 ${85.0482907121*pi/180}"/>
-  </xacro:phoxi_m_camera>
+  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_140_gripper_with_tip_link.urdf.xacro"/>
+  <xacro:robotiq_140_gripper_with_tip_link prefix="d_bot_gripper_"
+					   parent="d_bot_gripper_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_140_gripper_with_tip_link>
+
+  <!-- Add RealSense camera -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/_d435.urdf.xacro"/>
+  <xacro:sensor_d435 name="d_bot_camera" parent="d_bot_gripper_base_link"
+		     use_nominal_extrinsics="true">
+    <origin xyz="0.030 0.000 0.043" rpy="0 ${0.0*pi/180.0} 0" />
+  </xacro:sensor_d435>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

@@ -4,10 +4,11 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1/Planned Path1
+        - /MotionPlanning1/Planning Request1
         - /TF1/Frames1
+        - /DepthCloud1/Auto Size1
       Splitter Ratio: 0.7425600290298462
-    Tree Height: 386
+    Tree Height: 331
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -48,7 +49,6 @@ Visualization Manager:
       MoveIt_Allow_External_Program: false
       MoveIt_Allow_Replanning: false
       MoveIt_Allow_Sensor_Positioning: false
-      MoveIt_Goal_Tolerance: 0
       MoveIt_Planning_Attempts: 10
       MoveIt_Planning_Time: 5
       MoveIt_Use_Cartesian_Path: false
@@ -74,24 +74,52 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
-          b_camera:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_sensor:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           d_bot_base:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           d_bot_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra1_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra1_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra2_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra2_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -106,22 +134,75 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_base_link:
+          d_bot_gripper_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_gripper_coupling_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_left_finger:
+          d_bot_gripper_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_gripper_left_inner_finger:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_right_finger:
+          d_bot_gripper_left_inner_finger_pad:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_tip_link:
+          d_bot_gripper_left_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_left_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_left_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_inner_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_inner_finger_pad:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_robotiq_arg2f_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_tip_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -191,7 +272,7 @@ Visualization Manager:
         Colliding Link Color: 255; 0; 0
         Goal State Alpha: 1
         Goal State Color: 250; 128; 0
-        Interactive Marker Size: 0
+        Interactive Marker Size: 0.20000000298023224
         Joint Violation Color: 255; 0; 255
         Planning Group: d_bot
         Query Goal State: true
@@ -216,24 +297,52 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
-          b_camera:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          b_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_sensor:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           d_bot_base:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           d_bot_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra1_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra1_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra2_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_infra2_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -248,22 +357,75 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_base_link:
+          d_bot_gripper_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_gripper_coupling_base_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_left_finger:
+          d_bot_gripper_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_gripper_left_inner_finger:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_right_finger:
+          d_bot_gripper_left_inner_finger_pad:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_robotiq_hande_tip_link:
+          d_bot_gripper_left_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_left_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_left_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_inner_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_inner_finger_pad:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_right_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_robotiq_arg2f_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_gripper_tip_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -323,32 +485,74 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        b_camera:
-          Value: false
-        b_camera_link:
-          Value: false
-        b_sensor:
+        calibrated_d_bot_camera_color_optical_frame:
           Value: true
         d_bot_base:
           Value: false
         d_bot_base_link:
           Value: false
-        d_bot_ee_link:
+        d_bot_camera_aligned_depth_to_color_frame:
           Value: true
+        d_bot_camera_bottom_screw_frame:
+          Value: false
+        d_bot_camera_color_frame:
+          Value: false
+        d_bot_camera_color_optical_frame:
+          Value: true
+        d_bot_camera_depth_frame:
+          Value: false
+        d_bot_camera_depth_optical_frame:
+          Value: false
+        d_bot_camera_infra1_frame:
+          Value: false
+        d_bot_camera_infra1_optical_frame:
+          Value: false
+        d_bot_camera_infra2_frame:
+          Value: false
+        d_bot_camera_infra2_optical_frame:
+          Value: false
+        d_bot_camera_link:
+          Value: false
+        d_bot_ee_link:
+          Value: false
         d_bot_forearm_link:
           Value: false
-        d_bot_robotiq_hande_base_link:
+        d_bot_gripper_base_link:
           Value: false
-        d_bot_robotiq_hande_left_finger:
-          Value: true
-        d_bot_robotiq_hande_right_finger:
-          Value: true
-        d_bot_robotiq_hande_tip_link:
+        d_bot_gripper_coupling_base_link:
           Value: false
+        d_bot_gripper_coupling_flange_link:
+          Value: false
+        d_bot_gripper_left_inner_finger:
+          Value: false
+        d_bot_gripper_left_inner_finger_pad:
+          Value: false
+        d_bot_gripper_left_inner_knuckle:
+          Value: false
+        d_bot_gripper_left_outer_finger:
+          Value: false
+        d_bot_gripper_left_outer_knuckle:
+          Value: false
+        d_bot_gripper_right_inner_finger:
+          Value: false
+        d_bot_gripper_right_inner_finger_pad:
+          Value: false
+        d_bot_gripper_right_inner_knuckle:
+          Value: false
+        d_bot_gripper_right_outer_finger:
+          Value: false
+        d_bot_gripper_right_outer_knuckle:
+          Value: false
+        d_bot_gripper_robotiq_arg2f_base_link:
+          Value: false
+        d_bot_gripper_tip_link:
+          Value: true
         d_bot_shoulder_link:
           Value: false
         d_bot_tool0:
           Value: false
+        d_bot_tool0_controller:
+          Value: true
         d_bot_upper_arm_link:
           Value: false
         d_bot_wrist_1_link:
@@ -362,7 +566,7 @@ Visualization Manager:
         workbox:
           Value: false
         workspace_center:
-          Value: false
+          Value: true
         world:
           Value: false
       Marker Scale: 0.30000001192092896
@@ -373,13 +577,10 @@ Visualization Manager:
       Tree:
         world:
           ground:
-            b_camera:
-              b_sensor:
-                b_camera_link:
-                  {}
             d_bot_base_link:
               d_bot_base:
-                {}
+                d_bot_tool0_controller:
+                  {}
               d_bot_shoulder_link:
                 d_bot_upper_arm_link:
                   d_bot_forearm_link:
@@ -387,13 +588,44 @@ Visualization Manager:
                       d_bot_wrist_2_link:
                         d_bot_wrist_3_link:
                           d_bot_ee_link:
-                            d_bot_robotiq_hande_base_link:
-                              d_bot_robotiq_hande_left_finger:
-                                {}
-                              d_bot_robotiq_hande_right_finger:
-                                {}
-                              d_bot_robotiq_hande_tip_link:
-                                {}
+                            calibrated_d_bot_camera_color_optical_frame:
+                              {}
+                            d_bot_gripper_coupling_base_link:
+                              d_bot_gripper_coupling_flange_link:
+                                d_bot_gripper_base_link:
+                                  d_bot_camera_bottom_screw_frame:
+                                    d_bot_camera_link:
+                                      d_bot_camera_aligned_depth_to_color_frame:
+                                        d_bot_camera_color_optical_frame:
+                                          {}
+                                      d_bot_camera_color_frame:
+                                        {}
+                                      d_bot_camera_depth_frame:
+                                        d_bot_camera_depth_optical_frame:
+                                          {}
+                                      d_bot_camera_infra1_frame:
+                                        d_bot_camera_infra1_optical_frame:
+                                          {}
+                                      d_bot_camera_infra2_frame:
+                                        d_bot_camera_infra2_optical_frame:
+                                          {}
+                                  d_bot_gripper_robotiq_arg2f_base_link:
+                                    d_bot_gripper_left_inner_knuckle:
+                                      {}
+                                    d_bot_gripper_left_outer_knuckle:
+                                      d_bot_gripper_left_outer_finger:
+                                        d_bot_gripper_left_inner_finger:
+                                          d_bot_gripper_left_inner_finger_pad:
+                                            {}
+                                    d_bot_gripper_right_inner_knuckle:
+                                      {}
+                                    d_bot_gripper_right_outer_knuckle:
+                                      d_bot_gripper_right_outer_finger:
+                                        d_bot_gripper_right_inner_finger:
+                                          d_bot_gripper_right_inner_finger_pad:
+                                            {}
+                                  d_bot_gripper_tip_link:
+                                    {}
                           d_bot_tool0:
                             {}
             workbox:
@@ -418,7 +650,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /b_camera/texture
+      Image Topic: /d_bot_camera/color/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -427,6 +659,44 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
+      Value: true
+    - Alpha: 1
+      Auto Size:
+        Auto Size Factor: 1
+        Value: true
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/DepthCloud
+      Color: 255; 255; 255
+      Color Image Topic: /d_bot_camera/color/image_raw
+      Color Transformer: RGB8
+      Color Transport Hint: raw
+      Decay Time: 0
+      Depth Map Topic: /d_bot_camera/aligned_depth_to_color/image_raw
+      Depth Map Transport Hint: raw
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: DepthCloud
+      Occlusion Compensation:
+        Occlusion Time-Out: 30
+        Value: false
+      Position Transformer: XYZ
+      Queue Size: 5
+      Selectable: true
+      Size (Pixels): 3
+      Style: Flat Squares
+      Topic Filter: true
+      Use Fixed Frame: true
+      Use rainbow: true
       Value: true
   Enabled: true
   Global Options:
@@ -444,25 +714,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 5.129863262176514
+      Distance: 2.7793383598327637
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.11356700211763382
-        Y: 0.10592000186443329
-        Z: 2.2351800055275817e-7
+        X: -0.26426923274993896
+        Y: 0.6188502907752991
+        Z: -1.341098823104403e-7
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.12979747354984283
+      Pitch: 0.4547972083091736
       Target Frame: world
       Value: XYOrbit (rviz)
-      Yaw: 3.079928159713745
+      Yaw: 5.429945468902588
     Saved: ~
 Window Geometry:
   Displays:
@@ -478,9 +748,9 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002ad0000029dfc0200000007fc0000003d000001dc000001b80100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff0000029500fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffb0000000a0049006d006100670065010000021f000000bb0000001600ffffff000004710000029d00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002ad0000029dfc0200000007fc0000003d000001a50000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000000a0049006d00610067006501000001e8000000f20000001600ffffff000002ba0000029d00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1828
-  X: 92
-  Y: 177
+  Width: 1389
+  X: 2129
+  Y: 325
