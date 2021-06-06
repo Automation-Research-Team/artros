@@ -296,6 +296,7 @@ ftsensor::compute_calibration_callback(std_srvs::Trigger::Request&  req,
     const matrix33_t	A = (_f_sqsum/_nsamples - f_avg.squaredNorm())
 			  * matrix33_t::Identity()
 			  - _ff_sum/_nsamples + f_avg % f_avg;
+    const vector3_t	b = _mf_sum/_nsamples - _f_sum.cross(f_avg)/_nsamples;
     
     res.success = true;
     res.message = "Successfully computed calibration.";
