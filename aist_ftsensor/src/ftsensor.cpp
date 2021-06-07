@@ -2,17 +2,17 @@
  *  \file	ftsensor.cpp
  *  \brief	source file for a class for controlling force-torque sensors
  */
-#include <ros/package.h>
 #include <yaml-cpp/yaml.h>
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>		// for struct sockaddr_in
 #include <arpa/inet.h>		// for inet_addr()
 #include <netdb.h>		// for struct hostent, gethostbyname()
+#include <cstdlib>		// for std::getenv()
+#include <sys/stat.h>		// for mkdir()
 #include <errno.h>
 #include <fstream>
-
+#include <Eigen/LU>
 #include "ftsensor.h"
 
 namespace aist_ftsensor
@@ -42,6 +42,7 @@ get_vector3_param(const ros::NodeHandle& nh, const std::string& name)
     {
 	std::vector<double>	v;
 	nh.getParam(name, v);
+
 	if (v.size() == 3)
 	{
 	    ftsensor::vector3_t	vec;
@@ -108,7 +109,7 @@ ftsensor::ftsensor(const std::string& name, const Input input)
      _q(get_quaternion_param(_nh, "rotation")),
      _f0(get_vector3_param(_nh, "force_offset")),
      _m0(get_vector3_param(_nh, "torque_offset")),
-     _r0(get_vector3_param(_nh, "mass_center")),
+     _r(get_vector3_param(_nh, "mass_center")),
      _do_sample(false),
      _nsamples(0),
      _k_sum(vector3_t::Zero()),
@@ -122,7 +123,6 @@ ftsensor::ftsensor(const std::string& name, const Input input)
 {
     ROS_INFO_STREAM("reference_frame=" << _reference_frame <<
 		    ", sensor_frame=" << _sensor_frame << ", rate=" << _rate);
-
     ROS_INFO_STREAM("input=" << _input);
     ROS_INFO_STREAM("subscriber topic[" << _subscriber.getTopic() <<"]");
     ROS_INFO_STREAM("socket=" << _socket);
@@ -168,7 +168,8 @@ ftsensor::tick()
     buf[nbytes] = '\0';
 
     wrench_p	wrench(new wrench_t);
-    wrench->header.stamp = ros::Time::now();
+    wrench->header.stamp    = ros::Time::now();
+    wrench->header.frame_id = _sensor_frame;
 
     const char*	s = buf.data();
     s = splitd(s, wrench->wrench.force.x);
@@ -218,9 +219,9 @@ ftsensor::wrench_callback(const wrench_p& wrench)
 	    _do_sample = false;
 	}
 
-	const auto	force  = _q*(f - _f0) - _mg*k;
-	const auto	torque = _q*(m - _m0) - _r0.cross(_mg*k);
-
+	const vector3_t	force  = _q*(f - _f0) - _mg*k;
+	const vector3_t	torque = _q*(m - _m0) - _r.cross(_mg*k);
+	
 	wrench->header.frame_id = _sensor_frame;
 	wrench->wrench.force.x  = force(0);
 	wrench->wrench.force.y  = force(1);
@@ -270,12 +271,12 @@ ftsensor::compute_calibration_callback(std_srvs::Trigger::Request&  req,
    * Compute similarity transformation from external force to observed force.
    */
   // 1. Compute moment matrix.
-    const vector3_t	k_avg = _k_sum  / _nsamples;
-    const vector3_t	f_avg = _f_sum  / _nsamples;
-    const matrix33_t	M     = _kf_sum / _nsamples - k_avg % f_avg;
+    const vector3_t	k_avg = _k_sum /_nsamples;
+    const vector3_t	f_avg = _f_sum /_nsamples;
+    const matrix33_t	M     = _kf_sum/_nsamples - k_avg % f_avg;
 
-  // 2. Apply SVD to moment matrix and correct U and V so that they have
-  //    positive deterninant values.
+  // 2. Apply SVD to moment matrix and correct resulting U and V
+  //    so that they have positive determinant values.
     JacobiSVD<matrix33_t>	svd(M, ComputeFullU | ComputeFullV);
     matrix33_t	U = svd.matrixU();
     if (U.determinant() < 0)
@@ -297,6 +298,9 @@ ftsensor::compute_calibration_callback(std_srvs::Trigger::Request&  req,
 			  * matrix33_t::Identity()
 			  - _ff_sum/_nsamples + f_avg % f_avg;
     const vector3_t	b = _mf_sum/_nsamples - _f_sum.cross(f_avg)/_nsamples;
+    const vector3_t	r = A.colPivHouseholderQr().solve(b);
+    _m0 = _m_sum/_nsamples + r.cross(_f0 - f_avg);
+    _r  = _q * r;
     
     res.success = true;
     res.message = "Successfully computed calibration.";
@@ -314,6 +318,10 @@ ftsensor::save_calibration_callback(std_srvs::Trigger::Request&  req,
 	YAML::Emitter emitter;
 	emitter << YAML::BeginMap;
 	emitter << YAML::Key << "effector_mass"	<< YAML::Value << _mg/G;
+	emitter << YAML::Key << "rotation"	<< YAML::Value << YAML::Flow
+		<< YAML::BeginSeq
+		<< _q.x() << _q.y() << _q.z() << _q.w()
+		<< YAML::EndSeq;
 	emitter << YAML::Key << "force_offset"	<< YAML::Value << YAML::Flow
 		<< YAML::BeginSeq
 		<< _f0(0) << _f0(1) << _f0(2)
@@ -324,16 +332,33 @@ ftsensor::save_calibration_callback(std_srvs::Trigger::Request&  req,
 		<< YAML::EndSeq;
 	emitter << YAML::Key << "mass_center"	<< YAML::Value << YAML::Flow
 		<< YAML::BeginSeq
-		<< _r0(0) << _r0(1) << _r0(2)
-		<< YAML::EndSeq;
-	emitter << YAML::Key << "rotation"	<< YAML::Value << YAML::Flow
-		<< YAML::BeginSeq
-		<< _q.x() << _q.y() << _q.z() << _q.w()
+		<< _r(0) << _r(1) << _r(2)
 		<< YAML::EndSeq;
 	emitter << YAML::EndMap;
 
-	std::ofstream f(filepath());
-	f << emitter.c_str() << std::endl;
+      // Read calibration file name from parameter server.
+	const auto	calib_file = _nh.param<std::string>(
+					"calib_file",
+					std::string(getenv("HOME")) +
+					"/.ros/aist_ftsensor/" +
+					_nh.getNamespace() + ".yaml");
+
+      // Open/create parent directory of the calibration file.
+	const auto	dir = calib_file.substr(0,
+						calib_file.find_last_of('/'));
+	struct stat	buf;
+	if (stat(dir.c_str(), &buf) && mkdir(dir.c_str(), S_IRWXU))
+	    throw std::runtime_error("cannot create " + dir + ": "
+						      + strerror(errno));
+
+      // Open calibration file.
+	std::ofstream	out(calib_file.c_str());
+	if (!out)
+	    throw std::runtime_error("cannot open " + calib_file + ": "
+						    + strerror(errno));
+
+      // Save calitration results.
+	out << emitter.c_str() << std::endl;
 
 	res.success = true;
 	res.message = "save_calibration succeeded.";
@@ -354,6 +379,7 @@ void
 ftsensor::take_sample(const vector3_t& k,
 		      const vector3_t& f, const vector3_t& m)
 {
+    ++_nsamples;
     _k_sum   += k;
     _f_sum   += f;
     _m_sum   += m;
@@ -389,10 +415,8 @@ ftsensor::up_socket()
     }
 
   // Get hoastname and port from parameters.
-    std::string	hostname;
-    _nh.param<std::string>("hostname", hostname, "");
-    int		port;
-    _nh.param<int>("port", port, 63351);
+    const auto	hostname = _nh.param<std::string>("hostname", "");
+    const auto	port = _nh.param<int>("port", 63351);
 
   // Connect socket to hostname:port.
     auto	addr = inet_addr(hostname.c_str());
@@ -447,13 +471,6 @@ ftsensor::connect_socket(u_long s_addr, int port)
 	ROS_ERROR_STREAM("failed: " << strerror(errno));
 	return false;
     }
-}
-
-std::string
-ftsensor::filepath() const
-{
-    return ros::package::getPath("aist_ftsensor")
-	 + "/config/" + _nh.getNamespace() + ".yaml";
 }
 
 }	// namespace aist_ftsensor

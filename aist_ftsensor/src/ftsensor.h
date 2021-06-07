@@ -7,7 +7,6 @@
 #include <tf/transform_listener.h>
 #include <std_srvs/Trigger.h>
 #include <Eigen/Geometry>
-#include <Eigen/LU>
 
 namespace aist_ftsensor
 {
@@ -60,7 +59,6 @@ class ftsensor
     void	up_socket()						;
     void	down_socket()						;
     bool	connect_socket(u_long hostname, int port)		;
-    std::string	filepath()					const	;
 
   private:
     ros::NodeHandle		_nh;
@@ -82,7 +80,7 @@ class ftsensor
     quaternion_t		_q;		// rotation
     vector3_t			_f0;		// force offset
     vector3_t			_m0;		// torque offset
-    vector3_t			_r0;		// mass center
+    vector3_t			_r;		// mass center
 
   // Calibration stuffs
     bool			_do_sample;
