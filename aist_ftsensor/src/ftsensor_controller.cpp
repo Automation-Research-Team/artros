@@ -7,13 +7,17 @@
 
 namespace aist_ftsensor
 {
+/************************************************************************
+*  class ForceTorqueSensorController					*
+************************************************************************/
 bool
 ForceTorqueSensorController::init(hw_interface_t* hw,
 				  ros::NodeHandle& root_nh,
 				  ros::NodeHandle& controller_nh)
 {
-  // get all joint states from the hardware interface
     const auto&	sensor_names = hw->getNames();
+
+  // get all joint states from the hardware interface
     for (const auto& sensor_name : sensor_names)
 	ROS_DEBUG_STREAM("Got sensor " << sensor_name.c_str());
 
@@ -54,7 +58,7 @@ ForceTorqueSensorController::update(const ros::Time& time,
 {
   // limit rate of publishing
     unsigned	i = 0;
-    for (auto&& pub : _pubs)
+    for (const auto& pub : _pubs)
     {
 	auto&&		last_pub_time = _last_pub_times[i];
 
