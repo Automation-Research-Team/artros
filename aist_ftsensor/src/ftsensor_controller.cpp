@@ -58,8 +58,10 @@ ForceTorqueSensorController::update(const ros::Time& time,
 {
   // limit rate of publishing
     unsigned	i = 0;
-    for (const auto& pub : _pubs)
+    for (const auto& sensor : _sensors)
     {
+	sensor->update(time);
+
 	auto&&		last_pub_time = _last_pub_times[i];
 
 	if (_pub_rate > 0.0 &&
@@ -94,6 +96,37 @@ ForceTorqueSensorController::update(const ros::Time& time,
 void
 ForceTorqueSensorController::stopping(const ros::Time& /*time*/)
 {
+}
+
+/************************************************************************
+*  class ForceTorqueSensorController::Sensor				*
+************************************************************************/
+void
+ForceTorqueSensorController::Sensor::update(const ros::Time& time)
+{
+    if (_pub_rate > 0.0 &&
+	_last_pub_time + ros::Duration(1.0/_pub_rate) < time)
+    {
+      // try to publish
+	if (_pub->trylock())
+	{
+	  // we're actually publishing, so increment time
+	    last_pub_time = last_pub_time + ros::Duration(1.0/_pub_rate);
+
+	  // populate message
+	    _pub->msg_.header.stamp    = time;
+	    _pub->msg_.header.frame_id = _sensor.getFrameId();
+
+	    _pub->msg_.wrench.force.x  = _sensor.getForce()[0];
+	    _pub->msg_.wrench.force.y  = _sensor.getForce()[1];
+	    _pub->msg_.wrench.force.z  = _sensor.getForce()[2];
+	    _pub->msg_.wrench.torque.x = _sensor.getTorque()[0];
+	    _pub->msg_.wrench.torque.y = _sensor.getTorque()[1];
+	    _pub->msg_.wrench.torque.z = _sensor.getTorque()[2];
+
+	    _pub->unlockAndPublish();
+	}
+    }
 }
 
 }

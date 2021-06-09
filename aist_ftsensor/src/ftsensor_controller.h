@@ -27,6 +27,20 @@ class ForceTorqueSensorController
 				geometry_msgs::WrenchStamped>;
     using publisher_p	 = std::shared_ptr<publisher_t>;
 
+    class Sensor
+    {
+      public:
+		Sensor()						{}
+
+	void	init();
+	void	update(const ros::Time& time,
+		       const ros::Duration& /*period*/)			;
+      private:
+	hw_handle_t	_sensor;
+	publisher_p	_pub;
+	ros::Time	_last_pub_time;
+    };
+
   public:
 			ForceTorqueSensorController()			{}
 
@@ -39,10 +53,8 @@ class ForceTorqueSensorController
     virtual void	stopping(const ros::Time& /*time*/)		;
 
   private:
-    std::vector<hw_handle_t>	_sensors;
-    std::vector<publisher_p>	_pubs;
-    std::vector<ros::Time>	_last_pub_times;
-    double			_pub_rate;
+    std::vector<Sensor>	_sensors;
+    double		_pub_rate;
 };
 
 }	// namespace aist_ftsensor
