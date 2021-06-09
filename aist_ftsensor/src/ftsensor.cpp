@@ -1,6 +1,6 @@
 /*!
  *  \file	ftsensor.cpp
- *  \brief	source file for a class for controlling force-torque sensors
+ *  \brief	source file of a class for controlling force-torque sensors
  */
 #include <yaml-cpp/yaml.h>
 #include <sys/types.h>

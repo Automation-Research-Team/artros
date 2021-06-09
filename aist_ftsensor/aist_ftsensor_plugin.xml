@@ -1,0 +1,9 @@
+<library path="lib/libaist_ftsensor_controller">
+  <class name="aist_ftsensor_controller/ForceTorqueSensorController"
+	 type="aist_ftsensor_controller::ForceTorqueSensorController"
+	 base_class_type="controller_interface::ControllerBase">
+  <description>
+    This controller publishes the readings of all available force-torque sensors as geometry_msgs/WrenchStamped message. The controller expects a ForceTorqueSensorInterface type of hardware interface.
+  </description>
+  </class>
+</library>
