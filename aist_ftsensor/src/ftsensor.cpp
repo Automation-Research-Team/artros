@@ -71,10 +71,10 @@ get_quaternion_param(const ros::NodeHandle& nh, const std::string& name)
 
 //! Exterior product of two vectors.
 template <class T, int M, int N> static Eigen::Matrix<T, M, N>
-operator %(const ::Eigen::Matrix<T, M, 1>& x,
-	   const ::Eigen::Matrix<T, N, 1>& y)
+operator %(const Eigen::Matrix<T, M, 1>& x,
+	   const Eigen::Matrix<T, N, 1>& y)
 {
-    ::Eigen::Matrix<T, M, N>	mat;
+    Eigen::Matrix<T, M, N>	mat;
     for (size_t i = 0; i < M; ++i)
 	for (size_t j = 0; j < N; ++j)
 	    mat(i, j) = x(i) * y(j);
@@ -88,22 +88,24 @@ ftsensor::ftsensor(const std::string& name, const Input input)
     :_nh(name),
      _input(input),
      _subscriber(input == Input::TOPIC ?
-	    _nh.subscribe("/wrench_in", 100, &ftsensor::wrench_callback, this):
+	    _nh.subscribe("/wrench_in", 100, &ftsensor::wrench_cb, this):
 	    ros::Subscriber()),
      _publisher_org(_nh.advertise<wrench_t>("wrench_org", 100)),
      _publisher(_nh.advertise<wrench_t>("wrench", 100)),
      _socket(input == Input::SOCKET ? socket(AF_INET, SOCK_STREAM, 0): 0),
      _take_sample(_nh.advertiseService("take_sample",
-				       &ftsensor::take_sample_callback, this)),
+				       &ftsensor::take_sample_cb, this)),
      _compute_calibration(_nh.advertiseService(
 			      "compute_calibration",
-			      &ftsensor::compute_calibration_callback, this)),
-     _save_calibration(_nh.advertiseService(
-			   "save_calibration",
-			   &ftsensor::save_calibration_callback, this)),
+			      &ftsensor::compute_calibration_cb, this)),
+     _save_calibration(_nh.advertiseService("save_calibration",
+					    &ftsensor::save_calibration_cb,
+					    this)),
+     _clear_samples(_nh.advertiseService("clear_samples",
+					 &ftsensor::clear_samples_cb, this)),
      _listener(),
-     _reference_frame(_nh.param<std::string>("reference_frame", "world")),
-     _sensor_frame(_nh.param<std::string>("sensor_frame", "wrench_link")),
+     _robot_base_frame(_nh.param<std::string>("robot_base_frame", "world")),
+     _sensor_frame(_nh.param<std::string>("ftsensor_frame", "wrench_link")),
      _rate(_nh.param<int>("rate", 100)),
      _mg(G*_nh.param<double>("effector_mass", 0.0)),
      _q(get_quaternion_param(_nh, "rotation")),
@@ -121,16 +123,17 @@ ftsensor::ftsensor(const std::string& name, const Input input)
      _mf_sum(vector3_t::Zero()),
      _f_sqsum(0.0)
 {
-    ROS_INFO_STREAM("reference_frame=" << _reference_frame <<
+    ROS_INFO_STREAM("(ftsensor) robot_base_frame=" << _robot_base_frame <<
 		    ", sensor_frame=" << _sensor_frame << ", rate=" << _rate);
-    ROS_INFO_STREAM("input=" << _input);
-    ROS_INFO_STREAM("subscriber topic[" << _subscriber.getTopic() <<"]");
-    ROS_INFO_STREAM("socket=" << _socket);
+    ROS_INFO_STREAM("(ftsensor) input=" << _input);
+    ROS_INFO_STREAM("(ftsensor) subscriber topic["
+		    << _subscriber.getTopic() <<"]");
+    ROS_INFO_STREAM("(ftsensor) socket=" << _socket);
 
     if (_input == Input::SOCKET)
 	up_socket();
 
-    ROS_INFO_STREAM("aist_ftsensor started.");
+    ROS_INFO_STREAM("(ftsensor) aist_ftsensor started.");
 }
 
 ftsensor::~ftsensor()
@@ -162,7 +165,7 @@ ftsensor::tick()
     const auto		nbytes = read(_socket, buf.data(), buf.size());
     if (nbytes < 0)
     {
-	ROS_ERROR_STREAM("failed to read from socket.");
+	ROS_ERROR_STREAM("(ftsensor) failed to read from socket.");
 	throw;
     }
     buf[nbytes] = '\0';
@@ -179,7 +182,7 @@ ftsensor::tick()
     s = splitd(s, wrench->wrench.torque.y);
     s = splitd(s, wrench->wrench.torque.z);
 
-    wrench_callback(wrench);
+    wrench_cb(wrench);
 }
 
 double
@@ -189,17 +192,17 @@ ftsensor::rate() const
 }
 
 void
-ftsensor::wrench_callback(const wrench_p& wrench)
+ftsensor::wrench_cb(const wrench_p& wrench)
 {
     try
     {
 	_publisher_org.publish(wrench);
 
 	transform_t	T;
-	_listener.waitForTransform(_sensor_frame, _reference_frame,
+	_listener.waitForTransform(_sensor_frame, _robot_base_frame,
 				   wrench->header.stamp,
 				   ros::Duration(1.0));
-	_listener.lookupTransform(_sensor_frame, _reference_frame,
+	_listener.lookupTransform(_sensor_frame, _robot_base_frame,
 	 			  wrench->header.stamp, T);
 	const auto	colz = T.getBasis().getColumn(2);
 	vector3_t	k;			// direction of gravity force
@@ -221,7 +224,7 @@ ftsensor::wrench_callback(const wrench_p& wrench)
 
 	const vector3_t	force  = _q*(f - _f0) - _mg*k;
 	const vector3_t	torque = _q*(m - _m0) - _r.cross(_mg*k);
-	
+
 	wrench->header.frame_id = _sensor_frame;
 	wrench->wrench.force.x  = force(0);
 	wrench->wrench.force.y  = force(1);
@@ -234,29 +237,29 @@ ftsensor::wrench_callback(const wrench_p& wrench)
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM(err.what());
+	ROS_ERROR_STREAM("(ftsensor) " << err.what());
     }
 }
 
 bool
-ftsensor::take_sample_callback(std_srvs::Trigger::Request&  req,
-			       std_srvs::Trigger::Response& res)
+ftsensor::take_sample_cb(std_srvs::Trigger::Request&  req,
+			 std_srvs::Trigger::Response& res)
 {
     _do_sample = true;
 
     res.success = true;
     res.message = "take_sample succeeded.";
-    ROS_INFO_STREAM(res.message);
+    ROS_INFO_STREAM("(ftsensor) " << res.message);
 
     return true;
 }
 
 bool
-ftsensor::compute_calibration_callback(std_srvs::Trigger::Request&  req,
-				       std_srvs::Trigger::Response& res)
+ftsensor::compute_calibration_cb(std_srvs::Trigger::Request&  req,
+				 std_srvs::Trigger::Response& res)
 {
     using namespace Eigen;
-    
+
     if (_nsamples < 3)
     {
 	res.message = "Not enough samples[" + std::to_string(_nsamples)
@@ -286,32 +289,38 @@ ftsensor::compute_calibration_callback(std_srvs::Trigger::Request&  req,
 	Vt.row(2) *= -1;
 
   // 3. Compute scale, rotation and translation components of similarity.
-    _mg = (svd.singularValues()(0) + svd.singularValues()(1) +
-	   svd.singularValues()(2)) / (1.0 - k_avg.squaredNorm());
+    const auto	k_var = 1.0 - k_avg.squaredNorm();
+    _mg = (svd.singularValues()(0) +
+	   svd.singularValues()(1) + svd.singularValues()(2)) / k_var;
     _q  = U * Vt;
     _f0 = f_avg -  _mg * (_q.inverse() * k_avg);
+
+  // 4. Evaluate residual error.
+    const auto	f_var = _f_sqsum/_nsamples - f_avg.squaredNorm();
+    ROS_INFO_STREAM("(ftsensor) force residual error = "
+		    << std::sqrt(f_var/k_var - _mg*_mg)
+		    << "(Newton)");
 
   /*
    * Compute transformation from external torque to observed torque.
    */
-    const matrix33_t	A = (_f_sqsum/_nsamples - f_avg.squaredNorm())
-			  * matrix33_t::Identity()
+    const matrix33_t	A = f_var * matrix33_t::Identity()
 			  - _ff_sum/_nsamples + f_avg % f_avg;
     const vector3_t	b = _mf_sum/_nsamples - _f_sum.cross(f_avg)/_nsamples;
     const vector3_t	r = A.colPivHouseholderQr().solve(b);
     _m0 = _m_sum/_nsamples + r.cross(_f0 - f_avg);
     _r  = _q * r;
-    
+
     res.success = true;
     res.message = "Successfully computed calibration.";
-    ROS_INFO_STREAM(res.message);
+    ROS_INFO_STREAM("(ftsensor) " << res.message);
 
     return true;
 }
 
 bool
-ftsensor::save_calibration_callback(std_srvs::Trigger::Request&  req,
-				    std_srvs::Trigger::Response& res)
+ftsensor::save_calibration_cb(std_srvs::Trigger::Request&  req,
+			      std_srvs::Trigger::Response& res)
 {
     try
     {
@@ -362,15 +371,28 @@ ftsensor::save_calibration_callback(std_srvs::Trigger::Request&  req,
 
 	res.success = true;
 	res.message = "save_calibration succeeded.";
-	ROS_INFO_STREAM(res.message);
+	ROS_INFO_STREAM("(ftsensor) " << res.message);
     }
     catch (const std::exception& err)
     {
 	res.success = false;
 	res.message = "save_calibration failed.";
 	res.message += err.what();
-	ROS_ERROR_STREAM(res.message);
+	ROS_ERROR_STREAM("(ftsensor) " << res.message);
     }
+
+    return true;
+}
+
+bool
+ftsensor::clear_samples_cb(std_srvs::Trigger::Request&  req,
+			   std_srvs::Trigger::Response& res)
+{
+    clear_samples();
+
+    res.success = true;
+    res.message = "clear_samples succeeded.";
+    ROS_INFO_STREAM("(ftsensor) " << res.message);
 
     return true;
 }
@@ -403,14 +425,15 @@ ftsensor::clear_samples()
     _mf_sum   = vector3_t::Zero();
     _f_sqsum  = 0.0;
 }
-    
+
 void
 ftsensor::up_socket()
 {
   // Check whether the socket is correctly opened.
     if (_socket < 0)
     {
-	ROS_ERROR_STREAM("failed to open socket: " << strerror(errno));
+	ROS_ERROR_STREAM("(ftsensor) failed to open socket: "
+			 << strerror(errno));
 	throw;
     }
 
@@ -425,7 +448,7 @@ ftsensor::up_socket()
 	const auto	h = gethostbyname(hostname.c_str());
 	if (!h)
 	{
-	    ROS_ERROR_STREAM("unknown host name: " << hostname);
+	    ROS_ERROR_STREAM("(ftsensor) unknown host name: " << hostname);
 	    throw;
 	}
 
@@ -458,17 +481,17 @@ ftsensor::connect_socket(u_long s_addr, int port)
     server.sin_family	   = AF_INET;
     server.sin_port	   = htons(port);
     server.sin_addr.s_addr = s_addr;
-    ROS_INFO_STREAM("trying to connect socket to "
+    ROS_INFO_STREAM("(ftsensor) trying to connect socket to "
 		    << inet_ntoa(server.sin_addr) << ':'
 		    << port << "...");
     if (::connect(_socket, (sockaddr*)&server, sizeof(server)) == 0)
     {
-	ROS_INFO_STREAM("succeeded.");
+	ROS_INFO_STREAM("(ftsensor) succeeded.");
 	return true;
     }
     else
     {
-	ROS_ERROR_STREAM("failed: " << strerror(errno));
+	ROS_ERROR_STREAM("(ftsensor) failed: " << strerror(errno));
 	return false;
     }
 }

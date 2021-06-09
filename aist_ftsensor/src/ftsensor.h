@@ -43,15 +43,15 @@ class ftsensor
     double	rate()						const	;
 
   private:
-    void	wrench_callback(const wrench_p& wrench)			;
-    bool	take_sample_callback(std_srvs::Trigger::Request&  req,
-				     std_srvs::Trigger::Response& res)	;
-    bool	compute_calibration_callback(
-			std_srvs::Trigger::Request&  req,
-			std_srvs::Trigger::Response& res)		;
-    bool	save_calibration_callback(
-			std_srvs::Trigger::Request&  req,
-			std_srvs::Trigger::Response& res)		;
+    void	wrench_cb(const wrench_p& wrench)			;
+    bool	take_sample_cb(std_srvs::Trigger::Request&  req,
+			       std_srvs::Trigger::Response& res)	;
+    bool	compute_calibration_cb(std_srvs::Trigger::Request&  req,
+				       std_srvs::Trigger::Response& res);
+    bool	save_calibration_cb(std_srvs::Trigger::Request&  req,
+				    std_srvs::Trigger::Response& res)	;
+    bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
+				 std_srvs::Trigger::Response& res)	;
 
     void	take_sample(const vector3_t& k,
 			    const vector3_t& f, const vector3_t& m)	;
@@ -70,10 +70,11 @@ class ftsensor
     const ros::ServiceServer	_take_sample;
     const ros::ServiceServer	_compute_calibration;
     const ros::ServiceServer	_save_calibration;
+    const ros::ServiceServer	_clear_samples;
     const tf::TransformListener	_listener;
 
   // Variables retrieved from parameter server
-    std::string			_reference_frame;
+    std::string			_robot_base_frame;
     std::string			_sensor_frame;
     double			_rate;
     double			_mg;		// effector mass

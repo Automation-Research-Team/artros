@@ -62,13 +62,13 @@
 
     <!-- Drivers for the force sensors -->
     <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch">
-      <arg name="sensor_name"		value="a_bot_ftsensor"/>
-      <arg name="hostname"		value="a_bot"/>
+      <arg name="ftsensor_name"		value="a_bot_ftsensor"/>
+      <arg name="robot_name"		value="a_bot"/>
       <arg name="calibrated"		value="true"/>
     </include>
     <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch">
-      <arg name="sensor_name"		value="b_bot_ftsensor"/>
-      <arg name="hostname"		value="b_bot"/>
+      <arg name="ftsensor_name"		value="b_bot_ftsensor"/>
+      <arg name="robot_name"		value="b_bot"/>
       <arg name="calibrated"		value="true"/>
     </include>
 

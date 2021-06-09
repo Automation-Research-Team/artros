@@ -1,27 +1,13 @@
 <launch>
-  <arg name="sensor_name"	default="a_bot_ftsensor"/>
-  <arg name="reference_frame"	default="world"/>
-  <arg name="sensor_frame"	default="$(arg sensor_name)_wrench_link"/>
-  <arg name="rate"		default="125"/>
+  <arg name="ftsensor_name"	default="a_bot_ftsensor"/>
+  <arg name="robot_name"	default="a_bot"/>
   <arg name="calibrated"	default="true"/>
-  <!--
-  <arg name="input" default="topic"/>
-  -->
-  <!-- for socket -->
-  <arg name="input"		default="socket"/>
-  <arg name="hostname"		default="a_bot"/>
-  <arg name="port"		default="63351"/>
 
-  <node name="$(arg sensor_name)"
+  <node name="$(arg ftsensor_name)"
         pkg="aist_ftsensor" type="aist_ftsensor" output="screen">
-    <param name="reference_frame"	value="$(arg reference_frame)" />
-    <param name="sensor_frame"		value="$(arg sensor_frame)" />
-    <param name="rate"			value="$(arg rate)" />
-    <param name="input"			value="$(arg input)" />
-    <param name="hostname"		value="$(arg hostname)"/>
-    <param name="port"			value="$(arg port)"/>
+    <rosparam file="$(dirname)/../config/$(arg ftsensor_name).yaml"/>
     <rosparam if="$(arg calibrated)"
-	      file="$(env HOME)/.ros/aist_ftsensor/$(arg sensor_name).yaml"/>
-    <remap from="/wrench_in" to="/$(arg hostname)_controller/wrench"/>
+	      file="$(env HOME)/.ros/aist_ftsensor/$(arg ftsensor_name).yaml"/>
+    <remap from="/wrench_in" to="/$(arg robot_name)_controller/wrench"/>
   </node>
 </launch>

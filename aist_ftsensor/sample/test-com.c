@@ -99,7 +99,11 @@ main()
 	goto over;
 
   // COMポートのボーレート等を設定
-    SetComAttr(fd);
+    if (SetComAttr(fd) < 0)
+    {
+	printf("Failed to set termios paramters");
+	goto over;
+    }
 
   // データを読み出す
     printf("=== record data ===\n");

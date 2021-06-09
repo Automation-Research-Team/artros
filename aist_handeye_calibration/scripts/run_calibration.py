@@ -49,7 +49,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         poseStamped = gmsg.PoseStamped()
         poseStamped.header.frame_id = self._robot_base_frame
         poseStamped.pose = gmsg.Pose(gmsg.Point(*pose[0:3]),
-                                    gmsg.Quaternion(
+                                     gmsg.Quaternion(
                                          *tfs.quaternion_from_euler(
                                              *map(radians, pose[3:6]))))
         print('  move to ' + self.format_pose(poseStamped))
