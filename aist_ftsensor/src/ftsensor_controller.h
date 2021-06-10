@@ -30,16 +30,24 @@ class ForceTorqueSensorController
     class Sensor
     {
       public:
-		Sensor()						{}
+		Sensor(hw_interface_t* hw,
+		       ros::NodeHandle& root_nh,
+		       const std::string& sensor_name,
+		       double pub_rate)					;
 
-	void	init();
+	void	starting(const ros::Time& time)				;
 	void	update(const ros::Time& time,
-		       const ros::Duration& /*period*/)			;
+		       const ros::Duration& period)			;
+	void	stopping(const ros::Time& time)				{}
+	
       private:
-	hw_handle_t	_sensor;
-	publisher_p	_pub;
-	ros::Time	_last_pub_time;
+	const hw_handle_t	_sensor;
+	const publisher_p	_pub;
+	const double		_pub_rate;
+	ros::Time		_last_pub_time;
     };
+
+    using sensor_p	= std::shared_ptr<Sensor>;
 
   public:
 			ForceTorqueSensorController()			{}
@@ -49,12 +57,11 @@ class ForceTorqueSensorController
 			     ros::NodeHandle& controller_nh)		;
     virtual void	starting(const ros::Time& time)			;
     virtual void	update(const ros::Time& time,
-			       const ros::Duration& /*period*/)		;
-    virtual void	stopping(const ros::Time& /*time*/)		;
+			       const ros::Duration& period)		;
+    virtual void	stopping(const ros::Time& time)		;
 
   private:
-    std::vector<Sensor>	_sensors;
-    double		_pub_rate;
+    std::vector<sensor_p>	_sensors;
 };
 
 }	// namespace aist_ftsensor
