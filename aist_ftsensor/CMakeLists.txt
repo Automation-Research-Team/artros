@@ -59,7 +59,7 @@ target_link_libraries(${PROJECT_NAME}_nodelet
   yaml-cpp
 )
 
-add_library(${PROJECT_NAME}_controller src/ftsensor_controller.cpp)
+add_library(${PROJECT_NAME}_controller src/aist_ftsensor_controller.cpp)
 
 target_link_libraries(${PROJECT_NAME}_controller ${catkin_LIBRARIES})
 

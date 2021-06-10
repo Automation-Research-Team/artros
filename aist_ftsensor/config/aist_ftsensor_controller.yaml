@@ -1,0 +1,3 @@
+aist_ftsensor_controller:
+  type: aist_ftsensor_controller/ForceTorqueSensorController
+  publish_rate: 125
