@@ -1,0 +1,6 @@
+$(arg ftsensor_name)_driver:
+  rate: 100
+  hostname: $(arg hostname)
+  port: 63351
+  frame_id: $(arg ftsensor_name)_wrench_link
+  

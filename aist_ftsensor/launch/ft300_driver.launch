@@ -1,0 +1,16 @@
+<launch>
+  <arg name="ftsensor_name"	default="a_bot_ftsensor"/>
+  <arg name="hostname"		default="a_bot"/>
+
+  <node name="$(arg ftsensor_name)_driver"
+        pkg="aist_ftsensor" type="ft300_driver" output="screen">
+    <rosparam file="$(dirname)/../config/$(arg ftsensor_name).yaml"/>
+  </node>
+
+  <rosparam file="$(dirname)/../config/ft300_driver.yaml"
+	    subst_value="true"/>
+  <node name="controller_spawner"
+        pkg="controller_manager" type="spawner" output="screen"
+	args="force_torque_sensor_controller"/>
+  
+</launch>

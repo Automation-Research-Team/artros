@@ -58,7 +58,7 @@ class ForceTorqueSensorController
     virtual void	starting(const ros::Time& time)			;
     virtual void	update(const ros::Time& time,
 			       const ros::Duration& period)		;
-    virtual void	stopping(const ros::Time& time)		;
+    virtual void	stopping(const ros::Time& time)			;
 
   private:
     std::vector<sensor_p>	_sensors;

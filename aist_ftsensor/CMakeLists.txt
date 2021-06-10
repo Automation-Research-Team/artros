@@ -63,6 +63,13 @@ add_library(${PROJECT_NAME}_controller src/ftsensor_controller.cpp)
 
 target_link_libraries(${PROJECT_NAME}_controller ${catkin_LIBRARIES})
 
+add_executable(ft300_driver src/ft300_driver.cpp)
+
+target_link_libraries(ft300_driver
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
