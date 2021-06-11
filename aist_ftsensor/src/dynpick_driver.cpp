@@ -27,7 +27,7 @@ class dynpick_driver : public hardware_interface::RobotHW
     using interface_t	= hardware_interface::ForceTorqueSensorInterface;
     using handle_t	= hardware_interface::ForceTorqueSensorHandle;
     using manager_t	= controller_manager::ControllerManager;
-    
+
   public:
 			dynpick_driver()				;
     virtual		~dynpick_driver()				;
@@ -101,7 +101,7 @@ dynpick_driver::read(const ros::Time&, const ros::Duration&)
 			 << strerror(errno));
 	throw;
     }
-    
+
     std::array<char, 1024>	buf;
     if ((nbytes = ::read(_fd, buf.data(), buf.size())) < 0)
     {
@@ -112,16 +112,16 @@ dynpick_driver::read(const ros::Time&, const ros::Duration&)
     buf[nbytes] = '\0';
 
     int				tick;
-    std::array<u_short, 6>	data;
+    std::array<short, 6>	data;
     sscanf(buf.data(), "%1d%4hx%4hx%4hx%4hx%4hx%4hx",
 	   &tick, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5]);
 
-    _force[0]  = _force_gains[0]  * data[0];
-    _force[1]  = _force_gains[1]  * data[1];
-    _force[2]  = _force_gains[2]  * data[2];
-    _torque[0] = _torque_gains[0] * data[3];
-    _torque[1] = _torque_gains[1] * data[4];
-    _torque[2] = _torque_gains[2] * data[5];
+    _force[0]  = _force_gains[0]  * (data[0] - 8192);
+    _force[1]  = _force_gains[1]  * (data[1] - 8192);
+    _force[2]  = _force_gains[2]  * (data[2] - 8192);
+    _torque[0] = _torque_gains[0] * (data[3] - 8192);
+    _torque[1] = _torque_gains[1] * (data[4] - 8192);
+    _torque[2] = _torque_gains[2] * (data[5] - 8192);
 }
 
 void
@@ -132,7 +132,7 @@ dynpick_driver::run()
     ros::Rate		rate(_nh.param<double>("rate", 125.0));
     ros::AsyncSpinner	spinner(1);
     spinner.start();
-    
+
     while (ros::ok())
     {
 	read(ros::Time::now(), rate.cycleTime());
@@ -151,7 +151,7 @@ dynpick_driver::get_gains(const ros::NodeHandle& nh, const std::string& name,
     {
 	std::vector<double>	v;
 	nh.getParam(name, v);
-	
+
 	if (v.size() == 3)
 	    return {v[0], v[1], v[2]};
     }
@@ -194,7 +194,7 @@ dynpick_driver::set_tty()
   //    tcflush(fd, TCIFLUSH);
     return tcsetattr(_fd, TCSANOW, &term) == 0;
 }
-    
+
 }	// namepsace aist_ftsensor
 
 /************************************************************************
