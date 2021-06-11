@@ -5,13 +5,19 @@
   <node name="$(arg prefix)driver"
         pkg="aist_ftsensor" type="ft300_driver" output="screen">
     <rosparam file="$(dirname)/../config/ft300_driver.yaml"
-	      subst_val="true"/>
+	      subst_value="true"/>
   </node>
 
-  <rosparam file="$(dirname)/../config/force_torque_sensor_controller.yaml"
-	    subst_value="true"/>
+  <!-- <rosparam file="$(dirname)/../config/force_torque_sensor_controller.yaml" -->
+  <!-- 	    subst_value="true"/> -->
+  <!-- <node name="controller_spawner" -->
+  <!--       pkg="controller_manager" type="spawner" output="screen" -->
+  <!-- 	args="force_torque_sensor_controller"/> -->
+
+  <rosparam file="$(dirname)/../config/aist_ftsensor_controller.yaml"
+  	    subst_value="true"/>
   <node name="controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
-	args="force_torque_sensor_controller"/>
+  	args="aist_ftsensor_controller"/>
 
 </launch>

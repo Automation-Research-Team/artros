@@ -9,6 +9,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
+  controller_manager
   controller_interface
   geometry_msgs
   hardware_interface

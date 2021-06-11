@@ -3,6 +3,7 @@
  *  \brief	source file of driver for Robotiq FT300 force-torque sensors
  */
 #include <ros/ros.h>
+#include <controller_manager/controller_manager.h>
 #include <hardware_interface/robot_hw.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
 #include <sys/types.h>
@@ -40,21 +41,18 @@ class ft300_driver : public hardware_interface::RobotHW
   private:
     using interface_t	= hardware_interface::ForceTorqueSensorInterface;
     using handle_t	= hardware_interface::ForceTorqueSensorHandle;
-
+    using manager_t	= controller_manager::ControllerManager;
+    
   public:
-		ft300_driver(const std::string& name)			;
-    virtual	~ft300_driver()						;
+			ft300_driver()					;
+    virtual		~ft300_driver()					;
 
-    bool	start()							;
-    void	read(const ros::Time& time, const ros::Duration& period);
-    void	write(const ros::Time&, const ros::Duration&)		{}
-    void	stop()							{}
-    void	cleanup()						{}
-
-    void	run()							;
+    virtual void	read(const ros::Time&, const ros::Duration&)	;
+    void		run()						;
 
   private:
-    bool	connect_socket(u_long s_addr, int port)			;
+    bool		up_socket()					;
+    bool		connect_socket(u_long s_addr, int port)		;
 
   private:
     ros::NodeHandle	_nh;
@@ -65,10 +63,11 @@ class ft300_driver : public hardware_interface::RobotHW
     double		_torque[3];
 };
 
-ft300_driver::ft300_driver(const std::string& name)
-    :_nh(name),
+ft300_driver::ft300_driver()
+    :_nh("~"),
      _rate(_nh.param<int>("rate", 100)),
      _socket(::socket(AF_INET, SOCK_STREAM, 0)),
+     _interface(),
      _force{0.0, 0.0, 0.0},
      _torque{0.0, 0.0, 0.0}
 {
@@ -80,10 +79,13 @@ ft300_driver::ft300_driver(const std::string& name)
 	throw;
     }
 
+    if (!up_socket())
+	throw;
+
   // Register hardware interface handle.
     const auto	frame_id = _nh.param<std::string>("frame_id", "wrench_link");
-    _interface.registerHandle(handle_t(name, frame_id,
-				       &_force[0], &_torque[0]));
+    _interface.registerHandle(handle_t(_nh.getNamespace() + "/wrench",
+				       frame_id, &_force[0], &_torque[0]));
     registerInterface(&_interface);
 
     ROS_INFO_STREAM("(ft300_driver) ft300_driver started.");
@@ -95,11 +97,53 @@ ft300_driver::~ft300_driver()
 	::close(_socket);
 }
 
+void
+ft300_driver::read(const ros::Time&, const ros::Duration&)
+{
+    std::array<char, 1024>	buf;
+    const auto			nbytes = ::read(_socket,
+						buf.data(), buf.size());
+    if (nbytes < 0)
+    {
+	ROS_ERROR_STREAM("(ftsensor) failed to read from socket: "
+			 << strerror(errno));
+	throw;
+    }
+    buf[nbytes] = '\0';
+
+    const char*	s = buf.data();
+    s = splitd(s, _force[0]);
+    s = splitd(s, _force[1]);
+    s = splitd(s, _force[2]);
+    s = splitd(s, _torque[0]);
+    s = splitd(s, _torque[1]);
+    s = splitd(s, _torque[2]);
+}
+
+void
+ft300_driver::run()
+{
+    ros::NodeHandle	nh;
+    manager_t		manager(this, nh);
+    ros::Rate		rate(_nh.param<double>("rate", 125.0));
+    ros::AsyncSpinner	spinner(1);
+    spinner.start();
+    
+    while (ros::ok())
+    {
+	read(ros::Time::now(), rate.cycleTime());
+	manager.update(ros::Time::now(), rate.cycleTime());
+	rate.sleep();
+    }
+
+    spinner.stop();
+}
+
 bool
-ft300_driver::start()
+ft300_driver::up_socket()
 {
   // Get hoastname and port from parameters.
-    const auto	hostname = _nh.param<std::string>("hostname", "");
+    const auto	hostname = _nh.param<std::string>("hostname", "192.168.1.1");
     const auto	port	 = _nh.param<int>("port", 63351);
 
   // Connect socket to hostname:port.
@@ -120,50 +164,7 @@ ft300_driver::start()
 
     return false;
 }
-
-void
-ft300_driver::read(const ros::Time& time, const ros::Duration& period)
-{
-    std::array<char, 1024>	buf;
-    const auto			nbytes = ::read(_socket,
-						buf.data(), buf.size());
-    if (nbytes < 0)
-    {
-	ROS_ERROR_STREAM("(ftsensor) failed to read from socket: "
-			 << strerror(errno));
-	throw;
-    }
-    buf[nbytes] = '\0';
-
-    const char*	s = buf.data();
-    s = splitd(s, _force[0]);
-    s = splitd(s, _force[1]);
-    s = splitd(s, _force[2]);
-    s = splitd(s, _torque[0]);
-    s = splitd(s, _torque[1]);
-    s = splitd(s, _torque[2]);
-
-  // for (const auto& force : _force)
-  //     std::cerr << ' ' << force;
-  // std::cerr << ':';
-  // for (const auto& torque : _torque)
-  //     std::cerr << ' ' << torque;
-  // std::cerr << std::endl;
-}
-
-void
-ft300_driver::run()
-{
-    ros::Rate	rate(_rate);
-
-    while (ros::ok())
-    {
-	read(ros::Time::now(), ros::Duration());
-	ros::spinOnce();
-	rate.sleep();
-    }
-}
-
+    
 bool
 ft300_driver::connect_socket(u_long s_addr, int port)
 {
@@ -196,7 +197,7 @@ main(int argc, char* argv[])
 
     try
     {
-	aist_ftsensor::ft300_driver	node("~");
+	aist_ftsensor::ft300_driver	node;
 	node.run();
     }
     catch (const std::exception& err)
