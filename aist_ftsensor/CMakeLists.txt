@@ -71,6 +71,13 @@ target_link_libraries(ft300_driver
   ${roscpp_LIBRARIES}
 )
 
+add_executable(dynpick_driver src/dynpick_driver.cpp)
+
+target_link_libraries(dynpick_driver
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############

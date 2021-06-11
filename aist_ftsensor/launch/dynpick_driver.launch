@@ -1,11 +1,11 @@
 <launch>
-  <arg name="prefix"		default="a_bot_ftsensor_"/>
-  <arg name="hostname"		default="a_bot"/>
+  <arg name="prefix"		default="ftsensor_"/>
+  <arg name="dev"		default="/dev/ttyUSB0"/>
   <arg name="publish_rate"	default="125"/>
 
   <node name="$(arg prefix)driver"
-        pkg="aist_ftsensor" type="ft300_driver" output="screen">
-    <rosparam file="$(dirname)/../config/ft300_driver.yaml"
+        pkg="aist_ftsensor" type="dynpick_driver" output="screen">
+    <rosparam file="$(dirname)/../config/$(arg prefix)driver.yaml"
 	      subst_value="true"/>
   </node>
 
