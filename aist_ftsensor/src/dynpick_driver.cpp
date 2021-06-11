@@ -32,8 +32,8 @@ class dynpick_driver : public hardware_interface::RobotHW
 			dynpick_driver()				;
     virtual		~dynpick_driver()				;
 
-    virtual void	read(const ros::Time&, const ros::Duration&)	;
     void		run()						;
+    virtual void	read(const ros::Time&, const ros::Duration&)	;
 
   private:
     static vector3_t	get_gains(const ros::NodeHandle& nh,
@@ -92,6 +92,25 @@ dynpick_driver::~dynpick_driver()
 }
 
 void
+dynpick_driver::run()
+{
+    ros::NodeHandle	nh;
+    manager_t		manager(this, nh);
+    ros::Rate		rate(_nh.param<double>("rate", 125.0));
+    ros::AsyncSpinner	spinner(1);
+    spinner.start();
+
+    while (ros::ok())
+    {
+	read(ros::Time::now(), rate.cycleTime());
+	manager.update(ros::Time::now(), rate.cycleTime());
+	rate.sleep();
+    }
+
+    spinner.stop();
+}
+
+void
 dynpick_driver::read(const ros::Time&, const ros::Duration&)
 {
     ssize_t	nbytes;
@@ -122,25 +141,6 @@ dynpick_driver::read(const ros::Time&, const ros::Duration&)
     _torque[0] = _torque_gains[0] * (data[3] - 8192);
     _torque[1] = _torque_gains[1] * (data[4] - 8192);
     _torque[2] = _torque_gains[2] * (data[5] - 8192);
-}
-
-void
-dynpick_driver::run()
-{
-    ros::NodeHandle	nh;
-    manager_t		manager(this, nh);
-    ros::Rate		rate(_nh.param<double>("rate", 125.0));
-    ros::AsyncSpinner	spinner(1);
-    spinner.start();
-
-    while (ros::ok())
-    {
-	read(ros::Time::now(), rate.cycleTime());
-	manager.update(ros::Time::now(), rate.cycleTime());
-	rate.sleep();
-    }
-
-    spinner.stop();
 }
 
 dynpick_driver::vector3_t

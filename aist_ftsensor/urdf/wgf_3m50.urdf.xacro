@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<robot name="wgf_3m50" xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:property name="wgf_3m50_radius" value="0.0250"/>
+  <xacro:property name="wgf_3m50_length" value="0.0295"/>
+
+  <xacro:macro name="wgf_3m50" params="prefix parent *origin">
+    <link name="${prefix}base_link">
+      <visual>
+        <origin xyz="${wgf_3m50_length/2} 0 0" rpy="0 ${pi/2} 0"/>
+        <geometry>
+          <cylinder length="${wgf_3m50_length}" radius="0.0375"/>
+        </geometry>
+        <material name="Cherry">
+          <color rgba="0.984 0.0 0.243 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="${wgf_3m50_length/2} 0 0" rpy="0 ${pi/2} 0"/>
+        <geometry>
+          <cylinder length="${wgf_3m50_length}" radius="${wgf_3m50_radius}"/>
+        </geometry>
+      </collision>
+    </link>
+    <!-- Add the force sensor in front of the gripper. -->
+    <joint name="${prefix}wgf_3m50_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <link name="${prefix}flange_link"/>
+    <joint name="${prefix}flange_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}flange_link"/>
+      <origin xyz="${wgf_3m50_length} 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <link name="${prefix}wrench_link"/>
+    <joint name="${prefix}wrench_joint" type="fixed">
+      <parent link="${prefix}flange_link"/>
+      <child  link="${prefix}wrench_link"/>
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+    </joint>
+
+  </xacro:macro>
+</robot>

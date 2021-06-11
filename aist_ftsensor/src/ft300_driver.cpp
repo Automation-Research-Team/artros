@@ -42,13 +42,13 @@ class ft300_driver : public hardware_interface::RobotHW
     using interface_t	= hardware_interface::ForceTorqueSensorInterface;
     using handle_t	= hardware_interface::ForceTorqueSensorHandle;
     using manager_t	= controller_manager::ControllerManager;
-    
+
   public:
 			ft300_driver()					;
     virtual		~ft300_driver()					;
 
-    virtual void	read(const ros::Time&, const ros::Duration&)	;
     void		run()						;
+    virtual void	read(const ros::Time&, const ros::Duration&)	;
 
   private:
     bool		up_socket()					;
@@ -98,6 +98,25 @@ ft300_driver::~ft300_driver()
 }
 
 void
+ft300_driver::run()
+{
+    ros::NodeHandle	nh;
+    manager_t		manager(this, nh);
+    ros::Rate		rate(_nh.param<double>("rate", 125.0));
+    ros::AsyncSpinner	spinner(1);
+    spinner.start();
+
+    while (ros::ok())
+    {
+	read(ros::Time::now(), rate.cycleTime());
+	manager.update(ros::Time::now(), rate.cycleTime());
+	rate.sleep();
+    }
+
+    spinner.stop();
+}
+
+void
 ft300_driver::read(const ros::Time&, const ros::Duration&)
 {
     std::array<char, 1024>	buf;
@@ -118,25 +137,6 @@ ft300_driver::read(const ros::Time&, const ros::Duration&)
     s = splitd(s, _torque[0]);
     s = splitd(s, _torque[1]);
     s = splitd(s, _torque[2]);
-}
-
-void
-ft300_driver::run()
-{
-    ros::NodeHandle	nh;
-    manager_t		manager(this, nh);
-    ros::Rate		rate(_nh.param<double>("rate", 125.0));
-    ros::AsyncSpinner	spinner(1);
-    spinner.start();
-    
-    while (ros::ok())
-    {
-	read(ros::Time::now(), rate.cycleTime());
-	manager.update(ros::Time::now(), rate.cycleTime());
-	rate.sleep();
-    }
-
-    spinner.stop();
 }
 
 bool
@@ -164,7 +164,7 @@ ft300_driver::up_socket()
 
     return false;
 }
-    
+
 bool
 ft300_driver::connect_socket(u_long s_addr, int port)
 {
