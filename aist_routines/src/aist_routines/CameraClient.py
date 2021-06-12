@@ -99,7 +99,8 @@ class PhoXiCamera(DepthCamera):
         super(PhoXiCamera, self).__init__(name)
         self._dyn_reconf = dynamic_reconfigure.client.Client(name, timeout=5.0)
         self._trigger_frame = rospy.ServiceProxy(name + '/trigger_frame',
-                                                 std_srvs.srv.Trigger)
+                                                 std_srvs.srv.Trigger,
+                                                 persistent=True)
 
     def continuous_shot(self, enabled):
         self._dyn_reconf.update_configuration({'trigger_mode' :
@@ -107,4 +108,10 @@ class PhoXiCamera(DepthCamera):
         return True
 
     def trigger_frame(self):
-        return self._trigger_frame().success
+        try:
+            return self._trigger_frame().success
+        except rospy.ServiceException:
+            self._trigger_frame \
+                = rospy.ServiceProxy(self.name + '/trigger_frame',
+                                     std_srvs.srv.Trigger, persistent=True)
+            return self._trigger_frame().success
