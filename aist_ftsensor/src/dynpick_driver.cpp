@@ -60,6 +60,9 @@ dynpick_driver::dynpick_driver()
   // Set number of points used for averaging filter
     switch (_nh.param<int>("avg_npoints", 1))
     {
+      case 1:
+	put_command("1F");
+	break;
       case 2:
 	put_command("2F");
 	break;
@@ -70,8 +73,8 @@ dynpick_driver::dynpick_driver()
 	put_command("8F");
 	break;
       default:
-	put_command("1F");
-	break;
+	ROS_ERROR_STREAM("(dynpick_driver) unsupported avg_npoints value.");
+	throw;
     }
 
   // Register hardware interface handle.
