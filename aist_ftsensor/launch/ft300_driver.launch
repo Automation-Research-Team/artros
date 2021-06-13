@@ -1,7 +1,9 @@
 <launch>
   <arg name="prefix"		default="a_bot_ftsensor_"/>
-  <arg name="hostname"		default="a_bot"/>
   <arg name="publish_rate"	default="125"/>
+  <arg name="controller"	default="aist_ftsensor_controller"/>
+  <!-- <arg name="controller"	default="force_torque_sensor_controller"/> -->
+  <arg name="hostname"		default="a_bot"/>
 
   <node name="$(arg prefix)driver"
         pkg="aist_ftsensor" type="ft300_driver" output="screen">
@@ -9,16 +11,10 @@
 	      subst_value="true"/>
   </node>
 
-  <!-- <rosparam file="$(dirname)/../config/force_torque_sensor_controller.yaml" -->
-  <!-- 	    subst_value="true"/> -->
-  <!-- <node name="controller_spawner" -->
-  <!--       pkg="controller_manager" type="spawner" output="screen" -->
-  <!-- 	args="force_torque_sensor_controller"/> -->
-
-  <rosparam file="$(dirname)/../config/aist_ftsensor_controller.yaml"
+  <rosparam file="$(dirname)/../config/controller.yaml"
   	    subst_value="true"/>
   <node name="controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
-  	args="aist_ftsensor_controller"/>
+  	args="$(arg controller)"/>
 
 </launch>

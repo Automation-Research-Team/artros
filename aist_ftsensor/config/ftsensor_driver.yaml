@@ -1,5 +1,0 @@
-rate: 125
-dev: $(arg dev)
-frame_id: $(arg prefix)wrench_link
-force_gains: [0.0, 0.0, 0.0076336]
-torque_gains: [0.000763359, 0.000758725, 0.0]

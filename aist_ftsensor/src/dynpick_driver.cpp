@@ -7,10 +7,10 @@
 #include <hardware_interface/robot_hw.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
 #include <cstdio>
+#include <cstring>
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
-#include <string.h>
 #include <errno.h>
 
 namespace aist_ftsensor
@@ -20,13 +20,12 @@ namespace aist_ftsensor
 ************************************************************************/
 class dynpick_driver : public hardware_interface::RobotHW
 {
-  public:
-    using vector3_t	= std::array<double, 3>;
-
   private:
     using interface_t	= hardware_interface::ForceTorqueSensorInterface;
     using handle_t	= hardware_interface::ForceTorqueSensorHandle;
     using manager_t	= controller_manager::ControllerManager;
+    using response_t	= std::array<char, 256>;
+    using vector6_t	= std::array<double, 6>;
 
   public:
 			dynpick_driver()				;
@@ -36,50 +35,49 @@ class dynpick_driver : public hardware_interface::RobotHW
     virtual void	read(const ros::Time&, const ros::Duration&)	;
 
   private:
-    static vector3_t	get_gains(const ros::NodeHandle& nh,
-				  const std::string& name,
-				  const vector3_t& default_val)		;
-    bool		set_tty()					;
+    vector6_t		get_gains()				const	;
+    static int		open_tty(const char* dev)			;
+    void		put_command(const char* cmd)		const	;
+    response_t		get_response()				const	;
 
   private:
     ros::NodeHandle	_nh;
     const double	_rate;
     const int		_fd;
     interface_t		_interface;
-    vector3_t		_force_gains;
-    vector3_t		_torque_gains;
-    vector3_t		_force;
-    vector3_t		_torque;
+    const vector6_t	_gains;
+    vector6_t		_ft;
 };
 
 dynpick_driver::dynpick_driver()
     :_nh("~"),
      _rate(_nh.param<int>("rate", 100)),
-     _fd(::open(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str(),
-		O_RDWR | O_NOCTTY | O_NONBLOCK)),
+     _fd(open_tty(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str())),
      _interface(),
-     _force_gains(get_gains(_nh, "force_gains",
-			    {1.0/131.0, 1.0/131.0, 1.0/131.0})),
-     _torque_gains(get_gains(_nh, "torque_gains",
-			     {1.0/1310.0, 1.0/1310.0, 1.0/1310.0})),
-     _force{0.0, 0.0, 0.0},
-     _torque{0.0, 0.0, 0.0}
+     _gains(get_gains()),
+     _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 {
-  // Check whether the socket is correctly opened.
-    if (_fd < 0)
+  // Set number of points used for averaging filter
+    switch (_nh.param<int>("avg_npoints", 1))
     {
-	ROS_ERROR_STREAM("(dynpick_driver) failed to open tty: "
-			 << strerror(errno));
-	throw;
+      case 2:
+	put_command("2F");
+	break;
+      case 4:
+	put_command("4F");
+	break;
+      case 8:
+	put_command("8F");
+	break;
+      default:
+	put_command("1F");
+	break;
     }
-
-    if (!set_tty())
-	throw;
 
   // Register hardware interface handle.
     const auto	frame_id = _nh.param<std::string>("frame_id", "wrench_link");
     _interface.registerHandle(handle_t(_nh.getNamespace() + "/wrench",
-				       frame_id, &_force[0], &_torque[0]));
+				       frame_id, &_ft[0], &_ft[3]));
     registerInterface(&_interface);
 
     ROS_INFO_STREAM("(dynpick_driver) dynpick_driver started.");
@@ -113,86 +111,111 @@ dynpick_driver::run()
 void
 dynpick_driver::read(const ros::Time&, const ros::Duration&)
 {
-    ssize_t	nbytes;
-    if ((nbytes = ::write(_fd, "R", 1)) < 0)
+    put_command("R");
+    const auto&	res = get_response();
+
+    int				tick;
+    std::array<short, 6>	data;
+    sscanf(res.data(), "%1d%4hx%4hx%4hx%4hx%4hx%4hx",
+	   &tick, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5]);
+
+    _ft[0] = _gains[0] * (data[0] - 8192);
+    _ft[1] = _gains[1] * (data[1] - 8192);
+    _ft[2] = _gains[2] * (data[2] - 8192);
+    _ft[3] = _gains[3] * (data[3] - 8192);
+    _ft[4] = _gains[4] * (data[4] - 8192);
+    _ft[5] = _gains[5] * (data[5] - 8192);
+}
+
+dynpick_driver::vector6_t
+dynpick_driver::get_gains() const
+{
+    put_command("p");
+    const auto&	res = get_response();
+
+    vector6_t	gains;
+    sscanf(res.data(), "%1f,%lf,%lf,%lf,%lf,%lf",
+	   &gains[0], &gains[1], &gains[2], &gains[3], &gains[4], &gains[5]);
+    for (auto&& gain : gains)
+	if (gain != 0.0)
+	    gain = 1.0 / gain;
+
+    return gains;
+}
+
+int
+dynpick_driver::open_tty(const char* dev)
+{
+    const auto	fd = ::open(dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if (fd < 0)
+    {
+	ROS_ERROR_STREAM("(dynpick_driver) failed to open tty: "
+			 << strerror(errno));
+	throw;
+    }
+
+    termios      term;
+    if (tcgetattr(fd, &term) >= 0)
+    {
+	bzero(&term, sizeof(term));
+
+	term.c_cflag = B921600 | CS8 | CLOCAL | CREAD;
+	term.c_iflag = IGNPAR;
+	term.c_oflag = 0;
+	term.c_lflag = 0;		// ICANON
+
+	term.c_cc[VINTR]    = 0;	// Ctrl-c
+	term.c_cc[VQUIT]    = 0;	// Ctrl-?
+	term.c_cc[VERASE]   = 0;	// del
+	term.c_cc[VKILL]    = 0;	// @
+	term.c_cc[VEOF]     = 4;	// Ctrl-d
+	term.c_cc[VTIME]    = 0;
+	term.c_cc[VMIN]     = 0;
+	term.c_cc[VSWTC]    = 0;	// '?0'
+	term.c_cc[VSTART]   = 0;	// Ctrl-q
+	term.c_cc[VSTOP]    = 0;	// Ctrl-s
+	term.c_cc[VSUSP]    = 0;	// Ctrl-z
+	term.c_cc[VEOL]     = 0;	// '?0'
+	term.c_cc[VREPRINT] = 0;	// Ctrl-r
+	term.c_cc[VDISCARD] = 0;	// Ctrl-u
+	term.c_cc[VWERASE]  = 0;	// Ctrl-w
+	term.c_cc[VLNEXT]   = 0;	// Ctrl-v
+	term.c_cc[VEOL2]    = 0;	// '?0'
+
+      //    tcflush(fd, TCIFLUSH);
+	if (tcsetattr(fd, TCSANOW, &term) == 0)
+	    return fd;
+    }
+
+    ::close(fd);
+    return -1;
+}
+
+void
+dynpick_driver::put_command(const char* cmd) const
+{
+    if (::write(_fd, cmd, ::strlen(cmd)) < 0)
     {
 	ROS_ERROR_STREAM("(ftsensor) failed to write to tty: "
 			 << strerror(errno));
 	throw;
     }
+}
 
-    std::array<char, 1024>	buf;
-    if ((nbytes = ::read(_fd, buf.data(), buf.size())) < 0)
+dynpick_driver::response_t
+dynpick_driver::get_response() const
+{
+    response_t	res;
+    const auto	nbytes = ::read(_fd, res.data(), res.size());
+    if (nbytes < 0)
     {
 	ROS_ERROR_STREAM("(ftsensor) failed to read from tty: "
 			 << strerror(errno));
 	throw;
     }
-    buf[nbytes] = '\0';
+    res[nbytes] = '\0';
 
-    int				tick;
-    std::array<short, 6>	data;
-    sscanf(buf.data(), "%1d%4hx%4hx%4hx%4hx%4hx%4hx",
-	   &tick, &data[0], &data[1], &data[2], &data[3], &data[4], &data[5]);
-
-    _force[0]  = _force_gains[0]  * (data[0] - 8192);
-    _force[1]  = _force_gains[1]  * (data[1] - 8192);
-    _force[2]  = _force_gains[2]  * (data[2] - 8192);
-    _torque[0] = _torque_gains[0] * (data[3] - 8192);
-    _torque[1] = _torque_gains[1] * (data[4] - 8192);
-    _torque[2] = _torque_gains[2] * (data[5] - 8192);
-}
-
-dynpick_driver::vector3_t
-dynpick_driver::get_gains(const ros::NodeHandle& nh, const std::string& name,
-			  const vector3_t& default_val)
-{
-    if (nh.hasParam(name))
-    {
-	std::vector<double>	v;
-	nh.getParam(name, v);
-
-	if (v.size() == 3)
-	    return {v[0], v[1], v[2]};
-    }
-
-    return default_val;
-}
-
-bool
-dynpick_driver::set_tty()
-{
-   termios      term;
-   if (tcgetattr(_fd, &term) < 0)
-       return false;
-
-    bzero(&term, sizeof(term));
-
-    term.c_cflag = B921600 | CS8 | CLOCAL | CREAD;
-    term.c_iflag = IGNPAR;
-    term.c_oflag = 0;
-    term.c_lflag = 0;		// ICANON
-
-    term.c_cc[VINTR]    = 0;	// Ctrl-c
-    term.c_cc[VQUIT]    = 0;	// Ctrl-?
-    term.c_cc[VERASE]   = 0;	// del
-    term.c_cc[VKILL]    = 0;	// @
-    term.c_cc[VEOF]     = 4;	// Ctrl-d
-    term.c_cc[VTIME]    = 0;
-    term.c_cc[VMIN]     = 0;
-    term.c_cc[VSWTC]    = 0;	// '?0'
-    term.c_cc[VSTART]   = 0;	// Ctrl-q
-    term.c_cc[VSTOP]    = 0;	// Ctrl-s
-    term.c_cc[VSUSP]    = 0;	// Ctrl-z
-    term.c_cc[VEOL]     = 0;	// '?0'
-    term.c_cc[VREPRINT] = 0;	// Ctrl-r
-    term.c_cc[VDISCARD] = 0;	// Ctrl-u
-    term.c_cc[VWERASE]  = 0;	// Ctrl-w
-    term.c_cc[VLNEXT]   = 0;	// Ctrl-v
-    term.c_cc[VEOL2]    = 0;	// '?0'
-
-  //    tcflush(fd, TCIFLUSH);
-    return tcsetattr(_fd, TCSANOW, &term) == 0;
+    return res;
 }
 
 }	// namepsace aist_ftsensor
