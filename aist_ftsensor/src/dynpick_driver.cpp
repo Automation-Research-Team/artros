@@ -134,7 +134,7 @@ dynpick_driver::get_gains() const
     const auto&	res = get_response();
 
     vector6_t	gains;
-    sscanf(res.data(), "%1f,%lf,%lf,%lf,%lf,%lf",
+    sscanf(res.data(), "%lf,%lf,%lf,%lf,%lf,%lf",
 	   &gains[0], &gains[1], &gains[2], &gains[3], &gains[4], &gains[5]);
     for (auto&& gain : gains)
 	if (gain != 0.0)
