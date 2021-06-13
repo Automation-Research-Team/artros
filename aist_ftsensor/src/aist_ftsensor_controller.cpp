@@ -15,6 +15,7 @@
 #include <yaml-cpp/yaml.h>
 #include <cstdlib>		// for std::getenv()
 #include <sys/stat.h>		// for mkdir()
+#include <numeric>		// for std::accumulate()
 
 namespace aist_ftsensor
 {
@@ -31,6 +32,22 @@ operator %(const Eigen::Matrix<T, M, 1>& x,
 	for (size_t j = 0; j < N; ++j)
 	    mat(i, j) = x(i) * y(j);
     return mat;
+}
+
+template <class T> static Eigen::Matrix<T, 3, 3>
+skew(const Eigen::Matrix<T, 3, 1>& vec)
+{
+    Eigen::Matrix<T, 3, 3>	mat;
+    mat <<       0, -vec(2),  vec(1),
+	    vec(2),	  0, -vec(0),
+	   -vec(1),  vec(0),	   0;
+    return mat;
+}
+
+template <class ITER, class T> T
+mean(ITER begin, ITER end, T init)
+{
+    return std::accumulate(begin, end, init) / std::distance(begin, end);
 }
 
 /************************************************************************
@@ -56,6 +73,7 @@ class ForceTorqueSensorController
 	using transform_t	= tf::StampedTransform;
 
 	constexpr static double	G = 9.80665;
+	constexpr static size_t	NITER_MAX = 1000;
 
       public:
 		Sensor(interface_t* hw, ros::NodeHandle& root_nh,
@@ -110,15 +128,10 @@ class ForceTorqueSensorController
 
       // Calibration stuffs
 	bool				_do_sample;
-	size_t				_nsamples;
-	vector3_t			_k_sum;
-	vector3_t			_f_sum;
-	vector3_t			_m_sum;
-	matrix33_t			_kf_sum;	// k % f
-	matrix33_t			_mm_sum;	// m % m
-	matrix33_t			_ff_sum;	// f % f
-	vector3_t			_mf_sum;	// m ^ f
-	double				_f_sqsum;	// f.f
+	std::vector<vector3_t>		_k;
+	std::vector<vector3_t>		_f;
+	std::vector<vector3_t>		_m;
+	std::ofstream			_fout;
     };
 
     using sensor_p	= std::shared_ptr<Sensor>;
@@ -212,15 +225,10 @@ ForceTorqueSensorController::Sensor::Sensor(
      _f0(vector3_param("force_offset")),
      _m0(vector3_param("torque_offset")),
      _do_sample(false),
-     _nsamples(0),
-     _k_sum(vector3_t::Zero()),
-     _f_sum(vector3_t::Zero()),
-     _m_sum(vector3_t::Zero()),
-     _kf_sum(matrix33_t::Zero()),
-     _mm_sum(matrix33_t::Zero()),
-     _ff_sum(matrix33_t::Zero()),
-     _mf_sum(vector3_t::Zero()),
-     _f_sqsum(0.0)
+     _k(),
+     _f(),
+     _m(),
+     _fout()
 {
     ROS_INFO_STREAM("(aist_ftsensor_controller) Got " << name);
 }
@@ -314,10 +322,12 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 }
 
 bool
-ForceTorqueSensorController::Sensor::take_sample_cb(std_srvs::Trigger::Request&  req,
-			 std_srvs::Trigger::Response& res)
+ForceTorqueSensorController::Sensor::take_sample_cb(
+    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
     _do_sample = true;
+    if (!_fout.is_open())
+	_fout.open("/tmp/aist_ftsensor_control.txt", std::ios_base::out);
 
     res.success = true;
     res.message = "take_sample succeeded.";
@@ -332,9 +342,12 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
 {
     using namespace Eigen;
 
-    if (_nsamples < 3)
+    const auto	nsamples = _k.size();
+
+  // Check whether enough number of samples are available.
+    if (nsamples < 3)
     {
-	res.message = "Not enough samples[" + std::to_string(_nsamples)
+	res.message = "Not enough samples[" + std::to_string(nsamples)
 		    + "] for calibration!";
 	res.success = false;
 	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
@@ -342,46 +355,67 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
 	return true;
     }
 
-  /*
-   * Compute similarity transformation from external force to observed force.
-   */
-  // 1. Compute moment matrix.
-    const vector3_t	k_avg = _k_sum /_nsamples;
-    const vector3_t	f_avg = _f_sum /_nsamples;
-    const matrix33_t	M     = _kf_sum/_nsamples - k_avg % f_avg;
+  // Compute averages and deviations of gravity direction, force and torque.
+    const auto	k_avg = std::accumulate(_k.begin(), _k.end(),
+					vector3_t::Zero()) / nsamples;
+    const auto	f_avg = std::accumulate(_f.begin(), _f.end(),
+					vector3_t::Zero()) / nsamples;
+    const auto	m_avg = std::accumulate(_m.begin(), _m.end(),
+					vector3_t::Zero()) / nsamples;
+    auto	dk = _k;
+    for (auto&& vec : dk)
+	dk = dk - k_avg;
+    auto	df = _f;
+    for (auto&& vec : df)
+	df = df - f_avg;
+    auto	dm = _m;
+    for (auto&& vec : dm)
+	dm = dm - m_avg;
 
-  // 2. Apply SVD to moment matrix and correct resulting U and V
-  //    so that they have positive determinant values.
-    JacobiSVD<matrix33_t>	svd(M, ComputeFullU | ComputeFullV);
-    matrix33_t	U = svd.matrixU();
-    if (U.determinant() < 0)
-	U.col(2) *= -1;
-    matrix33_t	Vt = svd.matrixV().transpose();
-    if (Vt.determinant() < 0)
-	Vt.row(2) *= -1;
+  // Compute initial values of gradient and Jacobian.
+    auto	grad	 = vector3_t::Zero();
+    auto	jacobian = matrix33_t::Zero();
+    for (size_t i = 0; i < nsamples; ++i)
+    {
+	grad	 += dk[i].cross(dm[i]);
+	jacobian -= skew(dk[i]) * skew(dm[i]);
+    }
 
-  // 3. Compute scale, rotation and translation components of similarity.
-    const auto	k_var = 1.0 - k_avg.squaredNorm();
-    _mg = (svd.singularValues()(0) +
-	   svd.singularValues()(1) + svd.singularValues()(2)) / k_var;
-    _q  = U * Vt;
-    _f0 = f_avg -  _mg * (_q.inverse() * k_avg);
+  // Refine rotation.
+    int	niter = 0;
+    for (; niter < NITER_MAX; ++niter)
+    {
 
-  // 4. Evaluate residual error.
-    const auto	f_var = _f_sqsum/_nsamples - f_avg.squaredNorm();
+    }
+
+    if (niter == NITER_MAX)
+    {
+	res.message = "Exceed max iteration number[" + std::to_string(niter)
+		    + "] for computing calibration!";
+	res.success = false;
+	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
+
+	return true;
+    }
+
+  // Compute rotation and mass center.
+
+  // Compute effector mass and force/torque offsets.
+    double	dk_sqsum = 0, fQk_sum = 0;
+    for (size_t i = 0; i < nsamples; ++i)
+    {
+	dk_sqsum = dk[i].squaredNorm();
+	fQk_sum  = (_q * df[i]).dot(dk[i]);
+    }
+    _mg = fQk_sum / dk_sqsum;
+    _f0 = f_avg - _mg * (_q.inverse() * k_avg);
+    _m0 = m_avg - _mg * (_q.inverse() * _r.cross(f_avg));
+
+  // Evaluate residual error.
+    const auto	f_var = f_sqsum/_nsamples - f_avg.squaredNorm();
     ROS_INFO_STREAM("(aist_ftsensor) force residual error = "
 		    << std::sqrt(f_var/k_var - _mg*_mg)
 		    << "(Newton)");
-
-  /*
-   * Compute transformation from external torque to observed torque.
-   */
-    const matrix33_t	A = f_var * matrix33_t::Identity()
-			  - _ff_sum/_nsamples + f_avg % f_avg;
-    const vector3_t	b = _mf_sum/_nsamples - _f_sum.cross(f_avg)/_nsamples;
-    const vector3_t	r = A.colPivHouseholderQr().solve(b);
-    _m0 = _m_sum/_nsamples + r.cross(_f0 - f_avg);
-    _r  = _q * r;
 
     res.success = true;
     res.message = "Successfully computed calibration.";
@@ -471,31 +505,27 @@ ForceTorqueSensorController::Sensor::clear_samples_cb(
 
 void
 ForceTorqueSensorController::Sensor::take_sample(const vector3_t& k,
-		      const vector3_t& f, const vector3_t& m)
+						 const vector3_t& f,
+						 const vector3_t& m)
 {
-    ++_nsamples;
-    _k_sum   += k;
-    _f_sum   += f;
-    _m_sum   += m;
-    _kf_sum  += k % f;
-    _mm_sum  += m % m;
-    _ff_sum  += f % f;
-    _mf_sum  += m.cross(f);
-    _f_sqsum += f.squaredNorm();
+    _k.push_back(k);
+    _f.push_back(f);
+    _m.push_back(m);
+
+    _fout << k << std::endl;
+    _fout << f << std::endl;
+    _fout << m << std::endl << std::endl;
 }
 
 void
 ForceTorqueSensorController::Sensor::clear_samples()
 {
-    _nsamples = 0;
-    _k_sum    = vector3_t::Zero();
-    _f_sum    = vector3_t::Zero();
-    _m_sum    = vector3_t::Zero();
-    _kf_sum   = matrix33_t::Zero();
-    _mm_sum   = matrix33_t::Zero();
-    _ff_sum   = matrix33_t::Zero();
-    _mf_sum   = vector3_t::Zero();
-    _f_sqsum  = 0.0;
+    _k.clear();
+    _f.clear();
+    _m.clear();
+
+    if (_fout.is_open())
+	_fout.close();
 }
 
 ForceTorqueSensorController::Sensor::vector3_t
