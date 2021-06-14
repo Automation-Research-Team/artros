@@ -1,0 +1,18 @@
+<launch>
+  <arg name="prefix"	 default="ftsensor_"/>
+  <arg name="device"	 default="ftsensor"/>
+  <arg name="driver_arg" default="/dev/ttyUSB0, false, 1"/>
+
+  <arg name="dev"		value="$(eval driver_arg.split(',')[0])"/>
+  <arg name="reset_offsets"	value="$(eval driver_arg.split(',')[1])"/>
+  <arg name="avg_npoints"	value="$(eval driver_arg.split(',')[2])"/>
+
+  <node name="$(arg prefix)driver"
+        pkg="aist_ftsensor" type="dynpick_driver" output="screen">
+    <param name="frame_id"	value="$(arg prefix)wrench_link"/>
+    <param name="dev"		value="$(arg dev)"/>
+    <param name="reset_offsets"	value="$(arg reset_offsets)"/>
+    <param name="avg_npoints"	value="$(arg avg_npoints)"/>
+  </node>
+
+</launch>
