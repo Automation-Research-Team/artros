@@ -7,8 +7,9 @@
 
   <node name="$(arg prefix)driver"
         pkg="aist_ftsensor" type="ft300_driver" output="screen">
-    <rosparam file="$(dirname)/../config/ft300_driver.yaml"
-	      subst_value="true"/>
+    <param name="frame_id"	value="$(arg prefix)wrench_link"/>
+    <param name="rate"		value="$(arg publish_rate)"/>
+    <param name="hostname"	value="$(arg hostname)"/>
   </node>
 
   <rosparam file="$(dirname)/../config/controller.yaml"

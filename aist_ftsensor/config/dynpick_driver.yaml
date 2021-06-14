@@ -1,4 +1,0 @@
-rate: $(arg publish_rate)
-dev: $(arg dev)
-frame_id: $(arg prefix)wrench_link
-avg_npoints: $(arg avg)

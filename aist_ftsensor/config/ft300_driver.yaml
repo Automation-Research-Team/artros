@@ -1,4 +1,0 @@
-rate: 125
-hostname: $(arg hostname)
-port: 63351
-frame_id: $(arg prefix)wrench_link

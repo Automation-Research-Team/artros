@@ -15,7 +15,7 @@
 #include <yaml-cpp/yaml.h>
 #include <cstdlib>		// for std::getenv()
 #include <sys/stat.h>		// for mkdir()
-#include <numeric>		// for std::accumulate()
+#include <iterator>
 
 namespace aist_ftsensor
 {
@@ -44,12 +44,17 @@ skew(const Eigen::Matrix<T, 3, 1>& vec)
     return mat;
 }
 
-template <class ITER, class T> T
-mean(ITER begin, ITER end, T init)
+template <class ITER> static typename std::iterator_traits<ITER>::value_type
+accumulate(ITER begin, ITER end)
 {
-    return std::accumulate(begin, end, init) / std::distance(begin, end);
-}
+    using value_type = typename std::iterator_traits<ITER>::value_type;
 
+    value_type	val = value_type::Zero();
+    for (; begin != end; ++begin)
+	val += *begin;
+    return val;
+}
+    
 /************************************************************************
 *  class ForceTorqueSensorController					*
 ************************************************************************/
@@ -356,25 +361,22 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
     }
 
   // Compute averages and deviations of gravity direction, force and torque.
-    const auto	k_avg = std::accumulate(_k.begin(), _k.end(),
-					vector3_t::Zero()) / nsamples;
-    const auto	f_avg = std::accumulate(_f.begin(), _f.end(),
-					vector3_t::Zero()) / nsamples;
-    const auto	m_avg = std::accumulate(_m.begin(), _m.end(),
-					vector3_t::Zero()) / nsamples;
+    const auto	k_avg = accumulate(_k.begin(), _k.end()) / nsamples;
+    const auto	f_avg = accumulate(_f.begin(), _f.end()) / nsamples;
+    const auto	m_avg = accumulate(_m.begin(), _m.end()) / nsamples;
     auto	dk = _k;
     for (auto&& vec : dk)
-	dk = dk - k_avg;
+	vec -= k_avg;
     auto	df = _f;
     for (auto&& vec : df)
-	df = df - f_avg;
+	vec -= f_avg;
     auto	dm = _m;
     for (auto&& vec : dm)
-	dm = dm - m_avg;
+	vec -= m_avg;
 
   // Compute initial values of gradient and Jacobian.
-    auto	grad	 = vector3_t::Zero();
-    auto	jacobian = matrix33_t::Zero();
+    vector3_t	grad	 = vector3_t::Zero();
+    matrix33_t	jacobian = matrix33_t::Zero();
     for (size_t i = 0; i < nsamples; ++i)
     {
 	grad	 += dk[i].cross(dm[i]);
@@ -412,10 +414,10 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
     _m0 = m_avg - _mg * (_q.inverse() * _r.cross(f_avg));
 
   // Evaluate residual error.
-    const auto	f_var = f_sqsum/_nsamples - f_avg.squaredNorm();
-    ROS_INFO_STREAM("(aist_ftsensor) force residual error = "
-		    << std::sqrt(f_var/k_var - _mg*_mg)
-		    << "(Newton)");
+    // const auto	f_var = f_sqsum/_nsamples - f_avg.squaredNorm();
+    // ROS_INFO_STREAM("(aist_ftsensor) force residual error = "
+    // 		    << std::sqrt(f_var/k_var - _mg*_mg)
+    // 		    << "(Newton)");
 
     res.success = true;
     res.message = "Successfully computed calibration.";

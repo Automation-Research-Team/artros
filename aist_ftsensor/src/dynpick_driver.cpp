@@ -36,7 +36,7 @@ class dynpick_driver : public hardware_interface::RobotHW
 
   private:
     vector6_t		get_gains()				const	;
-    static int		open_tty(const char* dev)			;
+    static int		open_tty(const char* dev, u_int baud)		;
     void		put_command(const char* cmd)		const	;
     response_t		get_response()				const	;
 
@@ -51,14 +51,16 @@ class dynpick_driver : public hardware_interface::RobotHW
 
 dynpick_driver::dynpick_driver()
     :_nh("~"),
-     _rate(_nh.param<int>("rate", 100)),
-     _fd(open_tty(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str())),
+     _rate(_nh.param<int>("rate", 1000)),
+     _fd(open_tty(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str(),
+		  _nh.param<int>("baud", 921600))),
      _interface(),
      _gains(get_gains()),
      _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 {
   // Set number of points used for averaging filter
-    switch (_nh.param<int>("avg_npoints", 1))
+    const auto	avg_npoints = _nh.param<int>("avg_npoints", 1);
+    switch (avg_npoints)
     {
       case 1:
 	put_command("1F");
@@ -73,7 +75,8 @@ dynpick_driver::dynpick_driver()
 	put_command("8F");
 	break;
       default:
-	ROS_ERROR_STREAM("(dynpick_driver) unsupported avg_npoints value.");
+	ROS_ERROR_STREAM("(dynpick_driver) unsupported avg_npoints value["
+			 << avg_npoints << ']');
 	throw;
     }
 
@@ -135,10 +138,12 @@ dynpick_driver::get_gains() const
 {
     put_command("p");
     const auto&	res = get_response();
-
+    ROS_INFO_STREAM("(dynpick_driver) sensitivities: " << res.data());
+    
     vector6_t	gains;
     sscanf(res.data(), "%lf,%lf,%lf,%lf,%lf,%lf",
 	   &gains[0], &gains[1], &gains[2], &gains[3], &gains[4], &gains[5]);
+
     for (auto&& gain : gains)
 	if (gain != 0.0)
 	    gain = 1.0 / gain;
@@ -147,9 +152,9 @@ dynpick_driver::get_gains() const
 }
 
 int
-dynpick_driver::open_tty(const char* dev)
+dynpick_driver::open_tty(const char* dev, u_int baud)
 {
-    const auto	fd = ::open(dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
+    const auto	fd = ::open(dev, O_RDWR | O_NOCTTY);
     if (fd < 0)
     {
 	ROS_ERROR_STREAM("(dynpick_driver) failed to open tty: "
@@ -160,12 +165,38 @@ dynpick_driver::open_tty(const char* dev)
     termios      term;
     if (tcgetattr(fd, &term) >= 0)
     {
+	switch (baud)
+	{
+	  case 9600:
+	    baud = B9600;
+	    break;
+	  case 19200:
+	    baud = B19200;
+	    break;
+	  case 38400:
+	    baud = B38400;
+	    break;
+	  case 57600:
+	    baud = B57600;
+	    break;
+	  case 115200:
+	    baud = B115200;
+	    break;
+	  case 921600:
+	    baud = B921600;
+	    break;
+	  default:
+	    ROS_ERROR_STREAM("(dynpick_driver) unsupported baud rate["
+			     << baud << ']');
+	    throw;
+	}
+	    
 	bzero(&term, sizeof(term));
 
-	term.c_cflag = B921600 | CS8 | CLOCAL | CREAD;
-	term.c_iflag = IGNPAR;
+	term.c_cflag = baud | CS8 | CLOCAL | CREAD;
+	term.c_iflag = IGNCR;		// Ignore CR
 	term.c_oflag = 0;
-	term.c_lflag = 0;		// ICANON
+	term.c_lflag = 0;
 
 	term.c_cc[VINTR]    = 0;	// Ctrl-c
 	term.c_cc[VQUIT]    = 0;	// Ctrl-?
@@ -209,14 +240,19 @@ dynpick_driver::response_t
 dynpick_driver::get_response() const
 {
     response_t	res;
-    const auto	nbytes = ::read(_fd, res.data(), res.size());
-    if (nbytes < 0)
+    ssize_t	nbytes = 0;
+    do
     {
-	ROS_ERROR_STREAM("(ftsensor) failed to read from tty: "
-			 << strerror(errno));
-	throw;
-    }
-    res[nbytes] = '\0';
+	const auto	n = ::read(_fd, &res[nbytes], res.size() - nbytes);
+	if (n < 0)
+	{
+	    ROS_ERROR_STREAM("(ftsensor) failed to read from tty: "
+			     << strerror(errno));
+	    throw;
+	}
+	nbytes += n;
+    } while (res[nbytes - 1] != '\n');
+    res[nbytes - 1] = '\0';
 
     return res;
 }
