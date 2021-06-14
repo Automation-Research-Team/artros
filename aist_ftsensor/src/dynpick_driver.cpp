@@ -58,7 +58,19 @@ dynpick_driver::dynpick_driver()
      _gains(get_gains()),
      _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 {
-  // Set number of points used for averaging filter
+  // Reset offsets.
+    if (_nh.param<bool>("reset_offsets", false))
+    {
+	put_command("O");
+	put_command("O");
+	put_command("O");
+	put_command("R");
+	const auto&	res = get_response();
+
+	ROS_INFO_STREAM("(dynpick_driver) reset_offsets: " << res.data());
+    }
+    
+  // Set number of points used for averaging filter.
     const auto	avg_npoints = _nh.param<int>("avg_npoints", 1);
     switch (avg_npoints)
     {

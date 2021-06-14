@@ -6,6 +6,7 @@
   <arg name="dev"		default="/dev/ttyUSB0"/>
   <arg name="baud"		default="921600"/>
   <arg name="avg_npoints"	default="1"/>
+  <arg name="reset_offsets"	default="false"/>
 
   <node name="$(arg prefix)driver"
         pkg="aist_ftsensor" type="dynpick_driver" output="screen">
@@ -14,6 +15,7 @@
     <param name="dev"		value="$(arg dev)"/>
     <param name="baud"		value="$(arg baud)"/>
     <param name="avg_npoints"	value="$(arg avg_npoints)"/>
+    <param name="reset_offsets"	value="$(arg reset_offsets)"/>
   </node>
 
   <rosparam file="$(dirname)/../config/controller.yaml"
