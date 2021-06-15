@@ -54,7 +54,15 @@ accumulate(ITER begin, ITER end)
 	val += *begin;
     return val;
 }
-    
+
+static Eigen::Quaterniond
+quaternion(const Eigen::Vector3d& v)
+{
+    const auto	theta2 = v.norm()/2;
+    const auto	q = v.normalized() * std::sin(theta2);
+    return {std::cos(theta2), q(0), q(1), q(2)};
+}
+
 /************************************************************************
 *  class ForceTorqueSensorController					*
 ************************************************************************/
