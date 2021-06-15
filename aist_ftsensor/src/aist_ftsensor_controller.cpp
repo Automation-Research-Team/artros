@@ -514,9 +514,9 @@ ForceTorqueSensorController::Sensor::take_sample(const vector3_t& k,
     _f.push_back(f);
     _m.push_back(m);
 
-    _fout << k << std::endl;
-    _fout << f << std::endl;
-    _fout << m << std::endl << std::endl;
+    _fout << k.transpose() << std::endl;
+    _fout << f.transpose() << std::endl;
+    _fout << m.transpose() << std::endl << std::endl;
 }
 
 void

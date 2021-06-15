@@ -20,7 +20,7 @@
 
   <rosparam file="$(dirname)/../config/controller.yaml"
   	    subst_value="true"/>
-  <node name="controller_spawner"
+  <node name="$(arg prefix)controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
   	args="$(arg controller)"/>
 

@@ -1,21 +1,21 @@
 <launch>
-  <arg name="prefix"		default="a_bot_ftsensor_"/>
+  <arg name="name"		default="a_bot_ftsensor"/>
   <arg name="publish_rate"	default="125"/>
   <arg name="controller"	default="aist_ftsensor_controller"/>
   <!-- <arg name="controller"	default="force_torque_sensor_controller"/> -->
   <arg name="hostname"		default="a_bot"/>
 
-  <node name="$(arg prefix)driver"
+  <node name="$(arg name)"
         pkg="aist_ftsensor" type="ft300_driver" output="screen">
-    <param name="frame_id"	value="$(arg prefix)wrench_link"/>
+    <param name="frame_id"	value="$(arg name)_wrench_link"/>
     <param name="rate"		value="$(arg publish_rate)"/>
     <param name="hostname"	value="$(arg hostname)"/>
   </node>
 
   <rosparam file="$(dirname)/../config/controller.yaml"
   	    subst_value="true"/>
-  <node name="controller_spawner"
+  <node name="$(arg name)_controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
-  	args="$(arg controller)"/>
+  	args="$(arg name)_controller"/>
 
 </launch>
