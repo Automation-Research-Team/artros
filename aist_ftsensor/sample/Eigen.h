@@ -156,7 +156,7 @@ Plane<T, N>::fit(ITER begin, ITER end)
     const vector_t	centroid = mean(begin, end);
     matrix_t		moments  = matrix_t::Zero();
     for (auto iter = begin; iter != end; ++iter)
-	moments += ext(*iter - centroid);
+    	moments += ext(*iter - centroid);
 
   // Compute eigenvector corresponding to the smallest eigenvalue of
   // the moment matrix.

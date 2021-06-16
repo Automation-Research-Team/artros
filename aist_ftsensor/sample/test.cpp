@@ -110,6 +110,8 @@ Sensor::compute_calibration()
     Plane<double, 3>	plane(_m.begin(), _m.end());
     const auto		r = plane.normal();
 
+    std::cerr << "normal = " << r << std::endl;
+    
     std::vector<std::pair<vector_t, vector_t> >	corres;
     for (size_t i = 0; i < _k.size(); ++i)
 	corres.push_back(std::make_pair(r.cross(_k[i]), _m[i]));
@@ -145,6 +147,7 @@ Sensor::compute_calibration()
     _f0 = fm - _mg*(_q*km);
 
   // Verify results.
+  /*
     std::cerr << dm;
     for (size_t i = 0; i < nsamples; ++i)
     {
@@ -158,7 +161,7 @@ Sensor::compute_calibration()
 	const vector_t	err = _mg*(_q*_k[i]) + _f0 - _f[i];
 	std::cerr << "force_err[" << i << "] = " << err << std::endl;
     }
-
+  */
     return true;
 }
 

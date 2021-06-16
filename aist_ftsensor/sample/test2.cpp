@@ -140,42 +140,38 @@ Sensor::compute_calibration()
 	      << std::sqrt(eigensolver.eigenvalues()(0)) << std::endl;
 
   // Compute similarity transformation from gravity torque to observed torque.
+  //   Note: Since rank(km_var) = 2, its third singular value is zero.
     const vector_t	k_mean = _k_sum  / _nsamples;
     const matrix_t	km_var = skew(normal) * (_km_sum / _nsamples -
 						 k_mean % m_mean);
     JacobiSVD<matrix_t>	svd(km_var, ComputeFullU | ComputeFullV);
     matrix_t		Ut = svd.matrixU().transpose();
-    double		sigma2 = svd.singularValues()(2);
+    std::cerr << "Singular values = " << svd.singularValues().transpose()
+	      << std::endl;
+    
     if (Ut.determinant() < 0)
-    {
-	std::cerr << "Ut.row(2) reversed." << std::endl;
 	Ut.row(2) *= -1;
-	sigma2	  *- -1;
-    }
     matrix_t		V = svd.matrixV();
     if (V.determinant() < 0)
-    {
-	std::cerr << "V.col(2) reversed." << std::endl;
 	V.col(2) *= -1;
-	sigma2	 *- -1;
-    }
-    _q = V * Ut;		// rotation of sensor frame
-
+    _q = V * Ut;
+    
     const auto	k_var = _k_sqsum / _nsamples - k_mean.squaredNorm();
-    auto	scale = (svd.singularValues()(0) + svd.singularValues()(1) +
-			 sigma2) / k_var;
-    if (scale < 0)
-    {
-	std::cerr << "scale reversed." << std::endl;
-	scale  *= -1;
-	normal *= -1;
-    }
+    const auto	scale = (svd.singularValues()(0) +
+			 svd.singularValues()(1)) / k_var;
     _m0 = m_mean - scale * (_q * normal.cross(k_mean));	// torque offset
 
-  // 
+  // Compute 
     const vector_t	f_mean = _f_sum / _nsamples;
     const matrix_t 	kf_var = (_kf_sum / _nsamples - k_mean % f_mean);
-    _mg = (_q.toRotationMatrix() * kf_var).trace() / k_var;
+    if ((_q * kf_var).trace() < 0)
+    {
+	normal	  *= -1;
+	Ut.row(0) *= -1;
+	Ut.row(1) *= -1;
+	_q  = V * Ut;
+    }
+    _mg = (_q * kf_var).trace() / k_var;
     _r  = (scale / _mg) * normal;
     _f0 = f_mean - _mg * (_q * k_mean);
 
@@ -206,22 +202,22 @@ Sensor::save_calibration() const
 	    << YAML::EndSeq;
     emitter << YAML::EndMap;
 
-      // Save calitration results.
+  // Save calitration results.
     std::cout << emitter.c_str() << std::endl;
 }
 
 Sensor::vector_t
 Sensor::force(const vector_t& f, const vector_t& k) const
 {
-    // return _q.inverse() * (f - _f0) - _mg * k;
-    return f - _q * (_mg * k) - _f0;
+  //return _q.inverse() * (f - _f0) - _mg * k;
+    return _q * (_mg * k) + _f0 - f;
 }
 
 Sensor::vector_t
 Sensor::torque(const vector_t& m, const vector_t& k) const
 {
   //return _q.inverse() * (m - _m0) - _r.cross(_mg * k);
-    return m - _q * (_r.cross(_mg * k)) - _m0;
+    return _q * (_r.cross(_mg * k)) + _m0 - m;
 }
 
 }	// namespace aist_ftsensor
@@ -257,7 +253,6 @@ main()
     for (size_t i = 0; i < ks.size(); ++i)
 	std::cerr << "torque_err[" << i << "] = "
 		  << sensor.torque(ms[i], ks[i]).transpose() << std::endl;
-    
 	
     return 0;
 }
