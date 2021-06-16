@@ -145,13 +145,11 @@ Sensor::compute_calibration()
     const matrix_t	km_var = skew(normal) * (_km_sum / _nsamples -
 						 k_mean % m_mean);
     JacobiSVD<matrix_t>	svd(km_var, ComputeFullU | ComputeFullV);
-    matrix_t		Ut = svd.matrixU().transpose();
-    std::cerr << "Singular values = " << svd.singularValues().transpose()
-	      << std::endl;
-    
+
+    matrix_t	Ut = svd.matrixU().transpose();
     if (Ut.determinant() < 0)
 	Ut.row(2) *= -1;
-    matrix_t		V = svd.matrixV();
+    matrix_t	V = svd.matrixV();
     if (V.determinant() < 0)
 	V.col(2) *= -1;
     _q = V * Ut;

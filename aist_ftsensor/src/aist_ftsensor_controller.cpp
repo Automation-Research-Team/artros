@@ -16,25 +16,21 @@
 #include <cstdlib>		// for std::getenv()
 #include <sys/stat.h>		// for mkdir()
 #include <iterator>
+#include <Eigen/Dense>
 
 namespace aist_ftsensor
 {
 /************************************************************************
 *  static functions							*
 ************************************************************************/
-//! Exterior product of two vectors.
-template <class T, int M, int N> static Eigen::Matrix<T, M, N>
+template <class T, int M, int N> Eigen::Matrix<T, M, N>
 operator %(const Eigen::Matrix<T, M, 1>& x,
 	   const Eigen::Matrix<T, N, 1>& y)
 {
-    Eigen::Matrix<T, M, N>	mat;
-    for (size_t i = 0; i < M; ++i)
-	for (size_t j = 0; j < N; ++j)
-	    mat(i, j) = x(i) * y(j);
-    return mat;
+    return x * y.transpose();
 }
 
-template <class T> static Eigen::Matrix<T, 3, 3>
+template <class T> Eigen::Matrix<T, 3, 3>
 skew(const Eigen::Matrix<T, 3, 1>& vec)
 {
     Eigen::Matrix<T, 3, 3>	mat;
@@ -44,23 +40,20 @@ skew(const Eigen::Matrix<T, 3, 1>& vec)
     return mat;
 }
 
-template <class ITER> static typename std::iterator_traits<ITER>::value_type
-accumulate(ITER begin, ITER end)
+template <class T, int M> std::ostream&
+operator <<(std::ostream& out, const Eigen::Matrix<T, M, 1>& v)
 {
-    using value_type = typename std::iterator_traits<ITER>::value_type;
-
-    value_type	val = value_type::Zero();
-    for (; begin != end; ++begin)
-	val += *begin;
-    return val;
+    for (size_t i = 0; i < M; ++i)
+	out << ' ' << v(i);
+    return out;
 }
 
-static Eigen::Quaterniond
-quaternion(const Eigen::Vector3d& v)
+template <class T> std::ostream&
+operator <<(std::ostream& out, const std::vector<T>& v)
 {
-    const auto	theta2 = v.norm()/2;
-    const auto	q = v.normalized() * std::sin(theta2);
-    return {std::cos(theta2), q(0), q(1), q(2)};
+    for (const auto& elm : v)
+	out << elm << std::endl;
+    return out << std::endl;
 }
 
 /************************************************************************
@@ -80,8 +73,8 @@ class ForceTorqueSensorController
 	using publisher_t	= realtime_tools::RealtimePublisher<
 					geometry_msgs::WrenchStamped>;
 	using publisher_p	= std::shared_ptr<publisher_t>;
-	using vector3_t		= Eigen::Vector3d;
-	using matrix33_t	= Eigen::Matrix3d;
+	using vector_t		= Eigen::Vector3d;
+	using matrix_t	= Eigen::Matrix3d;
 	using quaternion_t	= Eigen::Quaterniond;
 	using transform_t	= tf::StampedTransform;
 
@@ -108,11 +101,11 @@ class ForceTorqueSensorController
 	bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
 				 std_srvs::Trigger::Response& res)	;
 
-	void	take_sample(const vector3_t& k,
-			    const vector3_t& f, const vector3_t& m)	;
+	void	take_sample(const vector_t& k,
+			    const vector_t& f, const vector_t& m)	;
 	void	clear_samples()						;
 
-	vector3_t	vector3_param(const std::string& name)	  const	;
+	vector_t	vector3_param(const std::string& name)	  const	;
 	quaternion_t	quaternion_param(const std::string& name) const	;
 
       private:
@@ -135,15 +128,21 @@ class ForceTorqueSensorController
 	double				_rate;
 	double				_mg;		// effector mass
 	quaternion_t			_q;		// rotation
-	vector3_t			_r;		// mass center
-	vector3_t			_f0;		// force offset
-	vector3_t			_m0;		// torque offset
+	vector_t			_r;		// mass center
+	vector_t			_f0;		// force offset
+	vector_t			_m0;		// torque offset
 
       // Calibration stuffs
 	bool				_do_sample;
-	std::vector<vector3_t>		_k;
-	std::vector<vector3_t>		_f;
-	std::vector<vector3_t>		_m;
+	size_t				_nsamples;
+	vector_t			_k_sum;
+	vector_t			_f_sum;
+	vector_t			_m_sum;
+	double				_k_sqsum;
+	matrix_t			_kf_sum;
+	matrix_t			_km_sum;
+	matrix_t			_mm_sum;
+
 	std::ofstream			_fout;
     };
 
@@ -238,9 +237,14 @@ ForceTorqueSensorController::Sensor::Sensor(
      _f0(vector3_param("force_offset")),
      _m0(vector3_param("torque_offset")),
      _do_sample(false),
-     _k(),
-     _f(),
-     _m(),
+     _nsamples(0),
+     _k_sum(vector_t::Zero()),
+     _f_sum(vector_t::Zero()),
+     _m_sum(vector_t::Zero()),
+     _k_sqsum(0),
+     _kf_sum(matrix_t::Zero()),
+     _km_sum(matrix_t::Zero()),
+     _mm_sum(matrix_t::Zero()),
      _fout()
 {
     ROS_INFO_STREAM("(aist_ftsensor_controller) Got " << name);
@@ -279,7 +283,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 
 	if (_pub->trylock())
 	{
-	    vector3_t	k;			// direction of gravity force
+	    vector_t	k;			// direction of gravity force
 	    try
 	    {
 		transform_t	T;
@@ -297,11 +301,11 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 		return;
 	    }
 
-	    vector3_t	f;			// observed force
+	    vector_t	f;			// observed force
 	    f << _hw_handle.getForce()[0],
 		 _hw_handle.getForce()[1],
 		 _hw_handle.getForce()[2];
-	    vector3_t	m;			// observed torque
+	    vector_t	m;			// observed torque
 	    m << _hw_handle.getTorque()[0],
 		 _hw_handle.getTorque()[1],
 		 _hw_handle.getTorque()[2];
@@ -312,8 +316,8 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 		_do_sample = false;
 	    }
 
-	    const vector3_t	force  = _q*(f - _f0) - _mg*k;
-	    const vector3_t	torque = _q*(m - _m0) - _r.cross(_mg*k);
+	    const vector_t force  = _q.inverse()*(f - _f0) - _mg*k;
+	    const vector_t torque = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
 
 	  // we're actually publishing, so increment time
 	    _last_pub_time = _last_pub_time + ros::Duration(1.0/_pub_rate);
@@ -355,71 +359,60 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
 {
     using namespace Eigen;
 
-    const auto	nsamples = _k.size();
-
-  // Check whether enough number of samples are available.
-    if (nsamples < 3)
+    if (_nsamples < 3)
     {
-	res.message = "Not enough samples[" + std::to_string(nsamples)
-		    + "] for calibration!";
-	res.success = false;
+	res.message = "(aist_ftsensor) Not enough samples["
+		    + std::to_string(_nsamples) +  "] for calibration!";
 	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
-
 	return true;
     }
 
-  // Compute averages and deviations of gravity direction, force and torque.
-    const auto	k_avg = accumulate(_k.begin(), _k.end()) / nsamples;
-    const auto	f_avg = accumulate(_f.begin(), _f.end()) / nsamples;
-    const auto	m_avg = accumulate(_m.begin(), _m.end()) / nsamples;
-    auto	dk = _k;
-    for (auto&& vec : dk)
-	vec -= k_avg;
-    auto	df = _f;
-    for (auto&& vec : df)
-	vec -= f_avg;
-    auto	dm = _m;
-    for (auto&& vec : dm)
-	vec -= m_avg;
+  // [0] Compute normal of the plane in which all the torque vectors lie.
+    const vector_t	m_mean = _m_sum  / _nsamples;
+    const matrix_t	mm_var = _mm_sum / _nsamples - m_mean % m_mean;
+    SelfAdjointEigenSolver<matrix_t>	eigensolver(mm_var);
+    vector_t		normal = eigensolver.eigenvectors().col(0);
 
-  // Compute initial values of gradient and Jacobian.
-    vector3_t	grad	 = vector3_t::Zero();
-    matrix33_t	jacobian = matrix33_t::Zero();
-    for (size_t i = 0; i < nsamples; ++i)
+    ROS_INFO_STREAM("(aist_ftsensor) RMS error in plane fitting: "
+		    << std::sqrt(eigensolver.eigenvalues()(0)));
+
+  // [1] Compute similarity transformation from gravity to observed torque.
+  //   Note: Since rank(km_var) = 2, its third singular value is zero.
+    const vector_t	k_mean = _k_sum  / _nsamples;
+    const matrix_t	km_var = skew(normal) * (_km_sum / _nsamples -
+						 k_mean % m_mean);
+    JacobiSVD<matrix_t>	svd(km_var, ComputeFullU | ComputeFullV);
+
+    matrix_t	Ut = svd.matrixU().transpose();
+    if (Ut.determinant() < 0)
+	Ut.row(2) *= -1;
+    matrix_t	V = svd.matrixV();
+    if (V.determinant() < 0)
+	V.col(2) *= -1;
+    _q = V * Ut;					// rotation
+    
+    const auto	k_var = _k_sqsum / _nsamples - k_mean.squaredNorm();
+    const auto	scale = (svd.singularValues()(0) +
+			 svd.singularValues()(1)) / k_var;
+    _m0 = m_mean - scale * (_q * normal.cross(k_mean));	// torque offset
+
+  // [2] Compute transformation from gravity to observed force.
+    const vector_t	f_mean = _f_sum / _nsamples;
+    const matrix_t 	kf_var = (_kf_sum / _nsamples - k_mean % f_mean);
+
+  // If the effector mass value becomes negative, reverse the normal direction
+  // and fix the rotation.
+    if ((_q * kf_var).trace() < 0)
     {
-	grad	 += dk[i].cross(dm[i]);
-	jacobian -= skew(dk[i]) * skew(dm[i]);
+	normal	  *= -1;	// Reverse the normal direction.
+	Ut.row(0) *= -1;	// Reverse first two rows of Ut so that
+	Ut.row(1) *= -1;	// the sign of SVD to be reversed while
+				// keeping those of singular vlues.
+	_q  = V * Ut;		// Recompute rotation.
     }
-
-  // Refine rotation.
-    int	niter = 0;
-    for (; niter < NITER_MAX; ++niter)
-    {
-
-    }
-
-    if (niter == NITER_MAX)
-    {
-	res.message = "Exceed max iteration number[" + std::to_string(niter)
-		    + "] for computing calibration!";
-	res.success = false;
-	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
-
-	return true;
-    }
-
-  // Compute rotation and mass center.
-
-  // Compute effector mass and force/torque offsets.
-    double	dk_sqsum = 0, fQk_sum = 0;
-    for (size_t i = 0; i < nsamples; ++i)
-    {
-	dk_sqsum = dk[i].squaredNorm();
-	fQk_sum  = (_q * df[i]).dot(dk[i]);
-    }
-    _mg = fQk_sum / dk_sqsum;
-    _f0 = f_avg - _mg * (_q.inverse() * k_avg);
-    _m0 = m_avg - _mg * (_q.inverse() * _r.cross(f_avg));
+    _mg = (_q * kf_var).trace() / k_var;		// effector mass
+    _r  = (scale / _mg) * normal;			// mass center
+    _f0 = f_mean - _mg * (_q * k_mean);			// force offset
 
   // Evaluate residual error.
     // const auto	f_var = f_sqsum/_nsamples - f_avg.squaredNorm();
@@ -514,13 +507,18 @@ ForceTorqueSensorController::Sensor::clear_samples_cb(
 }
 
 void
-ForceTorqueSensorController::Sensor::take_sample(const vector3_t& k,
-						 const vector3_t& f,
-						 const vector3_t& m)
+ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
+						 const vector_t& f,
+						 const vector_t& m)
 {
-    _k.push_back(k);
-    _f.push_back(f);
-    _m.push_back(m);
+    ++_nsamples;
+    _k_sum   += k;
+    _f_sum   += f;
+    _m_sum   += m;
+    _k_sqsum += k.squaredNorm();
+    _kf_sum  += k % f;
+    _km_sum  += k % m;
+    _mm_sum  += m % m;
 
     _fout << k.transpose() << std::endl;
     _fout << f.transpose() << std::endl;
@@ -530,15 +528,19 @@ ForceTorqueSensorController::Sensor::take_sample(const vector3_t& k,
 void
 ForceTorqueSensorController::Sensor::clear_samples()
 {
-    _k.clear();
-    _f.clear();
-    _m.clear();
+    _k_sum   = vector_t::Zero();
+    _f_sum   = vector_t::Zero();
+    _m_sum   = vector_t::Zero();
+    _k_sqsum = 0;
+    _kf_sum  = matrix_t::Zero();
+    _km_sum  = matrix_t::Zero();
+    _mm_sum  = matrix_t::Zero();
 
     if (_fout.is_open())
 	_fout.close();
 }
 
-ForceTorqueSensorController::Sensor::vector3_t
+ForceTorqueSensorController::Sensor::vector_t
 ForceTorqueSensorController::Sensor
 			   ::vector3_param(const std::string& name) const
 {
@@ -549,13 +551,13 @@ ForceTorqueSensorController::Sensor
 
 	if (v.size() == 3)
 	{
-	    vector3_t	vec;
+	    vector_t	vec;
 	    vec << v[0], v[1], v[2];
 	    return vec;
 	}
     }
 
-    return vector3_t::Zero();
+    return vector_t::Zero();
 }
 
 ForceTorqueSensorController::Sensor::quaternion_t
