@@ -3,7 +3,6 @@
  *  \brief	source file of a class for controlling force-torque sensors
  */
 #include <yaml-cpp/yaml.h>
-#include <iterator>
 #include <iostream>
 #include <Eigen/Dense>
 
@@ -207,15 +206,13 @@ Sensor::save_calibration() const
 Sensor::vector_t
 Sensor::force(const vector_t& f, const vector_t& k) const
 {
-  //return _q.inverse() * (f - _f0) - _mg * k;
-    return _q * (_mg * k) + _f0 - f;
+    return _q.inverse() * (f - _f0) - _mg * k;
 }
 
 Sensor::vector_t
 Sensor::torque(const vector_t& m, const vector_t& k) const
 {
-  //return _q.inverse() * (m - _m0) - _r.cross(_mg * k);
-    return _q * (_r.cross(_mg * k)) + _m0 - m;
+    return _q.inverse() * (m - _m0) - _r.cross(_mg * k);
 }
 
 }	// namespace aist_ftsensor

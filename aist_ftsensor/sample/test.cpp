@@ -147,21 +147,22 @@ Sensor::compute_calibration()
     _f0 = fm - _mg*(_q*km);
 
   // Verify results.
-  /*
-    std::cerr << dm;
-    for (size_t i = 0; i < nsamples; ++i)
-    {
-	const vector_t	err = _mg*(_r.cross(_q*_k[i])) + _m0 - _m[i];
-	std::cerr << "torque_err[" << i << "] = " << err << std::endl;
-    }
-
     std::cerr << dk;
     for (size_t i = 0; i < nsamples; ++i)
     {
-	const vector_t	err = _mg*(_q*_k[i]) + _f0 - _f[i];
+	const vector_t	err = _q.inverse() * (_f[i] - _f0) - _mg * _k[i];
 	std::cerr << "force_err[" << i << "] = " << err << std::endl;
     }
-  */
+    std::cerr << std::endl;
+    
+    std::cerr << dm;
+    for (size_t i = 0; i < nsamples; ++i)
+    {
+	const vector_t	err = _q.inverse() * (_m[i] - _m0)
+			    - _r.cross(_mg * _k[i]);
+	std::cerr << "torque_err[" << i << "] = " << err << std::endl;
+    }
+
     return true;
 }
 
