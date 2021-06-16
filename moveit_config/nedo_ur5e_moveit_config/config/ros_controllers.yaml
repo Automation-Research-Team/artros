@@ -34,13 +34,9 @@ controller_list:
       - c_bot_wrist_1_joint
       - c_bot_wrist_2_joint
       - c_bot_wrist_3_joint
-c_bot_gripper_controller:
-  type: GripperCommand
-  joints:
-    c_bot_gripper_finger_joint
-  gains:
-    c_bot_gripper_finger_joint:
-      p: 100
-      d: 1
-      i: 1
-      i_clamp: 1
+  - name: c_bot_gripper_controller
+    action_ns: gripper_cmd
+    type: GripperCommand
+    default: True
+    joints:
+      - c_bot_gripper_finger_joint
