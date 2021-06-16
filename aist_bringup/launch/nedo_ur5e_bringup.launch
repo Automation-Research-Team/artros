@@ -10,13 +10,13 @@
 
   <!-- Setup "ur5e" configuration -->
   <arg name="config"		value="nedo_ur5e"/>
-  <arg name="gazebo_init_args"	value="-J c_bot_shoulder_pan_joint 1.5708
-				       -J c_bot_shoulder_lift_joint -2.1
-				       -J c_bot_elbow_joint 1.4
-				       -J c_bot_wrist_1_joint -0.85
-				       -J c_bot_wrist_2_joint -1.5708
-				       -J c_bot_wrist_3_joint 0.0"/>
-  <arg name="prefixes"		value="c_bot_, c_bot_gripper_"/>
+  <arg name="gazebo_init_args"	value="-J e_bot_shoulder_pan_joint 1.5708
+				       -J e_bot_shoulder_lift_joint -2.1
+				       -J e_bot_elbow_joint 1.4
+				       -J e_bot_wrist_1_joint -0.85
+				       -J e_bot_wrist_2_joint -1.5708
+				       -J e_bot_wrist_3_joint 0.0"/>
+  <arg name="prefixes"		value="e_bot_, e_bot_gripper_"/>
   <arg name="devices"		value="ur5e, robotiq_140"/>
   <arg name="controllers"	value="ur, cmodel"/>
   <arg name="drivers"		value="ur, cmodel"/>
@@ -51,7 +51,7 @@
 
     <!-- Drivers for the force sensors -->
     <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->
-    <!--   <arg name="robot_name"	value="c_bot"/> -->
+    <!--   <arg name="robot_name"	value="e_bot"/> -->
     <!-- </include> -->
     <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->
     <!--   <arg name="robot_name"	value="d_bot"/> -->

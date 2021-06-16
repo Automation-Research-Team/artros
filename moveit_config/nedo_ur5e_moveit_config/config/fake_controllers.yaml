@@ -1,19 +1,19 @@
 controller_list:
-  - name: fake_c_bot_controller
+  - name: fake_e_bot_controller
     type: $(arg execution_type)
     joints:
-      - c_bot_shoulder_pan_joint
-      - c_bot_shoulder_lift_joint
-      - c_bot_elbow_joint
-      - c_bot_wrist_1_joint
-      - c_bot_wrist_2_joint
-      - c_bot_wrist_3_joint
-  - name: fake_c_bot_gripper_controller
+      - e_bot_shoulder_pan_joint
+      - e_bot_shoulder_lift_joint
+      - e_bot_elbow_joint
+      - e_bot_wrist_1_joint
+      - e_bot_wrist_2_joint
+      - e_bot_wrist_3_joint
+  - name: fake_e_bot_gripper_controller
     type: $(arg execution_type)
     joints:
-      - c_bot_gripper_finger_joint
+      - e_bot_gripper_finger_joint
 initial:  # Define initial robot poses.
-  - group: c_bot
+  - group: e_bot
     pose: home
-  - group: c_bot_gripper
+  - group: e_bot_gripper
     pose: close
