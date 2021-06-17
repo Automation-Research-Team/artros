@@ -59,8 +59,7 @@ class ft300_driver : public hardware_interface::RobotHW
     const double	_rate;
     const int		_socket;
     interface_t		_interface;
-    double		_force[3];
-    double		_torque[3];
+    double		_ft[6];
 };
 
 ft300_driver::ft300_driver()
@@ -68,8 +67,7 @@ ft300_driver::ft300_driver()
      _rate(_nh.param<int>("rate", 100)),
      _socket(::socket(AF_INET, SOCK_STREAM, 0)),
      _interface(),
-     _force{0.0, 0.0, 0.0},
-     _torque{0.0, 0.0, 0.0}
+     _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}
 {
   // Check whether the socket is correctly opened.
     if (_socket < 0)
@@ -84,8 +82,7 @@ ft300_driver::ft300_driver()
 
   // Register hardware interface handle.
     const auto	frame_id = _nh.param<std::string>("frame_id", "wrench_link");
-    _interface.registerHandle(handle_t(_nh.getNamespace() + "/wrench",
-				       frame_id, &_force[0], &_torque[0]));
+    _interface.registerHandle(handle_t("wrench", frame_id, &_ft[0], &_ft[3]));
     registerInterface(&_interface);
 
     ROS_INFO_STREAM("(ft300_driver) ft300_driver started.");
@@ -131,12 +128,12 @@ ft300_driver::read(const ros::Time&, const ros::Duration&)
     buf[nbytes] = '\0';
 
     const char*	s = buf.data();
-    s = splitd(s, _force[0]);
-    s = splitd(s, _force[1]);
-    s = splitd(s, _force[2]);
-    s = splitd(s, _torque[0]);
-    s = splitd(s, _torque[1]);
-    s = splitd(s, _torque[2]);
+    s = splitd(s, _ft[0]);
+    s = splitd(s, _ft[1]);
+    s = splitd(s, _ft[2]);
+    s = splitd(s, _ft[3]);
+    s = splitd(s, _ft[4]);
+    s = splitd(s, _ft[5]);
 }
 
 bool
@@ -193,7 +190,7 @@ ft300_driver::connect_socket(u_long s_addr, int port)
 int
 main(int argc, char* argv[])
 {
-    ros::init(argc, argv, "ft3000_driver");
+    ros::init(argc, argv, "ft300_driver");
 
     try
     {

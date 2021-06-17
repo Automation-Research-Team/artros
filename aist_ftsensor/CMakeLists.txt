@@ -44,23 +44,9 @@ include_directories(
   ${EIGEN3_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME} src/ftsensor.cpp src/main.cpp)
-
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  yaml-cpp
+add_library(${PROJECT_NAME}_controller
+  src/aist_ftsensor_controller.cpp
 )
-
-add_library(${PROJECT_NAME}_nodelet src/ftsensor.cpp src/nodelet.cpp)
-
-target_link_libraries(${PROJECT_NAME}_nodelet
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  yaml-cpp
-)
-
-add_library(${PROJECT_NAME}_controller src/aist_ftsensor_controller.cpp)
 
 target_link_libraries(${PROJECT_NAME}_controller
   ${catkin_LIBRARIES}
@@ -86,7 +72,7 @@ target_link_libraries(dynpick_driver
 ## Install ##
 #############
 # Install targets
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME}_controller
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}

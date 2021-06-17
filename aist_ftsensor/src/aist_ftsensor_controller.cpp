@@ -179,8 +179,11 @@ ForceTorqueSensorController::init(interface_t* hw,
 
   // setup sensors
     for (const auto& name : hw->getNames())
+    {
+	ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
 	_sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
 					       pub_rate, _listener)));
+    }
 
     return true;
 }

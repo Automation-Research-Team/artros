@@ -94,8 +94,7 @@ dynpick_driver::dynpick_driver()
 
   // Register hardware interface handle.
     const auto	frame_id = _nh.param<std::string>("frame_id", "wrench_link");
-    _interface.registerHandle(handle_t(_nh.getNamespace() + "/wrench",
-				       frame_id, &_ft[0], &_ft[3]));
+    _interface.registerHandle(handle_t("wrench", frame_id, &_ft[0], &_ft[3]));
     registerInterface(&_interface);
 
     ROS_INFO_STREAM("(dynpick_driver) dynpick_driver started.");

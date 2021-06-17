@@ -61,24 +61,16 @@
   <group if="$(eval not sim)">
 
     <!-- Drivers for the force sensors -->
-    <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->
-    <!--   <arg name="ftsensor_name"		value="a_bot_ftsensor"/> -->
-    <!--   <arg name="robot_name"		value="a_bot"/> -->
-    <!--   <arg name="calibrated"		value="true"/> -->
-    <!-- </include> -->
-    <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->
-    <!--   <arg name="ftsensor_name"		value="b_bot_ftsensor"/> -->
-    <!--   <arg name="robot_name"		value="b_bot"/> -->
-    <!--   <arg name="calibrated"		value="true"/> -->
-    <!-- </include> -->
-    <include file="$(find aist_ftsensor)/launch/ft300_driver.launch">
-      <arg name="name"			value="a_bot_ftsensor"/>
+    <include ns="a_bot_ftsensor"
+	     file="$(find aist_ftsensor)/launch/ft300.launch">
+      <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
       <arg name="hostname"		value="a_bot"/>
     </include>
-    <!-- <include file="$(find aist_ftsensor)/launch/ft300_driver.launch"> -->
-    <!--   <arg name="name"			value="b_bot_ftsensor"/> -->
-    <!--   <arg name="hostname"		value="b_bot"/> -->
-    <!-- </include> -->
+    <include ns="b_bot_ftsensor"
+	     file="$(find aist_ftsensor)/launch/ft300.launch">
+      <arg name="frame_id"		value="b_bot_ftsensor_wrench_link"/>
+      <arg name="hostname"		value="b_bot"/>
+    </include>
 
     <!-- Launch fastening tools -->
     <node name="suction_controller" pkg="o2as_fastening_tools"
