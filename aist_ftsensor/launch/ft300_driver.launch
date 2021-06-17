@@ -12,7 +12,7 @@
     <param name="hostname"	value="$(arg hostname)"/>
   </node>
 
-  <rosparam file="$(dirname)/../config/controller.yaml"
+  <rosparam file="$(dirname)/../config/ftsensor_controller.yaml"
   	    subst_value="true"/>
   <node name="$(arg name)_controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"

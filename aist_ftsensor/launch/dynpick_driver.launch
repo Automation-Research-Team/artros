@@ -1,5 +1,5 @@
 <launch>
-  <arg name="prefix"		default="ftsensor_"/>
+  <arg name="name"		default="ftsensor"/>
   <arg name="publish_rate"	default="125"/>
   <arg name="controller"	default="aist_ftsensor_controller"/>
   <!-- <arg name="controller"	default="force_torque_sensor_controller"/> -->
@@ -8,9 +8,9 @@
   <arg name="avg_npoints"	default="1"/>
   <arg name="reset_offsets"	default="false"/>
 
-  <node name="$(arg prefix)driver"
+  <node name="$(arg name)_driver"
         pkg="aist_ftsensor" type="dynpick_driver" output="screen">
-    <param name="frame_id"	value="$(arg prefix)wrench_link"/>
+    <param name="frame_id"	value="$(arg name)_wrench_link"/>
     <param name="rate"		value="$(arg publish_rate)"/>
     <param name="dev"		value="$(arg dev)"/>
     <param name="baud"		value="$(arg baud)"/>
@@ -18,9 +18,9 @@
     <param name="avg_npoints"	value="$(arg avg_npoints)"/>
   </node>
 
-  <rosparam file="$(dirname)/../config/controller.yaml"
+  <rosparam file="$(dirname)/../config/ftsensor_controller.yaml"
   	    subst_value="true"/>
-  <node name="$(arg prefix)controller_spawner"
+  <node name="$(arg name)_controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
   	args="$(arg controller)"/>
 

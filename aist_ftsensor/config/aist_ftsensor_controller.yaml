@@ -1,0 +1,7 @@
+a_bot_ftsensor_controller:
+  type: $(arg controller)/ForceTorqueSensorController
+  publish_rate: $(arg publish_rate)
+
+b_bot_ftsensor_controller:
+  type: $(arg controller)/ForceTorqueSensorController
+  publish_rate: $(arg publish_rate)

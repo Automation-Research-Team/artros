@@ -1,9 +1,0 @@
-ftsensor_name: a_bot_ftsensor
-input: socket
-hostname: a_bot
-port: 63351
-robot_name: a_bot
-robot_base_frame: workspace_center
-robot_effector_frame: a_bot_ee_link
-ftsensor_frame: a_bot_ftsensor_wrench_link
-initpose: [0.00, 0.00, 0.30, 0, 90, 90]
