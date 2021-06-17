@@ -1,4 +1,5 @@
 <launch>
+  <arg name="calib_file"	default=""/>
   <arg name="frame_id"		default="a_bot_ftsensor_wrench_link"/>
   <arg name="publish_rate"	default="125"/>
   <arg name="controller"	default="aist_ftsensor_controller"/>

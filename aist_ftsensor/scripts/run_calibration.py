@@ -30,13 +30,13 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         self._initpose             = rospy.get_param('~initpose', [])
 
         if needs_calib:
-            ns = self._ftsensor_name
-            self.take_sample = rospy.ServiceProxy(ns + '/take_sample', Trigger)
+            ns = self._ftsensor_name + '/wrench/'
+            self.take_sample = rospy.ServiceProxy(ns + 'take_sample', Trigger)
             self.compute_calibration = rospy.ServiceProxy(
-                ns + '/compute_calibration', Trigger)
-            self.save_calibration = rospy.ServiceProxy(ns + '/save_calibration',
+                ns + 'compute_calibration', Trigger)
+            self.save_calibration = rospy.ServiceProxy(ns + 'save_calibration',
                                                        Trigger)
-            self.clear_samples = rospy.ServiceProxy(ns + '/clear_samples',
+            self.clear_samples = rospy.ServiceProxy(ns + 'clear_samples',
                                                     Trigger)
         else:
             self._take_sample         = None
