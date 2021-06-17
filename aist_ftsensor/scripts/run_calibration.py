@@ -19,22 +19,19 @@ class FTCalibrationRoutines(AISTBaseRoutines):
     def __init__(self, needs_calib=True):
         super(FTCalibrationRoutines, self).__init__()
 
-        self._ftsensor_name        = rospy.get_param('~ftsensor_name',
-                                                     'a_bot_ftsensor')
-        self._robot_name           = rospy.get_param('~robot_name', 'a_bot')
-        self._speed                = rospy.get_param('~speed',       0.1)
-        self._robot_base_frame     = rospy.get_param('~robot_base_frame',
-                                                     'workspace_center')
-        self._robot_effector_frame = rospy.get_param('~robot_effector_frame',
-                                                     'a_bot_ee_link')
-        self._initpose             = rospy.get_param('~initpose', [])
+        self._robot_name       = rospy.get_param('~robot_name', 'a_bot')
+        self._speed            = rospy.get_param('~speed',       0.1)
+        self._robot_base_frame = rospy.get_param('~robot_base_frame',
+                                                 'workspace_center')
+        self._initpose         = rospy.get_param('~initpose', [])
 
         if needs_calib:
-            ns = self._ftsensor_name + '/wrench'
+            ftsensor_name = rospy.get_param('~ftsensor_name', 'a_bot_ftsensor')
+            ns = ftsensor_name + '/wrench'
             self.take_sample = rospy.ServiceProxy(ns + '/take_sample', Trigger)
             self.compute_calibration = rospy.ServiceProxy(
                 ns + '/compute_calibration', Trigger)
-            self.save_calibration = rospy.ServiceProxy(self._ftsensor_name +
+            self.save_calibration = rospy.ServiceProxy(ftsensor_name +
                                                        '/save_calibration',
                                                        Trigger)
             self.clear_samples = rospy.ServiceProxy(ns + '/clear_samples',
