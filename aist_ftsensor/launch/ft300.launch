@@ -14,8 +14,7 @@
   </node>
 
   <rosparam if="$(eval calib_file != '')"
-	    file="$(env HOME
-		  )/.ros/aist_ftsensor/$(arg calib_file).yaml"/>
+	    file="$(env HOME)/.ros/aist_ftsensor/$(arg calib_file).yaml"/>
 
   <rosparam file="$(dirname)/../config/ftsensor_controller.yaml"
   	    subst_value="true"/>

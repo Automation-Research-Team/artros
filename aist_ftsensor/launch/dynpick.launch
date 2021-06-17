@@ -1,4 +1,5 @@
 <launch>
+  <arg name="calib_file"	default=""/>
   <arg name="frame_id"		default="ftsensor_wrench_link"/>
   <arg name="publish_rate"	default="125"/>
   <!-- <arg name="controller"	default="aist_ftsensor_controller"/> -->
@@ -17,6 +18,9 @@
     <param name="reset_offsets"	value="$(arg reset_offsets)"/>
     <param name="avg_npoints"	value="$(arg avg_npoints)"/>
   </node>
+
+  <rosparam if="$(eval calib_file != '')"
+	    file="$(env HOME)/.ros/aist_ftsensor/$(arg calib_file).yaml"/>
 
   <rosparam file="$(dirname)/../config/ftsensor_controller.yaml"
   	    subst_value="true"/>
