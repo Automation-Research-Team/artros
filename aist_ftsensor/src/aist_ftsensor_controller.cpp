@@ -90,14 +90,13 @@ class ForceTorqueSensorController
 	void	update(const ros::Time& time,
 		       const ros::Duration& period)			;
 	void	stopping(const ros::Time& time)				{}
+	void	save_calibration(std::ostream& out)		const	;
 
       private:
 	bool	take_sample_cb(std_srvs::Trigger::Request&  req,
 			       std_srvs::Trigger::Response& res)	;
 	bool	compute_calibration_cb(std_srvs::Trigger::Request&  req,
 				       std_srvs::Trigger::Response& res);
-	bool	save_calibration_cb(std_srvs::Trigger::Request&  req,
-				    std_srvs::Trigger::Response& res)	;
 	bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
 				 std_srvs::Trigger::Response& res)	;
 
@@ -119,7 +118,6 @@ class ForceTorqueSensorController
 	ros::NodeHandle			_nh;
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
-	const ros::ServiceServer	_save_calibration;
 	const ros::ServiceServer	_clear_samples;
 	const tf::TransformListener&	_listener;
 
@@ -160,8 +158,14 @@ class ForceTorqueSensorController
     virtual void	stopping(const ros::Time& time)			;
 
   private:
+    bool	save_calibration_cb(std_srvs::Trigger::Request&  req,
+				    std_srvs::Trigger::Response& res)	;
+
+  private:
     std::vector<sensor_p>	_sensors;
     const tf::TransformListener	_listener;
+    std::string			_calib_file;
+    ros::ServiceServer		_save_calibration;
 };
 
 bool
@@ -169,7 +173,7 @@ ForceTorqueSensorController::init(interface_t* hw,
 				  ros::NodeHandle& root_nh,
 				  ros::NodeHandle& controller_nh)
 {
-  // get publishing period
+  // Get publishing period.
     double	pub_rate;
     if (!controller_nh.getParam("publish_rate", pub_rate))
     {
@@ -177,13 +181,24 @@ ForceTorqueSensorController::init(interface_t* hw,
 	return false;
     }
 
-  // setup sensors
+  // Setup sensors.
     for (const auto& name : hw->getNames())
     {
 	ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
 	_sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
 					       pub_rate, _listener)));
     }
+
+  // Get namespace for saving calibration.
+  // Read calibration file name from parameter server.
+    _calib_file = root_nh.param<std::string>("calib_file",
+					     std::string(getenv("HOME")) +
+					     "/.ros/aist_ftsensor" +
+					     root_nh.getNamespace() + ".yaml");
+    _save_calibration = root_nh.advertiseService(
+			    "save_calibration",
+			    &ForceTorqueSensorController::save_calibration_cb,
+			    this);
 
     return true;
 }
@@ -210,6 +225,45 @@ ForceTorqueSensorController::stopping(const ros::Time& time)
 	sensor->stopping(time);
 }
 
+bool
+ForceTorqueSensorController::save_calibration_cb(
+    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
+{
+    try
+    {
+      // Open/create parent directory of the calibration file.
+	const auto	dir = _calib_file.substr(0,
+						 _calib_file.find_last_of('/'));
+	struct stat	buf;
+	if (stat(dir.c_str(), &buf) && mkdir(dir.c_str(), S_IRWXU))
+	    throw std::runtime_error("cannot create " + dir + ": "
+						      + strerror(errno));
+
+      // Open calibration file.
+	std::ofstream	out(_calib_file.c_str());
+	if (!out)
+	    throw std::runtime_error("cannot open " + _calib_file + ": "
+						    + strerror(errno));
+
+      // Save calitration results.
+	for (const auto& sensor : _sensors)
+	    sensor->save_calibration(out);
+
+	res.success = true;
+	res.message = "save_calibration succeeded.";
+	ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
+    }
+    catch (const std::exception& err)
+    {
+	res.success = false;
+	res.message = "save_calibration failed.";
+	res.message += err.what();
+	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
+    }
+
+    return true;
+}
+
 /************************************************************************
 *  class ForceTorqueSensorController::Sensor				*
 ************************************************************************/
@@ -221,15 +275,12 @@ ForceTorqueSensorController::Sensor::Sensor(
      _pub(new publisher_t(root_nh, name, 4)),
      _pub_rate(pub_rate),
      _last_pub_time(0),
-     _nh(name.substr(0, name.find_last_of('/'))),
+     _nh(name),
      _take_sample(_nh.advertiseService("take_sample",
       				       &Sensor::take_sample_cb, this)),
      _compute_calibration(_nh.advertiseService("compute_calibration",
 					       &Sensor::compute_calibration_cb,
 					       this)),
-     _save_calibration(_nh.advertiseService("save_calibration",
-					    &Sensor::save_calibration_cb,
-					    this)),
      _clear_samples(_nh.advertiseService("clear_samples",
 					 &Sensor::clear_samples_cb, this)),
      _listener(listener),
@@ -341,6 +392,39 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
     }
 }
 
+void
+ForceTorqueSensorController::Sensor::save_calibration(std::ostream& out) const
+{
+    const auto	ns   = _nh.getNamespace();
+    const auto	name = ns.substr(ns.find_last_of('/') + 1);
+
+    YAML::Emitter emitter;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << name << YAML::Value;
+    emitter << YAML::BeginMap;
+    emitter << YAML::Key << "effector_mass" << YAML::Value << _mg/G;
+    emitter << YAML::Key << "rotation"	<< YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _q.x() << _q.y() << _q.z() << _q.w()
+	    << YAML::EndSeq;
+    emitter << YAML::Key << "force_offset" << YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _f0(0) << _f0(1) << _f0(2)
+	    << YAML::EndSeq;
+    emitter << YAML::Key << "torque_offset" << YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _m0(0) << _m0(1) << _m0(2)
+	    << YAML::EndSeq;
+    emitter << YAML::Key << "mass_center" << YAML::Value << YAML::Flow
+	    << YAML::BeginSeq
+	    << _r(0) << _r(1) << _r(2)
+	    << YAML::EndSeq;
+    emitter << YAML::EndMap;
+    emitter << YAML::EndMap;
+
+    out << emitter.c_str() << std::endl;
+}
+
 bool
 ForceTorqueSensorController::Sensor::take_sample_cb(
     std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
@@ -393,7 +477,7 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
     if (V.determinant() < 0)
 	V.col(2) *= -1;
     _q = V * Ut;					// rotation
-    
+
     const auto	k_var = _k_sqsum / _nsamples - k_mean.squaredNorm();
     const auto	scale = (svd.singularValues()(0) +
 			 svd.singularValues()(1)) / k_var;
@@ -426,72 +510,6 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
     res.success = true;
     res.message = "Successfully computed calibration.";
     ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
-
-    return true;
-}
-
-bool
-ForceTorqueSensorController::Sensor::save_calibration_cb(
-    std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
-{
-    try
-    {
-	YAML::Emitter emitter;
-	emitter << YAML::BeginMap;
-	emitter << YAML::Key << "effector_mass"	<< YAML::Value << _mg/G;
-	emitter << YAML::Key << "rotation"	<< YAML::Value << YAML::Flow
-		<< YAML::BeginSeq
-		<< _q.x() << _q.y() << _q.z() << _q.w()
-		<< YAML::EndSeq;
-	emitter << YAML::Key << "force_offset"	<< YAML::Value << YAML::Flow
-		<< YAML::BeginSeq
-		<< _f0(0) << _f0(1) << _f0(2)
-		<< YAML::EndSeq;
-	emitter << YAML::Key << "torque_offset"	<< YAML::Value << YAML::Flow
-		<< YAML::BeginSeq
-		<< _m0(0) << _m0(1) << _m0(2)
-		<< YAML::EndSeq;
-	emitter << YAML::Key << "mass_center"	<< YAML::Value << YAML::Flow
-		<< YAML::BeginSeq
-		<< _r(0) << _r(1) << _r(2)
-		<< YAML::EndSeq;
-	emitter << YAML::EndMap;
-
-      // Read calibration file name from parameter server.
-	const auto	calib_file = _nh.param<std::string>(
-					"calib_file",
-					std::string(getenv("HOME")) +
-					"/.ros/aist_ftsensor/" +
-					_nh.getNamespace() + ".yaml");
-
-      // Open/create parent directory of the calibration file.
-	const auto	dir = calib_file.substr(0,
-						calib_file.find_last_of('/'));
-	struct stat	buf;
-	if (stat(dir.c_str(), &buf) && mkdir(dir.c_str(), S_IRWXU))
-	    throw std::runtime_error("cannot create " + dir + ": "
-						      + strerror(errno));
-
-      // Open calibration file.
-	std::ofstream	out(calib_file.c_str());
-	if (!out)
-	    throw std::runtime_error("cannot open " + calib_file + ": "
-						    + strerror(errno));
-
-      // Save calitration results.
-	out << emitter.c_str() << std::endl;
-
-	res.success = true;
-	res.message = "save_calibration succeeded.";
-	ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
-    }
-    catch (const std::exception& err)
-    {
-	res.success = false;
-	res.message = "save_calibration failed.";
-	res.message += err.what();
-	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
-    }
 
     return true;
 }
