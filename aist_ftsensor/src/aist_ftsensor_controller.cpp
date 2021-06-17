@@ -1,6 +1,6 @@
 /*
  *  \file	ftsensor_controller.cpp
- *  \brief	source file of a class for controlling force-torque sensors
+ *  \brief	force-torque sensor controller with gravity compensation
  */
 #include <ros/ros.h>
 #include <controller_interface/controller.h>
@@ -10,12 +10,10 @@
 #include <geometry_msgs/WrenchStamped.h>
 #include <tf/transform_listener.h>
 #include <std_srvs/Trigger.h>
-#include <Eigen/Geometry>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <cstdlib>		// for std::getenv()
 #include <sys/stat.h>		// for mkdir()
-#include <iterator>
 #include <Eigen/Dense>
 
 namespace aist_ftsensor
@@ -74,12 +72,11 @@ class ForceTorqueSensorController
 					geometry_msgs::WrenchStamped>;
 	using publisher_p	= std::shared_ptr<publisher_t>;
 	using vector_t		= Eigen::Vector3d;
-	using matrix_t	= Eigen::Matrix3d;
+	using matrix_t		= Eigen::Matrix3d;
 	using quaternion_t	= Eigen::Quaterniond;
 	using transform_t	= tf::StampedTransform;
 
 	constexpr static double	G = 9.80665;
-	constexpr static size_t	NITER_MAX = 1000;
 
       public:
 		Sensor(interface_t* hw, ros::NodeHandle& root_nh,
@@ -104,7 +101,7 @@ class ForceTorqueSensorController
 			    const vector_t& f, const vector_t& m)	;
 	void	clear_samples()						;
 
-	vector_t	vector3_param(const std::string& name)	  const	;
+	vector_t	vector_param(const std::string& name)	  const	;
 	quaternion_t	quaternion_param(const std::string& name) const	;
 
       private:
@@ -256,8 +253,7 @@ ForceTorqueSensorController::save_calibration_cb(
     catch (const std::exception& err)
     {
 	res.success = false;
-	res.message = "save_calibration failed.";
-	res.message += err.what();
+	res.message = std::string("save_calibration failed: ") + err.what();
 	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
     }
 
@@ -287,9 +283,9 @@ ForceTorqueSensorController::Sensor::Sensor(
      _robot_base_frame(_nh.param<std::string>("robot_base_frame", "world")),
      _mg(G*_nh.param<double>("effector_mass", 0.0)),
      _q(quaternion_param("rotation")),
-     _r(vector3_param("mass_center")),
-     _f0(vector3_param("force_offset")),
-     _m0(vector3_param("torque_offset")),
+     _r(vector_param("mass_center")),
+     _f0(vector_param("force_offset")),
+     _m0(vector_param("torque_offset")),
      _do_sample(false),
      _nsamples(0),
      _k_sum(vector_t::Zero()),
@@ -370,13 +366,14 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 		_do_sample = false;
 	    }
 
+	  // Compensate force/torque offsets and gravity.
 	    const vector_t force  = _q.inverse()*(f - _f0) - _mg*k;
 	    const vector_t torque = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
 
-	  // we're actually publishing, so increment time
+	  // We're actually publishing, so increment time
 	    _last_pub_time = _last_pub_time + ros::Duration(1.0/_pub_rate);
 
-	  // populate message
+	  // Populate message
 	    _pub->msg_.header.stamp    = time;
 	    _pub->msg_.header.frame_id = frame_id;
 
@@ -448,8 +445,8 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
 
     if (_nsamples < 3)
     {
-	res.message = "(aist_ftsensor) Not enough samples["
-		    + std::to_string(_nsamples) +  "] for calibration!";
+	res.message = "Not enough samples[" + std::to_string(_nsamples)
+		    + "] for calibration!";
 	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
 	return true;
     }
@@ -563,7 +560,7 @@ ForceTorqueSensorController::Sensor::clear_samples()
 
 ForceTorqueSensorController::Sensor::vector_t
 ForceTorqueSensorController::Sensor
-			   ::vector3_param(const std::string& name) const
+			   ::vector_param(const std::string& name) const
 {
     if (_nh.hasParam(name))
     {

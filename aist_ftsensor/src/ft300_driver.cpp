@@ -1,6 +1,6 @@
 /*
  *  \file	ft300_driver.cpp
- *  \brief	source file of driver for Robotiq FT300 force-torque sensors
+ *  \brief	ROS driver for Robotiq FT300 force-torque sensors
  */
 #include <ros/ros.h>
 #include <controller_manager/controller_manager.h>

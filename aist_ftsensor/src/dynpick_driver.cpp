@@ -1,6 +1,6 @@
 /*
  *  \file	dynpick_driver.cpp
- *  \brief	source file of driver for Robotiq DYNPICK force-torque sensors
+ *  \brief	ROS driver for Wacohtech DYNPICK force-torque sensors
  */
 #include <ros/ros.h>
 #include <controller_manager/controller_manager.h>
