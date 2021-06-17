@@ -62,7 +62,11 @@ target_link_libraries(${PROJECT_NAME}_nodelet
 
 add_library(${PROJECT_NAME}_controller src/aist_ftsensor_controller.cpp)
 
-target_link_libraries(${PROJECT_NAME}_controller ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_controller
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+  yaml-cpp
+)
 
 add_executable(ft300_driver src/ft300_driver.cpp)
 
