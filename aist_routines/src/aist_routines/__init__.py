@@ -302,16 +302,17 @@ class AISTBaseRoutines(object):
                                            feedback_cb)
 
     def graspability_wait_for_result(self, orientation=None, max_slant=pi/4,
-                                     marker_lifetime=0):
+                                     target_frame='', marker_lifetime=0):
         poses, gscores, contact_points \
             = self._graspabilityClient.wait_for_result(orientation, max_slant)
 
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
-        contact_points = self._transform_points_to_reference_frame(
-                                poses.header, contact_points)
-        poses          = self.transform_poses_to_target_frame(poses)
+        contact_points = self._transform_points_to_target_frame(
+                                poses.header, contact_points, target_frame)
+        poses          = self.transform_poses_to_target_frame(poses,
+                                                              target_frame)
         for i, pose in enumerate(poses.poses):
             self.add_marker('graspability',
                             gmsg.PoseStamped(poses.header, pose),
@@ -496,13 +497,15 @@ class AISTBaseRoutines(object):
                 return False
         return True
 
-    def _transform_points_to_reference_frame(self, header, points):
+    def _transform_points_to_target_frame(self, header, points,
+                                          target_frame=''):
+        if target_frame == '':
+            target_frame = self._reference_frame
+
         try:
-            self._listener.waitForTransform(self._reference_frame,
-                                            header.frame_id,
-                                            header.stamp,
-                                            rospy.Duration(10))
-            mat44 = self._listener.asMatrix(self._reference_frame, header)
+            self._listener.waitForTransform(target_frame, header.frame_id,
+                                            header.stamp, rospy.Duration(10))
+            mat44 = self._listener.asMatrix(target_frame, header)
         except Exception as e:
             rospy.logerr('AISTBaseRoutines._transform_positions_to_target_frame(): {}'.format(e))
             raise e
