@@ -106,104 +106,105 @@ picking_parameters:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, 0.001]
     place_offset: [0.0, 0.0, 0.06]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.1
   05_MBRFA30-2-P6:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, 0.001]
     place_offset: [0.0, 0.0, 0.03]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   06_MBT4-400:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, 0.0]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   07_SBARB6200ZZ_30:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, 0.001]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.1
   08_KZAF1075NA4WA55GA20AA0:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, 0.00]
     place_offset: [0.0, 0.0, 0.03]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.1
   09_EDCS10:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.002]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   10_CLBPS10_17_4:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.002]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   11_MBRAC60-2-10:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.001]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.04
   12_CLBUS6-9-9.5:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, 0.0]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.04
   13_MBGA30-2:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.001]
     place_offset: [0.0, 0.0, 0.05]
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.04
   14_BGPSL6-9-L30-F8:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.002]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   15_SLBNR6:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.002]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   16_SPWF6:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.002]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   17_SCB4-10:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.002]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
   18_SCB3-10:
     approach_offset: [0.0, 0.0, 0.15]
     grasp_offset: [0.0, 0.0, -0.002]
     place_offset: [0.0, 0.0, 0.05]
-    liftup_after: true
+    departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
 
