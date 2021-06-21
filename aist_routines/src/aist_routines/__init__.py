@@ -336,7 +336,7 @@ class AISTBaseRoutines(object):
         return self._pickOrPlaceAction.execute(robot_name, target_pose, True,
                                                params['grasp_offset'],
                                                params['approach_offset'],
-                                               params['liftup_after'],
+                                               params['departure_offset'],
                                                params['speed_fast'],
                                                params['speed_slow'],
                                                wait, feedback_cb)
@@ -351,7 +351,7 @@ class AISTBaseRoutines(object):
         return self._pickOrPlaceAction.execute(robot_name, target_pose, False,
                                                params['place_offset'],
                                                params['approach_offset'],
-                                               params['liftup_after'],
+                                               params['departure_offset'],
                                                params['speed_fast'],
                                                params['speed_slow'],
                                                wait, feedback_cb)
