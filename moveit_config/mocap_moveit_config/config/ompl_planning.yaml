@@ -121,7 +121,6 @@ planner_configs:
     dense_delta_fraction: 0.001  # delta fraction for interface detection. default: 0.001
     max_failures: 5000  # maximum consecutive failure limit. default: 5000
 c_bot:
-  default_planner_config: ""
   planner_configs:
     - SBL
     - EST
@@ -147,4 +146,31 @@ c_bot:
     - SPARS
     - SPARStwo
   projection_evaluator: joints(c_bot_shoulder_pan_joint,c_bot_shoulder_lift_joint)
+  longest_valid_segment_fraction: 0.005
+c_bot_gripper:
+  planner_configs:
+    - SBL
+    - EST
+    - LBKPIECE
+    - BKPIECE
+    - KPIECE
+    - RRT
+    - RRTConnect
+    - RRTstar
+    - TRRT
+    - PRM
+    - PRMstar
+    - FMT
+    - BFMT
+    - PDST
+    - STRIDE
+    - BiTRRT
+    - LBTRRT
+    - BiEST
+    - ProjEST
+    - LazyPRM
+    - LazyPRMstar
+    - SPARS
+    - SPARStwo
+  projection_evaluator: joints(c_bot_gripper_finger_joint,c_bot_gripper_left_inner_finger_joint)
   longest_valid_segment_fraction: 0.005

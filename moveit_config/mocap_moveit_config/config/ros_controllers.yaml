@@ -15,7 +15,7 @@ hardware_interface:
     - c_bot_wrist_1_joint
     - c_bot_wrist_2_joint
     - c_bot_wrist_3_joint
-    - c_bot_finger_joint
+    - c_bot_gripper_finger_joint
   sim_control_mode: 1  # 0: position, 1: velocity
 # Publish all joint states
 # Creates the /joint_states topic necessary in ROS
@@ -34,3 +34,10 @@ controller_list:
       - c_bot_wrist_1_joint
       - c_bot_wrist_2_joint
       - c_bot_wrist_3_joint
+  - name: c_bot_gripper_controller
+    action_ns: gripper_cmd
+    type: GripperCommand
+    default: True
+    joints:
+      - c_bot_gripper_finger_joint
+      

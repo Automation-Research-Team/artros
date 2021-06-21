@@ -12,6 +12,11 @@ force_torque_sensor_controller:
   type:         force_torque_sensor_controller/ForceTorqueSensorController
   publish_rate: *loop_hz
 
+# Publish wrench ----------------------------------
+aist_ftsensor_controller:
+  type:         aist_ftsensor_controller/ForceTorqueSensorController
+  publish_rate: *loop_hz
+
 # Publish speed_scaling factor
 speed_scaling_state_controller:
   type:         ur_controllers/SpeedScalingStateController
