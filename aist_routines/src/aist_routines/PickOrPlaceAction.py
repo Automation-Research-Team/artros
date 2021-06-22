@@ -66,15 +66,14 @@ class PickOrPlaceAction(object):
         rospy.loginfo("--- Go to approach pose. ---")
         if not self._is_active(amsg.pickOrPlaceFeedback.MOVING):
             return
-        (success, _, _) \
-            = routines.go_to_pose_goal(goal.robot_name,
-                                       routines.effector_target_pose(
-                                           goal.pose,
-                                           (goal.approach_offset.x,
-                                            goal.approach_offset.y,
-                                            goal.approach_offset.z)),
-                                       goal.speed_fast if goal.pick else
-                                       goal.speed_slow)
+        success, _, _ = routines.go_to_pose_goal(
+                             goal.robot_name,
+                             routines.effector_target_pose(
+                                 goal.pose,
+                                 (goal.approach_offset.x,
+                                  goal.approach_offset.y,
+                                  goal.approach_offset.z)),
+                             goal.speed_fast if goal.pick else goal.speed_slow)
         if not success:
             result.result = amsg.pickOrPlaceResult.MOVE_FAILURE
             self._server.set_aborted(result, "Failed to go to approach pose")
@@ -94,8 +93,8 @@ class PickOrPlaceAction(object):
         routines.add_marker("pick_pose" if goal.pick else "place_pose",
                             target_pose)
         routines.publish_marker()
-        (success, _, _) = routines.go_to_pose_goal(goal.robot_name, target_pose,
-                                                   goal.speed_slow)
+        success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
+                                                 goal.speed_slow)
         if not success:
             result.result = amsg.pickOrPlaceResult.APPROACH_FAILURE
             self._server.set_aborted(result, "Failed to approach target")
@@ -110,22 +109,25 @@ class PickOrPlaceAction(object):
         else:
             gripper.release()
 
-        # Go back to departure pose.
+        # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo("--- Go back to departure pose. ---")
 
         if not self._is_active(amsg.pickOrPlaceFeedback.DEPARTING):
             return
         if goal.pick:
             gripper.postgrasp(-1)    # Postgrap (not wait)
-        (success, _, _) \
-            = routines.go_to_pose_goal(goal.robot_name,
-                                       routines.effector_target_pose(
-                                           goal.pose,
-                                           (goal.departure_offset.x,
-                                            goal.departure_offset.y,
-                                            goal.departure_offset.z)),
-                                       goal.speed_slow if goal.pick else
-                                       goal.speed_fast)
+            offset = goal.departure_offset
+            speed  = goal.speed_slow
+        else:
+            offset = goal.approach_offset
+            speed  = goal.speed_fast
+        success, _, _ = routines.go_to_pose_goal(goal.robot_name,
+                                                 routines.effector_target_pose(
+                                                     goal.pose,
+                                                     (offset.x,
+                                                      offset.y,
+                                                      offset.z)),
+                                                 speed)
         if not success:
             result.result = amsg.pickOrPlaceResult.DEPARTURE_FAILURE
             self._server.set_aborted(result, "Failed to depart from target")
