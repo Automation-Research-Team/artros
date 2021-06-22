@@ -26,5 +26,5 @@
   	    subst_value="true"/>
   <node name="controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
-  	args="$(arg controller)"/>
+  	args="ftsensor_controller"/>
 </launch>
