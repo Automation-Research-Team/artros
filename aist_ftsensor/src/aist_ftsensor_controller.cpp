@@ -108,7 +108,7 @@ class ForceTorqueSensorController
 	const handle_t			_hw_handle;
 	const publisher_p		_pub_org;
 	const publisher_p		_pub;
-	const double			_pub_rate;
+	const ros::Duration		_pub_interval;
 	ros::Time			_last_pub_time;
 
       // ROS node stuffs
@@ -180,11 +180,8 @@ ForceTorqueSensorController::init(interface_t* hw,
 
   // Setup sensors.
     for (const auto& name : hw->getNames())
-    {
-	ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
 	_sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
 					       pub_rate, _listener)));
-    }
 
   // Get namespace for saving calibration.
   // Read calibration file name from parameter server.
@@ -269,7 +266,7 @@ ForceTorqueSensorController::Sensor::Sensor(
     :_hw_handle(hw->getHandle(name)),
      _pub_org(new publisher_t(root_nh, name + "_org", 4)),
      _pub(new publisher_t(root_nh, name, 4)),
-     _pub_rate(pub_rate),
+     _pub_interval(1.0/pub_rate),
      _last_pub_time(0),
      _nh(name),
      _take_sample(_nh.advertiseService("take_sample",
@@ -297,7 +294,7 @@ ForceTorqueSensorController::Sensor::Sensor(
      _mm_sum(matrix_t::Zero()),
      _fout()
 {
-    ROS_INFO_STREAM("(aist_ftsensor_controller) Got " << name);
+    ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
 }
 
 void
@@ -310,8 +307,8 @@ void
 ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 					    const ros::Duration& period)
 {
-    if (_pub_rate > 0.0 &&
-	_last_pub_time + ros::Duration(1.0/_pub_rate) < time)
+    if (_pub_interval > ros::Duration(0.0) &&
+	_last_pub_time + _pub_interval < time)
     {
 	const auto& frame_id = _hw_handle.getFrameId();
 
@@ -338,9 +335,9 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	    {
 		transform_t	T;
 		_listener.waitForTransform(_robot_base_frame, frame_id,
-					   time, ros::Duration(1.0));
+		 			   _last_pub_time, _pub_interval);
 		_listener.lookupTransform(_robot_base_frame, frame_id,
-					  time, T);
+					  _last_pub_time, T);
 		const auto	rowz = T.getBasis().getRow(2);
 		k << -rowz.x(), -rowz.y(), -rowz.z();
 	    }
@@ -350,7 +347,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 		ROS_ERROR_STREAM("(aist_ftsensor) " << err.what());
 		return;
 	    }
-
+	    
 	    vector_t	f;			// observed force
 	    f << _hw_handle.getForce()[0],
 		 _hw_handle.getForce()[1],
@@ -371,7 +368,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	    const vector_t torque = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
 
 	  // We're actually publishing, so increment time
-	    _last_pub_time = _last_pub_time + ros::Duration(1.0/_pub_rate);
+	    _last_pub_time = _last_pub_time + _pub_interval;
 
 	  // Populate message
 	    _pub->msg_.header.stamp    = time;

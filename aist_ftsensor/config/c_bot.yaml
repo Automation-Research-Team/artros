@@ -1,4 +1,4 @@
-ftsensor_name: c_bot_ftsensor
+ftsensor_name: c_bot
 robot_name: c_bot
 robot_base_frame: workspace_center
 initpose: [0.00, 0.00, 0.30, 0, 90, 90]
