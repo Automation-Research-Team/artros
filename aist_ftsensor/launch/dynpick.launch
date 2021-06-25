@@ -1,13 +1,18 @@
 <launch>
-  <arg name="calib_file"	default=""/>
-  <arg name="frame_id"		default="ftsensor_wrench_link"/>
-  <arg name="publish_rate"	default="125"/>
+
+  <!-- Controller parameters -->
   <!-- <arg name="controller"	default="aist_ftsensor_controller"/> -->
   <arg name="controller"	default="force_torque_sensor_controller"/>
+  <arg name="publish_rate"	default="125"/>
+  <arg name="calib_file"	default=""/>
+  <arg name="box_filter_size"	default="1"/>
+
+  <!-- Driver parameters -->
+  <arg name="frame_id"		default="ftsensor_wrench_link"/>
   <arg name="dev"		default="/dev/ttyUSB0"/>
   <arg name="baud"		default="921600"/>
-  <arg name="avg_npoints"	default="1"/>
   <arg name="reset_offsets"	default="false"/>
+  <arg name="avg_npoints"	default="1"/>
 
   <node name="dynpick_hardware_interface"
         pkg="aist_ftsensor" type="dynpick_driver" output="screen">

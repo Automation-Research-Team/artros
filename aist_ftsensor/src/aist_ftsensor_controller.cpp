@@ -74,6 +74,8 @@ class ForceTorqueSensorController
 	using vector_t		= Eigen::Vector3d;
 	using matrix_t		= Eigen::Matrix3d;
 	using quaternion_t	= Eigen::Quaterniond;
+	using ft_t		= Eigen::Matrix<double, 6, 1>;
+	using ft_buffer_t	= std::vector<ft_t>;
 	using transform_t	= tf::StampedTransform;
 
 	constexpr static double	G = 9.80665;
@@ -126,6 +128,11 @@ class ForceTorqueSensorController
 	vector_t			_r;		// mass center
 	vector_t			_f0;		// force offset
 	vector_t			_m0;		// torque offset
+
+      // Filtering stuffs
+	ft_buffer_t			_ft_buffer;
+	ft_buffer_t::iterator		_ft_tail;
+	ft_t				_ft_sum;
 
       // Calibration stuffs
 	bool				_do_sample;
@@ -283,6 +290,9 @@ ForceTorqueSensorController::Sensor::Sensor(
      _r(vector_param("mass_center")),
      _f0(vector_param("force_offset")),
      _m0(vector_param("torque_offset")),
+     _ft_buffer(_nh.param<int>("box_filter_size", 1)),
+     _ft_tail(_ft_buffer.begin()),
+     _ft_sum(),
      _do_sample(false),
      _nsamples(0),
      _k_sum(vector_t::Zero()),
@@ -294,6 +304,8 @@ ForceTorqueSensorController::Sensor::Sensor(
      _mm_sum(matrix_t::Zero()),
      _fout()
 {
+    std::fill(_ft_buffer.begin(), _ft_buffer.end(), ft_t::Zero());
+
     ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
 }
 
@@ -310,23 +322,38 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
     if (_pub_interval > ros::Duration(0.0) &&
 	_last_pub_time + _pub_interval < time)
     {
+      // Get current force-torque values.
+	ft_t	ft;
+	ft << _hw_handle.getForce()[0],
+	      _hw_handle.getForce()[1],
+	      _hw_handle.getForce()[2],
+	      _hw_handle.getTorque()[0],
+	      _hw_handle.getTorque()[1],
+	      _hw_handle.getTorque()[2];
+
 	const auto& frame_id = _hw_handle.getFrameId();
 
 	if (_pub_org->trylock())
 	{
-	  // populate message
+	  // Populate message.
 	    _pub_org->msg_.header.stamp    = time;
 	    _pub_org->msg_.header.frame_id = frame_id;
 
-	    _pub_org->msg_.wrench.force.x  = _hw_handle.getForce()[0];
-	    _pub_org->msg_.wrench.force.y  = _hw_handle.getForce()[1];
-	    _pub_org->msg_.wrench.force.z  = _hw_handle.getForce()[2];
-	    _pub_org->msg_.wrench.torque.x = _hw_handle.getTorque()[0];
-	    _pub_org->msg_.wrench.torque.y = _hw_handle.getTorque()[1];
-	    _pub_org->msg_.wrench.torque.z = _hw_handle.getTorque()[2];
+	    _pub_org->msg_.wrench.force.x  = ft[0];
+	    _pub_org->msg_.wrench.force.y  = ft[1];
+	    _pub_org->msg_.wrench.force.z  = ft[2];
+	    _pub_org->msg_.wrench.torque.x = ft[3];
+	    _pub_org->msg_.wrench.torque.y = ft[4];
+	    _pub_org->msg_.wrench.torque.z = ft[5];
 
 	    _pub_org->unlockAndPublish();
 	}
+
+      // Apply box filter to input force-torque signal.
+	_ft_sum += (ft - *_ft_tail);
+	*_ft_tail = ft;
+	if (++_ft_tail == _ft_buffer.end())
+	    _ft_tail = _ft_buffer.begin();
 
 	if (_pub->trylock())
 	{
@@ -347,15 +374,10 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 		ROS_ERROR_STREAM("(aist_ftsensor) " << err.what());
 		return;
 	    }
-	    
-	    vector_t	f;			// observed force
-	    f << _hw_handle.getForce()[0],
-		 _hw_handle.getForce()[1],
-		 _hw_handle.getForce()[2];
-	    vector_t	m;			// observed torque
-	    m << _hw_handle.getTorque()[0],
-		 _hw_handle.getTorque()[1],
-		 _hw_handle.getTorque()[2];
+
+	  // Compute filtered force and torque.
+	    const vector_t	f = _ft_sum.head<3>()/_ft_buffer.size();
+	    const vector_t	m = _ft_sum.tail<3>()/_ft_buffer.size();
 
 	    if (_do_sample)
 	    {
@@ -367,10 +389,10 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	    const vector_t force  = _q.inverse()*(f - _f0) - _mg*k;
 	    const vector_t torque = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
 
-	  // We're actually publishing, so increment time
+	  // We're actually publishing, so increment time.
 	    _last_pub_time = _last_pub_time + _pub_interval;
 
-	  // Populate message
+	  // Populate message.
 	    _pub->msg_.header.stamp    = time;
 	    _pub->msg_.header.frame_id = frame_id;
 

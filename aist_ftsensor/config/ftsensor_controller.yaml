@@ -1,3 +1,4 @@
 ftsensor_controller:
   type: $(arg controller)/ForceTorqueSensorController
   publish_rate: $(arg publish_rate)
+  box_filter_size: $(arg box_filter_size)
