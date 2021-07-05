@@ -8,6 +8,7 @@
 #include <realtime_tools/realtime_publisher.h>
 #include <pluginlib/class_list_macros.hpp>
 #include <geometry_msgs/WrenchStamped.h>
+#include <aist_ftsensor/SetDecay.h>
 #include <tf/transform_listener.h>
 #include <std_srvs/Trigger.h>
 #include <fstream>
@@ -75,7 +76,6 @@ class ForceTorqueSensorController
 	using matrix_t		= Eigen::Matrix3d;
 	using quaternion_t	= Eigen::Quaterniond;
 	using ft_t		= Eigen::Matrix<double, 6, 1>;
-	using ft_buffer_t	= std::vector<ft_t>;
 	using transform_t	= tf::StampedTransform;
 
 	constexpr static double	G = 9.80665;
@@ -98,6 +98,8 @@ class ForceTorqueSensorController
 				       std_srvs::Trigger::Response& res);
 	bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
 				 std_srvs::Trigger::Response& res)	;
+	bool	set_decay_cb(SetDecay::Request&  req,
+			     SetDecay::Response& res)			;
 
 	void	take_sample(const vector_t& k,
 			    const vector_t& f, const vector_t& m)	;
@@ -118,6 +120,7 @@ class ForceTorqueSensorController
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
 	const ros::ServiceServer	_clear_samples;
+	const ros::ServiceServer	_set_decay;
 	const tf::TransformListener&	_listener;
 
       // Variables retrieved from parameter server
@@ -130,9 +133,8 @@ class ForceTorqueSensorController
 	vector_t			_m0;		// torque offset
 
       // Filtering stuffs
-	ft_buffer_t			_ft_buffer;
-	ft_buffer_t::iterator		_ft_tail;
-	ft_t				_ft_sum;
+	ft_t				_ft;
+	double				_decay;
 
       // Calibration stuffs
 	bool				_do_sample;
@@ -283,6 +285,8 @@ ForceTorqueSensorController::Sensor::Sensor(
 					       this)),
      _clear_samples(_nh.advertiseService("clear_samples",
 					 &Sensor::clear_samples_cb, this)),
+     _set_decay(_nh.advertiseService("set_decay",
+				     &Sensor::set_decay_cb, this)),
      _listener(listener),
      _robot_base_frame(_nh.param<std::string>("robot_base_frame", "world")),
      _mg(G*_nh.param<double>("effector_mass", 0.0)),
@@ -290,9 +294,8 @@ ForceTorqueSensorController::Sensor::Sensor(
      _r(vector_param("mass_center")),
      _f0(vector_param("force_offset")),
      _m0(vector_param("torque_offset")),
-     _ft_buffer(_nh.param<int>("box_filter_size", 1)),
-     _ft_tail(_ft_buffer.begin()),
-     _ft_sum(),
+     _ft(ft_t::Zero()),
+     _decay(0.0),
      _do_sample(false),
      _nsamples(0),
      _k_sum(vector_t::Zero()),
@@ -304,8 +307,6 @@ ForceTorqueSensorController::Sensor::Sensor(
      _mm_sum(matrix_t::Zero()),
      _fout()
 {
-    std::fill(_ft_buffer.begin(), _ft_buffer.end(), ft_t::Zero());
-
     ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
 }
 
@@ -349,11 +350,8 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	    _pub_org->unlockAndPublish();
 	}
 
-      // Apply box filter to input force-torque signal.
-	_ft_sum += (ft - *_ft_tail);
-	*_ft_tail = ft;
-	if (++_ft_tail == _ft_buffer.end())
-	    _ft_tail = _ft_buffer.begin();
+      // Apply decay filter to input force-torque signal.
+	(_ft *= _decay) += ft*(1.0 - _decay);
 
 	if (_pub->trylock())
 	{
@@ -376,8 +374,8 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	    }
 
 	  // Compute filtered force and torque.
-	    const vector_t	f = _ft_sum.head<3>()/_ft_buffer.size();
-	    const vector_t	m = _ft_sum.tail<3>()/_ft_buffer.size();
+	    const vector_t	f = _ft.head<3>();
+	    const vector_t	m = _ft.tail<3>();
 
 	    if (_do_sample)
 	    {
@@ -539,6 +537,26 @@ ForceTorqueSensorController::Sensor::clear_samples_cb(
     res.success = true;
     res.message = "clear_samples succeeded.";
     ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
+
+    return true;
+}
+
+bool
+ForceTorqueSensorController::Sensor::set_decay_cb(SetDecay::Request&  req,
+						  SetDecay::Response& res)
+{
+    if (0.0 <= req.decay && req.decay < 1.0)
+    {
+	_decay = req.decay;
+	res.success = true;
+	ROS_INFO_STREAM("(aist_ftsensro) set decay value[" << _decay << "].");
+    }
+    else
+    {
+	res.success = false;
+	ROS_INFO_STREAM("(aist_ftsensro) invalid decay value["
+			<< req.decay << "] requested.");
+    }
 
     return true;
 }

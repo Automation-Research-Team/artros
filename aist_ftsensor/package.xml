@@ -9,6 +9,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>hardware_interface</build_depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <depend>controller_manager</depend>
   <depend>controller_interface</depend>

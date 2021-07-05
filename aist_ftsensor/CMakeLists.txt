@@ -23,6 +23,17 @@ find_package(catkin REQUIRED COMPONENTS
 
 # catkin_python_setup()
 
+add_service_files(
+  FILES
+    SetDecay.srv
+)
+
+generate_messages(
+  DEPENDENCIES
+    std_msgs
+    sensor_msgs
+)
+
 ###################################
 ## catkin specific configuration ##
 ###################################
