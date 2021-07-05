@@ -133,8 +133,8 @@ class ForceTorqueSensorController
 	vector_t			_m0;		// torque offset
 
       // Filtering stuffs
-	ft_t				_ft;
 	double				_decay;
+	ft_t				_ft;
 
       // Calibration stuffs
 	bool				_do_sample;
@@ -294,8 +294,8 @@ ForceTorqueSensorController::Sensor::Sensor(
      _r(vector_param("mass_center")),
      _f0(vector_param("force_offset")),
      _m0(vector_param("torque_offset")),
+     _decay(_nh.param<double>("decay", 0.0)),
      _ft(ft_t::Zero()),
-     _decay(0.0),
      _do_sample(false),
      _nsamples(0),
      _k_sum(vector_t::Zero()),
@@ -339,7 +339,6 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	  // Populate message.
 	    _pub_org->msg_.header.stamp    = time;
 	    _pub_org->msg_.header.frame_id = frame_id;
-
 	    _pub_org->msg_.wrench.force.x  = ft[0];
 	    _pub_org->msg_.wrench.force.y  = ft[1];
 	    _pub_org->msg_.wrench.force.z  = ft[2];
@@ -393,7 +392,6 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	  // Populate message.
 	    _pub->msg_.header.stamp    = time;
 	    _pub->msg_.header.frame_id = frame_id;
-
 	    _pub->msg_.wrench.force.x  = force(0);
 	    _pub->msg_.wrench.force.y  = force(1);
 	    _pub->msg_.wrench.force.z  = force(2);
@@ -433,6 +431,7 @@ ForceTorqueSensorController::Sensor::save_calibration(std::ostream& out) const
 	    << YAML::BeginSeq
 	    << _r(0) << _r(1) << _r(2)
 	    << YAML::EndSeq;
+    emitter << YAML::Key << "decay" << YAML::Value << _decay;
     emitter << YAML::EndMap;
     emitter << YAML::EndMap;
 
