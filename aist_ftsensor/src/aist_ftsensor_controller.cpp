@@ -359,9 +359,9 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	    {
 		transform_t	T;
 		_listener.waitForTransform(_robot_base_frame, frame_id,
-		 			   _last_pub_time, _pub_interval);
+		 			   time, ros::Duration(0.1));
 		_listener.lookupTransform(_robot_base_frame, frame_id,
-					  _last_pub_time, T);
+					  time, T);
 		const auto	rowz = T.getBasis().getRow(2);
 		k << -rowz.x(), -rowz.y(), -rowz.z();
 	    }
