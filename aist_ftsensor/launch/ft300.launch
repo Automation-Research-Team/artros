@@ -5,7 +5,7 @@
   <!-- <arg name="controller"	default="force_torque_sensor_controller"/> -->
   <arg name="publish_rate"	default="125"/>
   <arg name="calib_file"	default=""/>
-  <arg name="box_filter_size"	default="1"/>
+  <arg name="decay"		default="0"/>
 
   <!-- Driver parameters -->
   <arg name="frame_id"		default="a_bot_ftsensor_wrench_link"/>
