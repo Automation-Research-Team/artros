@@ -35,10 +35,11 @@
 	 unless="$(eval manager == '')"/>
   </include>
 
-  <include file="$(find aist_depth_filter)/launch/run.launch">
-    <arg name="camera_info_topic" value="$(arg camera_name)/color/camera_info"/>
-    <arg name="image_topic"	  value="$(arg camera_name)/color/image_raw"/>
-    <arg name="depth_topic"	  value="$(arg camera_name)/aligned_depth_to_color/image_raw"/>
+  <include ns="$(arg camera_name)"
+	   file="$(find aist_depth_filter)/launch/run.launch">
+    <arg name="camera_info_topic" value="color/camera_info"/>
+    <arg name="image_topic"	  value="color/image_raw"/>
+    <arg name="depth_topic"	  value="aligned_depth_to_color/image_raw"/>
     <arg name="normal_topic"	  value=""/>
     <arg name="manager"		  value="$(arg manager)"/>
   </include>
