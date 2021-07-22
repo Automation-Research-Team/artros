@@ -1,0 +1,49 @@
+# Settings for ros_control control loop
+hardware_control_loop:
+  loop_hz: &loop_hz $(arg rate)
+
+# Publish all joint states ----------------------------------
+joint_state_controller:
+  type:         joint_state_controller/JointStateController
+  publish_rate: *loop_hz
+
+# Joint Trajectory Controller - position based -------------------------------
+# For detailed explanations of parameter see http://wiki.ros.org/joint_trajectory_controller
+$(arg prefix)pos_joint_traj_controller:
+  type: position_controllers/JointTrajectoryController
+  joints: &robot_joints
+    - $(arg prefix)pan_joint
+    - $(arg prefix)tilt_joint
+  constraints:
+    goal_time: 0.6
+    stopped_velocity_tolerance: 0.05
+    $(arg prefix)pan_joint:   {trajectory: 0.2, goal: 0.1}
+    $(arg prefix)tilt_joint:  {trajectory: 0.2, goal: 0.1}
+  stop_trajectory_duration: 0.5
+  state_publish_rate: *loop_hz
+  action_monitor_rate: 20
+
+$(arg prefix)vel_joint_traj_controller:
+  type: velocity_controllers/JointTrajectoryController
+  joints: *robot_joints
+  constraints:
+    goal_time: 0.6
+    stopped_velocity_tolerance: 0.05
+    $(arg prefix)pan_joint:   {trajectory: 0.1, goal: 0.1}
+    $(arg prefix)tilt_joint:  {trajectory: 0.1, goal: 0.1}
+  gains:
+    #!!These values have not been optimized!!
+    $(arg prefix)pan_joint:   {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}
+    $(arg prefix)tilt_joint:  {p: 5.0,  i: 0.05, d: 0.1, i_clamp: 1}
+  # Use a feedforward term to reduce the size of PID gains
+  velocity_ff:
+    $(arg prefix)pan_joint:   1.0
+    $(arg prefix)tilt_joint:  1.0
+  stop_trajectory_duration: 0.5
+  state_publish_rate: *loop_hz
+  action_monitor_rate: 20
+
+# Pass an array of joint velocities directly to the joints
+$(arg prefix)joint_group_vel_controller:
+  type: velocity_controllers/JointGroupVelocityController
+  joints: *robot_joints
