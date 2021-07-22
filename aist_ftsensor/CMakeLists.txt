@@ -39,11 +39,12 @@ generate_messages(
 ###################################
 catkin_package(
   CATKIN_DEPENDS
+    roscpp
     controller_interface
     geometry_msgs
     hardware_interface
     realtime_tools
-    roscpp
+    message_runtime
   LIBRARIES ${PROJECT_NAME}
 )
 
