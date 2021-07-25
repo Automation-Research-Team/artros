@@ -29,8 +29,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     tf::pointMsgToTF(transformed_point.point, target);
 
   // Iteratively compute trajectory.
-    int		limit_flips = 0;
-    double	err_p = 2*M_PI;		// anguilar error in preveous step
+    double	err_p   = 2*M_PI;	// anguilar error in preveous step
     bool	success = false;
 
     for (int n = 0; n < MAX_ITERATIONS; ++n)
@@ -85,12 +84,6 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	}
 
 	err_p = err;
-
-	if (limit_flips > 1)
-	{
-	    ROS_ERROR("Goal is out of joint limits, trying to point there anyway... \n");
-	    break;
-	}
     }
 	
     ROS_DEBUG_STREAM("Expected error: " << err_p*180.0/M_PI << "(deg)");
@@ -135,6 +128,9 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 
 }	// namepsace aist_controllers
 
+/************************************************************************
+*  main function							*
+************************************************************************/
 int
 main(int argc, char* argv[])
 {
