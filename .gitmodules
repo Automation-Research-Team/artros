@@ -17,3 +17,6 @@
 [submodule "third_party/aruco_ros"]
 	path = third_party/aruco_ros
 	url = https://gitlab.com/art-aist/aruco_ros
+[submodule "third_party/ur_msgs"]
+	path = third_party/ur_msgs
+	url = https://github.com/ros-industrial/ur_msgs
