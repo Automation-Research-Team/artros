@@ -1,7 +1,9 @@
 /*
- *  $Id
+ *  \file	joint_trajectory_tracker.cpp
+ *  \brief	ROS tracker using JointTrajectoryController
  */
-#pragma once
+#ifndef AIST_CONTROLLERS_JOINT_TRAJECTORY_TRACKER_H
+#define AIST_CONTROLLERS_JOINT_TRAJECTORY_TRACKER_H
 
 #include <ros/ros.h>
 #include <boost/scoped_ptr.hpp>
@@ -61,55 +63,64 @@ operator <<(std::ostream& out, const KDL::Wrench& wrench)
 }
     
 /************************************************************************
-*  class joint_position_tracker<ACTION>					*
+*  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/
 template <class ACTION>
-class joint_position_tracker
+class JointTrajectoryTracker
 {
   private:
     using state_cp	= control_msgs::JointTrajectoryControllerStateConstPtr;
+    using trajectory_t	= trajectory_msgs::JointTrajectory;
     using server_t	= actionlib::SimpleActionServer<ACTION>;
-    using goal_cp	= boost::shared_ptr<typename server_t::Goal>;
+    using goal_cp	= boost::shared_ptr<const typename server_t::Goal>;
+    using feedback_t	= typename server_t::Feedback;
     
     using vector3_t	= tf::Vector3;
     using point_t	= tf::Point;
 
-    class commander
+    class Tracker
     {
       public:
-			commander(const std::string& robot_desc_string,
-				  const std::string& base_link,
-				  const std::string& effector_link)	;
+			Tracker(const std::string& robot_desc_string,
+				const std::string& base_link,
+				const std::string& effector_link)	;
 
-	const std::vector<std::string>&
-			joint_names()				const	;
+	const trajectory_t&
+			trajectory()				const	;
+	const feedback_t&
+			feedback()				const	;
 
 	void		init(const state_cp& state)			;
 	void		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
-
-      private:
-	tf::Transform	get_chain_transform()			const	;
 	
       private:
-	std::string			_base_link;
-	std::string			_effector_link;
-	urdf::Model			_urdf;
-	std::vector<std::string>	_joint_names;
-	KDL::Tree			_tree;
-	KDL::Chain			_chain;
-	KDL::JntArray			_jnt_pos;
-	KDL::Jacobian			_jacobian;
-	std::vector<urdf::JointLimits>	_limits;
-	double				_goal_error;
-	tf::TransformListener		_listener;
+	tf::Transform	get_chain_transform()			const	;
+	KDL::Wrench	compute_wrench(const goal_cp& goal)		;
+	
+      private:
+	std::string					_base_link;
+	std::string					_effector_link;
+
+	urdf::Model					_urdf;
+	trajectory_t					_trajectory;
+	feedback_t					_feedback;
+
+	KDL::Tree					_tree;
+	KDL::Chain					_chain;
+	KDL::JntArray					_jnt_pos;
+	KDL::JntArray					_jnt_vel;
+	KDL::Jacobian					_jacobian;
+	std::vector<urdf::JointLimits>			_limits;
+	double						_goal_error;
+	tf::TransformListener				_listener;
     
 	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pose_solver;
 	boost::scoped_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
     };
     
   public:
-		joint_position_tracker(const std::string& action_ns)	;
+		JointTrajectoryTracker(const std::string& action_ns)	;
 
   private:
     void	goal_cb()						;
@@ -117,73 +128,74 @@ class joint_position_tracker
     void	state_cb(const state_cp& msg)				;
 
   private:
-    ros::NodeHandle	_nh;
-    ros::Subscriber	_state_sub;
-    ros::Publisher	_command_pub;
+    ros::NodeHandle		_nh;
+    ros::Subscriber		_state_sub;
+    const ros::Publisher	_command_pub;
 
-    commander		_commander;
+    Tracker			_tracker;
 
-    state_cp		_last_state;
-    server_t		_tracker_srv;
-    goal_cp		_current_goal;
+    state_cp			_last_state;
+    server_t			_tracker_srv;
+    goal_cp			_current_goal;
 };
 
 template <class ACTION>
-joint_position_tracker<ACTION>::joint_position_tracker(
+JointTrajectoryTracker<ACTION>::JointTrajectoryTracker(
 					const std::string& action_ns)
     :_nh("~"),
      _state_sub(_nh.subscribe("/state", 1,
-			      &joint_position_tracker::state_cb, this)),
-     _command_pub(_nh.advertise<trajectory_msgs::JointTrajectory>("command",
-								  2)),
-     _commander(_nh.param<std::string>(_nh.param<std::string>(
-						   "robot_description",
-						   "/robot_description"),
-				       std::string()),
-		_nh.param<std::string>("base_link", "base_link"),
-		_nh.param<std::string>("effector_link", "effector_link")),
+			      &JointTrajectoryTracker::state_cb, this)),
+     _command_pub(_nh.advertise<trajectory_t>("command", 2)),
+     _tracker(_nh.param<std::string>(
+		  _nh.param<std::string>("robot_description",
+					 "/robot_description"),
+		  std::string()),
+	      _nh.param<std::string>("base_link", "base_link"),
+	      _nh.param<std::string>("effector_link", "effector_link")),
      _last_state(nullptr),
      _tracker_srv(_nh, action_ns, false),
      _current_goal(nullptr)
 {
   // Initialize action server
-    _tracker_srv.registerGoalCallback(boost::bind(&goal_cb, this));
-    _tracker_srv.registerPreemptCallback(boost::bind(&preempt_cb, this));
+    _tracker_srv.registerGoalCallback(
+    	boost::bind(&JointTrajectoryTracker::goal_cb, this));
+    _tracker_srv.registerPreemptCallback(
+    	boost::bind(&JointTrajectoryTracker::preempt_cb, this));
     _tracker_srv.start();
 }
 
 template <class ACTION> void
-joint_position_tracker<ACTION>::goal_cb()
+JointTrajectoryTracker<ACTION>::goal_cb()
 {
     _current_goal = _tracker_srv.acceptNewGoal();
 
-    ROS_INFO_STREAM("(joint_position_tracker) Goal accepted");
+    ROS_INFO_STREAM("(JointTrajectoryTracker) Goal accepted");
 
     try
     {
-	_commander.init(_last_state);
+	_tracker.init(_last_state);
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("(joint_position_tracker) " << err.what());
-	_tracker_srv.setRejected();
+	ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
+	_tracker_srv.setAborted();
     }
 }
 
 template <class ACTION> void
-joint_position_tracker<ACTION>::preempt_cb()
+JointTrajectoryTracker<ACTION>::preempt_cb()
 {
   // Stops the controller.
     trajectory_msgs::JointTrajectory	empty;
-    empty.joint_names = _commander.joint_names();
+    empty.joint_names = _tracker.trajectory().joint_names;
     _command_pub.publish(empty);
 
     _tracker_srv.setPreempted();
-    ROS_INFO_STREAM("(joint_position_tracker) Goal cancelled");
+    ROS_INFO_STREAM("(JointTrajectoryTracker) Goal cancelled");
 }
 
 template <class ACTION> void
-joint_position_tracker<ACTION>::state_cb(const state_cp& state)
+JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 {
     _last_state = state;
 
@@ -192,36 +204,37 @@ joint_position_tracker<ACTION>::state_cb(const state_cp& state)
 
     try
     {
-	_commander.read(state);
-	_command_pub.publish(_commander.compute_trajectory(_current_goal));
-	_tracker_srv.publishFeedback(_commander.compute_feedback());
+	_tracker.read(state);
 
-      //the computed solution by the iterative solver can provide larger errors
-      //due to MAX_ITERATIONS and correction_delta stop conditions
-	if (feedback.pointing_angle_error <= _goal_error)
-	{
-	    ROS_DEBUG_STREAM("goal succeeded with error: "
-			     << feedback.pointing_angle_error << " radians");
+	const auto	success = _tracker.update(_current_goal);
+
+	_tracker_srv.publishFeedback(_tracker.feedback());
+	_command_pub.publish(_tracker.trajectory());
+
+	if (success)
 	    _tracker_srv.setSucceeded();
-	}
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("(joint_position_tracker) " << err.what());
+	ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
 	_tracker_srv.setAborted();
     }
 }
 
 /************************************************************************
-*  class joint_position_tracker<ACTION>::commander			*
+*  class JointTrajectoryTracker<ACTION>::Tracker			*
 ************************************************************************/
 template <class ACTION>
-joint_position_tracker<ACTION>
-	::commander::commander(const std::string& robot_desc_string,
-			       const std::string& base_link,
-			       const std::string& effector_link)
-	    :_base_link(base_link),
-	     _effector_link(effector_link)
+JointTrajectoryTracker<ACTION>::Tracker
+			      ::Tracker(const std::string& robot_desc_string,
+					const std::string& base_link,
+					const std::string& effector_link)
+    :_base_link(base_link), _effector_link(effector_link),
+     _urdf(), _trajectory(),
+     _tree(), _chain(), _jnt_pos(), _jnt_vel(), _jacobian(), _limits(),
+     _goal_error(0.001),
+     _listener(),
+     _pose_solver(), _jac_solver()
 {
   // Load URDF model.
     if (!_urdf.initString(robot_desc_string))
@@ -237,24 +250,33 @@ joint_position_tracker<ACTION>
 				 + _base_link + " to " + _effector_link);
 
   // Resize state variable arrays.
-    _joint_names.resize(_chain.getNrOfJoints());
-    _jnt_pos.resize(_joint_names.size());
-    _jacobian.resize(_joint_names.size());
-    _limits.resize(_joint_names.size());
+    _trajectory.joint_names.resize(_chain.getNrOfJoints());
+    _jnt_pos.resize(_trajectory.joint_names.size());
+    _jnt_vel.resize(_trajectory.joint_names.size());
+    _jacobian.resize(_trajectory.joint_names.size());
+    _limits.resize(_trajectory.joint_names.size());
 
   // Reset solvers.
     _pose_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
 }
 
-template <class ACTION> const std::vector<std::string>&
-joint_position_tracker<ACTION>::commander::joint_names() const
+template <class ACTION>
+const typename JointTrajectoryTracker<ACTION>::trajectory_t&
+JointTrajectoryTracker<ACTION>::Tracker::trajectory() const
 {
-    return _joint_names;
+    return _trajectory;
+}
+
+template <class ACTION>
+const typename JointTrajectoryTracker<ACTION>::feedback_t&
+JointTrajectoryTracker<ACTION>::Tracker::feedback() const
+{
+    return _feedback;
 }
 
 template <class ACTION> tf::Transform
-joint_position_tracker<ACTION>::commander::get_transform() const
+JointTrajectoryTracker<ACTION>::Tracker::get_chain_transform() const
 {
   // Get the current pose of effector_link w.r.t. base_link.
     KDL::Frame	pose_kdl;
@@ -268,39 +290,45 @@ joint_position_tracker<ACTION>::commander::get_transform() const
 }
 
 template <class ACTION> void
-joint_position_tracker<ACTION>::commander::init(const state_cp& state)
+JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state)
 {
     if (!state)
 	throw std::runtime_error("No controller state available");
 
-    if (state->joint_names.size() != _joint_names.size())
+    auto&	joint_names = _trajectory.joint_names;
+    if (state->joint_names.size() != joint_names.size())
 	throw std::runtime_error("Number of joints mismatch: controller["
 				 + std::to_string(state->joint_names.size())
 				 + "] <==> urdf chain["
-				 + std::to_string(_joint_names.size())
+				 + std::to_string(joint_names.size())
 				 + ']');
 
   // Get initial joint positions and joint limits.
-    for (size_t i = 0; i < state->joint_names.size(); ++i)
+    for (size_t i = 0; i < joint_names.size(); ++i)
     {
+	joint_names[i]	= state->joint_names[i];
 	_jnt_pos(i)	= state->actual.positions[i];
-	_joint_names[i]	= state->joint_names[i];
-	_limits[i]	= *(_urdf.joints_[_joint_names[i]]->limits);
-	ROS_DEBUG_STREAM(_joint_names[i] << '[' << i << "]: " << _jnt_pos(i)
+	_jnt_vel(i)	= state->actual.velocities[i];
+	_limits[i]	= *(_urdf.joints_[joint_names[i]]->limits);
+	ROS_DEBUG_STREAM(joint_names[i] << '[' << i << "]: " << _jnt_pos(i)
 			 << ", limits: (" << _limits[i].lower
 			 << ", " << _limits[i].upper << ')');
     }
 }
 
 template <class ACTION> void
-joint_position_tracker<ACTION>::commander::read(const state_cp& state)
+JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    for (size_t i = 0; i < _jnt_pos.rows(); ++i)
-	_jnt_pos(i) = state->actual.positions[i];
-}
+    _trajectory.header.stamp = state->header.stamp;
+    _trajectory.points.resize(1);
+    _trajectory.points[0] = state->actual;
     
-
+    for (size_t i = 0; i < _jnt_pos.rows(); ++i)
+    {
+	_jnt_pos(i) = state->actual.positions[i];
+	_jnt_vel(i) = state->actual.velocities[i];
+    }
 }
 
-
-
+}	// namespace aist_controllers
+#endif	// !AIST_CONTROLLERS_JOINT_TRAJECTORY_TRACKER_H
