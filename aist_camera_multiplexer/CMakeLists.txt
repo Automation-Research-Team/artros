@@ -12,6 +12,7 @@ find_package(catkin REQUIRED
     ddynamic_reconfigure
     sensor_msgs
     image_transport
+    message_generation
     rospy
 )
 
@@ -24,6 +25,13 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_service_files(
+  FILES
+    ActivateCamera.srv
+)
+
+generate_messages()
+
 catkin_package(
   CATKIN_DEPENDS
     roscpp
@@ -33,12 +41,15 @@ catkin_package(
     nodelet
 )
 
-add_executable(${PROJECT_NAME}
+add_executable(
+  ${PROJECT_NAME}
   src/main.cpp
   src/Multiplexer.cpp
 )
 
-add_dependencies(${PROJECT_NAME}
+add_dependencies(
+  ${PROJECT_NAME}
+  ${PROJECT_NAME}_gencpp
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )

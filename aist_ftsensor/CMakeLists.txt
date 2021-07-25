@@ -60,6 +60,13 @@ add_library(${PROJECT_NAME}_controller
   src/aist_ftsensor_controller.cpp
 )
 
+add_dependencies(
+  ${PROJECT_NAME}_controller
+  ${PROJECT_NAME}_gencpp
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
 target_link_libraries(${PROJECT_NAME}_controller
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
