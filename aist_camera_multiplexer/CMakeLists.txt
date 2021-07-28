@@ -36,6 +36,7 @@ catkin_package(
   CATKIN_DEPENDS
     roscpp
     rospy
+    message_runtime
     sensor_msgs
     pluginlib
     nodelet
@@ -66,6 +67,7 @@ add_library(${PROJECT_NAME}_nodelet
 )
 
 add_dependencies(${PROJECT_NAME}_nodelet
+  ${PROJECT_NAME}_gencpp
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
