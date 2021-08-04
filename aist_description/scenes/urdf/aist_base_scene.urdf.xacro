@@ -98,13 +98,13 @@
   <xacro:single_suction_gripper prefix="b_bot_gripper_"
   				parent="b_bot_ftsensor_flange_link">
     <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->
-    <origin xyz="0 0 0" rpy="0 ${-0.1*pi/180} ${0.45*pi/180}"/>
+    <origin xyz="0 0 0" rpy="0 ${-0.1*pi/180} ${0.15*pi/180}"/>
   </xacro:single_suction_gripper>
 
   <!-- Add virtual wall to avoid collisions-->
   <xacro:aist_box name="vwall1" width="0.01" length="0.3" height="0.5"
-		  parent="ground" transparent="true">
-    <origin xyz="0.45 -0.15 ${bots_z}" rpy="0 0 0"/>
+		  parent="ground" transparent="false">
+    <origin xyz="0.41 -0.20 ${bots_z}" rpy="0 0 0"/>
   </xacro:aist_box>
 
   <!-- Add PhoXi 3D scanner -->
