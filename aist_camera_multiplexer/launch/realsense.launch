@@ -13,6 +13,7 @@
   <arg name="enable_streaming"	default="true"/>
   <arg name="manager"		default=""/>
   <arg name="camera_no"		default="0"/>
+  <arg name="sim"		default="false"/>
   <arg name="vis"		default="false"/>
 
   <arg name="external_manager"	value="$(eval manager != '')"/>
@@ -26,7 +27,8 @@
 	 value="$(eval serial_nos.split(',')[camera_no].strip())"/>
 
     <!-- Launch camera_no-th camera -->
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <include unless="$(arg sim)"
+	     file="$(find realsense2_camera)/launch/rs_camera.launch">
       <arg name="serial_no"		value="$(arg serial_no)"/>
       <arg name="camera"		value="$(arg camera_name)"/>
       <arg name="tf_prefix"		value="calibrated_$(arg camera_name)"/>
@@ -71,6 +73,8 @@
       <arg name="enable_streaming"	value="$(arg enable_streaming)"/>
       <arg name="manager"		value="$(arg manager)"/>
       <arg name="camera_no"		value="$(eval camera_no + 1)"/>
+      <arg name="sim"			value="$(arg sim)"/>
+      <arg name="vis"			value="$(arg vis)"/>
     </include>
   </group>
 
