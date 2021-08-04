@@ -9,12 +9,15 @@
 #include <ros/ros.h>
 #include <std_srvs/Trigger.h>
 #include <image_transport/image_transport.h>
+#include <image_transport/subscriber_filter.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <aist_depth_filter/FileInfo.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
+#include <actionlib/server/simple_action_server.h>
+#include <aist_depth_filter/DetectPlaneAction.h>
 #include "Plane.h"
 
 namespace aist_depth_filter
@@ -41,6 +44,12 @@ class DepthFilter
     using file_info_t	 = aist_depth_filter::FileInfo;
     using plane_t	 = TU::Plane<value_t, 3>;
 
+    using action_t	 = aist_depth_filter::DetectPlaneAction;
+    using feedback_t	 = aist_depth_filter::DetectPlaneFeedback;
+    using result_t	 = aist_depth_filter::DetectPlaneResult;
+    using goal_cp	 = aist_depth_filter::DetectPlaneGoalConstPtr;
+    using server_t	 = actionlib::SimpleActionServer<action_t>;
+
   public:
     DepthFilter(const ros::NodeHandle& nh)				;
 
@@ -61,6 +70,9 @@ class DepthFilter
 					 const image_cp& image,
 					 const image_cp& depth)		;
 
+    void	preempt_cb()					  const	;
+    void	detect_plane_cb(const goal_cp& goal)		;
+
     template <class T>
     void	filter(const camera_info_t& camera_info,
 		       image_t& depth)					;
@@ -73,10 +85,10 @@ class DepthFilter
 			      const image_t& depth)			;
     template <class T>
     void	scale(image_t& depth)				  const	;
-    plane_t	detect_base_plane(const camera_info_t& camera_info,
-				  const image_t& image,
-				  const image_t& depth,
-				  float thresh)			  const	;
+    plane_t	detect_plane(const camera_info_t& camera_info,
+			     const image_t& image,
+			     const image_t& depth,
+			     float thresh)			  const	;
     void	create_subimage(const image_t& image,
 				image_t& subimage)		  const	;
     void	create_colored_normal(const image_t& normal,
@@ -90,21 +102,24 @@ class DepthFilter
     const ros::ServiceServer				_saveBG_srv;
     const ros::ServiceServer				_capture_srv;
 
+    image_transport::ImageTransport			_it;
+
     message_filters::Subscriber<camera_info_t>		_camera_info_sub;
-    message_filters::Subscriber<image_t>		_image_sub;
-    message_filters::Subscriber<image_t>		_depth_sub;
-    message_filters::Subscriber<image_t>		_normal_sub;
+    image_transport::SubscriberFilter			_image_sub;
+    image_transport::SubscriberFilter			_depth_sub;
+    image_transport::SubscriberFilter			_normal_sub;
     message_filters::Synchronizer<sync_policy_t>	_sync;
     message_filters::Synchronizer<sync_policy2_t>	_sync2;
 
-    image_transport::ImageTransport			_it;
     const image_transport::Publisher			_image_pub;
     const image_transport::Publisher			_depth_pub;
     const image_transport::Publisher			_normal_pub;
     const image_transport::Publisher			_colored_normal_pub;
-    const ros::Publisher				_base_plane_pub;
+    const ros::Publisher				_plane_pub;
     const ros::Publisher				_camera_info_pub;
     const ros::Publisher				_file_info_pub;
+
+    server_t						_detect_plane_srv;
 
     ddynamic_reconfigure::DDynamicReconfigure		_ddr;
 
