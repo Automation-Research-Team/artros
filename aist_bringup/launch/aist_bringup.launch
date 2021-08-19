@@ -26,8 +26,8 @@
   <arg name="devices"		value="ur5, ur5, robotiq_85"/>
   <arg name="controllers"	value="ur, ur, cmodel"/>
   <arg name="drivers"		value="ur, ur, cmodel"/>
-  <arg name="driver_args"	value="10.66.171.52, 50003, 50004, 0;
-				       10.66.171.51, 50001, 50002, 0;
+  <arg name="driver_args"	value="10.66.171.52, 50005, 50006, 50007, 0;
+				       10.66.171.51, 50001, 50002, 50003, 0;
 				       urcap, 10.66.171.52" />
 
   <!-- Bringup robots -->
