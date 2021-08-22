@@ -36,28 +36,30 @@
   </joint>
 
   <!-- robot arms -->
-  <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro"/>
-  <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro"/>
-  <xacro:ur5_robot prefix="a_bot_" joint_limited="false"
-    shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
-    shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"
-    elbow_joint_lower_limit="0.0" elbow_joint_upper_limit="${pi}"
-    wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
-    wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
-    wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
-    kinematics_file="${load_yaml('$(find aist_bringup
-		     )/config/a_bot_calibration.yaml')}"/>
+  <!-- <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro"/> -->
+  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
+  <xacro:ur_robot_gazebo
+      prefix="a_bot_"
+      joint_limits_parameters_file="$(find ur_description
+				    )/config/ur5/joint_limits.yaml"
+      physical_parameters_file="$(find ur_description
+				)/config/ur5/physical_parameters.yaml"
+      visual_parameters_file="$(find ur_description
+			      )/config/ur5/visual_parameters.yaml"
+      kinematics_parameters_file="$(find aist_bringup
+				  )/config/a_bot_calibration.yaml"/>
 
   <!-- <xacro:gazebo_ros_control ns="/b_bot"/> -->
-  <xacro:ur5_robot prefix="b_bot_" joint_limited="false"
-    shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
-    shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"
-    elbow_joint_lower_limit="0.0" elbow_joint_upper_limit="${pi}"
-    wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
-    wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
-    wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
-    kinematics_file="${load_yaml('$(find aist_bringup
-		     )/config/b_bot_calibration.yaml')}"/>
+  <xacro:ur_robot_gazebo
+      prefix="b_bot_"
+      joint_limits_parameters_file="$(find ur_description
+				    )/config/ur5/joint_limits.yaml"
+      physical_parameters_file="$(find ur_description
+				)/config/ur5/physical_parameters.yaml"
+      visual_parameters_file="$(find ur_description
+			      )/config/ur5/visual_parameters.yaml"
+      kinematics_parameters_file="$(find aist_bringup
+				  )/config/b_bot_calibration.yaml"/>
 
   <joint name="ground_a_bot_joint" type="fixed">
     <parent link="ground"/>
@@ -73,11 +75,11 @@
 
   <!-- Spawn and attach force sensor -->
   <xacro:include filename="$(find aist_ftsensor)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_ee_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+  <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:ft300>
-  <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_ee_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+  <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:ft300>
 
   <!-- Spawn and attach gripper -->
