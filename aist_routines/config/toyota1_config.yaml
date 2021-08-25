@@ -11,6 +11,11 @@ grippers:
     type: Lecp6Gripper
     args:
       prefix: gripper_
+  suction:
+    type: SuctionGripper
+    args:
+      prefix: suction_
+      eject: false
 
 cameras:
   camera: PhoXiCamera
