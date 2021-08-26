@@ -189,16 +189,16 @@ class RobotiqGripper(GenericGripper):
 #  class SuctionGripper                                              #
 ######################################################################
 class SuctionGripper(GripperClient):
-    def __init__(self, prefix, eject=False):
+    def __init__(self, name, ns, eject=False):
         import o2as_msgs.msg
         import std_msgs.msg
 
-        super(SuctionGripper, self).__init__(*SuctionGripper._initargs(prefix,
+        super(SuctionGripper, self).__init__(*SuctionGripper._initargs(name, ns,
                                                                        eject))
         self._client    = actionlib.SimpleActionClient(
-                              'o2as_fastening_tools/suction_control',
+                              ns + '/suction',
                               o2as_msgs.msg.SuctionControlAction)
-        self._sub       = rospy.Subscriber('suction_tool/screw_suctioned',
+        self._sub       = rospy.Subscriber(ns + '/suctioned',
                                            std_msgs.msg.Bool,
                                            self._state_callback)
         self._suctioned = False
@@ -209,13 +209,13 @@ class SuctionGripper(GripperClient):
         self._goal.eject_screw         = False
 
     @staticmethod
-    def base(prefix, eject):
-        return GripperClient(*SuctionGripper._initargs(prefix, eject))
+    def base(name, ns, eject):
+        return GripperClient(*SuctionGripper._initargs(name, ns, eject))
 
     @staticmethod
-    def _initargs(prefix, eject):
-        return (prefix.rstrip('_'), 'suction',
-                prefix + 'base_link', prefix + 'tip_link')
+    def _initargs(name, ns, eject):
+        return (name, 'suction',
+                name + '_base_link', name + '_tip_link')
 
     def pregrasp(self, timeout=0):
         return self._send_command(True, timeout)
