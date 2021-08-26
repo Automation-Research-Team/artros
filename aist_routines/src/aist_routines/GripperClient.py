@@ -189,16 +189,16 @@ class RobotiqGripper(GenericGripper):
 #  class SuctionGripper                                              #
 ######################################################################
 class SuctionGripper(GripperClient):
-    def __init__(self, name, ns, eject=False):
+    def __init__(self, name, action_ns, state_ns='', eject=False):
         import o2as_msgs.msg
         import std_msgs.msg
 
-        super(SuctionGripper, self).__init__(*SuctionGripper._initargs(name, ns,
-                                                                       eject))
+        super(SuctionGripper, self).__init__(
+            *SuctionGripper._initargs(name, action_ns, state_ns, eject))
         self._client    = actionlib.SimpleActionClient(
-                              ns + '/suction',
+                              action_ns,
                               o2as_msgs.msg.SuctionControlAction)
-        self._sub       = rospy.Subscriber(ns + '/suctioned',
+        self._sub       = rospy.Subscriber(state_ns,
                                            std_msgs.msg.Bool,
                                            self._state_callback)
         self._suctioned = False
@@ -209,11 +209,12 @@ class SuctionGripper(GripperClient):
         self._goal.eject_screw         = False
 
     @staticmethod
-    def base(name, ns, eject):
-        return GripperClient(*SuctionGripper._initargs(name, ns, eject))
+    def base(name, action_ns, state_ns, eject):
+        return GripperClient(*SuctionGripper._initargs(name, action_ns,
+                                                       state_ns, eject))
 
     @staticmethod
-    def _initargs(name, ns, eject):
+    def _initargs(name, action_ns, state_ns, eject):
         return (name, 'suction',
                 name + '_base_link', name + '_tip_link')
 

@@ -49,7 +49,7 @@ class SuctionController(object):
             self.digital_in_port.update({tool_data['name']: tool_data['digital_in_port']})
             self.digital_out_port_vac.update({tool_data['name']: tool_data['digital_out_port_vac']})
             self.digital_out_port_blow.update({tool_data['name']: tool_data['digital_out_port_blow']})
-            self.tool_suction_publisher[tool_data['name']] = rospy.Publisher(tool_data['name'] + '/screw_suctioned', Bool, queue_size=1)
+            self.tool_suction_publisher[tool_data['name']] = rospy.Publisher(tool_data['name'] + '/suctioned', Bool, queue_size=1)
             # Goal: Publish a boolean for each tool under '[tool_name]/screw_suctioned'
 
         # for operation_mode
@@ -58,7 +58,7 @@ class SuctionController(object):
             self.operation_mode_in_port_name.update({operation_mode_data['digital_in_port']: operation_mode_data['name']})
             self.operation_mode_publishers[operation_mode_data['name']] = rospy.Publisher(operation_mode_data['name'], Bool, queue_size=1)
 
-        self._action_name = 'o2as_fastening_tools/suction_control'
+        self._action_name = '~suction'
         self._as = actionlib.SimpleActionServer(self._action_name, SuctionControlAction, execute_cb=self.suction_control, auto_start = False)
         self._as.start()
 

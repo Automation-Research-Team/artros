@@ -37,10 +37,10 @@
 
     <!-- A link representing the tip of the pad and a joint attaching
 	 it to the gripper -->
-    <link name="${prefix}pad_link"/>
-    <joint name="${prefix}pad_joint" type="fixed">
+    <link name="${prefix}tip_link"/>
+    <joint name="${prefix}tip_joint" type="fixed">
       <parent link="${prefix}base_link"/>
-      <child  link="${prefix}pad_link"/>
+      <child  link="${prefix}tip_link"/>
       <origin xyz="0.1855 0 0" rpy="0 0 0"/>
     </joint>
 

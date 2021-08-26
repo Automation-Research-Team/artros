@@ -15,7 +15,8 @@ grippers:
     type: SuctionGripper
     args:
       name: suction
-      ns: /arm_driver/suction_driver
+      action_ns: /arm_driver/suction_driver/suction
+      state_ns: /arm_driver/suction_driver/suctioned
       eject: false
 
 cameras:
