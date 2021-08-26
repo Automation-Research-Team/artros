@@ -215,7 +215,7 @@ class SuctionGripper(GripperClient):
     @staticmethod
     def _initargs(prefix, eject):
         return (prefix.rstrip('_'), 'suction',
-                prefix + 'base_link', prefix + 'pad_link')
+                prefix + 'base_link', prefix + 'tip_link')
 
     def pregrasp(self, timeout=0):
         return self._send_command(True, timeout)
@@ -399,7 +399,7 @@ class Lecp6Gripper(GripperClient):
     @staticmethod
     def _initargs(prefix):
         return (prefix.rstrip('_'), 'two_finger',
-                prefix + 'base_link', prefix + 'link')
+                prefix + 'base_link', prefix + 'tip_link')
 
     def grasp(self, timeout=0):
         return self._send_command(True, timeout)
@@ -454,7 +454,7 @@ class MagswitchGripper(GripperClient):
     @staticmethod
     def _initargs(prefix):
         return (prefix.rstrip('_'), 'magnet',
-                prefix + 'base_link', prefix + 'link')
+                prefix + 'base_link', prefix + 'tip_link')
 
     @property
     def calibration_step(self):
