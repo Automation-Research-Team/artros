@@ -11,6 +11,13 @@ grippers:
     type: Lecp6Gripper
     args:
       prefix: gripper_
+  suction:
+    type: SuctionGripper
+    args:
+      name: suction
+      action_ns: /arm_driver/suction_driver/suction
+      state_ns: /arm_driver/suction_driver/suctioned
+      eject: false
 
 cameras:
   camera: PhoXiCamera

@@ -91,7 +91,8 @@
     </include>
 
     <!-- Launch fastening tools -->
-    <node name="suction_controller" pkg="o2as_fastening_tools"
+    <node ns="b_bot"
+	  name="suction_controller" pkg="o2as_fastening_tools"
 	  type="suction_controller.py" output="screen">
       <param name="config_dir"		value="$(find
 					       o2as_fastening_tools)/config"/>
