@@ -14,7 +14,9 @@ grippers:
   b_bot_gripper:
     type: SuctionGripper
     args:
-      prefix: b_bot_gripper_
+      name: b_bot_gripper
+      action_ns: /b_bot/suction_controller/suction
+      state_ns: /b_bot/suction_tool/suctioned
       eject: false
 
 cameras:

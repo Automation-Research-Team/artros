@@ -189,16 +189,16 @@ class RobotiqGripper(GenericGripper):
 #  class SuctionGripper                                              #
 ######################################################################
 class SuctionGripper(GripperClient):
-    def __init__(self, prefix, eject=False):
+    def __init__(self, name, action_ns, state_ns='', eject=False):
         import o2as_msgs.msg
         import std_msgs.msg
 
-        super(SuctionGripper, self).__init__(*SuctionGripper._initargs(prefix,
-                                                                       eject))
+        super(SuctionGripper, self).__init__(
+            *SuctionGripper._initargs(name, action_ns, state_ns, eject))
         self._client    = actionlib.SimpleActionClient(
-                              'o2as_fastening_tools/suction_control',
+                              action_ns,
                               o2as_msgs.msg.SuctionControlAction)
-        self._sub       = rospy.Subscriber('suction_tool/screw_suctioned',
+        self._sub       = rospy.Subscriber(state_ns,
                                            std_msgs.msg.Bool,
                                            self._state_callback)
         self._suctioned = False
@@ -209,13 +209,14 @@ class SuctionGripper(GripperClient):
         self._goal.eject_screw         = False
 
     @staticmethod
-    def base(prefix, eject):
-        return GripperClient(*SuctionGripper._initargs(prefix, eject))
+    def base(name, action_ns, state_ns, eject):
+        return GripperClient(*SuctionGripper._initargs(name, action_ns,
+                                                       state_ns, eject))
 
     @staticmethod
-    def _initargs(prefix, eject):
-        return (prefix.rstrip('_'), 'suction',
-                prefix + 'base_link', prefix + 'pad_link')
+    def _initargs(name, action_ns, state_ns, eject):
+        return (name, 'suction',
+                name + '_base_link', name + '_tip_link')
 
     def pregrasp(self, timeout=0):
         return self._send_command(True, timeout)
@@ -399,7 +400,7 @@ class Lecp6Gripper(GripperClient):
     @staticmethod
     def _initargs(prefix):
         return (prefix.rstrip('_'), 'two_finger',
-                prefix + 'base_link', prefix + 'link')
+                prefix + 'base_link', prefix + 'tip_link')
 
     def grasp(self, timeout=0):
         return self._send_command(True, timeout)
@@ -454,7 +455,7 @@ class MagswitchGripper(GripperClient):
     @staticmethod
     def _initargs(prefix):
         return (prefix.rstrip('_'), 'magnet',
-                prefix + 'base_link', prefix + 'link')
+                prefix + 'base_link', prefix + 'tip_link')
 
     @property
     def calibration_step(self):
