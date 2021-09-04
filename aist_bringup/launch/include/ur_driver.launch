@@ -11,7 +11,7 @@
 					       driver_arg.split(',')[1])"/>
   <arg name="script_sender_port"	value="$(eval
 					       driver_arg.split(',')[2])"/>
-  <arg name="trajectory_interface_port"	value="$(eval
+  <arg name="trajectory_port"		value="$(eval
 					       driver_arg.split(',')[3])"/>
   <arg name="tool_tcp_port"		value="$(eval
 					       driver_arg.split(',')[4])"/>
