@@ -27,13 +27,15 @@ class InteractiveRoutines(AISTBaseRoutines):
         'b_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
         'c_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians( 90)],
         'd_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(  0)],
+        'a_khi': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians( 90)],
+        'b_khi': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
     }
 
     def __init__(self):
         super(InteractiveRoutines, self).__init__()
 
-        self._robot_name  = rospy.get_param('~robot_name', 'b_bot')
-        self._camera_name = rospy.get_param('~camer_name', 'a_phoxi_m_camera')
+        self._robot_name  = rospy.get_param('~robot_name',  'b_bot')
+        self._camera_name = rospy.get_param('~camera_name', 'a_phoxi_m_camera')
         self._speed       = rospy.get_param('~speed',       0.1)
         self._ur_movel    = False
 
@@ -88,37 +90,35 @@ class InteractiveRoutines(AISTBaseRoutines):
             elif key == 'W':
                 axis = 'Yaw'
             elif key == '+':
-                xyz = [0, 0, 0]
-                rpy = [0, 0, 0]
+                xyzrpy = [0, 0, 0, 0, 0, 0]
                 if axis == 'X':
-                    xyz[0] = 0.01
+                    xyzrpy[0] = 0.01
                 elif axis == 'Y':
-                    xyz[1] = 0.01
+                    xyzrpy[1] = 0.01
                 elif axis == 'Z':
-                    xyz[2] = 0.01
+                    xyzrpy[2] = 0.01
                 elif axis == 'Roll':
-                    rpy[0] = radians(10)
+                    xyzrpy[3] = radians(10)
                 elif axis == 'Pitch':
-                    rpy[1] = radians(10)
+                    xyzrpy[4] = radians(10)
                 else:
-                    rpy[2] = radians(10)
-                self.move_relative(self._robot_name, xyz, rpy, self._speed)
+                    xyzrpy[5] = radians(10)
+                self.move_relative(self._robot_name, xyzrpy, self._speed)
             elif key == '-':
-                xyz = [0, 0, 0]
-                rpy = [0, 0, 0]
+                xyzrpy = [0, 0, 0, 0, 0, 0]
                 if axis == 'X':
-                    xyz[0] = -0.01
+                    xyzrpy[0] = -0.01
                 elif axis == 'Y':
-                    xyz[1] = -0.01
+                    xyzrpy[1] = -0.01
                 elif axis == 'Z':
-                    xyz[2] = -0.01
+                    xyzrpy[2] = -0.01
                 elif axis == 'Roll':
-                    rpy[0] = radians(-10)
+                    xyzrpy[3] = radians(-10)
                 elif axis == 'Pitch':
-                    rpy[1] = radians(-10)
+                    xyzrpy[4] = radians(-10)
                 else:
-                    rpy[2] = radians(-10)
-                self.move_relative(self._robot_name, xyz, rpy, self._speed)
+                    xyzrpy[5] = radians(-10)
+                self.move_relative(self._robot_name, xyzrpy, self._speed)
             elif is_num(key):
                 goal_pose = self.xyz_rpy(current_pose)
                 if axis == 'X':

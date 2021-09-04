@@ -1,5 +1,6 @@
 import rospy
 import actionlib
+import numpy as np
 from actionlib_msgs.msg import GoalStatus
 from geometry_msgs      import msg as gmsg
 from aist_routines      import msg as amsg
@@ -30,9 +31,9 @@ class PickOrPlaceAction(object):
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
         goal.pick             = pick
-        goal.grasp_offset     = gmsg.Vector3(*grasp_offset)
-        goal.approach_offset  = gmsg.Vector3(*approach_offset)
-        goal.departure_offset = gmsg.Vector3(*departure_offset)
+        goal.grasp_offset     = self._create_transform(grasp_offset)
+        goal.approach_offset  = self._create_transform(approach_offset)
+        goal.departure_offset = self._create_transform(departure_offset)
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
         self._client.send_goal(goal, feedback_cb=feedback_cb)
@@ -56,6 +57,16 @@ class PickOrPlaceAction(object):
     def shutdown(self):
         self._server.__del__()
 
+    def _create_transform(xyzrpy):
+        if len(xyzrpy) == 3:
+            return gmsg.Transform(gmsg.Vector3(*xyzrpy),
+                                  gmsg.Quaternion(0, 0, 0, 1))
+        elif len(xyzrpy) == 6:
+            return gmsg.Transform(gmsg.Vector3(*xyzrpy[0:3]),
+                                  gmsg.Quaternion(
+                                      *tfs.quaternion_from_euler(
+                                          *np.radians(xyzrpy[3:6]))))
+
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do %s ***", "picking" if goal.pick else "placing")
         routines = self._routines
@@ -70,9 +81,13 @@ class PickOrPlaceAction(object):
                              goal.robot_name,
                              routines.effector_target_pose(
                                  goal.pose,
-                                 (goal.approach_offset.x,
-                                  goal.approach_offset.y,
-                                  goal.approach_offset.z)),
+                                 (goal.approach_offset.translation.x,
+                                  goal.approach_offset.translation.y,
+                                  goal.approach_offset.translation.z,
+                                  goal.approach_offset.rotation.x,
+                                  goal.approach_offset.rotation.y,
+                                  goal.approach_offset.rotation.z,
+                                  goal.approach_offset.rotation.w)),
                              goal.speed_fast if goal.pick else goal.speed_slow)
         if not success:
             result.result = amsg.pickOrPlaceResult.MOVE_FAILURE
@@ -86,10 +101,15 @@ class PickOrPlaceAction(object):
             return
         if goal.pick:
             gripper.pregrasp(-1)               # Pregrasp (not wait)
-        target_pose = routines.effector_target_pose(goal.pose,
-                                                    (goal.grasp_offset.x,
-                                                     goal.grasp_offset.y,
-                                                     goal.grasp_offset.z))
+        target_pose \
+            = routines.effector_target_pose(goal.pose,
+                                            (goal.grasp_offset.translation.x,
+                                             goal.grasp_offset.translation.y,
+                                             goal.grasp_offset.translation.z,
+                                             goal.grasp_offset.rotation.x,
+                                             goal.grasp_offset.rotation.y,
+                                             goal.grasp_offset.rotation.z,
+                                             goal.grasp_offset.rotation.w))
         routines.add_marker("pick_pose" if goal.pick else "place_pose",
                             target_pose)
         routines.publish_marker()
@@ -124,9 +144,13 @@ class PickOrPlaceAction(object):
         success, _, _ = routines.go_to_pose_goal(goal.robot_name,
                                                  routines.effector_target_pose(
                                                      goal.pose,
-                                                     (offset.x,
-                                                      offset.y,
-                                                      offset.z)),
+                                                     (offset.translation.x,
+                                                      offset.translation.y,
+                                                      offset.translation.z,
+                                                      offset.rotation.x,
+                                                      offset.rotation.y,
+                                                      offset.rotation.z,
+                                                      offset.rotation.w)),
                                                  speed)
         if not success:
             result.result = amsg.pickOrPlaceResult.DEPARTURE_FAILURE

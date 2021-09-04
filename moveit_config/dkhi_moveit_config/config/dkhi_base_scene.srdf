@@ -86,11 +86,164 @@
     <disable_collisions link1="a_khi_base_link" link2="b_khi_link5" reason="Never" />
     <disable_collisions link1="a_khi_base_link" link2="b_khi_link6" reason="Never" />
     <disable_collisions link1="a_khi_base_link" link2="workbox" reason="Adjacent" />
-    <disable_collisions link1="a_khi_camera" link2="a_khi_link3" reason="Never" />
-    <disable_collisions link1="a_khi_camera" link2="a_khi_link5" reason="Never" />
-    <disable_collisions link1="a_khi_camera" link2="a_khi_link6" reason="Never" />
-    <disable_collisions link1="a_khi_camera" link2="a_khi_magripper_base_link" reason="Adjacent" />
-    <disable_collisions link1="a_khi_camera" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_left_inner_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_left_inner_finger_pad" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_left_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_left_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_left_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_right_inner_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_right_inner_finger_pad" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_right_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_link2" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="a_khi_link6" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="b_khi_link1" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="b_khi_link2" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="b_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_coupling_base_link" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_left_inner_finger_pad" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_left_inner_knuckle" reason="Default" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_left_outer_finger" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_left_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_right_inner_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_right_inner_finger_pad" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_right_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_left_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_left_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_left_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_right_inner_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_right_inner_finger_pad" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_right_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="b_khi_gripper_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="b_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_finger_pad" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_left_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_left_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_right_inner_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_right_inner_finger_pad" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_right_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_inner_knuckle" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_gripper_left_outer_knuckle" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_gripper_right_inner_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_gripper_right_inner_finger_pad" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_gripper_right_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_finger" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_gripper_right_inner_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_gripper_right_inner_finger_pad" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_gripper_right_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="b_khi_gripper_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="b_khi_link1" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="b_khi_link2" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_left_outer_knuckle" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_gripper_right_inner_finger_pad" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_gripper_right_inner_knuckle" reason="Default" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_gripper_right_outer_finger" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="b_khi_gripper_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_gripper_right_inner_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="b_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_finger_pad" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="a_khi_gripper_right_outer_finger" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="a_khi_gripper_right_outer_knuckle" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_inner_knuckle" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="a_khi_gripper_right_outer_knuckle" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="b_khi_gripper_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="b_khi_link2" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_finger" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="a_khi_gripper_robotiq_arg2f_base_link" reason="Adjacent" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="b_khi_gripper_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_right_outer_knuckle" link2="b_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_robotiq_arg2f_base_link" link2="a_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_robotiq_arg2f_base_link" link2="a_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_robotiq_arg2f_base_link" link2="a_khi_link5" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_robotiq_arg2f_base_link" link2="a_khi_link6" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_robotiq_arg2f_base_link" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_gripper_robotiq_arg2f_base_link" link2="b_khi_link6" reason="Never" />
     <disable_collisions link1="a_khi_link1" link2="a_khi_link2" reason="Adjacent" />
     <disable_collisions link1="a_khi_link1" link2="a_khi_link3" reason="Never" />
     <disable_collisions link1="a_khi_link1" link2="b_khi_base_link" reason="Never" />
@@ -112,7 +265,6 @@
     <disable_collisions link1="a_khi_link3" link2="a_khi_link4" reason="Adjacent" />
     <disable_collisions link1="a_khi_link3" link2="a_khi_link5" reason="Never" />
     <disable_collisions link1="a_khi_link3" link2="a_khi_link6" reason="Never" />
-    <disable_collisions link1="a_khi_link3" link2="a_khi_magripper_base_link" reason="Never" />
     <disable_collisions link1="a_khi_link3" link2="b_khi_base_link" reason="Never" />
     <disable_collisions link1="a_khi_link3" link2="b_khi_link1" reason="Never" />
     <disable_collisions link1="a_khi_link3" link2="b_khi_link2" reason="Never" />
@@ -122,16 +274,23 @@
     <disable_collisions link1="a_khi_link4" link2="b_khi_base_link" reason="Never" />
     <disable_collisions link1="a_khi_link4" link2="b_khi_link1" reason="Never" />
     <disable_collisions link1="a_khi_link5" link2="a_khi_link6" reason="Adjacent" />
-    <disable_collisions link1="a_khi_link5" link2="a_khi_magripper_base_link" reason="Never" />
     <disable_collisions link1="a_khi_link5" link2="b_khi_base_link" reason="Never" />
     <disable_collisions link1="a_khi_link5" link2="b_khi_link1" reason="Never" />
+    <disable_collisions link1="a_khi_link5" link2="b_khi_link4" reason="Never" />
     <disable_collisions link1="a_khi_link5" link2="b_khi_link6" reason="Never" />
-    <disable_collisions link1="a_khi_link6" link2="a_khi_magripper_base_link" reason="Adjacent" />
     <disable_collisions link1="a_khi_link6" link2="b_khi_base_link" reason="Never" />
+    <disable_collisions link1="a_khi_link6" link2="b_khi_gripper_base_link" reason="Never" />
     <disable_collisions link1="a_khi_link6" link2="b_khi_link1" reason="Never" />
+    <disable_collisions link1="a_khi_link6" link2="b_khi_link2" reason="Never" />
+    <disable_collisions link1="a_khi_link6" link2="b_khi_link3" reason="Never" />
+    <disable_collisions link1="a_khi_link6" link2="b_khi_link4" reason="Never" />
+    <disable_collisions link1="a_khi_link6" link2="b_khi_link5" reason="Never" />
     <disable_collisions link1="a_khi_link6" link2="b_khi_link6" reason="Never" />
     <disable_collisions link1="b_khi_base_link" link2="b_khi_link1" reason="Adjacent" />
     <disable_collisions link1="b_khi_base_link" link2="workbox" reason="Adjacent" />
+    <disable_collisions link1="b_khi_gripper_base_link" link2="b_khi_link3" reason="Never" />
+    <disable_collisions link1="b_khi_gripper_base_link" link2="b_khi_link5" reason="Never" />
+    <disable_collisions link1="b_khi_gripper_base_link" link2="b_khi_link6" reason="Adjacent" />
     <disable_collisions link1="b_khi_link1" link2="b_khi_link2" reason="Adjacent" />
     <disable_collisions link1="b_khi_link1" link2="b_khi_link3" reason="Never" />
     <disable_collisions link1="b_khi_link1" link2="workbox" reason="Never" />

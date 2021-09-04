@@ -1,18 +1,12 @@
 robots:
   a_khi:
-    default_gripper: a_khi_magnet
+    default_gripper: a_khi_gripper
 
 grippers:
-  a_khi_magnet:
+  a_khi_gripper:
     type: SuctionGripper
     args:
-      prefix: a_khi_magnet_
-      tip_link: a_khi_magnet_link
+      name: a_khi_gripper
+      action_ns: /a_khi/suction_controller/suction
+      state_ns: /a_khi/suction_tool/suctioned
       eject: false
-  a_khi_gripper:
-    type: Lecp6Gripper
-    args:
-      prefix: a_khi_
-
-cameras:
-  a_khi_camera: PhoXiCamera

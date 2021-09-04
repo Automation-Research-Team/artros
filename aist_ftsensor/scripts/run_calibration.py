@@ -65,39 +65,39 @@ class FTCalibrationRoutines(AISTBaseRoutines):
         step = 5
         for i in range(max_angle/step):
             self.move_relative(self._robot_name,
-                               [0, 0, 0], [0, radians(step), 0], self._speed)
+                               [0, 0, 0, 0, radians(step), 0], self._speed)
             if self.take_sample:
                 self.take_sample()
 
         self.move_relative(self._robot_name,
-                           [0, 0, 0], [0, radians(-max_angle), 0], self._speed)
+                           [0, 0, 0, 0, radians(-max_angle), 0], self._speed)
 
         for i in range(max_angle/step):
             self.move_relative(self._robot_name,
-                               [0, 0, 0], [0, radians(-step), 0], self._speed)
+                               [0, 0, 0, 0, radians(-step), 0], self._speed)
             if self.take_sample:
                 self.take_sample()
 
         self.move_relative(self._robot_name,
-                           [0, 0, 0], [0, radians(max_angle), 0], self._speed)
+                           [0, 0, 0, 0, radians(max_angle), 0], self._speed)
 
         for i in range(max_angle/step):
             self.move_relative(self._robot_name,
-                               [0, 0, 0], [0, 0, radians(step)], self._speed)
+                               [0, 0, 0, 0, 0, radians(step)], self._speed)
             if self.take_sample:
                 self.take_sample()
 
         self.move_relative(self._robot_name,
-                           [0, 0, 0], [0, 0, radians(-max_angle)], self._speed)
+                           [0, 0, 0, 0, 0, radians(-max_angle)], self._speed)
 
         for i in range(max_angle/step):
             self.move_relative(self._robot_name,
-                               [0, 0, 0], [0, 0, radians(-step)], self._speed)
+                               [0, 0, 0, 0, 0, radians(-step)], self._speed)
             if self.take_sample:
                 self.take_sample()
 
         self.move_relative(self._robot_name,
-                           [0, 0, 0], [0, 0, radians(max_angle)], self._speed)
+                           [0, 0, 0, 0, 0, radians(max_angle)], self._speed)
 
         if self.compute_calibration:
             res = self.compute_calibration()

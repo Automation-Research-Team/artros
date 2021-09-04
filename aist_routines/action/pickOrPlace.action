@@ -2,9 +2,9 @@
 string robot_name
 geometry_msgs/PoseStamped pose
 bool pick
-geometry_msgs/Vector3 grasp_offset
-geometry_msgs/Vector3 approach_offset
-geometry_msgs/Vector3 departure_offset
+geometry_msgs/Transform grasp_offset
+geometry_msgs/Transform approach_offset
+geometry_msgs/Transform departure_offset
 float32 speed_fast
 float32 speed_slow
 ---
