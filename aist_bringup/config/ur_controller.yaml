@@ -2,6 +2,16 @@
 hardware_control_loop:
   loop_hz: &loop_hz $(arg frequency)
 
+# Settings for ros_control hardware interface
+ur_hardware_interface:
+  joints: &robot_joints
+    - $(arg prefix)shoulder_pan_joint
+    - $(arg prefix)shoulder_lift_joint
+    - $(arg prefix)elbow_joint
+    - $(arg prefix)wrist_1_joint
+    - $(arg prefix)wrist_2_joint
+    - $(arg prefix)wrist_3_joint
+
 # Publish all joint states ----------------------------------
 joint_state_controller:
   type:         joint_state_controller/JointStateController
@@ -19,20 +29,14 @@ aist_ftsensor_controller:
 
 # Publish speed_scaling factor
 speed_scaling_state_controller:
-  type:         ur_controllers/SpeedScalingStateController
+  type:         scaled_controllers/SpeedScalingStateController
   publish_rate: *loop_hz
 
 # Joint Trajectory Controller - position based -------------------------------
 # For detailed explanations of parameter see http://wiki.ros.org/joint_trajectory_controller
 scaled_pos_joint_traj_controller:
   type: position_controllers/$(arg scaled)JointTrajectoryController
-  joints: &robot_joints
-    - $(arg prefix)shoulder_pan_joint
-    - $(arg prefix)shoulder_lift_joint
-    - $(arg prefix)elbow_joint
-    - $(arg prefix)wrist_1_joint
-    - $(arg prefix)wrist_2_joint
-    - $(arg prefix)wrist_3_joint
+  joints: *robot_joints
   constraints:
     goal_time: 0.6
     stopped_velocity_tolerance: 0.05
@@ -130,6 +134,36 @@ vel_joint_traj_controller:
 joint_group_vel_controller:
   type: velocity_controllers/JointGroupVelocityController
   joints: *robot_joints
+
+forward_joint_traj_controller:
+    type: "pass_through_controllers/JointTrajectoryController"
+    joints: *robot_joints
+
+forward_cartesian_traj_controller:
+    type: "pass_through_controllers/CartesianTrajectoryController"
+    joints: *robot_joints
+
+twist_controller:
+  type: "ros_controllers_cartesian/TwistController"
+  frame_id: "tool0_controller"
+  publish_rate: *loop_hz
+  joints: *robot_joints
+
+pose_based_cartesian_traj_controller:
+    type: pose_controllers/CartesianTrajectoryController
+
+    # UR driver convention
+    base: base
+    tip: tool0_controller
+    joints: *robot_joints
+
+joint_based_cartesian_traj_controller:
+    type: position_controllers/CartesianTrajectoryController
+
+    # UR driver convention
+    base: base
+    tip: tool0
+    joints: *robot_joints
 
 robot_status_controller:
   type: industrial_robot_status_controller/IndustrialRobotStatusController
