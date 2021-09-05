@@ -129,7 +129,7 @@ class AISTBaseRoutines(object):
         group.clear_pose_targets()
         return success
 
-    def go_to_frame(self, robot_name, target_frame, offset=(0, 0, 0, 0, 0, 0),
+    def go_to_frame(self, robot_name, target_frame, offset=(0, 0, 0),
                     speed=1.0, end_effector_link='',
                     high_precision=False, move_lin=True):
         target_pose = gmsg.PoseStamped()
@@ -358,23 +358,23 @@ class AISTBaseRoutines(object):
                                                wait, feedback_cb)
 
     def pick_at_frame(self, robot_name, target_frame, part_id,
-                      offset=(0, 0, 0, 0, 0, 0), wait=True, feedback_cb=None):
+                      offset=(0, 0, 0), wait=True, feedback_cb=None):
         target_pose = gmsg.PoseStamped()
         target_pose.header.frame_id = target_frame
-        target_pose.pose            = gmsg.Pose(gmsg.Point(*offset[0:3]),
-                                                gmsg.Quaternion(
-                                                    *tfs.quaternion_from_euler(
-                                                        *offset[3:6])))
+        target_pose.pose = gmsg.Pose(gmsg.Point(*offset[0:3]),
+                                     gmsg.Quaternion(
+                                         *self._quaternion_from_offset(
+                                             offset[3:])))
         return self.pick(robot_name, target_pose, part_id, wait, feedback_cb)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
-                       offset=(0, 0, 0, 0, 0, 0), wait=True, feedback_cb=None):
+                       offset=(0, 0, 0), wait=True, feedback_cb=None):
         target_pose = gmsg.PoseStamped()
         target_pose.header.frame_id = target_frame
-        target_pose.pose            = gmsg.Pose(gmsg.Point(*offset[0:3]),
-                                                gmsg.Quaternion(
-                                                    *tfs_quaternion_from_euler(
-                                                        *offset[3:6])))
+        target_pose.pose = gmsg.Pose(gmsg.Point(*offset[0:3]),
+                                     gmsg.Quaternion(
+                                         *self._quaternion_from_offset(
+                                             offset[3:])))
         return self.place(robot_name, target_pose, part_id, wait, feedback_cb)
 
     def pick_or_place_wait_for_result(self):
@@ -393,9 +393,10 @@ class AISTBaseRoutines(object):
                                             pose.pose.orientation.y,
                                             pose.pose.orientation.z,
                                             pose.pose.orientation.w)),
-                                       tfs.translation_matrix(offset[0:3]),
-                                       tfs.euler_matrix(offset[3], offset[4],
-                                                        offset[5], 'sxyz'))
+                                       self._listener.fromTranslationRotation(
+                                           offset[0:3],
+                                           self._quaternion_from_offset(
+                                               offset[3:])))
         return gmsg.PoseStamped(
                  pose.header,
                  gmsg.Pose(
@@ -478,8 +479,7 @@ class AISTBaseRoutines(object):
                          target_pose.orientation.w)),
                     self._listener.fromTranslationRotation(
                         offset[0:3],
-                        offset[3:7] if len(offset) == 7 else \
-                        tfs.quaternion_from_euler(*offset[3:6])),
+                        self._quaternion_from_offset(offset[3:])),
                     self._listener.fromTranslationRotation(
                         (0, 0, 0),
                         tfs.quaternion_from_euler(0, radians(90), 0)))
@@ -521,3 +521,10 @@ class AISTBaseRoutines(object):
         return [ gmsg.Point(*tuple(np.dot(mat44,
                                           np.array((p.x, p.y, p.z, 1.0)))[:3]))
                  for p in points ]
+
+    def _quaternion_from_offset(self, offset):
+        return (0, 0, 0, 1) if len(offset) < 3 else \
+               tfs.quaternion_from_euler(offset[0],
+                                         offset[1],
+                                         offset[2]) if len(offset) == 3 else \
+               offset[0:4]

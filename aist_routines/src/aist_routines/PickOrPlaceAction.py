@@ -24,14 +24,14 @@ class PickOrPlaceAction(object):
         self._client.wait_for_server()
 
     # Client stuffs
-    def execute(self, robot_name, pose_stamped, pick, grasp_offset,
+    def execute(self, robot_name, pose_stamped, pick, offset,
                 approach_offset, departure_offset, speed_fast, speed_slow,
                 wait=True, feedback_cb=None):
         goal = amsg.pickOrPlaceGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
         goal.pick             = pick
-        goal.grasp_offset     = self._create_transform(grasp_offset)
+        goal.offset           = self._create_transform(offset)
         goal.approach_offset  = self._create_transform(approach_offset)
         goal.departure_offset = self._create_transform(departure_offset)
         goal.speed_fast       = speed_fast
@@ -57,15 +57,13 @@ class PickOrPlaceAction(object):
     def shutdown(self):
         self._server.__del__()
 
-    def _create_transform(xyzrpy):
-        if len(xyzrpy) == 3:
-            return gmsg.Transform(gmsg.Vector3(*xyzrpy),
-                                  gmsg.Quaternion(0, 0, 0, 1))
-        elif len(xyzrpy) == 6:
-            return gmsg.Transform(gmsg.Vector3(*xyzrpy[0:3]),
-                                  gmsg.Quaternion(
-                                      *tfs.quaternion_from_euler(
-                                          *np.radians(xyzrpy[3:6]))))
+    def _create_transform(offset):
+        xyz = (0, 0, 0)    if len(offset) < 3 else offset[0:3]
+        q   = (0, 0, 0, 1) if len(offset) < 6 else \
+              tfs.quaternion_from_euler(
+                  *np.radians(offset[3:6])) if len(offset) == 6 else \
+              offset[3:7]
+        return gmsg.Transform(gmsg.Vector3(*xyz), gmsg.Quaternion(*q))
 
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do %s ***", "picking" if goal.pick else "placing")
@@ -103,13 +101,13 @@ class PickOrPlaceAction(object):
             gripper.pregrasp(-1)               # Pregrasp (not wait)
         target_pose \
             = routines.effector_target_pose(goal.pose,
-                                            (goal.grasp_offset.translation.x,
-                                             goal.grasp_offset.translation.y,
-                                             goal.grasp_offset.translation.z,
-                                             goal.grasp_offset.rotation.x,
-                                             goal.grasp_offset.rotation.y,
-                                             goal.grasp_offset.rotation.z,
-                                             goal.grasp_offset.rotation.w))
+                                            (goal.offset.translation.x,
+                                             goal.offset.translation.y,
+                                             goal.offset.translation.z,
+                                             goal.offset.rotation.x,
+                                             goal.offset.rotation.y,
+                                             goal.offset.rotation.z,
+                                             goal.offset.rotation.w))
         routines.add_marker("pick_pose" if goal.pick else "place_pose",
                             target_pose)
         routines.publish_marker()
