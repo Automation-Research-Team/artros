@@ -28,7 +28,7 @@ class Multiplexer
     {
       public:
 	Subscribers(Multiplexer* multiplexer,
-		    const std::string& camera_name			);
+		    const std::string& camera_name)			;
 
 	const std::string&	camera_name()			const	;
 
