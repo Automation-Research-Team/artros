@@ -57,7 +57,7 @@ class PickOrPlaceAction(object):
     def shutdown(self):
         self._server.__del__()
 
-    def _create_transform(offset):
+    def _create_transform(self, offset):
         xyz = (0, 0, 0)    if len(offset) < 3 else offset[0:3]
         q   = (0, 0, 0, 1) if len(offset) < 6 else \
               tfs.quaternion_from_euler(
