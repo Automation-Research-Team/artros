@@ -87,80 +87,68 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
      _depth_bg(nullptr),
      _depth(),
      _normal(),
-     _threshBG(0.0),
-     _near(0.0),
-     _far(FarMax),
-     _top(0),
-     _bottom(2048),
-     _left(0),
-     _right(3072),
-     _scale(1.0),
-     _window_radius(0),
-     _threshPlane(0.001)
+     _threshBG(_nh.param("thresh_bg", 0.0)),
+     _near(_nh.param("near", 0.0)),
+     _far(_nh.param("far", 4.0)),
+     _top(_nh.param("top", 0)),
+     _bottom(_nh.param("bottom", 2048)),
+     _left(_nh.param("left", 0)),
+     _right(_nh.param("right", 3072)),
+     _scale(_nh.param("scale", 1.0)),
+     _window_radius(_nh.param("window_radius", 0)),
+     _threshPlane(_nh.param("thresh_plane", 0.001))
 {
   // Setup DetectPlane action server.
     _detect_plane_srv.registerPreemptCallback(boost::bind(&preempt_cb, this));
     _detect_plane_srv.start();
 
   // Setup parameters
-    _nh.param("thresh_bg", _threshBG, _threshBG);
     _ddr.registerVariable<double>("thresh_bg", _threshBG,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_threshBG, _1),
 				  "Threshold value for background removal",
 				  0.0, 0.1);
-    _nh.param("near", _near, _near);
     _ddr.registerVariable<double>("near", _near,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_near, _1),
 				  "Nearest depth value", 0.0, 1.0);
-    _nh.param("far", _far, _far);
     _ddr.registerVariable<double>("far", _far,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_far, _1),
 				  "Farest depth value", 0.0, FarMax);
-    _nh.param("top", _top, _top);
     _ddr.registerVariable<int>("top", _top,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_top, _1),
 			       "Top of ROI", 0, 2048);
-    _nh.param("bottom", _bottom, _bottom);
     _ddr.registerVariable<int>("bottom", _bottom,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_bottom, _1),
 			       "Bottom of ROI", 0, 2048);
-    _nh.param("left", _left, _left);
     _ddr.registerVariable<int>("left", _left,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_left, _1),
 			       "Left of ROI", 0, 3072);
-    _nh.param("right", _right, _right);
     _ddr.registerVariable<int>("right", _right,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_right, _1),
 			       "Right of ROI", 0, 3072);
-    _nh.param("scale", _scale, _scale);
     _ddr.registerVariable<double>("scale", _scale,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_scale, _1),
 				  "Scale depth", 0.5, 1.5);
-    _nh.param("thresh_plane", _threshPlane, _threshPlane);
     _ddr.registerVariable<double>("thresh_plane", &_threshPlane,
-				  "Threshold of plane fitting", 0.0, 0.01);
+				  "Threshold for plane fitting", 0.0, 0.01);
 
-    bool	subscribe_normal;
-    _nh.param("subscribe_normal", subscribe_normal, true);
-    if (subscribe_normal)
+    if (_nh.param("subscribe_normal", true))
     {
 	_sync.registerCallback(&DepthFilter::filter_with_normal_cb, this);
     }
     else
     {
-	_nh.param("window_radius", _window_radius, 0);
 	_ddr.registerVariable<int>("window_radius", _window_radius,
 				   boost::bind(
 				       &DepthFilter::setVariable<int>,
