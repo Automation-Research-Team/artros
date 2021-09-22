@@ -1,4 +1,36 @@
-/*
+// Software License Agreement (BSD License)
+//
+// Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of National Institute of Advanced Industrial
+//    Science and Technology (AIST) nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+/*!
  *  \file	dynpick_driver.cpp
  *  \brief	ROS driver for Wacohtech DYNPICK force-torque sensors
  */
@@ -69,7 +101,7 @@ dynpick_driver::dynpick_driver()
 
 	ROS_INFO_STREAM("(dynpick_driver) reset_offsets: " << res.data());
     }
-    
+
   // Set number of points used for averaging filter.
     const auto	avg_npoints = _nh.param<int>("avg_npoints", 1);
     switch (avg_npoints)
@@ -150,7 +182,7 @@ dynpick_driver::get_gains() const
     put_command("p");
     const auto&	res = get_response();
     ROS_INFO_STREAM("(dynpick_driver) sensitivities: " << res.data());
-    
+
     vector6_t	gains;
     sscanf(res.data(), "%lf,%lf,%lf,%lf,%lf,%lf",
 	   &gains[0], &gains[1], &gains[2], &gains[3], &gains[4], &gains[5]);
@@ -201,7 +233,7 @@ dynpick_driver::open_tty(const char* dev, u_int baud)
 			     << baud << ']');
 	    throw;
 	}
-	    
+
 	bzero(&term, sizeof(term));
 
 	term.c_cflag = baud | CS8 | CLOCAL | CREAD;

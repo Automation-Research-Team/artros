@@ -1,26 +1,35 @@
+// Software License Agreement (BSD License)
 //
-// OrderedPly.h
+// Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+// All rights reserved.
 //
-// Copyright (C) 2019  国立研究開発法人 産業技術総合研究所
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
-// 著作権者による許可なしに，このソフトウェアおよび文書に関する
-// 情報を使用，複製，第三者へ開示するあらゆる行為を禁止します．
-// このソフトウェアは「現状のまま」で提供されます．明示的，暗黙的を問わず，
-// 商品性，適合性を含め，このソフトウェアについてのいかなる保証もありません．
-// 作者または著作権者は，契約行為，不法行為，またはそれ以外にかかわらず，
-// ソフトウェアに起因または関連し，あるいはソフトウェアの使用またはその他の
-// 扱いによって生じる一切の請求，損害，その他の義務について責任を負いません．
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of National Institute of Advanced Industrial
+//    Science and Technology (AIST) nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
 //
-// Copyright (C) 2019  AIST, All rights reserved.
-//
-// Any using, copying, disclosing information regarding the software and
-// documentation without permission of the copyright holders are prohibited.
-// The software is provided "AS IS", without warranty of any kind, express or
-// implied, including all implied warranties of merchantability and fitness.
-// In no event shall the authors or copyright holders be liable for any claim,
-// damages or other liability, whether in an action of contract, tort or 
-// otherwise, arising from, out of or in connection with the software or 
-// the use or other dealings in the software.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 #ifndef ORDERED_PLY_H
 #define ORDERED_PLY_H
 #include <string>
@@ -40,7 +49,7 @@ typedef enum PhoXiControlVersion {
 // ・3D点の属性は, 3D座標, 法線ベクトル, RGBカラー, 輝度, 距離, 確信度.
 // ・3D点の数＝画像の幅×高さ.
 // ・全ての3D点がラスタスキャン順に並び, 全点にカラーの情報が付与される.
-// ・欠落した3D点は3D座標が(0,0,0), 法線ベクトルが(0,0,1)となる. 
+// ・欠落した3D点は3D座標が(0,0,0), 法線ベクトルが(0,0,1)となる.
 //
 struct OrderedPly {
   PCver version;		// PhoXi Controlのバージョン

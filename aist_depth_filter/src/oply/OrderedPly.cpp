@@ -1,26 +1,35 @@
+// Software License Agreement (BSD License)
 //
-// OrderedPly.cpp
+// Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+// All rights reserved.
 //
-// Copyright (C) 2019  国立研究開発法人 産業技術総合研究所
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
-// 著作権者による許可なしに，このソフトウェアおよび文書に関する
-// 情報を使用，複製，第三者へ開示するあらゆる行為を禁止します．
-// このソフトウェアは「現状のまま」で提供されます．明示的，暗黙的を問わず，
-// 商品性，適合性を含め，このソフトウェアについてのいかなる保証もありません．
-// 作者または著作権者は，契約行為，不法行為，またはそれ以外にかかわらず，
-// ソフトウェアに起因または関連し，あるいはソフトウェアの使用またはその他の
-// 扱いによって生じる一切の請求，損害，その他の義務について責任を負いません．
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of National Institute of Advanced Industrial
+//    Science and Technology (AIST) nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
 //
-// Copyright (C) 2019  AIST, All rights reserved.
-//
-// Any using, copying, disclosing information regarding the software and
-// documentation without permission of the copyright holders are prohibited.
-// The software is provided "AS IS", without warranty of any kind, express or
-// implied, including all implied warranties of merchantability and fitness.
-// In no event shall the authors or copyright holders be liable for any claim,
-// damages or other liability, whether in an action of contract, tort or 
-// otherwise, arising from, out of or in connection with the software or 
-// the use or other dealings in the software.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <iostream>
 #include <exception>
@@ -45,7 +54,7 @@ enum PhoXiFrameParamsProperty {
 };
 
 enum CameraMatrixProperty {
-  CM0, CM1, CM2, CM3, CM4, CM5, CM6, CM7, CM8 
+  CM0, CM1, CM2, CM3, CM4, CM5, CM6, CM7, CM8
 };
 
 enum DistortionMatrixProperty {
@@ -61,7 +70,7 @@ enum FrameBinningProperty {
   HORIZONTAL, VERTICAL
 };
 
-  
+
 extern "C" {
   //
   // 3次元点の属性を読み込むコールバック関数
@@ -531,7 +540,7 @@ void OPlyReader::read(void)
 			     read_frame_binning, &data, VERTICAL);
 	guess = PC_VER_1_2;
       } else {
-	// ignore unknown elements and properties. 
+	// ignore unknown elements and properties.
 	ok = 1;
       }
 
@@ -646,7 +655,7 @@ void OPlyWriter::write(void)
       if (!ply_add_property(dst, "green", PLY_UCHAR, PLY_CHAR, PLY_CHAR)) {
 	throw std::runtime_error("error: failed to write \"green\" property.");
       }
-      
+
       if (!ply_add_property(dst, "blue", PLY_UCHAR, PLY_CHAR, PLY_CHAR)) {
 	throw std::runtime_error("error: failed to write \"blue\" property.");
       }
@@ -696,35 +705,35 @@ void OPlyWriter::write(void)
     if (!ply_add_property(dst, "x_axisx", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"x_axisx\" property.");
     }
-    
+
     if (!ply_add_property(dst, "x_axisy", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"x_axisy\" property.");
     }
-    
+
     if (!ply_add_property(dst, "x_axisz", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"x_axisz\" property.");
     }
-    
+
     if (!ply_add_property(dst, "y_axisx", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"y_axisx\" property.");
     }
-    
+
     if (!ply_add_property(dst, "y_axisy", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"y_axisy\" property.");
     }
-    
+
     if (!ply_add_property(dst, "y_axisz", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"y_axisz\" property.");
     }
-    
+
     if (!ply_add_property(dst, "z_axisx", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"z_axisx\" property.");
     }
-    
+
     if (!ply_add_property(dst, "z_axisy", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"z_axisy\" property.");
     }
-    
+
     if (!ply_add_property(dst, "z_axisz", PLY_FLOAT, PLY_CHAR, PLY_CHAR)) {
       throw std::runtime_error("error: failed to write \"z_axisz\" property.");
     }
@@ -904,7 +913,7 @@ void OPlyWriter::write(void)
 				 " \"height\" property.");
       }
     }
-    
+
     // フレームビニング (frame_bining)
     if (data.version >= PC_VER_1_2) {
       if (!ply_add_element(dst, "frame_binning", 1)) {
@@ -924,12 +933,12 @@ void OPlyWriter::write(void)
 				 " \"vertical\" property.");
       }
     }
-    
+
     // ヘッダの出力
     if (!ply_write_header(dst)) {
       throw std::runtime_error("error: failed to write ply header.");
     }
-    
+
     // ---------- 出力ファイルにデータ本体を書き込む ----------
 
     // vertex
@@ -940,7 +949,7 @@ void OPlyWriter::write(void)
       ply_write(dst, x);
       ply_write(dst, y);
       ply_write(dst, z);
-      
+
       if (data.normal.size() > 0) {
 	const float nx = data.normal[i][0];
 	const float ny = data.normal[i][1];
