@@ -37,9 +37,9 @@
  */
 #include <sensor_msgs/image_encodings.h>
 #include <tiffio.h>
-#include "tiff.h"
+#include <aist_utility/tiff.h>
 
-namespace aist_depth_filter
+namespace aist_utility
 {
 /************************************************************************
 *  global functions to save/load TIFF images				*
@@ -213,4 +213,4 @@ loadTiff(const std::string& file)
     return image;
 }
 
-}	// namespace aist_depth_filter
+}	// namespace aist_utility

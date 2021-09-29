@@ -50,7 +50,7 @@
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_depth_filter/DetectPlaneAction.h>
-#include "Plane.h"
+#include <aist_utility/opencv.h>
 
 namespace aist_depth_filter
 {
@@ -74,7 +74,7 @@ class DepthFilter
 				ApproximateTime<camera_info_t,
 						image_t, image_t>;
     using file_info_t	 = aist_depth_filter::FileInfo;
-    using plane_t	 = TU::Plane<value_t, 3>;
+    using plane_t	 = aist_utility::opencv::Plane<value_t, 3>;
 
     using action_t	 = aist_depth_filter::DetectPlaneAction;
     using feedback_t	 = aist_depth_filter::DetectPlaneFeedback;

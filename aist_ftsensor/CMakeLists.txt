@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   std_msgs
   tf
+  aist_utility
 )
 
 # catkin_python_setup()
@@ -99,7 +100,6 @@ install(TARGETS ${PROJECT_NAME}_controller
 
 # Intall plugins
 install(FILES aist_ftsensor_plugin.xml
-              config/aist_ftsensor_controller.yaml
-              launch/aist_ftsensor_controller.launch
+              config/ftsensor_controller.yaml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

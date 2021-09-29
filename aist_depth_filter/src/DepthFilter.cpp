@@ -38,9 +38,10 @@
 #include <cstdlib>	// for getenv()
 #include <sys/stat.h>	// for mkdir()
 #include <sensor_msgs/image_encodings.h>
-#include "tiff.h"
-#include "ply.h"
-#include "utils.h"
+#include <aist_utility/tiff.h>
+#include <aist_utility/ply.h>
+#include <aist_utility/sensor_msgs.h>
+#include <aist_utility/opencv.h>
 #include "binarize.h"
 #include "ransac.h"
 #include "DepthFilter.h"
@@ -53,6 +54,8 @@ namespace aist_depth_filter
 template <class T, class ITER> ITER
 get_dark_pixels(const sensor_msgs::Image& image, ITER iter)
 {
+    using namespace	aist_utility;
+
   // Create an array of intensity values.
     std::vector<float>	intensities(image.height * image.width);
     auto		q = intensities.begin();
@@ -226,7 +229,7 @@ DepthFilter::saveBG_cb(std_srvs::Trigger::Request&  req,
 	if (!_depth_org)
 	    throw std::runtime_error("no original depth image available!");
 
-	saveTiff(*_depth_org, open_dir() + "/bg.tif");
+	aist_utility::saveTiff(*_depth_org, open_dir() + "/bg.tif");
 
 	_depth_bg  = _depth_org;
 	_depth_org = nullptr;
@@ -257,7 +260,8 @@ DepthFilter::capture_cb(std_srvs::Trigger::Request&  req,
 	    throw std::runtime_error("no filtered depth image available!");
 
 	const auto	file_path = open_dir() + "/scene.ply";
-	savePly(_camera_info, _image, _depth, _normal, file_path);
+	aist_utility::savePly(_camera_info, _image, _depth, _normal,
+			      file_path);
 	_depth.data.clear();
 
 	file_info_t	file_info;
@@ -318,7 +322,7 @@ DepthFilter::filter_with_normal_cb(const camera_info_cp& camera_info,
 
     try
     {
-	using	namespace sensor_msgs;
+	using namespace	sensor_msgs;
 
       // Keep pointers to original data.
 	_camera_info_org = camera_info;
@@ -457,7 +461,7 @@ DepthFilter::filter(const camera_info_t& camera_info, image_t& depth)
 	try
 	{
 	    if (!_depth_bg)
-		_depth_bg = loadTiff(open_dir() + "/bg.tif");
+		_depth_bg = aist_utility::loadTiff(open_dir() + "/bg.tif");
 
 	    removeBG<T>(depth, *_depth_bg);
 	}
@@ -486,6 +490,8 @@ DepthFilter::removeBG(image_t& depth, const image_t& depth_bg) const
 {
     for (int v = 0; v < depth.height; ++v)
     {
+	using namespace	aist_utility;
+
 	auto	p = ptr<T>(depth, v);
 	auto	b = ptr<T>(depth_bg, v + _top) + _left;
 	for (const auto q = p + depth.width; p != q; ++p, ++b)
@@ -499,6 +505,8 @@ DepthFilter::z_clip(image_t& depth) const
 {
     for (int v = 0; v < depth.height; ++v)
     {
+	using namespace	aist_utility;
+
 	const auto	p = ptr<T>(depth, v);
 	std::replace_if(p, p + depth.width,
 			[this](const auto& val)
@@ -511,7 +519,7 @@ template <class T> void
 DepthFilter::computeNormal(const camera_info_t& camera_info,
 			   const image_t& depth)
 {
-    using	namespace sensor_msgs;
+    using namespace	sensor_msgs;
 
   // Computation of normals should be done in double-precision
   // in order to avoid truncation error when sliding windows
@@ -543,7 +551,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
 
   // 2: Compute 3D coordinates.
     cv::Mat_<vector3_t>		xyz(depth.height, depth.width);
-    depth_to_points<T>(camera_info, depth, xyz.begin(), milimeters<T>);
+    aist_utility::depth_to_points<T>(camera_info, depth, xyz.begin(),
+				     aist_utility::milimeters<T>);
 
   // 3: Compute normals.
     const auto			ws1 = 2 * _window_radius;
@@ -554,6 +563,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
   // 3.1: Convovle with a box filter in horizontal direction.
     for (int v = 0; v < n.cols; ++v)
     {
+	using namespace	aist_utility::opencv;
+
 	auto		sum_n = 0;
 	vector3_t	sum_c(0, 0, 0);
 	auto		sum_M = matrix33_t::zeros();
@@ -598,6 +609,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
   // 3.2: Convolve with a box filter in vertical direction.
     for (int u = 0; u < n.rows; ++u)
     {
+	using namespace	aist_utility;
+
 	auto	sum_n = 0;
 	auto	sum_c = vector3_t::zeros();
 	auto	sum_M = matrix33_t::zeros();
@@ -620,6 +633,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
 
 	    if (sum_n > 3)
 	    {
+		using namespace	opencv;
+
 		const auto	A = sum_n * sum_M - sum_c % sum_c;
 		vector3_t	evalues;
 		matrix33_t	evectors;
@@ -663,6 +678,8 @@ DepthFilter::scale(image_t& depth) const
 {
     for (int v = 0; v < depth.height; ++v)
     {
+	using namespace	aist_utility;
+
 	const auto	p = ptr<T>(depth, v);
 	std::transform(p, p + depth.width, p,
 		       [this](const auto& val){ return _scale * val; });
@@ -674,7 +691,8 @@ DepthFilter::detect_plane(const camera_info_t& camera_info,
 			  const image_t& image,
 			  const image_t& depth, float thresh) const
 {
-    using	namespace sensor_msgs;
+    using namespace	sensor_msgs;
+    using namespace	aist_utility;
 
     using grey_t	= uint8_t;
     using rgb_t		= std::array<uint8_t, 3>;
@@ -758,6 +776,8 @@ DepthFilter::create_colored_normal(const image_t& normal,
 
     for (int v = 0; v < normal.height; ++v)
     {
+	using namespace	aist_utility;
+
 	const auto	p = ptr<normal_t>(normal, v);
 	const auto	q = ptr<colored_normal_t>(colored_normal, v);
 

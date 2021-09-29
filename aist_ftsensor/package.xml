@@ -22,6 +22,7 @@
   <depend>std_msgs</depend>
   <depend>boost</depend>
   <depend>eigen</depend>
+  <depend>aist_utility</depend>
 
   <build_export_depend>hardware_interface</build_export_depend>
 

@@ -31,18 +31,18 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 /*!
- *  \file	tiff.cpp
+ *  \file	ply.cpp
  *  \author	Toshio UESHIBA
  *  \brief	Save depth and color images to Ordered PLY file
  */
 #include <array>
 #include <boost/iterator/iterator_adaptor.hpp>
 #include <sensor_msgs/image_encodings.h>
-#include "ply.h"
+#include <aist_utility/ply.h>
+#include <aist_utility/sensor_msgs.h>
 #include "oply/OrderedPly.h"
-#include "utils.h"
 
-namespace aist_depth_filter
+namespace aist_utility
 {
 /************************************************************************
 *  class assignment_iterator<ITER>					*
@@ -227,4 +227,4 @@ savePly(const sensor_msgs::CameraInfo& camera_info,
     writer.write();
 }
 
-}	// namespace aist_depth_filter
+}	// namespace aist_utility

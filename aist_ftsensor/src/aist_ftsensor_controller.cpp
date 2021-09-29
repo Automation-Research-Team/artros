@@ -48,29 +48,13 @@
 #include <cstdlib>		// for std::getenv()
 #include <sys/stat.h>		// for mkdir()
 #include <Eigen/Dense>
+#include <aist_utility/eigen.h>
 
 namespace aist_ftsensor
 {
 /************************************************************************
 *  static functions							*
 ************************************************************************/
-template <class T, int M, int N> Eigen::Matrix<T, M, N>
-operator %(const Eigen::Matrix<T, M, 1>& x,
-	   const Eigen::Matrix<T, N, 1>& y)
-{
-    return x * y.transpose();
-}
-
-template <class T> Eigen::Matrix<T, 3, 3>
-skew(const Eigen::Matrix<T, 3, 1>& vec)
-{
-    Eigen::Matrix<T, 3, 3>	mat;
-    mat <<       0, -vec(2),  vec(1),
-	    vec(2),	  0, -vec(0),
-	   -vec(1),  vec(0),	   0;
-    return mat;
-}
-
 template <class T, int M> std::ostream&
 operator <<(std::ostream& out, const Eigen::Matrix<T, M, 1>& v)
 {
@@ -489,8 +473,9 @@ bool
 ForceTorqueSensorController::Sensor::compute_calibration_cb(
     std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
-    using namespace Eigen;
-
+    using namespace	Eigen;
+    using namespace	aist_utility::eigen;
+    
     if (_nsamples < 3)
     {
 	res.message = "Not enough samples[" + std::to_string(_nsamples)
@@ -597,6 +582,8 @@ ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
 						 const vector_t& f,
 						 const vector_t& m)
 {
+    using namespace	aist_utility::eigen;
+
     ++_nsamples;
     _k_sum   += k;
     _f_sum   += f;

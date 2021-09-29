@@ -1,5 +1,5 @@
 /*!
- *  \file	Eigen.h
+ *  \file	eigen.h
  *  \author	Toshio UESHIBA
  *  \brief	Utilities
  */
@@ -12,33 +12,33 @@
 
 namespace aist_utility
 {
-namespace Eigen
+namespace eigen
 {
 /************************************************************************
 *  global functions							*
 ************************************************************************/
 //! Exterior product of two vectors.
-template <class T, int M, int N> ::Eigen::Matrix<T, M, N>
-operator %(const ::Eigen::Matrix<T, M, 1>& x,
-	   const ::Eigen::Matrix<T, N, 1>& y)
+template <class T, int M, int N> Eigen::Matrix<T, M, N>
+operator %(const Eigen::Matrix<T, M, 1>& x,
+	   const Eigen::Matrix<T, N, 1>& y)
 {
     return x * y.transpose();
 }
 
-template <class T> ::Eigen::Matrix<T, 3, 3>
-skew(const ::Eigen::Matrix<T, 3, 1>& vec)
+template <class T> Eigen::Matrix<T, 3, 3>
+skew(const Eigen::Matrix<T, 3, 1>& vec)
 {
-    ::Eigen::Matrix<T, 3, 3>	mat;
+    Eigen::Matrix<T, 3, 3>	mat;
     mat <<       0, -vec(2),  vec(1),
 	    vec(2),	  0, -vec(0),
 	   -vec(1),  vec(0),	   0;
     return mat;
 }
 
-template <class T> ::Eigen::Matrix<T, 3, 3>
-rodrigues(const ::Eigen::Matrix<T, 3, 1>& r)
+template <class T> Eigen::Matrix<T, 3, 3>
+rodrigues(const Eigen::Matrix<T, 3, 1>& r)
 {
-    using matrix_t = ::Eigen::Matrix<T, 3, 3>;
+    using matrix_t = Eigen::Matrix<T, 3, 3>;
 
     const auto	theta = r.norm();
     r /= theta;
@@ -93,7 +93,7 @@ template <class T, size_t N>
 class Plane
 {
   public:
-    using vector_t	= ::Eigen::Matrix<T, N, 1>;
+    using vector_t	= Eigen::Matrix<T, N, 1>;
     using element_t	= T;
 
   public:
@@ -136,7 +136,7 @@ class Plane
 template <class T, size_t N> template <class ITER> T
 Plane<T, N>::fit(ITER begin, ITER end)
 {
-    using matrix_t = ::Eigen::Matrix<T, N, N>;
+    using matrix_t = Eigen::Matrix<T, N, N>;
 
     const auto	ext   =	[](const auto& x)
 			{
@@ -160,7 +160,7 @@ Plane<T, N>::fit(ITER begin, ITER end)
 
   // Compute eigenvector corresponding to the smallest eigenvalue of
   // the moment matrix.
-    ::Eigen::SelfAdjointEigenSolver<matrix_t>	eigensolver(moments);
+    Eigen::SelfAdjointEigenSolver<matrix_t>	eigensolver(moments);
     _n = eigensolver.eigenvectors().col(0);
     _d = -_n.dot(centroid);
     if (_d < 0)
@@ -181,8 +181,8 @@ class Similarity
 {
   public:
     using element_t	= T;
-    using vector_t	= ::Eigen::Matrix<T, D, 1>;
-    using matrix_t	= ::Eigen::Matrix<T, D, D>;
+    using vector_t	= Eigen::Matrix<T, D, 1>;
+    using matrix_t	= Eigen::Matrix<T, D, D>;
 
   public:
 		Similarity(const vector_t& t=vector_t::Zero(),
@@ -212,7 +212,7 @@ class Similarity
 template <class T, size_t D> template <class ITER> void
 Similarity<T, D>::fit(ITER begin, ITER end)
 {
-    using namespace ::Eigen;
+    using namespace Eigen;
 
   // 充分な個数の点対があるか？
     const size_t	ndata = std::distance(begin, end);
@@ -263,6 +263,6 @@ operator <<(std::ostream& out, const Similarity<T, D>& similarity)
 	       << similarity.t().transpose()  << std::endl;
 }
 
-}	// namespace Eigen
+}	// namespace eigen
 }	// namespace aist_utility
 #endif	// !AIST_UTILITY_EIGEN_H
