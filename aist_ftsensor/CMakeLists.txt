@@ -63,7 +63,7 @@ add_library(${PROJECT_NAME}_controller
 
 add_dependencies(
   ${PROJECT_NAME}_controller
-  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_generate_messages_cpp
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )

@@ -65,7 +65,7 @@ add_executable(calibrator
 )
 
 add_dependencies(calibrator
-  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_generate_messages_cpp
 )
 
 target_link_libraries(calibrator
@@ -88,7 +88,7 @@ add_executable(calibrator_test
 )
 
 add_dependencies(calibrator_test
-  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_generate_messages_cpp
 )
 
 target_link_libraries(calibrator_test
@@ -101,7 +101,7 @@ add_executable(plane_detector
 )
 
 add_dependencies(plane_detector
-  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_generate_messages_cpp
   ${PROJECT_NAME}_gencfg
 )
 
