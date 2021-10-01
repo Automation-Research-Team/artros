@@ -214,8 +214,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 15
     min_distance: 30
-    h_contact_radius: 15
-    v_contact_radius: 15
+    contact_radius: 15
     open_width: 100
     finger_width: 1
     finger_thickness: 5
@@ -225,8 +224,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 15
     min_distance: 30
-    h_contact_radius: 15
-    v_contact_radius: 15
+    contact_radius: 15
     open_width: 45
     finger_width: 1
     finger_thickness: 5
@@ -236,8 +234,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 2
     min_distance: 30
-    h_contact_radius: 2
-    v_contact_radius: 2
+    contact_radius: 2
     open_width: 20
     finger_width: 1
     finger_thickness: 5
@@ -247,19 +244,16 @@ graspability_parameters:
     nz: 0.7
     object_size: 15
     min_distance: 30
-    h_contact_radius: 10
-    v_contact_radius: 10
+    contact_radius: 10
     open_width: 20
     finger_width: 1
     finger_thickness: 5
     insertion_depth: 0.003
   08_KZAF1075NA4WA55GA20AA0:
     ns: 0
-    detect_edge: false
     object_size: 4
     min_distance: 30
-    h_contact_radius: 2
-    v_contact_radius: 2
+    contact_radius: 2
     open_width: 20
     finger_width: 1
     finger_thickness: 5
@@ -269,8 +263,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 3
     min_distance: 30
-    h_contact_radius: 3
-    v_contact_radius: 3
+    contact_radius: 3
     open_width: 20
     finger_width: 1
     finger_thickness: 5
@@ -280,8 +273,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 3
     min_distance: 30
-    h_contact_radius: 3
-    v_contact_radius: 3
+    contact_radius: 3
     open_width: 20
     finger_width: 1
     finger_thickness: 5
@@ -291,8 +283,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 12
     min_distance: 30
-    h_contact_radius: 12
-    v_contact_radius: 12
+    contact_radius: 12
     open_width: 20
     finger_width: 1
     finger_thickness: 5
@@ -302,8 +293,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 4
     min_distance: 30
-    h_contact_radius: 2
-    v_contact_radius: 2
+    contact_radius: 2
     open_width: 20
     finger_width: 1
     finger_thickness: 5
@@ -313,8 +303,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 7
     min_distance: 30
-    h_contact_radius: 2
-    v_contact_radius: 2
+    contact_radius: 2
     open_width: 30
     finger_width: 1
     finger_thickness: 5
@@ -324,8 +313,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 4
     min_distance: 30
-    h_contact_radius: 2
-    v_contact_radius: 2
+    contact_radius: 2
     open_width: 14
     finger_width: 1
     finger_thickness: 5
@@ -335,8 +323,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 3
     min_distance: 30
-    h_contact_radius: 3
-    v_contact_radius: 3
+    contact_radius: 3
     open_width: 20
     finger_width: 1
     finger_thickness: 5
@@ -346,8 +333,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 3
     min_distance: 30
-    h_contact_radius: 3
-    v_contact_radius: 3
+    contact_radius: 3
     open_width: 15
     finger_width: 1
     finger_thickness: 5
@@ -357,8 +343,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 1
     min_distance: 30
-    h_contact_radius: 1
-    v_contact_radius: 1
+    contact_radius: 1
     open_width: 10
     finger_width: 1
     finger_thickness: 5
@@ -368,8 +353,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 1
     min_distance: 30
-    h_contact_radius: 1
-    v_contact_radius: 1
+    contact_radius: 1
     open_width: 10
     finger_width: 1
     finger_thickness: 5
