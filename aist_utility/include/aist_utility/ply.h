@@ -32,7 +32,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 /*!
  *  \file	ply.h
- *  \author	Toshio UESHIBA
+ *  \author	Toshio Ueshiba
  *  \brief	Save depth and color images to Ordered PLY file
  */
 #ifndef AIST_UTILITY_PLY_H

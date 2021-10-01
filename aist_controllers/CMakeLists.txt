@@ -3,14 +3,14 @@ cmake_minimum_required(VERSION 2.8.3)
 project(aist_controllers)
 
 # Load catkin and all dependencies required for this package
-find_package(catkin REQUIRED COMPONENTS 
-  roscpp 
-  tf 
-  tf_conversions 
-  trajectory_msgs 
-  geometry_msgs 
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  tf
+  tf_conversions
+  trajectory_msgs
+  geometry_msgs
   control_msgs
-  actionlib 
+  actionlib
   kdl_parser
 )
 
@@ -46,7 +46,7 @@ install(
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(
-  DIRECTORY launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+#install(
+#  DIRECTORY launch
+#  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+#)

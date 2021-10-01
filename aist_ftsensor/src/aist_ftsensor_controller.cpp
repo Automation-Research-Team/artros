@@ -30,6 +30,9 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
  *  \file	aist_ftsensor_controller.cpp
  *  \brief	force-torque sensor controller with gravity compensation
@@ -475,7 +478,7 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
 {
     using namespace	Eigen;
     using namespace	aist_utility::eigen;
-    
+
     if (_nsamples < 3)
     {
 	res.message = "Not enough samples[" + std::to_string(_nsamples)

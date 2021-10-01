@@ -30,9 +30,12 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
  *  \file	tiff.cpp
- *  \author	Toshio UESHIBA
+ *  \author	Toshio Ueshiba
  *  \brief	Save/Restore sensor_msgs::Image to/from TIFF file
  */
 #include <sensor_msgs/image_encodings.h>

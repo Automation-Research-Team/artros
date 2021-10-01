@@ -30,9 +30,12 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
  *  \file	Transform.h
- *  \author	Toshio UESHIBA
+ *  \author	Toshio Ueshiba
  *  \brief	3D rigid transformation represented by dual quaternion
  */
 #ifndef TU_TRANSFORM_H
