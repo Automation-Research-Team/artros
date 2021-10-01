@@ -43,7 +43,7 @@
   </include>
 
   <node name="set_window_radius" pkg="dynamic_reconfigure" type="dynparam"
-	args="set depth_filter window_radius 2"/>
+  	args="set depth_filter window_radius 2"/>
 
   <group if="$(arg vis)">
     <node name="$(anon rviz)" pkg="rviz" type="rviz" output="screen"

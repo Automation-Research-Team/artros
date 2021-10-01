@@ -10,7 +10,6 @@
   <arg name="camera_width"	default="640"/>
   <arg name="camera_height"	default="480"/>
   <arg name="fps"		default="30"/>
-  <arg name="enable_streaming"	default="true"/>
   <arg name="manager"		default=""/>
   <arg name="camera_no"		default="0"/>
   <arg name="sim"		default="false"/>
@@ -47,7 +46,6 @@
       <arg name="color_width"		value="$(arg camera_width)"/>
       <arg name="color_height"		value="$(arg camera_height)"/>
       <arg name="color_fps"		value="$(arg fps)"/>
-      <arg name="enable_streaming"	value="$(arg enable_streaming)"/>
       <arg name="external_manager"	value="$(arg external_manager)"/>
       <arg name="manager"		value="/$(arg manager)"
 	   if="$(arg external_manager)"/>
@@ -70,7 +68,6 @@
       <arg name="camera_width"		value="$(arg camera_width)"/>
       <arg name="camera_height"		value="$(arg camera_height)"/>
       <arg name="fps"			value="$(arg fps)"/>
-      <arg name="enable_streaming"	value="$(arg enable_streaming)"/>
       <arg name="manager"		value="$(arg manager)"/>
       <arg name="camera_no"		value="$(eval camera_no + 1)"/>
       <arg name="sim"			value="$(arg sim)"/>
