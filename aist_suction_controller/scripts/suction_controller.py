@@ -38,8 +38,7 @@
 import rospy
 import actionlib
 from aist_suction_controller import msg as amsg
-from ur_msgs.msg             import msg as umsg
-from ur_msgs.srv             import srv as usrv
+from ur_msgs                 import msg as umsg, srv as usrv
 from std_msgs                import msg as smsg
 
 class SuctionController(object):
@@ -74,7 +73,7 @@ class SuctionController(object):
         self._operation_mode_pubs   = dict()
         for mode in rospy.get_param('~operation_mode'):
             name = mode['name']
-            self._mode_in_port_names[mode['digital_in_port']] = name
+            self._operation_mode_in_port_names[mode['digital_in_port']] = name
             self._operation_mode_pubs[name] \
                 = rospy.Publisher(name, smsg.Bool, queue_size=1)
 
