@@ -225,23 +225,22 @@ class RobotiqGripper(GenericGripper):
 ######################################################################
 class SuctionGripper(GripperClient):
     def __init__(self, name, action_ns, state_ns='', eject=False):
-        import o2as_msgs.msg
+        import aist_suction_controller.msg
         import std_msgs.msg
 
         super(SuctionGripper, self).__init__(
             *SuctionGripper._initargs(name, action_ns, state_ns, eject))
         self._client    = actionlib.SimpleActionClient(
                               action_ns,
-                              o2as_msgs.msg.SuctionControlAction)
-        self._sub       = rospy.Subscriber(state_ns,
-                                           std_msgs.msg.Bool,
+                              aist_suction_controller.msg.SuctionControlAction)
+        self._sub       = rospy.Subscriber(state_ns, std_msgs.msg.Bool,
                                            self._state_callback)
         self._suctioned = False
         self._eject     = eject  # blow when releasing
-        self._goal                     = o2as_msgs.msg.SuctionControlGoal()
-        self._goal.fastening_tool_name = 'suction_tool'
-        self._goal.turn_suction_on     = False
-        self._goal.eject_screw         = False
+        self._goal      = aist_suction_controller.msg.SuctionControlGoal()
+        self._goal.tool_name       = 'suction_tool'
+        self._goal.turn_suction_on = False
+        self._goal.eject           = False
 
     @staticmethod
     def base(name, action_ns, state_ns, eject):
@@ -294,15 +293,15 @@ class SuctionGripper(GripperClient):
 ######################################################################
 class PrecisionGripper(GripperClient):
     def __init__(self, prefix='a_bot_gripper_'):
-        import o2as_msgs.msg
+        import aist_precision_gripper.msg
 
         super(PrecisionGripper, self).__init__(
             *PrecisionGripper._initargs(prefix))
         self._client = actionlib.SimpleActionClient(
                            'precision_gripper_action',
                            # str(prefix) + 'gripper/gripper_action_controller',
-                           o2as_msgs.msg.PrecisionGripperCommandAction)
-        self._goal = o2as_msgs.msg.PrecisionGripperCommandGoal()
+                           aist_precision_gripper.msg.PrecisionGripperCommandAction)
+        self._goal = aist_precision_gripper.msg.PrecisionGripperCommandGoal()
         self._goal.stop                         = False
         self._goal.open_outer_gripper_fully     = False
         self._goal.close_outer_gripper_fully    = False
