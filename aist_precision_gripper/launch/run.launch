@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"		dfault="a_bot_gripper_"/>
+  <arg name="prefix"		default="a_bot_gripper_"/>
   <arg name="serial_port"	default="/dev/ttyUSB0"/>
-  <arg name="rate"		default="50"/>
+  <arg name="publish_rate"	default="50"/>
 
   <!-- Spawn controller -->
   <node name="$(arg prefix)controller"
