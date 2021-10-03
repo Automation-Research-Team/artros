@@ -143,8 +143,8 @@ if __name__ == '__main__':
     rospack  = rospkg.RosPack()
     urdf_dir = rospy.get_param('urdf_dir',
                                os.path.join(
-                                   rospack.get_path('o2ac_parts_description'),
-                                   'urdf/generated'))
+                                   rospack.get_path('aist_description'),
+                                   'parts', 'urdf'))
 
     spawner = ModelSpawnerServer(urdf_dir)
     rate    = rospy.Rate(1)
