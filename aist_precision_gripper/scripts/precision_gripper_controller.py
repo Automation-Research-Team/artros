@@ -138,6 +138,22 @@ class PrecisionGripperController(object):
         joint_state.effort       = [self._effort(status)]
         self._joint_state_pub.publish(joint_state)
 
+    def _goal_cb(self):
+        goal = self._server.accept_new_goal()  # requested goal
+
+        # Check that preempt has not been requested by the client
+        if self._server.is_preempt_requested():
+            self._server.set_preempted()
+            return
+
+        self._goal_pos = self._send_move_command(goal.command.position,
+                                                 goal.command.max_effort)
+
+    def _preempt_cb(self):
+        #self._stop()
+        rospy.loginfo('(%s) preempted' % self._name)
+        self._server.set_preempted()
+
     def _send_move_command(self, position, effort):
         pos = np.clip(int((position - self._min_posion)/self.position_per_tick
                           + self._min_pos),
