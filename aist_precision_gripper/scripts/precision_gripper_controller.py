@@ -102,11 +102,12 @@ class PrecisionGripperController(object):
         self._action_server.start()
 
         # Status timer
-        self._timer = rospy.Timer(rospy.Duration(0.05), self._status_cb)
+        rate = rospy.Rate(rospy.get_param("~publish_rate", 50))
+        self._timer = rospy.Timer(rospy.Duration(1.0/rate), self._timer_cb)
 
         rospy.loginfo('(%s) Started' % self._name)
 
-    def _status_cb(self, timer_event):
+    def _timer_cb(self, timer_event):
         # Get current status of gripper
         status = self._get_status()
 
