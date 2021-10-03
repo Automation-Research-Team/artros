@@ -43,6 +43,8 @@ from std_msgs                import msg as smsg
 
 class SuctionController(object):
     def __init__(self):
+        super(SuctionController, self).__init__()
+
         # Subscribe I/O states
         self._in_state  = dict()
         self._out_state = dict()
