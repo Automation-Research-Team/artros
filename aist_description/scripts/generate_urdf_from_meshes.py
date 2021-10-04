@@ -49,13 +49,12 @@ class URDFGenerator(object):
                            'parts')
 
     def generate_urdfs(self):
-        macro_template = self._read_template('macro_template.urdf.xacro')
-        non_macro_template \
-            = self._read_template('non_macro_template.urdf.xacro')
+        template_xacro = self._read_template('template.urdf.xacro')
+        template_urdf  = self._read_template('template.urdf')
 
         for part_props in self._get_parts_list():
-            self._generate_macro_urdf(part_props, macro_template)
-            self._generate_non_macro_urdf(part_props, non_macro_template)
+            self._generate_xacro(part_props, template_xacro)
+            self._generate_urdf(part_props, template_urdf)
 
     def _read_template(self, filename):
         with open(os.path.join(self._root,
@@ -74,24 +73,22 @@ class URDFGenerator(object):
         except Exception:
             return []
 
-    def _generate_macro_urdf(self, part_props, template):
+    def _generate_xacro(self, part_props, template):
         part_type = part_props['type']
-        mname_int = 'assy_part_' + part_type[0:2]
-        mname_ext = mname_int
-        macro = template.replace('MACRONAME_INTERNAL', mname_int)
-        macro = macro.replace('MACRONAME_EXTERNAL', mname_ext)
-        macro = macro.replace('CAD', part_props['cad'])
+        macroname = 'assy_part_' + part_type[0:2]
+        macro = template.replace('MACRONAME', macroname) \
+                        .replace('CAD', part_props['cad'])
 
         subframes_urdf = ''
         for subframe in self._get_subframes(part_props['name']):
             link_name = subframe['name']
             xyzrpy    = subframe['pose_xyzrpy']
             new_joint = ''
-            new_joint += '    <joint name=\"${prefix}' + mname_int \
+            new_joint += '    <joint name=\"${prefix}' + macroname \
                        + '_' + link_name + '_joint\" type=\"fixed\"> \n'
-            new_joint += '      <parent link=\"${prefix}' + mname_int \
-                       + '_origin\"/> \n'
-            new_joint += '      <child link=\"${prefix}' + mname_int \
+            new_joint += '      <parent link=\"${prefix}' + macroname \
+                       + '"/> \n'
+            new_joint += '      <child link=\"${prefix}' + macroname \
                        + '_' + link_name + '\"/> \n'
             new_joint += '      <origin xyz=\"${' \
                        + str(xyzrpy[0]) + '} ${' \
@@ -101,25 +98,24 @@ class URDFGenerator(object):
                        + str(xyzrpy[4]) + '} ${' \
                        + str(xyzrpy[5]) + '}\"/> \n'
             new_joint += '    </joint> \n'
-            new_joint += '    <link name=\"${prefix}' + mname_int \
+            new_joint += '    <link name=\"${prefix}' + macroname \
                        + '_' + link_name + '\"/> \n'
             new_joint += '    \n'
             subframes_urdf += new_joint
 
         macro = macro.replace('<!-- #SUBFRAMES -->', subframes_urdf)
 
-        with open(os.path.join(self._root, 'urdf',
-                               part_type + '_macro.urdf.xacro'), 'w+') as f:
+        with open(os.path.join(self._root, 'urdf', part_type + '.urdf.xacro'),
+                  'w+') as f:
             f.write(macro)
 
-    def _generate_non_macro_urdf(self, part_props, template):
+    def _generate_urdf(self, part_props, template):
         part_type = part_props['type']
-        mname_ext = 'assy_part_' + part_type[0:2]
-        macro = template.replace('MACRONAME_EXTERNAL', mname_ext)
-        macro = macro.replace('PARTNAME', part_type)
+        macroname = 'assy_part_' + part_type[0:2]
+        macro = template.replace('MACRONAME', macroname) \
+                        .replace('PARTNAME',  part_type)
 
-        with open(os.path.join(self._root, 'urdf',
-                               part_type + '_non_macro.urdf.xacro'),
+        with open(os.path.join(self._root, 'urdf', part_type + '.urdf'),
                   'w+') as f:
             f.write(macro)
 

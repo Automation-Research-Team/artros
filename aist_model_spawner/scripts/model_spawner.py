@@ -48,7 +48,7 @@ from aist_model_spawner import msg as mmsg
 #########################################################################
 class ModelSpawnerServer(object):
 
-    _Model = '<robot name="{0}" xmlns:xacro="http://www.ros.org/wiki/xacro">\n  <link name="{4}"/>\n  <xacro:include filename="{1}"/>\n  <xacro:{2} prefix="{3}" parent="{4}" spawn_attached="true">\n    <origin xyz="{5} {6} {7}" rpy="{8} {9} {10}"/>\n  </xacro:{2}>\n</robot>\n'
+    _Model = '<robot name="{0}" xmlns:xacro="http://www.ros.org/wiki/xacro">\n  <link name="{4}"/>\n  <xacro:include filename="{1}"/>\n  <xacro:{2} prefix="{3}" parent="{4}">\n    <origin xyz="{5} {6} {7}" rpy="{8} {9} {10}"/>\n  </xacro:{2}>\n</robot>\n'
 
     def __init__(self, urdf_dir):
         super(ModelSpawnerServer, self).__init__()
@@ -92,7 +92,7 @@ class ModelSpawnerServer(object):
 
     def _add_cb(self, req):
         name        = req.name
-        xacro_name  = os.path.join(self._urdf_dir, name + '_macro.urdf.xacro')
+        xacro_name  = os.path.join(self._urdf_dir, name + '.urdf.xacro')
         macro_name  = 'assy_part_' + re.split('[_-]', name)[0]
         position    = req.pose.pose.position
         orientation = req.pose.pose.orientation
