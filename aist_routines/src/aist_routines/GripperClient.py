@@ -276,7 +276,7 @@ class SuctionGripper(GripperClient):
 
     def _send_command(self, turn_suction_on, timeout=0):
         self._goal.turn_suction_on = turn_suction_on
-        self._goal.eject_screw     = not turn_suction_on and self._eject
+        self._goal.eject           = not turn_suction_on and self._eject
         self._client.send_goal(self._goal)
         if not self._client.wait_for_result(rospy.Duration(timeout)):
             rospy.logerr('Timeout[%f] has expired before goal finished',
