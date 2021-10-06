@@ -42,22 +42,14 @@ from sensor_msgs  import msg as smsg
 from control_msgs import msg as cmsg
 from aist_robotiq import msg as amsg
 from actionlib    import SimpleActionServer
-
-#########################################################################
-#  class Status                                                         #
-#########################################################################
-class Status:
-    def __init__(self, pos, vel, cur, mov, err):
-        self.pos = pos
-        self.vel = vel
-        self.cur = cur
-        self.mov = mov  # True if moving
-        self.err = err  # True if error
+from collections  import namedtuple
 
 #########################################################################
 #  class PrecisionGripperController                                     #
 #########################################################################
 class PrecisionGripperController(object):
+    Status = namedtuple('Status', 'pos vel cur mov err')
+
     def __init__(self):
         super(PrecisionGripperController, self).__init__()
 
@@ -99,10 +91,9 @@ class PrecisionGripperController(object):
         self._server.register_goal_callback(self._goal_cb)
         self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
-        self._action_server.start()
 
         # Status timer
-        rate = rospy.Rate(rospy.get_param("~publish_rate", 50))
+        rate = rospy.get_param("~publish_rate", 50)
         self._timer = rospy.Timer(rospy.Duration(1.0/rate), self._timer_cb)
 
         rospy.loginfo('(%s) Started' % self._name)
@@ -110,6 +101,7 @@ class PrecisionGripperController(object):
     def _timer_cb(self, timer_event):
         # Get current status of gripper
         status = self._get_status()
+        print(status)
 
         # Handle active goal
         if self._server.is_active():
@@ -118,14 +110,14 @@ class PrecisionGripperController(object):
                               % (self._name, self._error(status)))
                 self._server.set_aborted()
                 return
-            elif self._reached_goal(status):
-                rospy.loginfo('(%s) reached goal' % self._name)
-                self._server.set_succeeded(
-                    cmsg.GripperCommandResult(*self._status_values()))
-            elif self._stalled(status):
-                rospy.loginfo('(%s) stalled' % self._name)
-                self._server.set_succeeded(
-                    cmsg.GripperCommandResult(*self._status_values(status)))
+            # elif self._reached_goal(status):
+            #     rospy.loginfo('(%s) reached goal' % self._name)
+            #     self._server.set_succeeded(
+            #         cmsg.GripperCommandResult(*self._status_values(status)))
+            # elif self._stalled(status):
+            #     rospy.loginfo('(%s) stalled' % self._name)
+            #     self._server.set_succeeded(
+            #         cmsg.GripperCommandResult(*self._status_values(status)))
             else:
                 self._server.publish_feedback(
                     cmsg.GripperCommandFeedback(*self._status_values(status)))
@@ -156,20 +148,22 @@ class PrecisionGripperController(object):
         self._server.set_preempted()
 
     def _send_move_command(self, position, effort):
-        pos = np.clip(int((position - self._min_posion)/self.position_per_tick
+        pos = np.clip(int((position - self._min_position)/self.position_per_tick
                           + self._min_pos),
                       self._min_pos, self._max_pos)
-        eff = np.clip(int((effort - self._min_effort)/self.effort_per_tick
+        cur = np.clip(int((effort - self._min_effort)/self.effort_per_tick
                           + self._min_cur),
                       self._min_cur, self._max_cur)
-        self._send_raw_move_commnt(pos, eff)
+        print('position={}, effort={}; pos={}, cur={}'.format(position,
+                                                              effort, pos, cur))
+        self._send_raw_move_command(pos, cur)
         return pos
 
-    def _send_raw_move_command(self, pos, eff):
+    def _send_raw_move_command(self, pos, cur):
         try:
             self._servo.set_operating_mode("currentposition")
             self._servo.set_positive_direction("cw")
-            self._servo.set_current(eff)
+            self._servo.set_current(cur)
             self._servo.set_goal_position(pos)
             rospy.sleep(0.1)
             return True
@@ -179,18 +173,19 @@ class PrecisionGripperController(object):
 
     def _get_status(self):
         try:
-            return Status(self._servo.read_current_position(),
-                          self._servo.read_current_velocity(),
-                          self._servo.read_current(),
-                          self._servo.is_moving(),
-                          False)
+            return PrecisionGripperController.Status(
+                        self._servo.read_current_position(),
+                        self._servo.read_current_velocity(),
+                        self._servo.read_current(),
+                        self._servo.is_moving(),
+                        False)
         except:
             rospy.logerr("(%s) failed to get status." % self._name)
-            return Status(0, 0, 0, False, True)
+            return PrecisionGripperController.Status(0, 0, 0, False, True)
 
     def _position(self, status):
         return (status.pos - self._min_pos)*self.position_per_tick \
-             + self._min_positon
+             + self._min_position
 
     def _velocity(self, status):
         return (status.vel - self._min_vel)*self.velocity_per_tick \
@@ -201,7 +196,7 @@ class PrecisionGripperController(object):
              + self._min_effort
 
     def _stalled(self, status):
-        return not self.mov
+        return not status.mov
 
     def _reached_goal(self, status):
         return abs(status.pos - self._goal_pos) <= 1
@@ -225,8 +220,8 @@ class PrecisionGripperController(object):
 
     @property
     def effort_per_tick(self):
-        return (self._max_effort  - self._min_effort) \
-             / (self._max_current - self._min_current)
+        return (self._max_effort - self._min_effort) \
+             / (self._max_cur    - self._min_cur)
 
     def _disable_torque(self):
         try:

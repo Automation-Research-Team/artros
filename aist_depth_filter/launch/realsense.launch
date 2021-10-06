@@ -29,8 +29,9 @@
     <arg name="color_width"		value="$(arg camera_width)"/>
     <arg name="color_height"		value="$(arg camera_height)"/>
     <arg name="color_fps"		value="$(arg fps)"/>
+    <arg name="external_manager"	value="$(eval manager != '')"/>
     <arg name="manager"			value="$(arg manager)"
-	 unless="$(eval manager == '')"/>
+	 if="$(eval manager != '')"/>
   </include>
 
   <include file="$(find aist_depth_filter)/launch/run.launch">
@@ -42,6 +43,10 @@
     <arg name="manager"		  value="$(arg manager)"/>
   </include>
 
+  <node if="$(eval manager != '')"
+	name="$(arg manager)" pkg="nodelet" type="nodelet"
+	args="manager" output="screen" respawn="false"/>
+    
   <node name="set_window_radius" pkg="dynamic_reconfigure" type="dynparam"
   	args="set depth_filter window_radius 2"/>
 
