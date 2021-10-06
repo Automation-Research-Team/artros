@@ -8,11 +8,13 @@ max_position: 0.010
 min_velocity: 0.000
 max_velocity: 0.010
 
-min_effort:   0.1
-max_effirt:   1.0
+min_effort:   0.0
+max_effort:   1.0
 
 open_motor_position:  2050
 close_motor_position: 2300
 
 speed_limit:           3
-grasping_inner_force: 10
+
+moving_motor_current: 7
+grasping_motor_current: 13
