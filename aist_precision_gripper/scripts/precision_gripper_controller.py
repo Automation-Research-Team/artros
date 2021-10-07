@@ -47,7 +47,7 @@ from collections  import namedtuple
 #  class PrecisionGripperController                                     #
 #########################################################################
 class PrecisionGripperController(object):
-    Status = namedtuple('Status', 'goaal_pos pos cur mov err')
+    Status = namedtuple('Status', 'goaal_pos pos cur mov')
 
     def __init__(self):
         super(PrecisionGripperController, self).__init__()
@@ -99,39 +99,41 @@ class PrecisionGripperController(object):
 
     def _timer_cb(self, timer_event):
         # Get current status of gripper
-        status = self._get_status()
+        try:
+            status = self._get_status()
+        except Exception as e:
+            rospy.logerr('(%s) failed to get status: %s' % (self._name, e))
+            if self._server.is_active():
+                rospy.logerr('(%s) aborted goal' % self._name)
+                self._server.set_aborted()
+            return
 
-        if not self._error(status):
-            # Publish joint states
-            joint_state = smsg.JointState()
-            joint_state.header.stamp = rospy.Time.now()
-            joint_state.name         = [self._joint_name]
-            joint_state.position     = [self._position(status)]
-            joint_state.velocity     = [0.0]
-            joint_state.effort       = [self._effort(status)]
-            self._joint_state_pub.publish(joint_state)
+        # Publish joint states
+        joint_state = smsg.JointState()
+        joint_state.header.stamp = rospy.Time.now()
+        joint_state.name         = [self._joint_name]
+        joint_state.position     = [self._position(status)]
+        joint_state.velocity     = [0.0]
+        joint_state.effort       = [self._effort(status)]
+        self._joint_state_pub.publish(joint_state)
 
         # Handle active goal
         if self._server.is_active():
             rospy.loginfo(status)
-            if self._error(status):
-                self._server.set_aborted()
-                return
-            elif self._is_moving(status):
+
+            self._server.publish_feedback(
+                cmsg.GripperCommandFeedback(*self._status_values(status)))
+
+            if self._is_moving(status):
                 self._last_movement_time = rospy.Time.now()
             elif self._reached_goal(status):
                 rospy.loginfo('(%s) reached goal' % self._name)
                 self._server.set_succeeded(
                     cmsg.GripperCommandResult(*self._status_values(status)))
-                return
             elif self._stalled(status):
                 rospy.loginfo('(%s) stalled' % self._name)
                 self._server.set_succeeded(
                     cmsg.GripperCommandResult(*self._status_values(status)))
-                return
-
-            self._server.publish_feedback(
-                cmsg.GripperCommandFeedback(*self._status_values(status)))
 
     def _goal_cb(self):
         goal = self._server.accept_new_goal()  # requested goal
@@ -139,21 +141,28 @@ class PrecisionGripperController(object):
 
         # Check that preempt has not been requested by the client
         if self._server.is_preempt_requested():
-            rospy.loginfo('(%s) preempt requested' % self._name)
+            rospy.logwarn('(%s) preempt requested' % self._name)
             self._server.set_preempted()
             return
 
-        self._last_movement_time = rospy.Time.now()
-        self._send_move_command(goal.command.position, goal.command.max_effort)
+        try:
+            self._last_movement_time = rospy.Time.now()
+            self._send_move_command(goal.command.position,
+                                    goal.command.max_effort)
+        except Exception as e:
+            rospy.logerr('(%s) failed to send move command: %s' % (self._name,
+                                                                   e))
+            rospy.logerr('(%s) aborted goal' % self._name)
+            self._server.set_aborted()
 
     def _preempt_cb(self):
-        #self._stop()
-        rospy.loginfo('(%s) preempted' % self._name)
+        self._stop()
+        rospy.logwarn('(%s) preempted' % self._name)
         self._server.set_preempted()
 
     def _send_move_command(self, position, effort):
-        pos = np.clip(int((position - self._min_position)/self.position_per_tick
-                          + self._min_pos),
+        pos = np.clip(int((position - self._min_position) /
+                          self.position_per_tick + self._min_pos),
                       self._max_pos, self._min_pos)
         cur = np.clip(int(effort / self.effort_per_tick),
                       -self._max_cur, self._max_cur)
@@ -162,28 +171,18 @@ class PrecisionGripperController(object):
             cur = self._min_cur if pos > pos_now else -self._min_cur
         rospy.loginfo('** Cmd(pos={}, cur={}) for position={}, effort={}'
                       .format(pos, cur, position, effort))
-        self._send_raw_move_command(pos, cur)
+        self._servo.set_current(cur)
+        self._servo.set_goal_position(pos)
 
-    def _send_raw_move_command(self, pos, cur):
-        try:
-            self._servo.set_current(cur)
-            self._servo.set_goal_position(pos)
-            return True
-        except:
-            rospy.logerr('(%s) failed to run commands.' % self._name)
-            return False
+    def _stop(self):
+        self._servo.set_current(0)
 
     def _get_status(self):
-        try:
-            return PrecisionGripperController.Status(
-                        np.int32(self._servo.read_goal_position()),
-                        np.int32(self._servo.read_current_position()),
-                        np.int16(self._servo.read_current()),
-                        self._servo.is_moving(),
-                        False)
-        except Exception as e:
-            rospy.logerr('(%s) failed to get status: %s' % (self._name, e))
-            return PrecisionGripperController.Status(0, 0, 0, 0, False, True)
+        return PrecisionGripperController.Status(
+                   np.int32(self._servo.read_goal_position()),
+                   np.int32(self._servo.read_current_position()),
+                   np.int16(self._servo.read_current()),
+                   self._servo.is_moving())
 
     def _position(self, status):
         return (status.pos - self._min_pos) * self.position_per_tick \
@@ -218,14 +217,6 @@ class PrecisionGripperController(object):
     @property
     def effort_per_tick(self):
         return self._max_effort / self._max_cur
-
-    def _disable_torque(self):
-        try:
-            self._servo.disable_torque()
-            return True
-        except:
-            rospy.logerr('Failed to run commands.')
-            return False
 
 
 if __name__ == '__main__':
