@@ -40,7 +40,6 @@ import numpy as np
 import lib_robotis_xm430 as xm430
 from sensor_msgs  import msg as smsg
 from control_msgs import msg as cmsg
-from aist_robotiq import msg as amsg
 from actionlib    import SimpleActionServer
 from collections  import namedtuple
 
@@ -48,7 +47,7 @@ from collections  import namedtuple
 #  class PrecisionGripperController                                     #
 #########################################################################
 class PrecisionGripperController(object):
-    Status = namedtuple('Status', 'pos vel cur mov err')
+    Status = namedtuple('Status', 'goaal_pos pos cur mov err')
 
     def __init__(self):
         super(PrecisionGripperController, self).__init__()
@@ -64,16 +63,18 @@ class PrecisionGripperController(object):
         self._servo.set_operating_mode('currentposition')
         self._servo.set_positive_direction('cw')
 
+        # Read timeout value for checking stalled state
+        self._stall_timeout = rospy.Duration.from_sec(
+                                rospy.get_param('~stall_timeout', 1.0))
+
         # Read configuration parameters
         self._min_position = rospy.get_param('~min_position', 0.000)
         self._max_position = rospy.get_param('~max_position', 0.010)
-        self._max_velocity = rospy.get_param('~max_velocity', 0.010)
         self._max_effort   = rospy.get_param('~max_effort',   0.5)
 
         # Read servo parameters
         self._min_pos = rospy.get_param('~min_position_count', 2300)
         self._max_pos = rospy.get_param('~max_position_count', 2050)
-        self._max_vel = rospy.get_param('~max_velocity_count', 30)
         self._min_cur = rospy.get_param('~min_effort_count',   3)
         self._max_cur = rospy.get_param('~max_effort_count',   13)
 
@@ -81,7 +82,6 @@ class PrecisionGripperController(object):
         self._joint_name      = rospy.get_param('~joint_name', 'finger_joint')
         self._joint_state_pub = rospy.Publisher('/joint_states',
                                                 smsg.JointState, queue_size=1)
-        self._goal_pos        = 0
 
         # Define the action
         self._server = SimpleActionServer('~gripper_cmd',
@@ -101,34 +101,37 @@ class PrecisionGripperController(object):
         # Get current status of gripper
         status = self._get_status()
 
+        if not self._error(status):
+            # Publish joint states
+            joint_state = smsg.JointState()
+            joint_state.header.stamp = rospy.Time.now()
+            joint_state.name         = [self._joint_name]
+            joint_state.position     = [self._position(status)]
+            joint_state.velocity     = [0.0]
+            joint_state.effort       = [self._effort(status)]
+            self._joint_state_pub.publish(joint_state)
+
         # Handle active goal
         if self._server.is_active():
             rospy.loginfo(status)
             if self._error(status):
-                rospy.logwarn('(%s) faulted with code: %x'
-                              % (self._name, self._error(status)))
                 self._server.set_aborted()
                 return
+            elif self._is_moving(status):
+                self._last_movement_time = rospy.Time.now()
             elif self._reached_goal(status):
                 rospy.loginfo('(%s) reached goal' % self._name)
                 self._server.set_succeeded(
                     cmsg.GripperCommandResult(*self._status_values(status)))
-            # elif self._stalled(status):
-            #     rospy.loginfo('(%s) stalled' % self._name)
-            #     self._server.set_succeeded(
-            #         cmsg.GripperCommandResult(*self._status_values(status)))
-            else:
-                self._server.publish_feedback(
-                    cmsg.GripperCommandFeedback(*self._status_values(status)))
+                return
+            elif self._stalled(status):
+                rospy.loginfo('(%s) stalled' % self._name)
+                self._server.set_succeeded(
+                    cmsg.GripperCommandResult(*self._status_values(status)))
+                return
 
-        # Publish joint states
-        joint_state = smsg.JointState()
-        joint_state.header.stamp = rospy.Time.now()
-        joint_state.name         = [self._joint_name]
-        joint_state.position     = [self._position(status)]
-        joint_state.velocity     = [self._velocity(status)]
-        joint_state.effort       = [self._effort(status)]
-        self._joint_state_pub.publish(joint_state)
+            self._server.publish_feedback(
+                cmsg.GripperCommandFeedback(*self._status_values(status)))
 
     def _goal_cb(self):
         goal = self._server.accept_new_goal()  # requested goal
@@ -140,8 +143,8 @@ class PrecisionGripperController(object):
             self._server.set_preempted()
             return
 
-        self._goal_pos = self._send_move_command(goal.command.position,
-                                                 goal.command.max_effort)
+        self._last_movement_time = rospy.Time.now()
+        self._send_move_command(goal.command.position, goal.command.max_effort)
 
     def _preempt_cb(self):
         #self._stop()
@@ -160,7 +163,6 @@ class PrecisionGripperController(object):
         rospy.loginfo('** Cmd(pos={}, cur={}) for position={}, effort={}'
                       .format(pos, cur, position, effort))
         self._send_raw_move_command(pos, cur)
-        return pos
 
     def _send_raw_move_command(self, pos, cur):
         try:
@@ -174,30 +176,32 @@ class PrecisionGripperController(object):
     def _get_status(self):
         try:
             return PrecisionGripperController.Status(
+                        np.int32(self._servo.read_goal_position()),
                         np.int32(self._servo.read_current_position()),
-                        np.int32(self._servo.read_current_velocity()),
                         np.int16(self._servo.read_current()),
                         self._servo.is_moving(),
                         False)
-        except:
-            rospy.logerr('(%s) failed to get status.' % self._name)
-            return PrecisionGripperController.Status(0, 0, 0, False, True)
+        except Exception as e:
+            rospy.logerr('(%s) failed to get status: %s' % (self._name, e))
+            return PrecisionGripperController.Status(0, 0, 0, 0, False, True)
 
     def _position(self, status):
         return (status.pos - self._min_pos) * self.position_per_tick \
              + self._min_position
 
-    def _velocity(self, status):
-        return status.vel * self.velocity_per_tick
-
     def _effort(self, status):
         return status.cur * self.effort_per_tick
 
-    def _stalled(self, status):
-        return not (status.mov or self._reached_goal(status))
+    def _is_moving(self, status):
+        return status.mov
 
     def _reached_goal(self, status):
-        return abs(status.pos - self._goal_pos) <= 1
+        return (not status.mov) and abs(status.pos - status.goal_pos) <= 1
+
+    def _stalled(self, status):
+        return (not status.mov) and \
+               (rospy.Time.now() - self._last_movement_time >
+                self._stall_timeout)
 
     def _status_values(self, status):
         return self._position(status), self._effort(status), \
@@ -210,10 +214,6 @@ class PrecisionGripperController(object):
     def position_per_tick(self):
         return (self._max_position - self._min_position) \
              / (self._max_pos      - self._min_pos)
-
-    @property
-    def velocity_per_tick(self):
-        return self._max_velocity / self._max_vel
 
     @property
     def effort_per_tick(self):
@@ -230,5 +230,8 @@ class PrecisionGripperController(object):
 
 if __name__ == '__main__':
     rospy.init_node('precision_gripper_controller')
-    controller = PrecisionGripperController()
-    rospy.spin()
+    try:
+        controller = PrecisionGripperController()
+        rospy.spin()
+    except Exception as e:
+        rospy.logerr(e)

@@ -1,7 +1,16 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix" default="a_bot_gripper_"/>
+  <arg name="prefix"		default="a_bot_gripper_"/>
+  <arg name="serial_port"	default="/dev/ttyUSB0"/>
+  <arg name="publish_rate"	default="50"/>
+
+  <!-- Spawn controller -->
+  <include file="$(dirname)/run.launch">
+    <arg name="prefix"		value="$(arg prefix)"/>
+    <arg name="serial_port"	value="$(arg serial_port)"/>
+    <arg name="publish_rate"	value="$(arg publish_rate)"/>
+  </include>
 
   <!-- Spawn actionlib client GUI -->
   <node name="axclient" pkg="actionlib" type="axclient.py"

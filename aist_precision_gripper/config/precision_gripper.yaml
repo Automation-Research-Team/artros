@@ -2,17 +2,15 @@ serial_port:  $(arg serial_port)
 publish_rate: $(arg publish_rate)
 joint_name:   $(arg prefix)finger_joint
 
+stall_timeout: 1.0
+
 min_position: 0.000
 max_position: 0.010
 
-max_velocity:  0.050
-
-max_effort:   0.5
+max_effort: 0.5
 
 min_position_count: 2300
 max_position_count: 2050
-
-max_velociy_count: 30
 
 min_effort_count: 7
 max_effort_count: 13
