@@ -5,16 +5,14 @@ joint_name:   $(arg prefix)finger_joint
 min_position: 0.000
 max_position: 0.010
 
-min_velocity: 0.000
-max_velocity: 0.010
+max_velocity:  0.050
 
-min_effort:   0.0
-max_effort:   1.0
+max_effort:   0.5
 
-open_motor_position:  2050
-close_motor_position: 2300
+min_position_count: 2300
+max_position_count: 2050
 
-speed_limit:           3
+max_velociy_count: 30
 
-moving_motor_current: 7
-grasping_motor_current: 13
+min_effort_count: 7
+max_effort_count: 13

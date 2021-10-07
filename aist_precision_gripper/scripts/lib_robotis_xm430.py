@@ -48,7 +48,7 @@
 ############################
 #
 # This library is based on lib_robotis_v2.py from http://www.hizook.com/blog/2016/05/12/new-dynamixel-servos-xm430-series-updated-mechanical-design-and-constant-torque-mode
-# which is based on lib_robotis.py which source can be found above. This software is for XM430 servos and adheres to Dynamixel 
+# which is based on lib_robotis.py which source can be found above. This software is for XM430 servos and adheres to Dynamixel
 # Communication Protocol v2.0. In this software, we added functions to allow XM430 to be operated in different
 # operating modes, esp torque mode and position mode.
 #
@@ -60,6 +60,7 @@ import time
 import thread
 import sys, optparse
 import math
+import numpy as np
 
 def initial(c, POLYNOMIAL = 0x8005):
     # Adapted from StackOverflow implementation using the Robotis CRC table to
@@ -268,7 +269,7 @@ class Robotis_Servo2():
             print "Wrong keywords. Current operating mode is mode " + str(params[0])
     #functions to reverse direction(for torque mode)
     def set_positive_direction(self,string):
-        if string is "cw":        
+        if string is "cw":
             self.disable_torque()
             self.set_current( 0 )
             self.protocol2_write_address( 10, [1] )
@@ -438,5 +439,3 @@ if __name__ == '__main__':
         p.dyn.servo_dev.read(100)
         p.disable_torque()
         sys.exit(0)
-
-
