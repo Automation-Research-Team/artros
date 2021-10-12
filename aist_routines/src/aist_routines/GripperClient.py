@@ -221,6 +221,25 @@ class RobotiqGripper(GenericGripper):
              / (self._max_gap - self._min_gap)
 
 ######################################################################
+#  class PrecisionGripper                                            #
+######################################################################
+class PrecisionGripper(GenericGripper):
+    def __init__(self, prefix='a_bot_gripper_'):
+        ns = prefix + 'controller'
+        min_position = rospy.get_param(ns + '/min_position')
+        max_position = rospy.get_param(ns + '/max_position')
+        max_effort   = rospy.get_param(ns + '/max_effort')
+
+        assert min_position < max_position
+
+        super(PrecisionGripper, self).__init__(prefix.rstrip('_'),
+                                               ns + '/gripper_cmd',
+                                               prefix + 'base_link',
+                                               prefix + 'tip_link',
+                                               min_position, max_position,
+                                               max_effort)
+
+######################################################################
 #  class SuctionGripper                                              #
 ######################################################################
 class SuctionGripper(GripperClient):
@@ -287,129 +306,6 @@ class SuctionGripper(GripperClient):
 
     def _state_callback(self, msg):
         self._suctioned = msg.data
-
-######################################################################
-#  class PrecisionGripper                                            #
-######################################################################
-class PrecisionGripper(GripperClient):
-    def __init__(self, prefix='a_bot_gripper_'):
-        import aist_precision_gripper.msg
-
-        super(PrecisionGripper, self).__init__(
-            *PrecisionGripper._initargs(prefix))
-        self._client = actionlib.SimpleActionClient(
-                           'precision_gripper_action',
-                           # str(prefix) + 'gripper/gripper_action_controller',
-                           aist_precision_gripper.msg.PrecisionGripperCommandAction)
-        self._goal = aist_precision_gripper.msg.PrecisionGripperCommandGoal()
-        self._goal.stop                         = False
-        self._goal.open_outer_gripper_fully     = False
-        self._goal.close_outer_gripper_fully    = False
-        self._goal.open_inner_gripper_fully     = False
-        self._goal.close_inner_gripper_fully    = False
-        self._goal.this_action_grasps_an_object = False
-        self._goal.linear_motor_position        = 0.0
-        self._goal.outer_gripper_opening_width  = 0.0
-        self._goal.inner_gripper_opening_width  = 0.0
-        self._goal.slight_opening_width         = 0.0
-
-        self.parameters = {'cmd': ''}
-
-    @staticmethod
-    def base(prefix):
-        return GripperClient(*PrecisionGripper._initargs(prefix))
-
-    @staticmethod
-    def _initargs(prefix):
-        return (prefix.rstrip('_'), 'two_finger',
-                prefix + 'base_link', prefix + 'tip_link')
-
-    @property
-    def linear_motor_position(self):
-        return self._goal.linear_motor_position
-
-    def pregrasp(self, timeout=0):
-        cmd     = self.parameters['cmd']
-        success = False
-        if cmd == 'complex_pick_from_inside':
-            success = self._inner_command(True, False, timeout)
-        elif cmd == 'complex_pick_from_outside':
-            self._inner_command(False, False, timeout)
-        elif cmd == 'easy_pick_only_inner' or \
-             cmd == 'inner_gripper_from_inside' or \
-             cmd == '':
-            success = self._inner_command(False, False, timeout)
-        elif cmd == 'easy_pick_outside_only_inner' or \
-             cmd == 'inner_gripper_from_outside':
-            success = self._inner_command(True, False, timeout)
-        return success
-
-    def grasp(self, timeout=0):
-        cmd     = self.parameters['cmd']
-        success = False
-        if cmd == 'complex_pick_from_inside':
-            success = self._inner_command(False, True,  timeout) and \
-                      self._outer_command(True,  False, timeout)
-        elif cmd == 'complex_pick_from_outside':
-            success = self._inner_command(True, True,  timeout) and \
-                      self._outer_command(True, False, timeout)
-        elif cmd == 'easy_pick_only_inner' or \
-             cmd == 'inner_gripper_from_inside' or \
-             cmd == '':
-            success = self._inner_command(True, True, timeout)
-        elif cmd == 'easy_pick_outside_only_inner' or \
-             cmd == 'inner_gripper_from_outside':
-            success = self._inner_command(False, True, timeout)
-        return success
-
-    def release(self, timeout=0):
-        cmd     = self.parameters['cmd']
-        success = False
-        if cmd == 'complex_pick_from_inside':
-            success = self._outer_command(False, False, timeout) and \
-                      self._inner_command(True,  False, timeout)
-        elif cmd == 'complex_pick_from_outside':
-            success = self._outer_command(False, False, timeout) and \
-                      self._inner_command(False, False, timeout)
-        elif cmd == 'easy_pick_only_inner' or \
-             cmd == 'inner_gripper_from_inside' or \
-             cmd == '':
-            success = self._inner_command(False, False, timeout)
-        elif cmd == 'easy_pick_outside_only_inner' or \
-             cmd == 'inner_gripper_from_outside':
-            success = self._inner_command(True, False, timeout)
-        return success
-
-    def wait(self, timeout=0):
-        if timeout < 0:
-            return False
-        elif not self._client.wait_for_result(rospy.Duration(timeout)):
-            rospy.logerr('Timeout[%f] has expired before goal finished',
-                         timeout)
-            return False
-        return self._client.get_result().success
-
-    def cancel(self):
-        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
-            self._client.cancel_goal()
-
-    def _inner_command(self, close, grasps_an_object, timeout):
-        self._goal.open_inner_gripper_fully     = not close
-        self._goal.close_inner_gripper_fully    = close
-        self._goal.open_outer_gripper_fully     = False
-        self._goal.close_outer_gripper_fully    = False
-        self._goal.this_action_grasps_an_object = grasps_an_object
-        self._client.send_goal(self._goal)
-        return self.wait(timeout)
-
-    def _outer_command(self, close, grasps_an_object, timeout):
-        self._goal.open_inner_gripper_fully     = False
-        self._goal.close_inner_gripper_fully    = False
-        self._goal.open_outer_gripper_fully     = not close
-        self._goal.close_outer_gripper_fully    = close
-        self._goal.this_action_grasps_an_object = grasps_an_object
-        self._client.send_goal(self._goal)
-        return self.wait(timeout)
 
 ######################################################################
 #  class Lecp6Gripper                                                #

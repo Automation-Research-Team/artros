@@ -116,7 +116,7 @@ class PrecisionGripperController(object):
         joint_state.position     = [self._position(status)]
         joint_state.velocity     = [0.0]
         joint_state.effort       = [self._effort(status)]
-        self._joint_state_pub.publish(joint_state)
+        # self._joint_state_pub.publish(joint_state)
 
         # Handle active goal
         if self._server.is_active():
