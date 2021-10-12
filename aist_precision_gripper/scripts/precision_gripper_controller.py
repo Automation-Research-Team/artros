@@ -47,7 +47,7 @@ from collections  import namedtuple
 #  class PrecisionGripperController                                     #
 #########################################################################
 class PrecisionGripperController(object):
-    Status = namedtuple('Status', 'goaal_pos pos cur mov')
+    Status = namedtuple('Status', 'pos vel cur mov')
 
     def __init__(self):
         super(PrecisionGripperController, self).__init__()
@@ -90,6 +90,7 @@ class PrecisionGripperController(object):
         self._server.register_goal_callback(self._goal_cb)
         self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
+        self._goal_pos = 0
 
         # Status timer
         rate = rospy.get_param('~publish_rate', 50)
@@ -147,8 +148,8 @@ class PrecisionGripperController(object):
 
         try:
             self._last_movement_time = rospy.Time.now()
-            self._send_move_command(goal.command.position,
-                                    goal.command.max_effort)
+            self._goal_pos = self._send_move_command(goal.command.position,
+                                                     goal.command.max_effort)
         except Exception as e:
             rospy.logerr('(%s) failed to send move command: %s' % (self._name,
                                                                    e))
@@ -173,14 +174,15 @@ class PrecisionGripperController(object):
                       .format(pos, cur, position, effort))
         self._servo.set_current(cur)
         self._servo.set_goal_position(pos)
+        return pos
 
     def _stop(self):
         self._servo.set_current(0)
 
     def _get_status(self):
         return PrecisionGripperController.Status(
-                   np.int32(self._servo.read_goal_position()),
                    np.int32(self._servo.read_current_position()),
+                   np.int32(self._servo.read_current_velocity()),
                    np.int16(self._servo.read_current()),
                    self._servo.is_moving())
 
@@ -195,7 +197,7 @@ class PrecisionGripperController(object):
         return status.mov
 
     def _reached_goal(self, status):
-        return (not status.mov) and abs(status.pos - status.goal_pos) <= 1
+        return (not status.mov) and abs(status.pos - self._goal_pos) <= 1
 
     def _stalled(self, status):
         return (not status.mov) and \
