@@ -12,3 +12,4 @@ grippers:
 
 cameras:
   d_bot_camera: DepthCamera
+  d_phoxi_m_camera: PhoXiCamera
