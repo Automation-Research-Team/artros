@@ -7,13 +7,18 @@
   <arg name="use_dual_quaternion"	default="true"/>
 
   <!-- Set camera topic names -->
-  <arg name="camera_info_topic"	value="color/camera_info"/>
-  <arg name="image_topic"	value="color/image_raw"/>
-  <arg name="depth_topic"	value="aligned_depth_to_color/image_raw"/>
+  <arg name="camera_info_topic"
+       value="$(eval 'camera_info' if 'phoxi' in camera_name
+	      else 'color/camera_info')"/>
+  <arg name="image_topic"
+       value="$(eval 'texture' if 'phoxi' in camera_name
+	      else 'color/image_raw')"/>
+  <arg name="depth_topic"
+       value="$(eval 'depth_map' if 'phoxi' in camera_name
+	      else 'aligned_depth_to_color/image_raw')"/>
 
   <!-- Launch devices and calibrator -->
-  <include file="$(find aist_handeye_calibration
-		 )/launch/include/handeye_calibration.launch">
+  <include file="$(dirname)/include/handeye_calibration.launch">
     <arg name="config"			value="fvision"/>
 
     <arg name="camera_info_topic"	value="$(arg camera_info_topic)"/>

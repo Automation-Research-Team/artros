@@ -90,6 +90,21 @@
       <arg name="camera_name"	value="$(arg camera_name)" />
     </include>
     
+    <!-- Launch PhoXi camera -->
+    <arg name="fixed_camera_name"	value="d_phoxi_m_camera"/>
+    <include file="$(find aist_phoxi_camera)/launch/run.launch">
+      <arg name="camera_name"	value="$(arg fixed_camera_name)"/>
+      <arg name="id"		value="2018-09-017-LC3"/>
+      <arg name="frame"		value="calibrated_$(arg fixed_camera_name)"/>
+    </include>
+
+    <!-- Load and publish hand-eye calibration -->
+    <include file="$(find aist_handeye_calibration
+    		   )/launch/publish_calibration.launch">
+      <arg name="config"	value="$(arg config)" />
+      <arg name="camera_name"	value="$(arg fixed_camera_name)" />
+    </include>
+    
   </group>
 
 </launch>
