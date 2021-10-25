@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="prefix"	 default="a_bot_"/>
+  <arg name="device"	 default="robotiq2f85"/>
+  <arg name="sim"        default="false"/>
+
+  <arg name="config"	 value="$(find aist_robotiq2f85_controller
+				)/config/artros_controllers.yaml" />
+
+  <include file="$(find aist_robotiq2f85_controller
+		 )/launch/controller.launch">
+    <arg name="namespace"	value="$(arg prefix)gripper_controller"/>
+    <arg name="config"		value="$(arg config)"/>
+  </include>
+
+</launch>

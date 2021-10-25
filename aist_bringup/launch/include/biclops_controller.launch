@@ -1,0 +1,17 @@
+<launch>
+
+  <arg name="prefix"	default="biclops_"/>
+  <arg name="device"	default="biclops"/>
+  <arg name="sim"	default="false"/>
+
+  <arg name="rate"	value="100"/>
+  <!-- Spawn controllers -->
+  <arg name="controllers"
+       value="$(arg prefix)pos_joint_traj_controller"/>
+  <rosparam file="$(dirname)/../../config/biclops_controller.yaml"
+  	    subst_value="true"/>
+  <node name="$(arg prefix)controller_spawner"
+        pkg="controller_manager" type="spawner" output="screen"
+  	args="$(arg controllers)"/>
+
+</launch>

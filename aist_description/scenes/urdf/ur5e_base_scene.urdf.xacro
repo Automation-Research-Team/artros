@@ -70,9 +70,16 @@
   </joint>
 
   <!-- Spawn and attach gripper -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="c_bot_gripper_coupling_"
+				parent="c_bot_ee_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
   <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_85_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_85_gripper_with_tip_link prefix="c_bot_"
-					  parent="c_bot_ee_link">
+  <xacro:robotiq_85_gripper_with_tip_link prefix="c_bot_gripper_"
+					  parent="c_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_85_gripper_with_tip_link>
 
@@ -90,10 +97,16 @@
   <!-- 					  parent="d_bot_ee_link"> -->
   <!--   <origin xyz="0 0 0" rpy="0 0 0"/> -->
   <!-- </xacro:robotiq_85_gripper_with_tip_link> -->
-  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_hande_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_hande_with_tip_link prefix="d_bot_" parent="d_bot_ee_link">
+  <xacro:robotiq_arg2f_coupling prefix="d_bot_gripper_coupling_"
+				parent="d_bot_ee_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_hande_with_tip_link>
+  </xacro:robotiq_arg2f_coupling>
+
+  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_hande_gripper_with_tip_link.urdf.xacro"/>
+  <xacro:robotiq_hande_gripper_with_tip_link prefix="d_bot_gripper_"
+					     parent="d_bot_gripper_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_hande_gripper_with_tip_link>
 
   <!-- Add PhoXi 3D scanner -->
   <xacro:include filename="$(find aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
@@ -115,8 +128,7 @@
   </joint>
 
   <!-- Include indivisual scene file -->
-  <xacro:property name="scene_name" value="$(arg scene)"/>
-  <xacro:if value="${scene_name != ''}">
+  <xacro:if value="${'$(arg scene)' != ''}">
     <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
 			     scene).urdf.xacro"/>
   </xacro:if>

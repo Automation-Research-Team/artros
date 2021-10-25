@@ -9,15 +9,16 @@
   <arg name="rviz_config"		default=""/>
 
   <!-- Setup "dkhi" configuration -->
-  <arg name="prefixes"			value="a_khi_, b_khi_, a_khi_"/>
-  <arg name="devices"			value="RS007L, RS007L, gripper"/>
-  <arg name="controllers"		value="khi, khi, fetch"/>
-  <arg name="drivers"			value="khi, khi"/>
+  <arg name="prefixes"			value="a_khi_, b_khi_, a_khi_gripper_"/>
+  <arg name="devices"			value="RS007L, RS007L, robotiq_85"/>
+  <arg name="controllers"		value="khi, khi, cmodel"/>
+  <arg name="drivers"			value="khi, khi, cmodel"/>
   <arg name="driver_args"		value="10.66.171.91, 4, '',;
-					       10.66.171.92, 4, '',"/>
+					       10.66.171.92, 4, '',;
+					       urcap, 10.66.171.91"/>
 
   <!-- Bringup robots -->
-  <include file="$(find aist_bringup)/launch/include/connect_robots.launch">
+  <include file="$(dirname)/include/connect_robots.launch">
     <arg name="robot_description_file"
 	 value="$(find aist_description)/scenes/urdf/$(arg scene).urdf.xacro"/>
     <arg name="sim"			value="$(arg sim)"/>
@@ -30,7 +31,7 @@
   </include>
 
   <!-- Start MoveIt! -->
-  <include file="$(find aist_bringup)/launch/include/move_group.launch">
+  <include file="$(dirname)/include/move_group.launch">
     <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
     <arg name="moveit_config"		value="$(arg moveit_config)"/>
     <arg name="rviz_config"		value="$(arg rviz_config)"/>

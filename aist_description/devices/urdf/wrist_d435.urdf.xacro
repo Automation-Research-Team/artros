@@ -41,7 +41,8 @@
       <origin xyz="0.035 0.0 0.025" rpy="0 0 0"/>
     </joint>
 
-    <xacro:sensor_d435 prefix="${prefix}" parent="${parent}">
+    <xacro:sensor_d435 name="${prefix}camera" parent="${parent}"
+		       use_nominal_extrinsics="true">
       <origin xyz="0.030 0.000 0.043" rpy="0 ${20.0*pi/180.0} 0" />
     </xacro:sensor_d435>
 

@@ -33,17 +33,17 @@
   </joint>
 
   <!-- robot arms -->
-  <xacro:include filename="$(find ur_e_description)/urdf/common.gazebo.xacro"/>
-  <xacro:include filename="$(find ur_e_description)/urdf/ur5e.urdf.xacro"/>
-  <xacro:ur5e_robot prefix="d_bot_" joint_limited="false"
-    shoulder_pan_lower_limit="${-pi}" shoulder_pan_upper_limit="${pi}"
-    shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi}"
-    elbow_joint_lower_limit="0.0" elbow_joint_upper_limit="${pi}"
-    wrist_1_lower_limit="${-pi}" wrist_1_upper_limit="${pi}"
-    wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi}"
-    wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
-    kinematics_file="${load_yaml(
-		     '$(find ur_e_description)/config/ur5e_default.yaml')}"/>
+  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
+  <xacro:ur_robot_gazebo
+      prefix="d_bot_"
+      joint_limits_parameters_file="$(find ur_description
+                                    )/config/ur5e/joint_limits.yaml"
+      physical_parameters_file="$(find ur_description
+                                )/config/ur5e/physical_parameters.yaml"
+      visual_parameters_file="$(find ur_description
+                              )/config/ur5e/visual_parameters.yaml"
+      kinematics_parameters_file="$(find aist_bringup
+				  )/config/d_bot_calibration.yaml"/>
 
   <joint name="ground_d_bot_joint" type="fixed">
     <parent link="ground"/>
@@ -52,21 +52,38 @@
   </joint>
 
   <!-- Spawn and attach gripper -->
-  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_hande_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_hande_with_tip_link prefix="d_bot_" parent="d_bot_ee_link">
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="d_bot_gripper_coupling_"
+				parent="d_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
+  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_140_gripper_with_tip_link.urdf.xacro"/>
+  <xacro:robotiq_140_gripper_with_tip_link prefix="d_bot_gripper_"
+					   parent="d_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_hande_with_tip_link>
+  </xacro:robotiq_140_gripper_with_tip_link>
 
   <!-- Add PhoXi 3D scanner -->
-  <xacro:include filename="$(find aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
-  <xacro:phoxi_m_camera prefix="b_" parent="ground">
-    <origin xyz="0.547941636523
-		 -0.00827443204237
-		 1.67030171767"
-	    rpy="${-151.493605482*pi/180}
-		 ${0.698490882792*pi/180}
-		 ${85.0482907121*pi/180}"/>
+  <xacro:include filename="$(find
+			   aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
+  <xacro:phoxi_m_camera prefix="d_phoxi_m_" parent="workspace_center">
+    <origin xyz="-0.0149511700982
+		 -0.483543436025
+		 0.633792706454"
+	    rpy="${-152.286950706*pi/180}
+		 ${-2.00315281361*pi/180}
+		 ${0*pi/180}"/>
   </xacro:phoxi_m_camera>
+
+  <!-- Add RealSense camera -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/_d435.urdf.xacro"/>
+  <xacro:sensor_d435 name="d_bot_camera" parent="d_bot_gripper_base_link"
+		     use_nominal_extrinsics="true">
+    <origin xyz="0.030 0.000 0.043" rpy="0 ${0.0*pi/180.0} 0" />
+  </xacro:sensor_d435>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
@@ -77,8 +94,7 @@
   </joint>
 
   <!-- Include indivisual scene file -->
-  <xacro:property name="scene_name" value="$(arg scene)"/>
-  <xacro:if value="${scene_name != ''}">
+  <xacro:if value="${'$(arg scene)' != ''}">
     <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
 			     scene).urdf.xacro"/>
   </xacro:if>

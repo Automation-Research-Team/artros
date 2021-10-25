@@ -1,5 +1,40 @@
 #!/usr/bin/env python
-
+#
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of National Institute of Advanced Industrial
+#    Science and Technology (AIST) nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Toshio Ueshiba
+#
 import rospy
 from geometry_msgs    import msg as gmsg
 from tf               import transformations as tfs
@@ -26,24 +61,26 @@ class InteractiveRoutines(AISTBaseRoutines):
         'a_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians( 90)],
         'b_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
         'c_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians( 90)],
-        'd_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(  0)],
+        'd_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
+        'a_khi': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians( 90)],
+        'b_khi': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
     }
 
     def __init__(self):
         super(InteractiveRoutines, self).__init__()
 
-        self._robot_name  = rospy.get_param('~robot_name', 'b_bot')
-        self._camera_name = rospy.get_param('~camer_name', 'a_phoxi_m_camera')
+        self._robot_name  = rospy.get_param('~robot_name',  'b_bot')
+        self._camera_name = rospy.get_param('~camera_name', 'a_phoxi_m_camera')
         self._speed       = rospy.get_param('~speed',       0.1)
         self._ur_movel    = False
 
-    def move(self, pose):
+    def move(self, xyzrpy):
         target_pose = gmsg.PoseStamped()
         target_pose.header.frame_id = self.reference_frame
         target_pose.pose = gmsg.Pose(
-            gmsg.Point(pose[0], pose[1], pose[2]),
+            gmsg.Point(xyzrpy[0], xyzrpy[1], xyzrpy[2]),
             gmsg.Quaternion(
-                *tfs.quaternion_from_euler(pose[3], pose[4], pose[5])))
+                *tfs.quaternion_from_euler(xyzrpy[3], xyzrpy[4], xyzrpy[5])))
         if self._ur_movel:
             (success, _, current_pose) = self.ur_movel(self._robot_name,
                                                        target_pose,
@@ -88,50 +125,50 @@ class InteractiveRoutines(AISTBaseRoutines):
             elif key == 'W':
                 axis = 'Yaw'
             elif key == '+':
-                goal_pose = self.xyz_rpy(current_pose)
+                offset = [0, 0, 0, 0, 0, 0]
                 if axis == 'X':
-                    goal_pose[0] += 0.01
+                    offset[0] = 0.01
                 elif axis == 'Y':
-                    goal_pose[1] += 0.01
+                    offset[1] = 0.01
                 elif axis == 'Z':
-                    goal_pose[2] += 0.01
+                    offset[2] = 0.01
                 elif axis == 'Roll':
-                    goal_pose[3] += radians(10)
+                    offset[3] = radians(10)
                 elif axis == 'Pitch':
-                    goal_pose[4] += radians(10)
+                    offset[4] = radians(10)
                 else:
-                    goal_pose[5] += radians(10)
-                self.move(goal_pose)
+                    offset[5] = radians(10)
+                self.move_relative(self._robot_name, offset, self._speed)
             elif key == '-':
-                goal_pose = self.xyz_rpy(current_pose)
+                offset = [0, 0, 0, 0, 0, 0]
                 if axis == 'X':
-                    goal_pose[0] -= 0.01
+                    offset[0] = -0.01
                 elif axis == 'Y':
-                    goal_pose[1] -= 0.01
+                    offset[1] = -0.01
                 elif axis == 'Z':
-                    goal_pose[2] -= 0.01
+                    offset[2] = -0.01
                 elif axis == 'Roll':
-                    goal_pose[3] -= radians(10)
+                    offset[3] = radians(-10)
                 elif axis == 'Pitch':
-                    goal_pose[4] -= radians(10)
+                    offset[4] = radians(-10)
                 else:
-                    goal_pose[5] -= radians(10)
-                self.move(goal_pose)
+                    offset[5] = radians(-10)
+                self.move_relative(self._robot_name, offset, self._speed)
             elif is_num(key):
-                goal_pose = self.xyz_rpy(current_pose)
+                xyzrpy = self.xyz_rpy(current_pose)
                 if axis == 'X':
-                    goal_pose[0] = float(key)
+                    xyzrpy[0] = float(key)
                 elif axis == 'Y':
-                    goal_pose[1] = float(key)
+                    xyzrpy[1] = float(key)
                 elif axis == 'Z':
-                    goal_pose[2] = float(key)
+                    xyzrpy[2] = float(key)
                 elif axis == 'Roll':
-                    goal_pose[3] = radians(float(key))
+                    xyzrpy[3] = radians(float(key))
                 elif axis == 'Pitch':
-                    goal_pose[4] = radians(float(key))
+                    xyzrpy[4] = radians(float(key))
                 else:
-                    goal_pose[5] = radians(float(key))
-                self.move(goal_pose)
+                    xyzrpy[5] = radians(float(key))
+                self.move(xyzrpy)
             elif key == 's':
                 self.stop(self._robot_name)
             elif key == 'f':

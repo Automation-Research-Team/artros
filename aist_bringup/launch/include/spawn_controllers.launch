@@ -15,8 +15,7 @@
     <arg name="prefix"	   value="$(eval prefixes.split(',')[0].strip())"/>
     <arg name="device"	   value="$(eval devices.split(',')[0].strip())"/>
     <arg name="controller" value="$(eval controllers.split(',')[0].strip())"/>
-    <include file="$(find aist_bringup
-		   )/launch/include/$(arg controller)_controller.launch">
+    <include file="$(dirname)/$(arg controller)_controller.launch">
       <arg name="prefix" value="$(arg prefix)"/>
       <arg name="device" value="$(arg device)"/>
       <arg name="sim"    value="$(arg sim)"/>
@@ -45,8 +44,7 @@
     <arg name ="kept_frequency"	value="$(arg joint_state_frequency)"/>
     <arg name ="kept_sim"	value="$(arg sim)"/>
     <arg name="kept_manager"	value="$(arg manager)"/>
-    <include file="$(find aist_bringup
-		   )/launch/include/spawn_controllers.launch">
+    <include file="$(dirname)/spawn_controllers.launch">
       <arg name="prefixes"	     value="$(arg remained_prefixes)"/>
       <arg name="devices"	     value="$(arg remained_devices)"/>
       <arg name="controllers"	     value="$(arg remained_controllers)"/>
@@ -60,17 +58,17 @@
 
   <group if="$(eval devices.strip() == '')">
     <!-- Setup parameters and spawn joint_state_controller -->
-    <rosparam file="$(find aist_bringup)/config/joint_state_controller.yaml"
-	      subst_value="true"/>
+    <rosparam file="$(dirname)/../../config/joint_state_controller.yaml"
+              subst_value="true"/>
     <node name="joint_state_controller_spawner"
-	  pkg ="controller_manager" type="spawner"
-	  args="joint_state_controller"
-	  output="screen"/>
+          pkg ="controller_manager" type="spawner"
+          args="joint_state_controller"
+          output="screen"/>
 
     <group if="$(eval torobo_controllers.strip() != '')">
       <!-- Setup joint_state_controller parameters -->
       <rosparam ns="torobo"
-		file="$(find aist_bringup)/config/joint_state_controller.yaml"
+		file="$(dirname)/../../config/joint_state_controller.yaml"
 		subst_value="true"/>
 
       <!-- Setup controller names to be spawned -->
@@ -91,6 +89,7 @@
       <param name="gazebo/default_controllers" type="yaml"
 	     value="$(eval '[' + ','.join(fetch_controllers.split()) + ']')"/>
     </group>
+
   </group>
 
 </launch>

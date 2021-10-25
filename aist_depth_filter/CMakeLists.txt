@@ -17,7 +17,10 @@ find_package(
     sensor_msgs
     image_transport
     message_generation
+    actionlib_msgs
+    actionlib
     rospy
+    aist_utility
 )
 
 find_package(OpenCV REQUIRED)
@@ -31,12 +34,18 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${LIBTIFF_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  src
 )
 
-add_message_files(FILES FileInfo.msg)
+add_message_files(FILES FileInfo.msg Plane.msg PlaneStamped.msg)
+add_action_files(FILES DetectPlane.action)
 
-generate_messages(DEPENDENCIES sensor_msgs geometry_msgs)
+generate_messages(
+  DEPENDENCIES
+    actionlib_msgs
+    actionlib
+    sensor_msgs
+    geometry_msgs
+)
 
 catkin_package(
   CATKIN_DEPENDS
@@ -52,15 +61,15 @@ add_executable(
   ${PROJECT_NAME}
   src/main.cpp
   src/DepthFilter.cpp
-  src/tiff.cpp
-  src/ply.cpp
-  src/oply/OrderedPly.cpp
-  src/rply/rply.c
+#  src/tiff.cpp
+#  src/ply.cpp
+#  src/oply/OrderedPly.cpp
+#  src/rply/rply.c
 )
 
 add_dependencies(
   ${PROJECT_NAME}
-  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_generate_messages_cpp
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
@@ -77,15 +86,15 @@ add_library(
   ${PROJECT_NAME}_nodelet
   src/nodelet.cpp
   src/DepthFilter.cpp
-  src/tiff.cpp
-  src/ply.cpp
-  src/oply/OrderedPly.cpp
-  src/rply/rply.c
+#  src/tiff.cpp
+#  src/ply.cpp
+#  src/oply/OrderedPly.cpp
+#  src/rply/rply.c
 )
 
 add_dependencies(
   ${PROJECT_NAME}_nodelet
-  ${PROJECT_NAME}_gencpp
+  ${PROJECT_NAME}_generate_messages_cpp
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )

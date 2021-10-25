@@ -1,0 +1,6 @@
+<library path="lib/libaist_ftsensor_controller">
+  <class name="aist_ftsensor_controller/ForceTorqueSensorController"
+	 type="aist_ftsensor::ForceTorqueSensorController"
+	 base_class_type="controller_interface::ControllerBase">
+  </class>
+</library>

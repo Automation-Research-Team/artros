@@ -50,16 +50,23 @@
   </joint>
 
   <!-- Spawn and attach gripper -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
+				parent="a_bot_ee_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
   <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_140_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_140_gripper_with_tip_link prefix="a_bot_"
-					   parent="a_bot_ee_link">
+  <xacro:robotiq_140_gripper_with_tip_link prefix="a_bot_gripper_"
+					   parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_140_gripper_with_tip_link>
 
   <!-- Add RealSense camera -->
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/wrist_d435.urdf.xacro" />
-  <xacro:wrist_d435 prefix="a_bot_" parent="a_bot_robotiq_140_base_link"/>
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/wrist_d435.urdf.xacro" /> -->
+  <!-- <xacro:wrist_d435 prefix="a_bot_" parent="a_bot_robotiq_140_base_link"/> -->
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
@@ -70,8 +77,7 @@
   </joint>
 
   <!-- Include indivisual scene file -->
-  <xacro:property name="scene_name" value="$(arg scene)"/>
-  <xacro:if value="${scene_name != ''}">
+  <xacro:if value="${'$(arg scene)' != ''}">
     <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
 			     scene).urdf.xacro"/>
   </xacro:if>

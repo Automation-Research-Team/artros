@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="prefix"		default="a_bot_gripper_"/>
+  <arg name="serial_port"	default="/dev/ttyUSB0"/>
+  <arg name="publish_rate"	default="50"/>
+
+  <!-- Spawn controller -->
+  <node name="$(arg prefix)controller"
+        pkg="aist_precision_gripper" type="precision_gripper_controller.py"
+        output="screen" respawn="false">
+    <rosparam file="$(dirname)/../config/precision_gripper.yaml"
+              subst_value="true"/>
+  </node>
+
+</launch>

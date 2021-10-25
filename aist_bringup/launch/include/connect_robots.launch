@@ -47,7 +47,7 @@
 
   <group unless="$(arg sim)">
     <!-- Spawn hardware drivers -->
-    <include file="$(find aist_bringup)/launch/include/spawn_drivers.launch">
+    <include file="$(dirname)/spawn_drivers.launch">
       <arg name="prefixes"	value="$(arg prefixes)"/>
       <arg name="devices"	value="$(arg devices)"/>
       <arg name="drivers"	value="$(arg drivers)"/>
@@ -56,7 +56,7 @@
   </group>
 
   <!-- Spawn controllers -->
-  <include file="$(find aist_bringup)/launch/include/spawn_controllers.launch">
+  <include file="$(dirname)/spawn_controllers.launch">
     <arg name="prefixes"		value="$(arg prefixes)"/>
     <arg name="devices"			value="$(arg devices)"/>
     <arg name="controllers"		value="$(arg controllers)"/>

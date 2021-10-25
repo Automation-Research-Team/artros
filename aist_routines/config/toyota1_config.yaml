@@ -6,13 +6,18 @@ grippers:
   magnet:
     type: MagswitchGripper
     args:
-      prefix: ''
-      timeout: 2.5
+      prefix: magnet_
   gripper:
     type: Lecp6Gripper
     args:
-      prefix: ''
-      timeout: 2.0
+      prefix: gripper_
+  suction:
+    type: SuctionGripper
+    args:
+      name: suction
+      action_ns: /arm_driver/suction_driver/suction
+      state_ns: /arm_driver/suction_driver/suctioned
+      eject: false
 
 cameras:
   camera: PhoXiCamera

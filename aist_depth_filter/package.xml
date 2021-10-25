@@ -16,9 +16,12 @@
 
   <depend>roscpp</depend>
   <depend>rospy</depend>
+  <depend>actionlib</depend>
+  <depend>actionlib_msgs</depend>
   <depend>ddynamic_reconfigure</depend>
   <depend>sensor_msgs</depend>
   <depend>image_transport</depend>
+  <depend>aist_utility</depend>
 
   <export>
     <nodelet plugin="${prefix}/nodelet_description.xml"/>

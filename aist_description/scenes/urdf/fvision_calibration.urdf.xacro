@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="fvision_calibration">
+  <!-- Add AR markers -->
+  <xacro:include filename="$(find aist_description)/objects/urdf/ar_markers.urdf.xacro"/>
+
+  <xacro:ar_marker_70_5 prefix="workspace_"
+			parent="workspace_center"
+			marker_id="26"
+			thickness="0.001">
+    <origin xyz="0.0 0.0 0.0005" rpy="0 0 0"/>
+  </xacro:ar_marker_70_5>
+</robot>

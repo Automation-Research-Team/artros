@@ -45,16 +45,24 @@
   </xacro:iiwa14>
 
   <!-- Attach grippers -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="a_iiwa_gripper_coupling_"
+				parent="a_iiwa_ee_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
   <xacro:include filename="$(find aist_description
   			   )/devices/urdf/robotiq_85_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_85_gripper_with_tip_link prefix="a_iiwa_"
-  					  parent="a_iiwa_ee_link">
+  <xacro:robotiq_85_gripper_with_tip_link prefix="a_iiwa_gripper_"
+  					  parent="a_iiwa_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_85_gripper_with_tip_link>
 
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
-  <xacro:single_suction_gripper prefix="b_iiwa_" parent="b_iiwa_ee_link">
+  <xacro:single_suction_gripper prefix="b_iiwa_gripper_"
+				parent="b_iiwa_ee_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:single_suction_gripper>
 
@@ -79,8 +87,7 @@
   </joint>
 
   <!-- Include indivisual scene file -->
-  <xacro:property name="scene_name" value="$(arg scene)"/>
-  <xacro:if value="${scene_name != ''}">
+  <xacro:if value="${'$(arg scene)' != ''}">
     <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
 			     scene).urdf.xacro"/>
   </xacro:if>

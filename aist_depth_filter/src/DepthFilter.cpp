@@ -1,14 +1,50 @@
+// Software License Agreement (BSD License)
+//
+// Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of National Institute of Advanced Industrial
+//    Science and Technology (AIST) nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
  *  \file	DepthFilter.cpp
- *  \author	Toshio UESHIBA
+ *  \author	Toshio Ueshiba
  *  \brief	ROS node for applying filters to depth images
  */
 #include <cstdlib>	// for getenv()
 #include <sys/stat.h>	// for mkdir()
 #include <sensor_msgs/image_encodings.h>
-#include "tiff.h"
-#include "ply.h"
-#include "utils.h"
+#include <aist_utility/tiff.h>
+#include <aist_utility/ply.h>
+#include <aist_utility/sensor_msgs.h>
+#include <aist_utility/opencv.h>
 #include "binarize.h"
 #include "ransac.h"
 #include "DepthFilter.h"
@@ -21,6 +57,8 @@ namespace aist_depth_filter
 template <class T, class ITER> ITER
 get_dark_pixels(const sensor_msgs::Image& image, ITER iter)
 {
+    using namespace	aist_utility;
+
   // Create an array of intensity values.
     std::vector<float>	intensities(image.height * image.width);
     auto		q = intensities.begin();
@@ -59,22 +97,25 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
     :_nh(nh),
      _saveBG_srv(_nh.advertiseService("saveBG", &saveBG_cb, this)),
      _capture_srv(_nh.advertiseService("capture", &capture_cb, this)),
+     _it(_nh),
      _camera_info_sub(_nh, "/camera_info", 1),
-     _image_sub( _nh, "/image",  1),
-     _depth_sub( _nh, "/depth",  1),
-     _normal_sub(_nh, "/normal", 1),
+     _image_sub( _it, "/image",  1),
+     _depth_sub( _it, "/depth",  1),
+     _normal_sub(_it, "/normal", 1),
      _sync(sync_policy_t(10),
 	   _camera_info_sub, _image_sub, _depth_sub, _normal_sub),
      _sync2(sync_policy2_t(10),
      	    _camera_info_sub, _image_sub, _depth_sub),
-     _it(_nh),
      _image_pub (_it.advertise("image",  1)),
      _depth_pub( _it.advertise("depth",  1)),
      _normal_pub(_it.advertise("normal", 1)),
      _colored_normal_pub(_it.advertise("colored_normal", 1)),
-     _base_plane_pub(_nh.advertise<cloud_t>("base_plane", 1)),
+     _plane_pub(_nh.advertise<cloud_t>("base_plane", 1)),
      _camera_info_pub(_nh.advertise<camera_info_t>("camera_info", 1)),
      _file_info_pub(_nh.advertise<file_info_t>("file_info", 1)),
+     _detect_plane_srv(_nh, "detect_plane",
+		       boost::bind(&DepthFilter::detect_plane_cb, this, _1),
+		       false),
      _ddr(_nh),
      _camera_info_org(nullptr),
      _camera_info(),
@@ -84,75 +125,68 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
      _depth_bg(nullptr),
      _depth(),
      _normal(),
-     _threshBG(0.0),
-     _near(0.0),
-     _far(FarMax),
-     _top(0),
-     _bottom(2048),
-     _left(0),
-     _right(3072),
-     _scale(1.0),
-     _window_radius(0),
-     _threshPlane(0.001)
+     _threshBG(_nh.param("thresh_bg", 0.0)),
+     _near(_nh.param("near", 0.0)),
+     _far(_nh.param("far", 4.0)),
+     _top(_nh.param("top", 0)),
+     _bottom(_nh.param("bottom", 2048)),
+     _left(_nh.param("left", 0)),
+     _right(_nh.param("right", 3072)),
+     _scale(_nh.param("scale", 1.0)),
+     _window_radius(_nh.param("window_radius", 0)),
+     _threshPlane(_nh.param("thresh_plane", 0.001))
 {
-    _nh.param("thresh_bg", _threshBG, _threshBG);
+  // Setup DetectPlane action server.
+    _detect_plane_srv.registerPreemptCallback(boost::bind(&preempt_cb, this));
+    _detect_plane_srv.start();
+
+  // Setup parameters
     _ddr.registerVariable<double>("thresh_bg", _threshBG,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_threshBG, _1),
 				  "Threshold value for background removal",
 				  0.0, 0.1);
-    _nh.param("near", _near, _near);
     _ddr.registerVariable<double>("near", _near,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_near, _1),
 				  "Nearest depth value", 0.0, 1.0);
-    _nh.param("far", _far, _far);
     _ddr.registerVariable<double>("far", _far,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_far, _1),
 				  "Farest depth value", 0.0, FarMax);
-    _nh.param("top", _top, _top);
     _ddr.registerVariable<int>("top", _top,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_top, _1),
 			       "Top of ROI", 0, 2048);
-    _nh.param("bottom", _bottom, _bottom);
     _ddr.registerVariable<int>("bottom", _bottom,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_bottom, _1),
 			       "Bottom of ROI", 0, 2048);
-    _nh.param("left", _left, _left);
     _ddr.registerVariable<int>("left", _left,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_left, _1),
 			       "Left of ROI", 0, 3072);
-    _nh.param("right", _right, _right);
     _ddr.registerVariable<int>("right", _right,
 			       boost::bind(&DepthFilter::setVariable<int>,
 					   this, &DepthFilter::_right, _1),
 			       "Right of ROI", 0, 3072);
-    _nh.param("scale", _scale, _scale);
     _ddr.registerVariable<double>("scale", _scale,
 				  boost::bind(
 				      &DepthFilter::setVariable<double>,
 				      this, &DepthFilter::_scale, _1),
 				  "Scale depth", 0.5, 1.5);
-    _nh.param("thresh_plane", _threshPlane, _threshPlane);
     _ddr.registerVariable<double>("thresh_plane", &_threshPlane,
-				  "Threshold of plane fitting", 0.0, 0.01);
+				  "Threshold for plane fitting", 0.0, 0.01);
 
-    bool	subscribe_normal;
-    _nh.param("subscribe_normal", subscribe_normal, true);
-    if (subscribe_normal)
+    if (_nh.param("subscribe_normal", true))
     {
 	_sync.registerCallback(&DepthFilter::filter_with_normal_cb, this);
     }
     else
     {
-	_nh.param("window_radius", _window_radius, 0);
 	_ddr.registerVariable<int>("window_radius", _window_radius,
 				   boost::bind(
 				       &DepthFilter::setVariable<int>,
@@ -186,7 +220,7 @@ DepthFilter::saveBG_cb(std_srvs::Trigger::Request&  req,
 	if (!_depth_org)
 	    throw std::runtime_error("no original depth image available!");
 
-	saveTiff(*_depth_org, open_dir() + "/bg.tif");
+	aist_utility::saveTiff(*_depth_org, open_dir() + "/bg.tif");
 
 	_depth_bg  = _depth_org;
 	_depth_org = nullptr;
@@ -217,31 +251,32 @@ DepthFilter::capture_cb(std_srvs::Trigger::Request&  req,
 	    throw std::runtime_error("no filtered depth image available!");
 
 	const auto	file_path = open_dir() + "/scene.ply";
-	savePly(_camera_info, _image, _depth, _normal, file_path);
+	aist_utility::savePly(_camera_info, _image, _depth, _normal,
+			      file_path);
 	_depth.data.clear();
 
 	file_info_t	file_info;
-	file_info.camera_info = _camera_info;
-	file_info.file_path   = file_path;
+	file_info.file_path = file_path;
+	file_info.header    = _camera_info.header;
 
 	if (_threshPlane > 0.0)
 	{
-	    const auto	plane = detect_base_plane(*_camera_info_org,
-						  *_image_org, *_depth_org,
-						  _threshPlane);
+	    const auto	plane = detect_plane(*_camera_info_org,
+					     *_image_org, *_depth_org,
+					     _threshPlane);
 	    file_info.plane_detected = true;
-	    file_info.normal.x	     = plane.normal()(0);
-	    file_info.normal.y	     = plane.normal()(1);
-	    file_info.normal.z	     = plane.normal()(2);
-	    file_info.distance	     = plane.distance();
+	    file_info.normal.x = plane.normal()(0);
+	    file_info.normal.y = plane.normal()(1);
+	    file_info.normal.z = plane.normal()(2);
+	    file_info.distance = plane.distance();
 	}
 	else
 	{
 	    file_info.plane_detected = false;
-	    file_info.normal.x	     = 0;
-	    file_info.normal.y	     = 0;
-	    file_info.normal.z	     = -1;
-	    file_info.distance	     = 0;
+	    file_info.normal.x = 0;
+	    file_info.normal.y = 0;
+	    file_info.normal.z = -1;
+	    file_info.distance = 0;
 	}
 
 	_file_info_pub.publish(file_info);
@@ -278,7 +313,7 @@ DepthFilter::filter_with_normal_cb(const camera_info_cp& camera_info,
 
     try
     {
-	using	namespace sensor_msgs;
+	using namespace	sensor_msgs;
 
       // Keep pointers to original data.
 	_camera_info_org = camera_info;
@@ -370,6 +405,45 @@ DepthFilter::filter_without_normal_cb(const camera_info_cp& camera_info,
     }
 }
 
+void
+DepthFilter::preempt_cb() const
+{
+    _detect_plane_srv.setPreempted();
+    ROS_INFO_STREAM("(DepthFilter)   *DetectPlaneAction preempted*");
+}
+
+void
+DepthFilter::detect_plane_cb(const goal_cp& goal)
+{
+    try
+    {
+	if (!_camera_info_org || !_image_org || !_depth_org)
+	    throw std::runtime_error("no images receved!");
+
+	if (_threshPlane <= 0.0)
+	    throw std::runtime_error("parameter threshPlane is not positive!");
+
+	const auto	plane = detect_plane(*_camera_info_org,
+					     *_image_org, *_depth_org,
+					     _threshPlane);
+
+	DetectPlaneResult	result;
+	result.plane.header	    = _camera_info_org->header;
+	result.plane.plane.normal.x = plane.normal()(0);
+	result.plane.plane.normal.y = plane.normal()(1);
+	result.plane.plane.normal.z = plane.normal()(2);
+	result.plane.plane.distance = plane.distance();
+
+	_detect_plane_srv.setSucceeded(result);
+    }
+    catch (const std::exception& err)
+    {
+	ROS_ERROR_STREAM("(DepthFilter) detect_plane_cb(): "
+			 << err.what());
+	_detect_plane_srv.setAborted();
+    }
+}
+
 template <class T> void
 DepthFilter::filter(const camera_info_t& camera_info, image_t& depth)
 {
@@ -378,7 +452,7 @@ DepthFilter::filter(const camera_info_t& camera_info, image_t& depth)
 	try
 	{
 	    if (!_depth_bg)
-		_depth_bg = loadTiff(open_dir() + "/bg.tif");
+		_depth_bg = aist_utility::loadTiff(open_dir() + "/bg.tif");
 
 	    removeBG<T>(depth, *_depth_bg);
 	}
@@ -407,6 +481,8 @@ DepthFilter::removeBG(image_t& depth, const image_t& depth_bg) const
 {
     for (int v = 0; v < depth.height; ++v)
     {
+	using namespace	aist_utility;
+
 	auto	p = ptr<T>(depth, v);
 	auto	b = ptr<T>(depth_bg, v + _top) + _left;
 	for (const auto q = p + depth.width; p != q; ++p, ++b)
@@ -420,6 +496,8 @@ DepthFilter::z_clip(image_t& depth) const
 {
     for (int v = 0; v < depth.height; ++v)
     {
+	using namespace	aist_utility;
+
 	const auto	p = ptr<T>(depth, v);
 	std::replace_if(p, p + depth.width,
 			[this](const auto& val)
@@ -432,7 +510,7 @@ template <class T> void
 DepthFilter::computeNormal(const camera_info_t& camera_info,
 			   const image_t& depth)
 {
-    using	namespace sensor_msgs;
+    using namespace	sensor_msgs;
 
   // Computation of normals should be done in double-precision
   // in order to avoid truncation error when sliding windows
@@ -464,7 +542,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
 
   // 2: Compute 3D coordinates.
     cv::Mat_<vector3_t>		xyz(depth.height, depth.width);
-    depth_to_points<T>(camera_info, depth, xyz.begin(), milimeters<T>);
+    aist_utility::depth_to_points<T>(camera_info, depth, xyz.begin(),
+				     aist_utility::milimeters<T>);
 
   // 3: Compute normals.
     const auto			ws1 = 2 * _window_radius;
@@ -475,6 +554,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
   // 3.1: Convovle with a box filter in horizontal direction.
     for (int v = 0; v < n.cols; ++v)
     {
+	using namespace	aist_utility::opencv;
+
 	auto		sum_n = 0;
 	vector3_t	sum_c(0, 0, 0);
 	auto		sum_M = matrix33_t::zeros();
@@ -519,6 +600,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
   // 3.2: Convolve with a box filter in vertical direction.
     for (int u = 0; u < n.rows; ++u)
     {
+	using namespace	aist_utility;
+
 	auto	sum_n = 0;
 	auto	sum_c = vector3_t::zeros();
 	auto	sum_M = matrix33_t::zeros();
@@ -541,6 +624,8 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
 
 	    if (sum_n > 3)
 	    {
+		using namespace	opencv;
+
 		const auto	A = sum_n * sum_M - sum_c % sum_c;
 		vector3_t	evalues;
 		matrix33_t	evectors;
@@ -584,6 +669,8 @@ DepthFilter::scale(image_t& depth) const
 {
     for (int v = 0; v < depth.height; ++v)
     {
+	using namespace	aist_utility;
+
 	const auto	p = ptr<T>(depth, v);
 	std::transform(p, p + depth.width, p,
 		       [this](const auto& val){ return _scale * val; });
@@ -591,11 +678,12 @@ DepthFilter::scale(image_t& depth) const
 }
 
 DepthFilter::plane_t
-DepthFilter::detect_base_plane(const camera_info_t& camera_info,
-			       const image_t& image,
-			       const image_t& depth, float thresh) const
+DepthFilter::detect_plane(const camera_info_t& camera_info,
+			  const image_t& image,
+			  const image_t& depth, float thresh) const
 {
-    using	namespace sensor_msgs;
+    using namespace	sensor_msgs;
+    using namespace	aist_utility;
 
     using grey_t	= uint8_t;
     using rgb_t		= std::array<uint8_t, 3>;
@@ -629,7 +717,7 @@ DepthFilter::detect_base_plane(const camera_info_t& camera_info,
     const auto	cloud = create_pointcloud(inliers.begin(), inliers.end(),
 					  depth.header.stamp,
 					  depth.header.frame_id);
-    _base_plane_pub.publish(cloud);
+    _plane_pub.publish(cloud);
 
     return plane;
 }
@@ -679,6 +767,8 @@ DepthFilter::create_colored_normal(const image_t& normal,
 
     for (int v = 0; v < normal.height; ++v)
     {
+	using namespace	aist_utility;
+
 	const auto	p = ptr<normal_t>(normal, v);
 	const auto	q = ptr<colored_normal_t>(colored_normal, v);
 

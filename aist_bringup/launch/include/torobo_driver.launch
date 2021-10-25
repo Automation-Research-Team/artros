@@ -9,7 +9,7 @@
   <arg name="port"	 value="$(eval driver_arg.split(',')[1].strip())"/>
 
   <rosparam ns="torobo"
-	    file="$(find aist_bringup)/config/torobo_driver.yaml"
+	    file="$(dirname)/../../config/torobo_driver.yaml"
 	    subst_value="true"/>
 
 </launch>

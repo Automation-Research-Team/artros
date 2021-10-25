@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>aist_precision_gripper</name>
+  <version>0.1.0</version>
+  <description>The aist_precision_gripper package</description>
+
+  <maintainer email="t.ueshiba@aist.go.jp">Toshio UESHIBA</maintainer>
+  <license>BSD</license>
+  <author email="t.ueshiba@aist.go.jp">Toshio UESHIBA</author>
+  <url type="repository">https://gitlab.com/art-aist-private/artros</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>rospy</depend>
+  <depend>actionlib</depend>
+  <depend>actionlib_msgs</depend>
+  <depend>control_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+</package>

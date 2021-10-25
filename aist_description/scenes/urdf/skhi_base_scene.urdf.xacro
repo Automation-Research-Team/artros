@@ -36,10 +36,12 @@
   </xacro:rs007l>
 
   <!-- Attach grippers -->
-  <xacro:include filename="$(find toyota1_description)/devices/urdf/magripper.urdf.xacro" />
-  <xacro:magripper3 prefix="a_khi_" parent="a_khi_ee_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:magripper3>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
+  <xacro:single_suction_gripper prefix="a_khi_gripper_"
+  				parent="a_khi_ee_link">
+    <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/>
+  </xacro:single_suction_gripper>
 
   <gazebo>
     <!-- Required because package robot_controllers is used for
@@ -60,8 +62,7 @@
   </joint>
 
   <!-- Include indivisual scene file -->
-  <xacro:property name="scene_name" value="$(arg scene)"/>
-  <xacro:if value="${scene_name != ''}">
+  <xacro:if value="${'$(arg scene)' != ''}">
     <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
 			     scene).urdf.xacro"/>
   </xacro:if>

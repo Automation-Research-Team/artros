@@ -1,10 +1,45 @@
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of National Institute of Advanced Industrial
+#    Science and Technology (AIST) nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Toshio Ueshiba
+#
 import sys
 import copy
 import collections
 import rospy
-from math import pi, radians, degrees
-from numpy import clip
+import numpy as np
 
+from math import pi, radians, degrees
 from tf import TransformListener, transformations as tfs
 import moveit_commander
 from moveit_commander.conversions import pose_to_list
@@ -54,9 +89,7 @@ class AISTBaseRoutines(object):
 
         # Grippers
         d = rospy.get_param('~grippers', {})
-        self._grippers = {'void_gripper':
-                          VoidGripper('void_gripper',
-                                      'void_gripper_base_link')}
+        self._grippers = {'void_gripper': VoidGripper('void_gripper_base_link')}
         for gripper_name, props in d.items():
             self._grippers[gripper_name] = GripperClient.create(props['type'],
                                                                 props['args'])
@@ -147,7 +180,8 @@ class AISTBaseRoutines(object):
     def go_to_pose_goal(self, robot_name, target_pose,
                         speed=1.0, end_effector_link='',
                         high_precision=False, move_lin=True):
-        self.publish_marker(target_pose, 'pose')
+        self.add_marker('pose', target_pose)
+        self.publish_marker()
 
         if move_lin:
             return self.go_along_poses(robot_name,
@@ -160,7 +194,7 @@ class AISTBaseRoutines(object):
 
         group = self._cmd.get_group(robot_name)
         group.set_end_effector_link(end_effector_link)
-        group.set_max_velocity_scaling_factor(clip(speed, 0.0, 1.0))
+        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_pose_target(target_pose)
         success      = group.go(wait=True)
         current_pose = group.get_current_pose()
@@ -175,7 +209,7 @@ class AISTBaseRoutines(object):
 
         group = self._cmd.get_group(robot_name)
         group.set_end_effector_link(end_effector_link)
-        group.set_max_velocity_scaling_factor(clip(speed, 0.0, 1.0))
+        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
 
         try:
             transformed_poses = self.transform_poses_to_target_frame(
@@ -218,6 +252,16 @@ class AISTBaseRoutines(object):
         is_all_close = self._all_close(transformed_poses[-1],
                                        current_pose.pose, 0.01)
         return (success, is_all_close, current_pose)
+
+    def move_relative(self, robot_name, offset,
+                      speed=1.0, end_effector_link='',
+                      high_precision=False, move_lin=True):
+        return self.go_to_pose_goal(
+                   robot_name,
+                   self.shift_pose(self.get_current_pose(robot_name,
+                                                         end_effector_link),
+                                   offset),
+                   speed, end_effector_link, high_precision, move_lin)
 
     def stop(self, robot_name):
         group = self._cmd.get_group(robot_name)
@@ -268,9 +312,13 @@ class AISTBaseRoutines(object):
     def delete_all_markers(self):
         self._markerPublisher.delete_all()
 
-    def publish_marker(self, pose_stamped, marker_type, text='', lifetime=15):
-        return self._markerPublisher.add(pose_stamped, marker_type,
-                                         text, lifetime)
+    def add_marker(self, marker_type, pose_stamped, endpoint=None,
+                   text='', lifetime=15):
+        self._markerPublisher.add(marker_type, pose_stamped,
+                                  endpoint, text, lifetime)
+
+    def publish_marker(self):
+        self._markerPublisher.publish()
 
     # Graspability stuffs
     def create_mask_image(self, camera_name, nmasks):
@@ -289,20 +337,24 @@ class AISTBaseRoutines(object):
                                            feedback_cb)
 
     def graspability_wait_for_result(self, orientation=None, max_slant=pi/4,
-                                     marker_lifetime=0):
-        poses, gscores = self._graspabilityClient.wait_for_result(orientation,
-                                                                  max_slant)
+                                     target_frame='', marker_lifetime=0):
+        poses, gscores, contact_points \
+            = self._graspabilityClient.wait_for_result(orientation, max_slant)
 
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
-        poses = self.transform_poses_to_target_frame(poses)
+        contact_points = self._transform_points_to_target_frame(
+                                poses.header, contact_points, target_frame)
+        poses          = self.transform_poses_to_target_frame(poses,
+                                                              target_frame)
         for i, pose in enumerate(poses.poses):
-            self.publish_marker(gmsg.PoseStamped(poses.header, pose),
-                                'graspability',
-                                '{}[{:.3f}]'.format(i, gscores[i]),
-                                lifetime=marker_lifetime)
-            # rospy.loginfo('graspability: {}[{:.3f}]'.format(i, gscores[i]))
+            self.add_marker('graspability',
+                            gmsg.PoseStamped(poses.header, pose),
+                            contact_points[i],
+                            '{}[{:.3f}]'.format(i, gscores[i]),
+                            lifetime=marker_lifetime)
+        self.publish_marker()
 
         return poses, gscores
 
@@ -320,7 +372,7 @@ class AISTBaseRoutines(object):
         return self._pickOrPlaceAction.execute(robot_name, target_pose, True,
                                                params['grasp_offset'],
                                                params['approach_offset'],
-                                               params['liftup_after'],
+                                               params['departure_offset'],
                                                params['speed_fast'],
                                                params['speed_slow'],
                                                wait, feedback_cb)
@@ -335,25 +387,29 @@ class AISTBaseRoutines(object):
         return self._pickOrPlaceAction.execute(robot_name, target_pose, False,
                                                params['place_offset'],
                                                params['approach_offset'],
-                                               params['liftup_after'],
+                                               params['departure_offset'],
                                                params['speed_fast'],
                                                params['speed_slow'],
                                                wait, feedback_cb)
 
     def pick_at_frame(self, robot_name, target_frame, part_id,
-                      offset=(0.0, 0.0, 0.0), wait=True, feedback_cb=None):
+                      offset=(0, 0, 0), wait=True, feedback_cb=None):
         target_pose = gmsg.PoseStamped()
         target_pose.header.frame_id = target_frame
-        target_pose.pose            = gmsg.Pose(gmsg.Point(*offset),
-                                                gmsg.Quaternion(0, 0, 0, 1))
+        target_pose.pose = gmsg.Pose(gmsg.Point(*offset[0:3]),
+                                     gmsg.Quaternion(
+                                         *self._quaternion_from_offset(
+                                             offset[3:])))
         return self.pick(robot_name, target_pose, part_id, wait, feedback_cb)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
-                       offset=(0.0, 0.0, 0.0), wait=True, feedback_cb=None):
+                       offset=(0, 0, 0), wait=True, feedback_cb=None):
         target_pose = gmsg.PoseStamped()
         target_pose.header.frame_id = target_frame
-        target_pose.pose            = gmsg.Pose(gmsg.Point(*offset),
-                                                gmsg.Quaternion(0, 0, 0, 1))
+        target_pose.pose = gmsg.Pose(gmsg.Point(*offset[0:3]),
+                                     gmsg.Quaternion(
+                                         *self._quaternion_from_offset(
+                                             offset[3:])))
         return self.place(robot_name, target_pose, part_id, wait, feedback_cb)
 
     def pick_or_place_wait_for_result(self):
@@ -363,6 +419,25 @@ class AISTBaseRoutines(object):
         return self._pickOrPlaceAction.cancel()
 
     # Utility functions
+    def shift_pose(self, pose, offset):
+        m44 = tfs.concatenate_matrices(self._listener.fromTranslationRotation(
+                                           (pose.pose.position.x,
+                                            pose.pose.position.y,
+                                            pose.pose.position.z),
+                                           (pose.pose.orientation.x,
+                                            pose.pose.orientation.y,
+                                            pose.pose.orientation.z,
+                                            pose.pose.orientation.w)),
+                                       self._listener.fromTranslationRotation(
+                                           offset[0:3],
+                                           self._quaternion_from_offset(
+                                               offset[3:])))
+        return gmsg.PoseStamped(
+                 pose.header,
+                 gmsg.Pose(
+                     gmsg.Point(*tuple(tfs.translation_from_matrix(m44))),
+                     gmsg.Quaternion(*tuple(tfs.quaternion_from_matrix(m44)))))
+
     def transform_pose_to_target_frame(self, pose, target_frame=''):
         poses = self.transform_poses_to_target_frame(
                     gmsg.PoseArray(pose.header, [pose.pose]), target_frame)
@@ -438,7 +513,10 @@ class AISTBaseRoutines(object):
                          target_pose.orientation.z,
                          target_pose.orientation.w)),
                     self._listener.fromTranslationRotation(
-                        offset,
+                        offset[0:3],
+                        self._quaternion_from_offset(offset[3:])),
+                    self._listener.fromTranslationRotation(
+                        (0, 0, 0),
                         tfs.quaternion_from_euler(0, radians(90), 0)))
             poses.poses.append(
                           gmsg.Pose(
@@ -461,3 +539,27 @@ class AISTBaseRoutines(object):
             if abs(actual_list[i] - goal_list[i]) > tolerance:
                 return False
         return True
+
+    def _transform_points_to_target_frame(self, header, points,
+                                          target_frame=''):
+        if target_frame == '':
+            target_frame = self._reference_frame
+
+        try:
+            self._listener.waitForTransform(target_frame, header.frame_id,
+                                            header.stamp, rospy.Duration(10))
+            mat44 = self._listener.asMatrix(target_frame, header)
+        except Exception as e:
+            rospy.logerr('AISTBaseRoutines._transform_positions_to_target_frame(): {}'.format(e))
+            raise e
+
+        return [ gmsg.Point(*tuple(np.dot(mat44,
+                                          np.array((p.x, p.y, p.z, 1.0)))[:3]))
+                 for p in points ]
+
+    def _quaternion_from_offset(self, offset):
+        return (0, 0, 0, 1) if len(offset) < 3 else \
+               tfs.quaternion_from_euler(offset[0],
+                                         offset[1],
+                                         offset[2]) if len(offset) == 3 else \
+               offset[0:4]

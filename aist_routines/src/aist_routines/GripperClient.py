@@ -1,19 +1,56 @@
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of National Institute of Advanced Industrial
+#    Science and Technology (AIST) nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Toshio Ueshiba
+#
 import rospy
 import actionlib
 from actionlib_msgs.msg import GoalStatus
+from control_msgs       import msg as cmsg
 from numpy              import clip
 
 ######################################################################
 #  class GripperClient                                               #
 ######################################################################
 class GripperClient(object):
-    def __init__(self, name, type, base_link, tip_link, timeout):
-        self._name       = name
-        self._type       = type
-        self._base_link  = base_link
-        self._tip_link   = tip_link
-        self._timeout    = timeout
-        self._parameters = {}
+    def __init__(self, name, type, base_link, tip_link):
+        object.__init__(self)
+        self._name             = name
+        self._type             = type
+        self._base_link        = base_link
+        self._default_tip_link = tip_link
+        self._tip_link         = tip_link
+        self._parameters       = {}
 
     @staticmethod
     def create(type_name, kwargs):
@@ -39,9 +76,9 @@ class GripperClient(object):
     def tip_link(self):
         return self._tip_link
 
-    @property
-    def timeout(self):
-        return self._timeout
+    @tip_link.setter
+    def tip_link(self, tip_link):
+        self._tip_link = tip_link
 
     @property
     def parameters(self):
@@ -52,16 +89,19 @@ class GripperClient(object):
         for key, value in parameters.items():
             self._parameters[key] = value
 
-    def pregrasp(self, wait=True):
-        return self.release(wait)
+    def reset_tip_link(self):
+        self._tip_link = self._default_tip_link
 
-    def grasp(self, wait=True):
+    def pregrasp(self, timeout=0):
+        return self.release(timeout)
+
+    def grasp(self, timeout=0):
         return True
 
-    def postgrasp(self, wait=True):
+    def postgrasp(self, timeout=0):
         return self.grasp(wait)
 
-    def release(self, wait=True):
+    def release(self, timeout=0):
         return True
 
     def wait(self):
@@ -74,222 +114,192 @@ class GripperClient(object):
 #  class VoidGripper                                                 #
 ######################################################################
 class VoidGripper(GripperClient):
-    def __init__(self, name, base_link, timeout=10.0):
-        super(VoidGripper, self).__init__(name, 'void',
-                                          base_link, base_link, timeout)
-        rospy.loginfo('%s initialized.', self.name)
+    def __init__(self, base_link):
+        super(VoidGripper, self).__init__('void_gripper', 'void',
+                                          base_link, base_link)
+        rospy.loginfo('void_gripper initialized.')
 
     @staticmethod
-    def base(name, base_link, timeout):
-        return VoidGripper(name, base_link, timeout)
-
+    def base(base_link):
+        return VoidGripper(base_link)
 
 ######################################################################
 #  class GenericGripper                                              #
 ######################################################################
 class GenericGripper(GripperClient):
-    def __init__(self, name, action_ns, base_link, tip_link, timeout=10.0,
-                 min_gap=0.0, max_gap=0.1, max_effort=5.0):
-        from control_msgs.msg import GripperCommandAction, GripperCommandGoal
-
+    def __init__(self, name, action_ns, base_link, tip_link,
+                 min_position=0.0, max_position=0.1, max_effort=5.0):
         super(GenericGripper, self).__init__(name, 'two_finger',
-                                             base_link, tip_link, timeout)
+                                             base_link, tip_link)
         self._client = actionlib.SimpleActionClient(action_ns,
-                                                    GripperCommandAction)
+                                                    cmsg.GripperCommandAction)
         self._client.wait_for_server()
-        self._goal    = GripperCommandGoal()
-        self._min_gap = min_gap
-        self._max_gap = max_gap
 
-        self.parameters = {'max_effort':       max_effort,
-                           'grasp_position':   self._min_gap,
-                           'release_position': self._max_gap}
+        self.parameters = {'grasp_position':   min_position,
+                           'release_position': max_position,
+                           'max_effort':       max_effort}
 
-        rospy.loginfo('%s initialized.', self.name)
+        rospy.loginfo('%s initialized.', action_ns)
 
     @staticmethod
-    def base(name, action_ns, base_link, tip_link, timeout,
-             min_gap, max_gap, max_effort):
-        return GenericGripper(name, action_ns, base_link, tip_link, timeout,
-                              min_gap, max_gap, max_effort)
+    def base(name, action_ns, base_link, tip_link,
+             min_position, max_position, max_effort):
+        return GenericGripper(name, action_ns, base_link, tip_link,
+                              min_position, max_position, max_effort)
 
-    def grasp(self, wait=True):
-        return self.move(self.parameters['grasp_position'])
+    def grasp(self, timeout=0):
+        return self.move(self.parameters['grasp_position'],
+                         self.parameters['max_effort'],
+                         timeout)
 
-    def release(self, wait=True):
-        return self.move(self.parameters['release_position'])
+    def release(self, timeout=0):
+        return self.move(self.parameters['release_position'], 0, timeout)
 
-    def move(self, position, wait=True):
-        self._goal.command.max_effort = self.parameters['max_effort']
-        self._goal.command.position   = clip(position,
-                                             self._min_gap, self._max_gap)
-        self._client.send_goal(self._goal)
-        return self.wait() if wait else True
+    def move(self, position, max_effort=0, timeout=0):
+        self._client.send_goal(cmsg.GripperCommandGoal(
+                                   cmsg.GripperCommand(position, max_effort)))
+        return self.wait(timeout)
 
-    def wait(self):
-        if not self._client.wait_for_result(rospy.Duration(self.timeout)):
+    def wait(self, timeout=0):
+        if timeout < 0:
+            return False
+        if not self._client.wait_for_result(rospy.Duration(timeout)):
             rospy.logerr('Timeout[%f] has expired before goal finished',
-                         self.timeout)
+                         timeout)
             return False
         result = self._client.get_result()
-        return result.reached_goal or result.stalled
+        return result.stalled
 
     def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
+        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
 
 ######################################################################
 #  class RobotiqGripper                                              #
 ######################################################################
-class RobotiqGripper(GripperClient):
-    def __init__(self, prefix='a_bot_', product='robotiq_85',
-                 force=5.0, velocity=0.1, timeout=6.0):
-        import robotiq_msgs.msg
+class RobotiqGripper(GenericGripper):
+    def __init__(self, prefix='a_bot_gripper_', effort=0.0, velocity=0.1):
+        ns = prefix + 'controller'
+        self._min_gap      = rospy.get_param(ns + '/min_gap')
+        self._max_gap      = rospy.get_param(ns + '/max_gap')
+        self._min_position = rospy.get_param(ns + '/min_position')
+        self._max_position = rospy.get_param(ns + '/max_position')
 
-        super(RobotiqGripper, self) \
-            .__init__(*RobotiqGripper._initargs(prefix, product,
-                                                force, velocity, timeout))
-        self._client = actionlib.SimpleActionClient(
-                           prefix
-                             + 'gripper_controller/gripper_action_controller',
-                           robotiq_msgs.msg.CModelCommandAction)
-        self._goal   = robotiq_msgs.msg.CModelCommandGoal()
+        assert self._min_gap < self._max_gap
+        assert self._min_position != self._max_position
 
-        if product == 'robotiq_hande':
-            self._min_gap   = 0.0
-            self._max_gap   = 0.026
-            self._min_speed = 0.02
-            self._max_speed = 0.15
-            self._min_force = 20.0
-            self._max_force = 130.0
-        elif product == 'robotiq_85':
-            self._min_gap   = 0.0
-            self._max_gap   = 0.085
-            self._min_speed = 0.013
-            self._max_speed = 0.1
-            self._min_force = 20.0
-            self._max_force = 235.0
-        else:
-            self._min_gap   = 0.0
-            self._max_gap   = 0.140
-            self._min_speed = 0.03
-            self._max_speed = 0.25
-            self._min_force = 10.0
-            self._max_force = 125.0
-
-        self.parameters = {'max_effort':       force,
-                           'velocity':         velocity,
-                           'grasp_position':   self._min_gap,
-                           'release_position': self._max_gap}
+        super(RobotiqGripper, self).__init__(prefix.rstrip('_'),
+                                             ns + '/gripper_cmd',
+                                             prefix + 'base_link',
+                                             prefix + 'tip_link',
+                                             self._min_gap, self._max_gap,
+                                             effort)
 
     @staticmethod
-    def base(prefix, product, force, velocity, timeout):
-        return GripperClient(*RobotiqGripper._initargs(prefix, product,
-                                                       force, velocity,
-                                                       timeout))
-        # return RobotiqGripper(prefix, product, force, velocity, timeout)
+    def base(prefix, effort, velocity):
+        return RobotiqGripper(prefix, effort, velocity)
 
-    @staticmethod
-    def _initargs(prefix, product, force, velocity, timeout):
-        return (prefix + product + '_gripper', 'two_finger',
-                prefix + product + '_base_link',
-                prefix + product + '_tip_link', timeout)
+    def move(self, gap, max_effort=0, timeout=0):
+        return super(RobotiqGripper, self).move(self._position(gap),
+                                                max_effort, timeout)
 
-    def grasp(self, wait=True):
-        return self.move(self.parameters['grasp_position'], wait)
+    def wait(self, timeout=0):
+        result = super(RobotiqGripper, self).wait(timeout)
+        return result
 
-    def release(self, wait=True):
-        return self.move(self.parameters['release_position'], wait)
+    def _position(self, gap):
+        return (gap - self._min_gap) * self._position_per_gap \
+             + self._min_position
 
-    def move(self, position, wait=True):
-        self._goal.force    = clip(self.parameters['max_effort'],
-                                   self._min_force, self._max_force)
-        self._goal.velocity = clip(self.parameters['velocity'],
-                                   self._min_speed, self._max_speed)
-        self._goal.position = clip(position, self._min_gap, self._max_gap)
-        self._client.send_goal(self._goal)
-        # This sleep is necessary for robotiq gripper to work just as intended.
-        rospy.sleep(.5)
-        return self.wait() if wait else True
+    def _gap(self, position):
+        return (position - self._min_position) / self._position_per_gap \
+             + self._min_gap
 
-    def wait(self):
-        if not self._client.wait_for_result(rospy.Duration(self.timeout)):
-            rospy.logerr('Timeout[%f] has expired before goal finished',
-                         self.timeout)
-            return False
-        result = self._client.get_result()
-        return result.reached_goal
+    @property
+    def _position_per_gap(self):
+        return (self._max_position - self._min_position) \
+             / (self._max_gap - self._min_gap)
 
-    def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
-            self._client.cancel_goal()
+######################################################################
+#  class PrecisionGripper                                            #
+######################################################################
+class PrecisionGripper(GenericGripper):
+    def __init__(self, prefix='a_bot_gripper_'):
+        ns = prefix + 'controller'
+        min_position = rospy.get_param(ns + '/min_position')
+        max_position = rospy.get_param(ns + '/max_position')
+        max_effort   = rospy.get_param(ns + '/max_effort')
+
+        assert min_position < max_position
+
+        super(PrecisionGripper, self).__init__(prefix.rstrip('_'),
+                                               ns + '/gripper_cmd',
+                                               prefix + 'base_link',
+                                               prefix + 'tip_link',
+                                               min_position, max_position,
+                                               max_effort)
 
 ######################################################################
 #  class SuctionGripper                                              #
 ######################################################################
 class SuctionGripper(GripperClient):
-    def __init__(self, name, base_link, tip_link, eject=False, timeout=2.0):
-        import o2as_msgs.msg
+    def __init__(self, name, action_ns, state_ns='', eject=False):
+        import aist_suction_controller.msg
         import std_msgs.msg
 
-        super(SuctionGripper, self) \
-            .__init__(*SuctionGripper._initargs(name, base_link, tip_link,
-                                                eject, timeout))
+        super(SuctionGripper, self).__init__(
+            *SuctionGripper._initargs(name, action_ns, state_ns, eject))
         self._client    = actionlib.SimpleActionClient(
-                              'o2as_fastening_tools/suction_control',
-                              o2as_msgs.msg.SuctionControlAction)
-        self._sub       = rospy.Subscriber('suction_tool/screw_suctioned',
-                                           std_msgs.msg.Bool,
+                              action_ns,
+                              aist_suction_controller.msg.SuctionControlAction)
+        self._sub       = rospy.Subscriber(state_ns, std_msgs.msg.Bool,
                                            self._state_callback)
         self._suctioned = False
         self._eject     = eject  # blow when releasing
-        self._goal                     = o2as_msgs.msg.SuctionControlGoal()
-        self._goal.fastening_tool_name = 'suction_tool'
-        self._goal.turn_suction_on     = False
-        self._goal.eject_screw         = False
+        self._goal      = aist_suction_controller.msg.SuctionControlGoal()
+        self._goal.tool_name       = 'suction_tool'
+        self._goal.turn_suction_on = False
+        self._goal.eject           = False
 
     @staticmethod
-    def base(name, base_link, tip_link, eject, timeout):
-        return GripperClient(*SuctionGripper._initargs(name,
-                                                       base_link, tip_link,
-                                                       eject, timeout))
+    def base(name, action_ns, state_ns, eject):
+        return GripperClient(*SuctionGripper._initargs(name, action_ns,
+                                                       state_ns, eject))
 
     @staticmethod
-    def _initargs(name, base_link, tip_link, eject, timeout):
-        return (name, 'suction', base_link, tip_link, timeout)
+    def _initargs(name, action_ns, state_ns, eject):
+        return (name, 'suction',
+                name + '_base_link', name + '_tip_link')
 
-    def pregrasp(self, wait=True):
-        return self._send_command(True)
+    def pregrasp(self, timeout=0):
+        return self._send_command(True, timeout)
 
-    def grasp(self, wait=True):
-        if not self._send_command(True):
+    def grasp(self, timeout=0):
+        if not self._send_command(True, timeout):
             return False
         rospy.sleep(0.5)        # Wait until the state is updated.
         return self._suctioned
 
-    def postgrasp(self, wait=True):
+    def postgrasp(self, timeout=0):
         return self._suctioned
 
-    def release(self, wait=True):
-        return self._send_command(False)
+    def release(self, timeout=0):
+        return self._send_command(False, timeout)
 
-    def wait(self, wait=True):
+    def wait(self, timeout=0):
         return self._suctioned
 
     def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
+        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
 
-    def _send_command(self, turn_suction_on):
+    def _send_command(self, turn_suction_on, timeout=0):
         self._goal.turn_suction_on = turn_suction_on
-        self._goal.eject_screw     = not turn_suction_on and self._eject
+        self._goal.eject           = not turn_suction_on and self._eject
         self._client.send_goal(self._goal)
-        if not self._client.wait_for_result(rospy.Duration(self.timeout)):
+        if not self._client.wait_for_result(rospy.Duration(timeout)):
             rospy.logerr('Timeout[%f] has expired before goal finished',
-                         self.timeout)
+                         timeout)
             return False
         result = self._client.get_result()
         return result.success
@@ -298,137 +308,13 @@ class SuctionGripper(GripperClient):
         self._suctioned = msg.data
 
 ######################################################################
-#  class PrecisionGripper                                            #
-######################################################################
-class PrecisionGripper(GripperClient):
-    def __init__(self, prefix='a_bot_', timeout=3.0):
-        import o2as_msgs.msg
-
-        super(PrecisionGripper, self) \
-            .__init__(*PrecisionGripper._initargs(prefix, timeout))
-        self._client = actionlib.SimpleActionClient(
-                           'precision_gripper_action',
-                           # str(prefix) + 'gripper/gripper_action_controller',
-                           o2as_msgs.msg.PrecisionGripperCommandAction)
-        self._goal = o2as_msgs.msg.PrecisionGripperCommandGoal()
-        self._goal.stop                         = False
-        self._goal.open_outer_gripper_fully     = False
-        self._goal.close_outer_gripper_fully    = False
-        self._goal.open_inner_gripper_fully     = False
-        self._goal.close_inner_gripper_fully    = False
-        self._goal.this_action_grasps_an_object = False
-        self._goal.linear_motor_position        = 0.0
-        self._goal.outer_gripper_opening_width  = 0.0
-        self._goal.inner_gripper_opening_width  = 0.0
-        self._goal.slight_opening_width         = 0.0
-
-        self.parameters = {'cmd': ''}
-
-    @staticmethod
-    def base(prefix, timeout):
-        return GripperClient(*PrecisionGripper._initargs(prefix, timeout))
-
-    @staticmethod
-    def _initargs(prefix, timeout):
-        return (prefix + 'gripper', 'two_finger',
-                prefix + 'gripper_base_link',
-                prefix + 'gripper_tip_link', timeout)
-
-    @property
-    def linear_motor_position(self):
-        return self._goal.linear_motor_position
-
-    def pregrasp(self, wait=True):
-        cmd     = self.parameters['cmd']
-        success = False
-        if cmd == 'complex_pick_from_inside':
-            success = self._inner_command(True, False, wait)
-        elif cmd == 'complex_pick_from_outside':
-            self._inner_command(False, False, wait)
-        elif cmd == 'easy_pick_only_inner' or \
-             cmd == 'inner_gripper_from_inside' or \
-             cmd == '':
-            success = self._inner_command(False, False, wait)
-        elif cmd == 'easy_pick_outside_only_inner' or \
-             cmd == 'inner_gripper_from_outside':
-            success = self._inner_command(True, False, wait)
-        return success
-
-    def grasp(self, wait=True):
-        cmd     = self.parameters['cmd']
-        success = False
-        if cmd == 'complex_pick_from_inside':
-            success = self._inner_command(False, True,  wait) and \
-                      self._outer_command(True,  False, wait)
-        elif cmd == 'complex_pick_from_outside':
-            success = self._inner_command(True, True,  wait) and \
-                      self._outer_command(True, False, wait)
-        elif cmd == 'easy_pick_only_inner' or \
-             cmd == 'inner_gripper_from_inside' or \
-             cmd == '':
-            success = self._inner_command(True, True, wait)
-        elif cmd == 'easy_pick_outside_only_inner' or \
-             cmd == 'inner_gripper_from_outside':
-            success = self._inner_command(False, True, wait)
-        return success
-
-    def release(self, wait=True):
-        cmd     = self.parameters['cmd']
-        success = False
-        if cmd == 'complex_pick_from_inside':
-            success = self._outer_command(False, False, wait) and \
-                      self._inner_command(True,  False, wait)
-        elif cmd == 'complex_pick_from_outside':
-            success = self._outer_command(False, False, wait) and \
-                      self._inner_command(False, False, wait)
-        elif cmd == 'easy_pick_only_inner' or \
-             cmd == 'inner_gripper_from_inside' or \
-             cmd == '':
-            success = self._inner_command(False, False, wait)
-        elif cmd == 'easy_pick_outside_only_inner' or \
-             cmd == 'inner_gripper_from_outside':
-            success = self._inner_command(True, False, wait)
-        return success
-
-    def wait(self):
-        if not self._client.wait_for_result(rospy.Duration(self.timeout)):
-            rospy.logerr('Timeout[%f] has expired before goal finished',
-                         self.timeout)
-            return False
-        return self._client.get_result().success
-
-    def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
-            self._client.cancel_goal()
-
-    def _inner_command(self, close, grasps_an_object, wait):
-        self._goal.open_inner_gripper_fully     = not close
-        self._goal.close_inner_gripper_fully    = close
-        self._goal.open_outer_gripper_fully     = False
-        self._goal.close_outer_gripper_fully    = False
-        self._goal.this_action_grasps_an_object = grasps_an_object
-        self._client.send_goal(self._goal)
-        return self.wait() if wait else True
-
-    def _outer_command(self, close, grasps_an_object, wait):
-        self._goal.open_inner_gripper_fully     = False
-        self._goal.close_inner_gripper_fully    = False
-        self._goal.open_outer_gripper_fully     = not close
-        self._goal.close_outer_gripper_fully    = close
-        self._goal.this_action_grasps_an_object = grasps_an_object
-        self._client.send_goal(self._goal)
-        return self.wait() if wait else True
-
-######################################################################
 #  class Lecp6Gripper                                                #
 ######################################################################
 class Lecp6Gripper(GripperClient):
-    def __init__(self, prefix='a_bot_', timeout=3.0, open_no=1, close_no=2):
+    def __init__(self, prefix='a_bot_gripper_', open_no=1, close_no=2):
         import tranbo_control.msg
 
-        super(Lecp6Gripper, self) \
-            .__init__(*Lecp6Gripper._initargs(prefix, timeout))
+        super(Lecp6Gripper, self).__init__(*Lecp6Gripper._initargs(prefix))
         self._client = actionlib.SimpleActionClient(
                            '/arm_driver/lecp6_driver/lecp6',
                            tranbo_control.msg.Lecp6CommandAction)
@@ -438,93 +324,95 @@ class Lecp6Gripper(GripperClient):
                            'grasp_stepdata':   close_no}
 
     @staticmethod
-    def base(prefix, timeout):
-        return GripperClient(*Lecp6Gripper._initargs(prefix, timeout))
+    def base(prefix):
+        return GripperClient(*Lecp6Gripper._initargs(prefix))
 
     @staticmethod
-    def _initargs(prefix, timeout):
-        return (prefix + 'gripper', 'two_finger',
-                prefix + 'gripper_base_link',
-                prefix + 'gripper_link', timeout)
+    def _initargs(prefix):
+        return (prefix.rstrip('_'), 'two_finger',
+                prefix + 'base_link', prefix + 'tip_link')
 
-    def grasp(self, wait=True):
-        return self._send_command(True, wait)
+    def grasp(self, timeout=0):
+        return self._send_command(True, timeout)
 
-    def release(self, wait=True):
-        return self._send_command(False, wait)
+    def release(self, timeout=0):
+        return self._send_command(False, timeout)
 
-    def wait(self):
-        if not self._client.wait_for_result(rospy.Duration(self.timeout)):
+    def wait(self, timeout=0):
+        if timeout < 0:
+            return False
+        if not self._client.wait_for_result(rospy.Duration(timeout)):
             rospy.logerr('Timeout[%f] has expired before goal finished',
-                         self.timeout)
+                         timeout)
             return False
         return self._client.get_result().reached_goal
 
     def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
+        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
 
-    def _send_command(self, close, wait):
+    def _send_command(self, close, timeout):
         self._goal.command.stepdata_no \
             = self.parameters['grasp_stepdata' if close else
                               'release_stepdata']
         self._client.send_goal(self._goal)
-        return self.wait() if wait else True
+        return self.wait(timeout)
 
 ######################################################################
 #  class MagswitchGripper                                            #
 ######################################################################
 class MagswitchGripper(GripperClient):
-    def __init__(self, prefix='a_bot_', timeout=10.0,
-                 sensitivity=0, position=100):
+    def __init__(self, prefix='a_bot_magnet_',
+                 sensitivity=0, grasp_position=30, confirm_position=100):
         import tranbo_control.msg
 
-        super(MagswitchGripper, self) \
-            .__init__(*MagswitchGripper._initargs(prefix, timeout))
+        super(MagswitchGripper, self).__init__(
+            *MagswitchGripper._initargs(prefix))
         self._client = actionlib.SimpleActionClient(
                               '/arm_driver/magswitch_driver/magswitch',
                               tranbo_control.msg.MagswitchCommandAction)
         self._goal   = tranbo_control.msg.MagswitchCommandGoal()
         self._calibration_step = 0
 
-        self.parameters = {'sensitivity':    sensitivity,
-                           'grasp_position': position}
+        self.parameters = {'sensitivity':      sensitivity,
+                           'grasp_position':   grasp_position,
+                           'confirm_position': confirm_position}
 
     @staticmethod
-    def base(prefix, timeout):
-        return GripperClient(*MagswitchGripper._initargs(prefix, timeout))
+    def base(prefix):
+        return GripperClient(*MagswitchGripper._initargs(prefix))
 
     @staticmethod
-    def _initargs(prefix, timeout):
-        return (prefix + 'magnet', 'magnet',
-                prefix + 'magnet_base_link',
-                prefix + 'magnet_link', timeout)
+    def _initargs(prefix):
+        return (prefix.rstrip('_'), 'magnet',
+                prefix + 'base_link', prefix + 'tip_link')
 
     @property
     def calibration_step(self):
         return self._calibration_step
 
     def calibration(self, calibration_select):
-        return self._send_command(0, True, 1, calibration_select)
+        return self._send_command(0, 0, 1, calibration_select)
 
-    def pregrasp(self, wait=True):
-        return self._send_command(self.parameters['grasp_position'], wait)
+    def pregrasp(self, timeout=0):
+        return self._send_command(self.parameters['grasp_position'], timeout)
 
-    def grasp(self, wait=True):
+    def grasp(self, timeout=0):
         return True
-        # return self._send_command(self.parameters['grasp_position'], wait)
+        # return self._send_command(self.parameters['grasp_position'], timeout)
 
-    def postgrasp(self, wait=True):
-        return self._send_command(100, wait)
+    def postgrasp(self, timeout=0):
+        return self._send_command(self.parameters['confirm_position'], timeout)
 
-    def release(self, wait=True):
-        return self._send_command(0, wait)
+    def release(self, timeout=0):
+        return self._send_command(0, timeout)
 
-    def wait(self):
-        if not self._client.wait_for_result(rospy.Duration(self.timeout)):
+    def wait(self, timeout=0):
+        if timeout < 0:
+            return False
+        elif not self._client.wait_for_result(rospy.Duration(timeout)):
             rospy.logerr('Timeout[%.1f] has expired before goal finished',
-                         self.timeout)
+                         timeout)
             return False
         result = self._client.get_result()
         if self._goal.command.calibration_trigger == 1:
@@ -533,11 +421,10 @@ class MagswitchGripper(GripperClient):
         return result.reached_goal
 
     def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
+        if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
 
-    def _send_command(self, position, wait,
+    def _send_command(self, position, timeout,
                       calibration_trigger=0, calibration_select=0):
         self._calibration_step = 0
         self._goal.used_sdo = False
@@ -547,4 +434,4 @@ class MagswitchGripper(GripperClient):
             = clip(self.parameters['sensitivity'], -30, 30)
         self._goal.command.position = clip(position, 0, 100)
         self._client.send_goal(self._goal)
-        return self.wait() if wait else True
+        return self.wait(timeout)

@@ -1,26 +1,27 @@
 robots:
   a_bot:
-    default_gripper: a_bot_robotiq_85_gripper
+    default_gripper: a_bot_gripper
   b_bot:
-    default_gripper: b_bot_single_suction_gripper
+    default_gripper: b_bot_gripper
 
 grippers:
-  a_bot_robotiq_85_gripper:
+  a_bot_gripper:
     type: RobotiqGripper
     args:
-      prefix: a_bot_
-      product: robotiq_85
-      force: 5.0
+      prefix: a_bot_gripper_
+      effort: 5.0
       velocity: 0.1
-      timeout: 6.0
-  b_bot_single_suction_gripper:
+#  a_bot_precision:
+#    type: PrecisionGripper
+#    args:
+#      prefix: a_bot_precision_
+  b_bot_gripper:
     type: SuctionGripper
     args:
-      name: b_bot_single_suction_gripper
-      base_link: b_bot_single_suction_gripper_base_link
-      tip_link: b_bot_single_suction_gripper_pad_link
+      name: b_bot_gripper
+      action_ns: /b_bot/suction_controller/suction
+      state_ns: /b_bot/suction_tool/suctioned
       eject: false
-      timeout: 2.0
 
 cameras:
   a_phoxi_m_camera: PhoXiCamera

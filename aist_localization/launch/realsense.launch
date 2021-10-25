@@ -4,17 +4,16 @@
   <!-- Localization parameters -->
   <arg name="nposes"		default="2"/>
   <arg name="timeout"		default="5"/>
-  <arg name="ply_dir"		default="$(find o2ac_parts_description
-					 )/meshes"/>
-  <arg name="urdf_dir"		default="$(find o2ac_parts_description
-					 )/urdf/generated"/>
+  <arg name="ply_dir"		default="$(find aist_description
+					 )/parts/meshes"/>
+  <arg name="urdf_dir"		default="$(find aist_description
+					 )/parts/urdf"/>
 
   <!-- Camera parameters -->
   <arg name="serial_no"		default=""/>
   <arg name="camera_name"	default="a_bot_camera"/>
   <arg name="camera_width"	default="640"/>
   <arg name="camera_height"	default="480"/>
-  <arg name="enable_streaming"	default="true"/>
   <arg name="manager"		default=""/>
 
   <!-- Spawn camera -->
@@ -31,7 +30,6 @@
     <arg name="infra_height"		value="$(arg camera_height)"/>
     <arg name="color_width"		value="$(arg camera_width)"/>
     <arg name="color_height"		value="$(arg camera_height)"/>
-    <arg name="enable_streaming"	value="$(arg enable_streaming)"/>
     <arg name="manager"			value="$(arg manager)"
 	 unless="$(eval manager == '')"/>
   </include>
