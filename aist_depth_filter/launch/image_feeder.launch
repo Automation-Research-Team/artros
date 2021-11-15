@@ -12,15 +12,14 @@
     <param name="camera_frame"	value="$(arg camera_frame)"/>
   </node>
 
-  <include file="$(find aist_depth_filter)/launch/run.launch"
+  <include file="$(dirname)/run.launch"
   	   ns="feeder">
     <arg name="camera_info_topic"	value="camera_info"/>
     <arg name="image_topic"		value="image"/>
     <arg name="depth_topic"		value="depth"/>
-    <arg name="normal_topic"		value=""/>
   </include>
 
   <node name="$(anon rviz)" pkg="rviz" type="rviz" output="screen"
-	args="-d $(find aist_depth_filter)/launch/feeder.rviz"/>
+	args="-d $(dirname)/feeder.rviz"/>
 
 </launch>
