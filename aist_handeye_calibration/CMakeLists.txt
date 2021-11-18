@@ -3,6 +3,7 @@ project(aist_handeye_calibration)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++14)
+add_compile_options(-O2)
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(aist_ftsensor)
 
 add_compile_options(-std=c++14)
+add_compile_options(-O2)
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
