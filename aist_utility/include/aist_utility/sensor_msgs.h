@@ -119,6 +119,22 @@ depth_to_points(const sensor_msgs::CameraInfo& camera_info,
     return out;
 }
 
+//! Extract 3D points from pointcloud.
+template <class T=float, class ITER, class UNIT> ITER
+cloud_to_points(const sensor_msgs::PointCloud2& cloud, ITER out, UNIT unit)
+{
+    sensor_msgs::PointCloud2ConstIterator<T>	xyz(cloud, "x");
+
+    for (int v = 0; v < cloud.height; ++v)
+	for (int u = 0; u < cloud.width; ++u)
+	{
+	    *out++ = {unit(xyz[0]), unit(xyz[1]), unit(xyz[2])};
+	    ++xyz;
+	}
+
+    return out;
+}
+
 template <class IN> sensor_msgs::PointCloud2
 create_pointcloud(IN in, IN ie,
 		  const ros::Time& stamp, const std::string& frame)
