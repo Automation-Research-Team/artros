@@ -316,7 +316,7 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     return cloud;
 }
 
-template <class T> void
+template <class T> sensor_msgs::PointCloud2&
 add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
 		      const sensor_msgs::Image& image)
 {
@@ -339,6 +339,8 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
 	    ++p;
 	}
     }
+
+    return cloud;
 }
 
 }	// namespace aist_utility
