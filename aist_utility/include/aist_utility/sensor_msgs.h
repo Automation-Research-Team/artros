@@ -171,7 +171,7 @@ create_pointcloud(IN in, IN ie,
 
 template <class T> sensor_msgs::PointCloud2
 create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
-		  const sensor_msgs::Image& depth)
+		  const sensor_msgs::Image& depth, bool with_rgb=false)
 {
     using namespace	sensor_msgs;
 
@@ -180,10 +180,17 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     cloud.is_dense	= false;
 
     PointCloud2Modifier	modifier(cloud);
-    modifier.setPointCloud2Fields(3,
-				  "x", 1, PointField::FLOAT32,
-				  "y", 1, PointField::FLOAT32,
-				  "z", 1, PointField::FLOAT32);
+    if (with_rgb)
+	modifier.setPointCloud2Fields(4,
+				      "x",   1, PointField::FLOAT32,
+				      "y",   1, PointField::FLOAT32,
+				      "z",   1, PointField::FLOAT32,
+				      "rgb", 1, PointField::FLOAT32);
+    else
+	modifier.setPointCloud2Fields(3,
+				      "x", 1, PointField::FLOAT32,
+				      "y", 1, PointField::FLOAT32,
+				      "z", 1, PointField::FLOAT32);
     modifier.resize(depth.height * depth.width);
 
     cloud.header	= depth.header;
@@ -307,6 +314,31 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     }
 
     return cloud;
+}
+
+template <class T> void
+add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
+		      const sensor_msgs::Image& image)
+{
+    using namespace	sensor_msgs;
+
+    if (cloud.height != image.height || cloud.width != image.width)
+	throw std::runtime_error("add_rgb_to_pointcloud(): cloud and image with different sizes!");
+    
+    PointCloud2Iterator<uint8_t>	rgb(cloud, "rgb");
+    for (int v = 0; v < cloud.height; ++v)
+    {
+	auto	p = ptr<T>(image, v);
+
+	for (int u = 0; u < cloud.width; ++u)
+	{
+	    rgb[0] = p->b;
+	    rgb[1] = p->g;
+	    rgb[2] = p->r;
+	    ++rgb;
+	    ++p;
+	}
+    }
 }
 
 }	// namespace aist_utility
