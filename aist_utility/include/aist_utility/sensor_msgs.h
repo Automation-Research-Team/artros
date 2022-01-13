@@ -343,5 +343,32 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
     return cloud;
 }
 
+template <class T> sensor_msgs::PointCloud2&
+add_3field_to_pointcloud(sensor_msgs::PointCloud2& cloud,
+			const sensor_msgs::Image& image,
+			const std::string& field_name)
+{
+    using namespace	sensor_msgs;
+
+    if (cloud.height != image.height || cloud.width != image.width)
+	throw std::runtime_error("add_3field_to_pointcloud(): cloud and image with different sizes!");
+    
+    PointCloud2Iterator<T*>	field(cloud, field_name);
+    for (int v = 0; v < cloud.height; ++v)
+    {
+	auto	p = ptr<T>(image, v);
+
+	for (int u = 0; u < cloud.width; ++u)
+	{
+	    field[0] = *p++;
+	    field[1] = *p++;
+	    field[2] = *p++;
+	    ++field;
+	}
+    }
+
+    return cloud;
+}
+
 }	// namespace aist_utility
 #endif	// !AIST_UTILITY_SENSOR_MSGS_H
