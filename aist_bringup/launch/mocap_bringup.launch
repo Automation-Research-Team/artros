@@ -20,8 +20,8 @@
   <arg name="devices"		value="ur5e, robotiq_85"/>
   <arg name="controllers"	value="ur, cmodel"/>
   <arg name="drivers"		value="ur, cmodel"/>
-  <arg name="driver_args"	value="10.66.171.53, 50001, 50002, 50003, 0;
-				       urcap, 10.66.171.53"/>
+  <arg name="driver_args"	value="163.220.51.82, 50001, 50002, 50003, 0;
+				       urcap, 163.220.51.82"/>
 
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">
