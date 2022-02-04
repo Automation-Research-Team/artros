@@ -29,7 +29,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     tf::pointMsgToTF(transformed_point.point, target);
 
   // Iteratively compute trajectory.
-    double	err_p   = 2*M_PI;	// anguilar error in preveous step
+    double	err_p   = 2*M_PI;	// angular error in preveous step
     bool	success = false;
 
     for (int n = 0; n < MAX_ITERATIONS; ++n)
