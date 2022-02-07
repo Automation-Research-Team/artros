@@ -145,7 +145,10 @@ JointTrajectoryTracker<ACTION>::JointTrajectoryTracker(
     :_nh("~"),
      _state_sub(_nh.subscribe("/state", 1,
 			      &JointTrajectoryTracker::state_cb, this)),
-     _command_pub(_nh.advertise<trajectory_t>("command", 2)),
+     _command_pub(_nh.advertise<trajectory_t>(
+		      '/' +
+		      _nh.param<std::string>("joint_trajectory_controller", "")
+		      + "/command", 2)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
 					 "/robot_description"),
