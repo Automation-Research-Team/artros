@@ -16,6 +16,8 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 {
     constexpr int	MAX_ITERATIONS = 15;
 
+    std::cerr << "OK" << std::endl;
+    
   // Convert target point to base_link.
     auto	original_point = goal->target;
     original_point.header.stamp = ros::Time::now();
@@ -23,10 +25,13 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 			       original_point.header.frame_id,
 			       original_point.header.stamp,
 			       ros::Duration(1.0));
+    std::cerr << "OK2" << std::endl;
     geometry_msgs::PointStamped	transformed_point;
     _listener.transformPoint(_base_link, original_point, transformed_point);
+    std::cerr << "OK3" << std::endl;
     point_t	target;
     tf::pointMsgToTF(transformed_point.point, target);
+    std::cerr << "OK4" << std::endl;
 
   // Iteratively compute trajectory.
     double	err_p   = 2*M_PI;	// angular error in preveous step
@@ -46,6 +51,9 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	const vector3_t	pointing_axis(goal->pointing_axis.x,
 				      goal->pointing_axis.y,
 				      goal->pointing_axis.z);
+	if (pointing_axis.isZero())
+	    throw std::runtime_error("Zero pointing_axis specified");
+	
 	const auto	err = view_vector.angle(pointing_axis);
 	const auto	dir = Tbe.getBasis()
 			    * (pointing_axis.cross(view_vector).normalized());
