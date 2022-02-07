@@ -139,7 +139,7 @@ class Plane
     friend std::ostream&
 			operator <<(std::ostream& out, const Plane& plane)
 			{
-			    out << plane._n << ": " << plane._d;
+			    return out << plane._n << ": " << plane._d;
 			}
 
   private:
@@ -185,6 +185,7 @@ Plane<T, N>::fit(ITER begin, ITER end)
     for (size_t j = 0; j < N; ++j)
 	_n(j) = evectors(N - 1, j);
     _d = -_n.dot(centroid);
+
     if (_d < 0)
     {
 	_n *= value_type(-1);
@@ -192,8 +193,8 @@ Plane<T, N>::fit(ITER begin, ITER end)
     }
 
     ROS_DEBUG_STREAM("plane = " << *this << ", err = "
-		     << std::sqrt(std::abs(evalues(N-1))/value_type(npoints))
-		     << ", computed from " << npoints << " points.");
+    		     << std::sqrt(std::abs(evalues(N-1))/value_type(npoints))
+    		     << ", computed from " << npoints << " points.");
 }
 
 /************************************************************************
