@@ -45,7 +45,7 @@ operator <<(std::ostream& out, const KDL::JntArray& jnt_array)
 	out << ' ' << jnt_array(i);
     return out;
 }
-    
+
 static std::ostream&
 operator <<(std::ostream& out, const KDL::Twist& twist)
 {
@@ -53,7 +53,7 @@ operator <<(std::ostream& out, const KDL::Twist& twist)
 	out << ' ' << twist(i);
     return out;
 }
-    
+
 static std::ostream&
 operator <<(std::ostream& out, const KDL::Wrench& wrench)
 {
@@ -61,7 +61,13 @@ operator <<(std::ostream& out, const KDL::Wrench& wrench)
 	out << ' ' << wrench(i);
     return out;
 }
-    
+
+static std::ostream&
+operator <<(std::ostream& out, const tf::Vector3& v)
+{
+    return out << ' ' << v.x() << ' ' << v.y() << ' ' << v.z();
+}
+
 /************************************************************************
 *  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/
@@ -74,7 +80,7 @@ class JointTrajectoryTracker
     using server_t	= actionlib::SimpleActionServer<ACTION>;
     using goal_cp	= boost::shared_ptr<const typename server_t::Goal>;
     using feedback_t	= typename server_t::Feedback;
-    
+
     using vector3_t	= tf::Vector3;
     using point_t	= tf::Point;
 
@@ -93,11 +99,11 @@ class JointTrajectoryTracker
 	void		init(const state_cp& state)			;
 	void		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
-	
+
       private:
 	tf::Transform	get_chain_transform()			const	;
 	KDL::Wrench	compute_wrench(const goal_cp& goal)		;
-	
+
       private:
 	std::string					_base_link;
 	std::string					_effector_link;
@@ -114,11 +120,11 @@ class JointTrajectoryTracker
 	std::vector<urdf::JointLimits>			_limits;
 	double						_goal_error;
 	tf::TransformListener				_listener;
-    
+
 	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pose_solver;
 	boost::scoped_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
     };
-    
+
   public:
 		JointTrajectoryTracker(const std::string& action_ns)	;
 
@@ -215,7 +221,10 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 	_command_pub.publish(_tracker.trajectory());
 
 	if (success)
+	{
 	    _tracker_srv.setSucceeded();
+	    ROS_INFO_STREAM("(JointTrajectoryTracker) Goal succeeded");
+	}
     }
     catch (const std::exception& err)
     {
@@ -262,6 +271,10 @@ JointTrajectoryTracker<ACTION>::Tracker
   // Reset solvers.
     _pose_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
+
+
+    ROS_INFO_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
+		    << _base_link << ", effector_link=" << _effector_link);
 }
 
 template <class ACTION>
@@ -325,7 +338,7 @@ JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
     _trajectory.header.stamp = state->header.stamp;
     _trajectory.points.resize(1);
     _trajectory.points[0] = state->actual;
-    
+
     for (size_t i = 0; i < _jnt_pos.rows(); ++i)
     {
 	_jnt_pos(i) = state->actual.positions[i];

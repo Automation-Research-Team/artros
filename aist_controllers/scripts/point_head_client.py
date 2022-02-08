@@ -43,27 +43,29 @@ from actionlib     import SimpleActionClient
 ######################################################################
 #  class PointHeadClient                                             #
 ######################################################################
-class PointHeadClinet(object):
-    """Implements kitting routines for aist robot system."""
+class PointHeadClient(object):
+    def __init__(self):
+        super(PointHeadClient, self).__init__()
 
-    def __init__(self, server):
-        super(PointHeadClinet, self).__init__()
-
+        server = rospy.get_param('~server', '/biclops_point_head_tracker')
+        self._target_frame  = rospy.get_param('~target_frame', 'marker_frame')
+        self._pointing_axis = rospy.get_param('~pointing_axis', [0, 0, 1])
+        self._min_duration  = rospy.get_param('~min_duration', 1.0)
+        self._max_velocity  = rospy.get_param('~max_velocity', 0.0)
         self._point_head_client = SimpleActionClient(server + '/point_head',
                                                      cmsg.PointHeadAction)
         thread = threading.Thread(target=self._interactive)
         thread.start()
 
-    def send_goal(self,
-                  frame_id, min_duration, max_velocity, feedback_cb=None):
+    def send_goal(self, feedback_cb=None):
         goal = cmsg.PointHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
-        goal.target.header.frame_id = frame_id
-        goal.target.point           = gmsg.Point(x=0, y=0, z=0)
-        goal.pointing_axis          = gmsg.Vector3(x=0, y=0, z=-1)
+        goal.target.header.frame_id = self._target_frame
+        goal.target.point           = gmsg.Point(0, 0, 0)
+        goal.pointing_axis          = gmsg.Vector3(*self._pointing_axis)
         goal.pointing_frame         = ''
-        goal.min_duration           = min_duration
-        goal.max_velocity           = max_velocity
+        goal.min_duration           = rospy.Duration(self._min_duration)
+        goal.max_velocity           = self._max_velocity
 
         self._point_head_client.send_goal(goal, feedback_cb=feedback_cb)
 
@@ -82,7 +84,10 @@ class PointHeadClinet(object):
                 key = raw_input('>> ')
                 if key == 'q':
                     break
-                self.send_goal()
+                elif key == 'c':
+                    self.cancel_goal()
+                else:
+                    self.send_goal()
             except Exception as e:
                 print(e.message)
 
@@ -91,6 +96,5 @@ if __name__ == '__main__':
 
     rospy.init_node('point_head_client', anonymous=True)
 
-    server = '/biclops_point_head_tracker'
-    point_head_client = PointHeadClient(server)
+    point_head_client = PointHeadClient()
     rospy.spin()

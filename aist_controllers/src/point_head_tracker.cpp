@@ -16,8 +16,6 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 {
     constexpr int	MAX_ITERATIONS = 15;
 
-    std::cerr << "OK" << std::endl;
-    
   // Convert target point to base_link.
     auto	original_point = goal->target;
     original_point.header.stamp = ros::Time::now();
@@ -25,13 +23,10 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 			       original_point.header.frame_id,
 			       original_point.header.stamp,
 			       ros::Duration(1.0));
-    std::cerr << "OK2" << std::endl;
     geometry_msgs::PointStamped	transformed_point;
     _listener.transformPoint(_base_link, original_point, transformed_point);
-    std::cerr << "OK3" << std::endl;
     point_t	target;
     tf::pointMsgToTF(transformed_point.point, target);
-    std::cerr << "OK4" << std::endl;
 
   // Iteratively compute trajectory.
     double	err_p   = 2*M_PI;	// angular error in preveous step
@@ -46,20 +41,24 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	const auto	view_vector = Tbe.getBasis().inverse()
 				    * (target - Tbe.getOrigin())
 				      .normalized();
+	std::cerr << "view_vector: " << view_vector << std::endl;
 
       // Angular error and its direction between pointing_axis and view_vector.
 	const vector3_t	pointing_axis(goal->pointing_axis.x,
 				      goal->pointing_axis.y,
 				      goal->pointing_axis.z);
+	std::cerr << "pointing_axis: " << view_vector << std::endl;
 	if (pointing_axis.isZero())
 	    throw std::runtime_error("Zero pointing_axis specified");
-	
+
 	const auto	err = view_vector.angle(pointing_axis);
 	const auto	dir = Tbe.getBasis()
 			    * (pointing_axis.cross(view_vector).normalized());
+	std::cerr << "dir: " << dir << std::endl;
 
 	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = (" << _jnt_pos
-			 << "), anglular error = " << err << "(rad)");
+			 << "), anglular error = " << err*180.0/M_PI
+			 << "(deg)");
 
       // We apply a "wrench" proportional to the desired correction
 	KDL::Frame	correction_kdl;
@@ -93,11 +92,11 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 
 	err_p = err;
     }
-	
+
     ROS_DEBUG_STREAM("Expected error: " << err_p*180.0/M_PI << "(deg)");
 
     _feedback.pointing_angle_error = err_p;
-	
+
   //the goal will end when the angular error of the pointing axis
   //is lower than _goal_error. This variable is assigned with the maximum
   //between the ros param _goal_error and the estimated error
@@ -110,7 +109,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 
   // Determines if we need to increase the duration of the movement
   // in order to enforce a maximum velocity.
-    
+
   // compute the largest required rotation among all the joints
     auto&	point   = _trajectory.points[0];
     double	rot_max = 0;
@@ -131,7 +130,8 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	    point.time_from_start = required_duration;
     }
 
-    return success;
+  //return success;
+    return false;
 }
 
 }	// namepsace aist_controllers
@@ -142,7 +142,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 int
 main(int argc, char* argv[])
 {
-    ros::init(argc, argv, "point_head_action");
+    ros::init(argc, argv, "point_head_tracker");
 
     aist_controllers::JointTrajectoryTracker<control_msgs::PointHeadAction>
 	tracker("point_head");

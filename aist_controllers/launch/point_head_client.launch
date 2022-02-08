@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="prefix"		default="biclops_"/>
+  <arg name="publish_rate"	default="50"/>
+
+  <!-- Spawn controller -->
+  <node name="point_head_client"
+        pkg="aist_controllers" type="point_head_client.py"
+        output="screen" respawn="false">
+    <rosparam file="$(dirname)/../config/point_head_client.yaml"
+              subst_value="true"/>
+  </node>
+
+</launch>
