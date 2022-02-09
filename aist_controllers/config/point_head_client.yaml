@@ -1,5 +1,5 @@
 server: /biclops_point_head_tracker
 target_frame: marker_frame
 pointing_axis: [0, 0, 1]
-min_duration: 1.0
+min_duration: 0.3
 max_velocity: 0.0

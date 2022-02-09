@@ -16,6 +16,13 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 {
     constexpr int	MAX_ITERATIONS = 15;
 
+  // Extract pointing_axis
+    const vector3_t	pointing_axis(goal->pointing_axis.x,
+				      goal->pointing_axis.y,
+				      goal->pointing_axis.z);
+    if (pointing_axis.isZero())
+	throw std::runtime_error("pointing_axis must not be zero");
+    
   // Convert target point to base_link.
     auto	original_point = goal->target;
     original_point.header.stamp = ros::Time::now();
@@ -34,27 +41,18 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 
     for (int n = 0; n < MAX_ITERATIONS; ++n)
     {
-      // Transform from effector_link to base_link
+      // Get transform from effector_link to base_link for current _jnt_pos
 	const auto	Tbe = get_chain_transform();
 
       // Vector from the origin of effector_frame to the target w.r.t. itself
 	const auto	view_vector = Tbe.getBasis().inverse()
-				    * (target - Tbe.getOrigin())
-				      .normalized();
+				    * (target - Tbe.getOrigin()).normalized();
 	std::cerr << "view_vector: " << view_vector << std::endl;
 
       // Angular error and its direction between pointing_axis and view_vector.
-	const vector3_t	pointing_axis(goal->pointing_axis.x,
-				      goal->pointing_axis.y,
-				      goal->pointing_axis.z);
-	std::cerr << "pointing_axis: " << view_vector << std::endl;
-	if (pointing_axis.isZero())
-	    throw std::runtime_error("Zero pointing_axis specified");
-
-	const auto	err = view_vector.angle(pointing_axis);
-	const auto	dir = Tbe.getBasis()
-			    * (pointing_axis.cross(view_vector).normalized());
-	std::cerr << "dir: " << dir << std::endl;
+	const auto	axis = Tbe.getBasis()
+			     * pointing_axis.cross(view_vector);
+	const auto	err  = view_vector.angle(pointing_axis);
 
 	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = (" << _jnt_pos
 			 << "), anglular error = " << err*180.0/M_PI
@@ -62,14 +60,15 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 
       // We apply a "wrench" proportional to the desired correction
 	KDL::Frame	correction_kdl;
-	tf::transformTFToKDL(tf::Transform(tf::Quaternion(dir, 0.5*err),
+	tf::transformTFToKDL(tf::Transform(tf::Quaternion(axis, err),
 					   vector3_t(0, 0, 0)),
 			     correction_kdl);
 	const auto	twist = diff(correction_kdl, KDL::Frame());
-	KDL::Wrench	wrench;
-	for (size_t i = 0; i < 6; ++i)
-	    wrench(i) = -1.0*twist(i);
+	// KDL::Wrench	wrench;
+	// for (size_t i = 0; i < 6; ++i)
+	//     wrench(i) = -1.0*twist(i);
 
+      // Compute jacobian for current _jnt_pos
 	_jac_solver->JntToJac(_jnt_pos, _jacobian);
 
       // Converts the "wrench" into "joint corrections"
@@ -78,12 +77,13 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	{
 	    double	jnt_eff = 0;
 	    for (size_t j = 0; j < 6; ++j)
-		jnt_eff += (_jacobian(j, i) * wrench(j));
+		// jnt_eff += (_jacobian(j, i) * wrench(j));
+		jnt_eff -= (_jacobian(j, i) * twist(j));
 	    _jnt_pos(i) = clamp(_jnt_pos(i) + jnt_eff,
 				_limits[i].lower, _limits[i].upper);
 	}
 
-	if (err < 0.5*_goal_error || std::abs(err - err_p) < 0.001)
+	if (err < _goal_error || std::abs(err - err_p) < 0.001)
 	{
 	    err_p = err;
 	    success = true;
@@ -110,7 +110,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
   // Determines if we need to increase the duration of the movement
   // in order to enforce a maximum velocity.
 
-  // compute the largest required rotation among all the joints
+  // Compute the largest required rotation among all the joints
     auto&	point   = _trajectory.points[0];
     double	rot_max = 0;
     for (size_t i = 0; i < point.positions.size(); ++i)
