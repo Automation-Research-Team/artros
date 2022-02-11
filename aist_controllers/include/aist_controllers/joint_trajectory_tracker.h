@@ -326,7 +326,7 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state)
     if (state->joint_names.size() != joint_names.size())
 	throw std::runtime_error("Number of joints mismatch: controller["
 				 + std::to_string(state->joint_names.size())
-				 + "] <==> urdf chain["
+				 + "] != urdf chain["
 				 + std::to_string(joint_names.size())
 				 + ']');
 
@@ -347,7 +347,7 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state)
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _trajectory.header.stamp = state->header.stamp;
+    _trajectory.header.stamp = ros::Time(0);
     _trajectory.points.resize(1);
     _trajectory.points[0] = state->actual;
 
