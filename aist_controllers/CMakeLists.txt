@@ -5,6 +5,8 @@ project(aist_controllers)
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  genmsg
+  message_generation
   tf
   tf_conversions
   trajectory_msgs
@@ -20,6 +22,16 @@ find_package(Boost REQUIRED COMPONENTS thread)
 include_directories(
   ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
   include
+)
+
+add_action_files(FILES PoseHead.action)
+
+generate_messages(
+  DEPENDENCIES
+    actionlib_msgs
+    actionlib
+    geometry_msgs
+    std_msgs
 )
 
 catkin_package(
