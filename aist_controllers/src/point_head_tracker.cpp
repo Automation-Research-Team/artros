@@ -64,9 +64,6 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 					   vector3_t(0, 0, 0)),
 			     correction_kdl);
 	const auto	twist = diff(correction_kdl, KDL::Frame());
-	// KDL::Wrench	wrench;
-	// for (size_t i = 0; i < 6; ++i)
-	//     wrench(i) = -1.0*twist(i);
 
       // Compute jacobian for current _jnt_pos
 	_jac_solver->JntToJac(_jnt_pos, _jacobian);
@@ -77,10 +74,9 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	{
 	    double	jnt_eff = 0;
 	    for (size_t j = 0; j < 6; ++j)
-		// jnt_eff += (_jacobian(j, i) * wrench(j));
 		jnt_eff -= (_jacobian(j, i) * twist(j));
 	    _jnt_pos(i) = clamp(_jnt_pos(i) + jnt_eff,
-				_limits[i].lower, _limits[i].upper);
+				_jnt_pos_min(i), _jnt_pos_max(i));
 	}
 
 	if (err < _goal_error || std::abs(err - err_p) < 0.001)
