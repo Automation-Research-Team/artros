@@ -4,10 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
-        - /Image1
-      Splitter Ratio: 0.6017223000526428
-    Tree Height: 586
+        - /DepthCloud1/Auto Size1
+      Splitter Ratio: 0.6257545351982117
+    Tree Height: 345
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -139,6 +138,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          calibrated_biclops_camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -254,6 +257,10 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          calibrated_biclops_camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           world:
             Alpha: 1
             Show Axes: false
@@ -275,6 +282,144 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
+    - Class: rviz/Image
+      Enabled: true
+      Image Topic: /aruco_detector/result
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: aruco_result
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: true
+    - Alpha: 1
+      Auto Size:
+        Auto Size Factor: 1
+        Value: true
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/DepthCloud
+      Color: 255; 255; 255
+      Color Image Topic: /biclops_camera/color/image_raw
+      Color Transformer: RGB8
+      Color Transport Hint: raw
+      Decay Time: 0
+      Depth Map Topic: /biclops_camera/aligned_depth_to_color/image_raw
+      Depth Map Transport Hint: raw
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: DepthCloud
+      Occlusion Compensation:
+        Occlusion Time-Out: 30
+        Value: false
+      Position Transformer: XYZ
+      Queue Size: 5
+      Selectable: true
+      Size (Pixels): 3
+      Style: Flat Squares
+      Topic Filter: true
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        biclops_base_link:
+          Value: false
+        biclops_camera_color_frame:
+          Value: false
+        biclops_camera_color_optical_frame:
+          Value: true
+        biclops_camera_connector_link:
+          Value: false
+        biclops_camera_depth_frame:
+          Value: false
+        biclops_camera_depth_optical_frame:
+          Value: false
+        biclops_camera_left_ir_frame:
+          Value: false
+        biclops_camera_left_ir_optical_frame:
+          Value: false
+        biclops_camera_link:
+          Value: false
+        biclops_camera_right_ir_frame:
+          Value: false
+        biclops_camera_right_ir_optical_frame:
+          Value: false
+        biclops_pan_link:
+          Value: false
+        biclops_stage_link:
+          Value: false
+        biclops_stem_link:
+          Value: false
+        biclops_tilt_link:
+          Value: false
+        calibrated_biclops_camera_aligned_depth_to_color_frame:
+          Value: false
+        calibrated_biclops_camera_color_frame:
+          Value: false
+        calibrated_biclops_camera_color_optical_frame:
+          Value: false
+        calibrated_biclops_camera_depth_frame:
+          Value: false
+        calibrated_biclops_camera_depth_optical_frame:
+          Value: false
+        calibrated_biclops_camera_link:
+          Value: false
+        marker_frame:
+          Value: true
+        world:
+          Value: false
+      Marker Scale: 0.20000000298023224
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          biclops_base_link:
+            biclops_pan_link:
+              biclops_tilt_link:
+                biclops_stage_link:
+                  biclops_camera_connector_link:
+                    biclops_camera_link:
+                      biclops_camera_depth_frame:
+                        biclops_camera_color_frame:
+                          biclops_camera_color_optical_frame:
+                            {}
+                        biclops_camera_depth_optical_frame:
+                          {}
+                        biclops_camera_left_ir_frame:
+                          biclops_camera_left_ir_optical_frame:
+                            {}
+                        biclops_camera_right_ir_frame:
+                          biclops_camera_right_ir_optical_frame:
+                            {}
+                      calibrated_biclops_camera_link:
+                        calibrated_biclops_camera_aligned_depth_to_color_frame:
+                          calibrated_biclops_camera_color_optical_frame:
+                            marker_frame:
+                              {}
+                        calibrated_biclops_camera_color_frame:
+                          {}
+                        calibrated_biclops_camera_depth_frame:
+                          calibrated_biclops_camera_depth_optical_frame:
+                            {}
+            biclops_stem_link:
+              {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -291,7 +436,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.996500015258789
+      Distance: 0.8345281481742859
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -306,15 +451,15 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5097969770431519
+      Pitch: 0.1797969490289688
       Target Frame: world
       Value: XYOrbit (rviz)
-      Yaw: 5.659949779510498
+      Yaw: 4.094949245452881
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1337
+  Height: 924
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -325,9 +470,11 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000003a30000049dfc0200000007fc0000006e000002f2000002f201000039fa000000000100000002fb000000100044006900730070006c0061007900730100000000ffffffff000001f700fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000000003a3000003a300fffffffb0000000800480065006c00700000000342000000bb000000d400fffffffb0000000a0056006900650077007300000003b0000000b00000013200fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000002600000026fb0000000a0049006d006100670065010000036c0000019f0000002600ffffff000003750000049d00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001f300000342fc0200000008fc0000003d000001b30000019a0100001cfa000000000100000002fb000000100044006900730070006c0061007900730100000000ffffffff0000015600fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000000003a3000001f300fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000000a0049006d00610067006501000001f6000000be0000001600fffffffb000000180061007200750063006f005f0072006500730075006c007401000002ba000000c50000001600ffffff000003e70000034200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 1828
+  Width: 1504
   X: 459
-  Y: 55
+  Y: 440
+  aruco_result:
+    collapsed: false

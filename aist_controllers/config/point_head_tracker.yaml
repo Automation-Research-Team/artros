@@ -1,5 +1,4 @@
 publish_rate: $(arg publish_rate)
 base_link: $(arg prefix)base_link
 effector_link: biclops_camera_color_optical_frame
-#effector_link: $(arg prefix)stage_link
 controller: $(arg controller_name)

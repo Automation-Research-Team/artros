@@ -1,23 +1,30 @@
 <?xml version="1.0"?>
 <launch>
 
+  <arg name="sim"		default="false"/>
   <arg name="velocity_control"	default="false"/>
   <arg name="prefix"		default="biclops_"/>
-  <arg name="homing"		default="true"/>
   <arg name="publish_rate"	default="100"/>
-  <arg name="sim"		default="false"/>
   <arg name="serial_no"		default="639206003156"/>
   <arg name="marker_id"		default="26"/>
 
   <arg if="$(arg velocity_control)"
        name="controller_name"	value="$(arg prefix)vel_joint_traj_controller"/>
   <arg unless="$(arg velocity_control)"
-       name="controller_name"	value="$(arg
-				       prefix)pos_joint_traj_controller"/>
+       name="controller_name"	value="$(arg prefix)pos_joint_traj_controller"/>
+
+  <!-- Spawn Biclops -->
+  <include file="$(find aist_biclops)/launch/biclops_bringup.launch">
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="velocity_control"	value="$(arg velocity_control)"/>
+    <arg name="prefix"			value="$(arg prefix)"/>
+    <arg name="rate"			value="$(arg publish_rate)"/>
+  </include>
 
   <!-- Spawn move_group -->
   <include file="$(find aist_biclops)/launch/move_group.launch">
-    <!-- <arg name="rviz_config"	value="$(dirname)/biclops_with_realsense.rviz"/> -->
+    <arg name="rviz_config"	value="$(find aist_controllers
+				       )/launch/biclops_with_realsense.rviz"/>
   </include>
 
   <!-- Spawn aruco marker tracker -->
