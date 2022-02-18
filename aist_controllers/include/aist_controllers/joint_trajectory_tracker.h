@@ -15,6 +15,8 @@
 #include <kdl/chain.hpp>
 #include <kdl/chainjnttojacsolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/chainiksolvervel_pinv.hpp>
+#include <kdl/chainiksolverpos_nr_jl.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
 #include <tf_conversions/tf_kdl.h>
@@ -116,13 +118,17 @@ class JointTrajectoryTracker
 	KDL::Chain					_chain;
 	KDL::JntArray					_jnt_pos;
 	KDL::JntArray					_jnt_vel;
+	KDL::JntArray					_jnt_pos_min;
+	KDL::JntArray					_jnt_pos_max;
 	KDL::Jacobian					_jacobian;
 	std::vector<urdf::JointLimits>			_limits;
 	double						_goal_error;
 	tf::TransformListener				_listener;
 
-	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pose_solver;
 	boost::scoped_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
+	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pos_solver;
+	boost::scoped_ptr<KDL::ChainIkSolverVel>	_vel_iksolver;
+	boost::scoped_ptr<KDL::ChainIkSolverPos>	_pos_iksolver;
     };
 
   public:
@@ -152,8 +158,8 @@ JointTrajectoryTracker<ACTION>::JointTrajectoryTracker(
      _state_sub(_nh.subscribe("/state", 1,
 			      &JointTrajectoryTracker::state_cb, this)),
      _command_pub(_nh.advertise<trajectory_t>(
-		      '/' +
-		      _nh.param<std::string>("joint_trajectory_controller", "")
+		      '/' + _nh.param<std::string>("controller",
+						   "pos_joint_traj_controller")
 		      + "/command", 2)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
@@ -243,10 +249,11 @@ JointTrajectoryTracker<ACTION>::Tracker
 					const std::string& effector_link)
     :_base_link(base_link), _effector_link(effector_link),
      _urdf(), _trajectory(),
-     _tree(), _chain(), _jnt_pos(), _jnt_vel(), _jacobian(), _limits(),
+     _tree(), _chain(),
+     _jnt_pos(), _jnt_vel(), _jnt_pos_min(), _jnt_pos_max(), _jacobian(),
      _goal_error(0.001),
      _listener(),
-     _pose_solver(), _jac_solver()
+     _jac_solver(), _pos_solver(), _vel_iksolver(), _pos_iksolver()
 {
   // Load URDF model.
     if (!_urdf.initString(robot_desc_string))
@@ -265,12 +272,17 @@ JointTrajectoryTracker<ACTION>::Tracker
     _trajectory.joint_names.resize(_chain.getNrOfJoints());
     _jnt_pos.resize(_trajectory.joint_names.size());
     _jnt_vel.resize(_trajectory.joint_names.size());
+    _jnt_pos_min.resize(_trajectory.joint_names.size());
+    _jnt_pos_max.resize(_trajectory.joint_names.size());
     _jacobian.resize(_trajectory.joint_names.size());
-    _limits.resize(_trajectory.joint_names.size());
 
-  // Reset solvers.
-    _pose_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
+  // Create solvers.
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
+    _pos_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
+    _vel_iksolver.reset(new KDL::ChainIkSolverVel_pinv(_chain));
+    _pos_iksolver.reset(new KDL::ChainIkSolverPos_NR_JL(
+			    _chain, _jnt_pos_min, _jnt_pos_max,
+			    *_pos_solver, *_vel_iksolver));
 
     ROS_INFO_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
 		    << _base_link << ", effector_link=" << _effector_link);
@@ -295,7 +307,7 @@ JointTrajectoryTracker<ACTION>::Tracker::get_chain_transform() const
 {
   // Get the current pose of effector_link w.r.t. base_link.
     KDL::Frame	pose_kdl;
-    _pose_solver->JntToCart(_jnt_pos, pose_kdl);
+    _pos_solver->JntToCart(_jnt_pos, pose_kdl);
 
   // Convert to tf::Transform
     tf::Transform	transform;
@@ -314,7 +326,7 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state)
     if (state->joint_names.size() != joint_names.size())
 	throw std::runtime_error("Number of joints mismatch: controller["
 				 + std::to_string(state->joint_names.size())
-				 + "] <==> urdf chain["
+				 + "] != urdf chain["
 				 + std::to_string(joint_names.size())
 				 + ']');
 
@@ -324,17 +336,17 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state)
 	joint_names[i]	= state->joint_names[i];
 	_jnt_pos(i)	= state->actual.positions[i];
 	_jnt_vel(i)	= state->actual.velocities[i];
-	_limits[i]	= *(_urdf.joints_[joint_names[i]]->limits);
+	_jnt_pos_min(i)	= _urdf.joints_[joint_names[i]]->limits->lower;
+	_jnt_pos_max(i)	= _urdf.joints_[joint_names[i]]->limits->upper;
 	ROS_DEBUG_STREAM(joint_names[i] << '[' << i << "]: " << _jnt_pos(i)
-			 << ", limits: (" << _limits[i].lower
-			 << ", " << _limits[i].upper << ')');
+			 << ", limits: ("
+			 << _jnt_pos_min(i) << ", " << _jnt_pos_max(i) << ')');
     }
 }
 
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-  //_trajectory.header.stamp = state->header.stamp;
     _trajectory.header.stamp = ros::Time(0);
     _trajectory.points.resize(1);
     _trajectory.points[0] = state->actual;
