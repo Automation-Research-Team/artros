@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="velocity_control"	default="true"/>
+  <arg name="velocity_control"	default="false"/>
   <arg name="prefix"		default="biclops_"/>
   <arg name="homing"		default="true"/>
   <arg name="publish_rate"	default="100"/>
@@ -14,15 +14,6 @@
   <arg unless="$(arg velocity_control)"
        name="controller_name"	value="$(arg
 				       prefix)pos_joint_traj_controller"/>
-
-  <!-- Spawn biclops driver and controllers -->
-  <include file="$(find aist_biclops)/launch/biclops_bringup.launch">
-    <arg name="sim"			value="$(arg sim)"/>
-    <arg name="velocity_control"	value="$(arg velocity_control)"/>
-    <arg name="prefix"			value="$(arg prefix)"/>
-    <arg name="homing"			value="$(arg homing)"/>
-    <arg name="rate"			value="$(arg publish_rate)"/>
-  </include>
 
   <!-- Spawn move_group -->
   <include file="$(find aist_biclops)/launch/move_group.launch">

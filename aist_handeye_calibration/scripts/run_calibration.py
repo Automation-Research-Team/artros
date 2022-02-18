@@ -138,7 +138,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             subpose[4] -= 30
 
     def calibrate(self):
-        self.continuous_shot(self._camera_name, False)
+        #self.continuous_shot(self._camera_name, False)
 
         if self.reset:
             self.reset()

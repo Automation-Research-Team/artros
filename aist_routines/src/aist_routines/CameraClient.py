@@ -118,10 +118,6 @@ class RealSenseCamera(DepthCamera):
         self._dyn_sensor.update_configuration({'laser_power' : value})
 
     def continuous_shot(self, enabled):
-        if enabled:
-            self.laser_power = self._recent_laser_power
-        else:
-            self.laser_power = 0
         self._dyn_camera.update_configuration({'enable_streaming' : enabled})
         rospy.sleep(0.2)
         return True

@@ -229,7 +229,7 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
     catch (const std::exception& err)
     {
 	ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
-	_tracker_srv.setAborted();
+      //_tracker_srv.setAborted();
     }
 }
 
@@ -271,7 +271,6 @@ JointTrajectoryTracker<ACTION>::Tracker
   // Reset solvers.
     _pose_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
-
 
     ROS_INFO_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
 		    << _base_link << ", effector_link=" << _effector_link);
@@ -335,7 +334,8 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state)
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _trajectory.header.stamp = state->header.stamp;
+  //_trajectory.header.stamp = state->header.stamp;
+    _trajectory.header.stamp = ros::Time(0);
     _trajectory.points.resize(1);
     _trajectory.points[0] = state->actual;
 

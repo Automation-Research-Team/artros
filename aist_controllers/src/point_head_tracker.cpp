@@ -22,7 +22,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 				      goal->pointing_axis.z);
     if (pointing_axis.isZero())
 	throw std::runtime_error("pointing_axis must not be zero");
-    
+
   // Convert target point to base_link.
     auto	original_point = goal->target;
     original_point.header.stamp = ros::Time::now();
@@ -47,7 +47,6 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
       // Vector from the origin of effector_frame to the target w.r.t. itself
 	const auto	view_vector = Tbe.getBasis().inverse()
 				    * (target - Tbe.getOrigin()).normalized();
-	std::cerr << "view_vector: " << view_vector << std::endl;
 
       // Angular error and its direction between pointing_axis and view_vector.
 	const auto	axis = Tbe.getBasis()
@@ -64,9 +63,6 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 					   vector3_t(0, 0, 0)),
 			     correction_kdl);
 	const auto	twist = diff(correction_kdl, KDL::Frame());
-	// KDL::Wrench	wrench;
-	// for (size_t i = 0; i < 6; ++i)
-	//     wrench(i) = -1.0*twist(i);
 
       // Compute jacobian for current _jnt_pos
 	_jac_solver->JntToJac(_jnt_pos, _jacobian);
