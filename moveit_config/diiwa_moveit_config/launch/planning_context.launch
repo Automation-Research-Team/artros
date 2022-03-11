@@ -13,7 +13,7 @@
        robot name into the ROS Parameter Server -->
   <param if="$(arg load_robot_description)"
 	 name="$(arg robot_description)"
-	 command="xacro --inorder '$(find aist_description
+	 command="xacro '$(find aist_description
 		  )/scenes/urdf/$(arg scene).urdf.xacro'
 		  hardware_interface:=$(arg hardware_interface)"/>
 

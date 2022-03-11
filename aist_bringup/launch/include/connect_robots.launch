@@ -25,8 +25,7 @@
   <!-- Load URDF to param "robot_description" and spawn the robot -->
   <group ns="$(arg ns)">
     <param name="robot_description"
-  	   command="$(find xacro)/xacro $(arg robot_description_file)
-		    --inorder"/>
+  	   command="$(find xacro)/xacro $(arg robot_description_file)"/>
   </group>
 
   <group if="$(eval sim and not suppress_gazebo)">
