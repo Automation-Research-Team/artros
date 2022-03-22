@@ -50,6 +50,7 @@ from GripperClient     import GripperClient, VoidGripper
 from CameraClient      import CameraClient
 from MarkerPublisher   import MarkerPublisher
 from PickOrPlaceAction import PickOrPlaceAction
+from SweepAction       import SweepAction
 
 ######################################################################
 #  global functions                                                  #
@@ -124,6 +125,13 @@ class AISTBaseRoutines(object):
         else:
             self._pickOrPlaceAction = None
 
+        # Sweep action
+        if rospy.has_param('~sweep_parameters'):
+            self._sweep_params = rospy.get_param('~sweep_parameters')
+            self._sweepAction  = SweepAction(self)
+        else:
+            self._sweepAction = None
+
         # Marker publisher
         self._markerPublisher = MarkerPublisher()
 
@@ -135,6 +143,8 @@ class AISTBaseRoutines(object):
     def __exit__(self, exception_type, exception_value, traceback):
         if self._pickOrPlaceAction:
             self._pickOrPlaceAction.shutdown()
+        if self._sweepAction:
+            self._sweepAction.shutdown()
         rospy.signal_shutdown('AISTBaseRoutines() completed.')
         return False  # Do not forward exceptions
 
@@ -418,6 +428,18 @@ class AISTBaseRoutines(object):
     def pick_or_place_cancel(self):
         return self._pickOrPlaceAction.cancel()
 
+    # Sweep action stuffs
+    def sweep(self, robot_name, target_pose, part_id,
+              wait=True, feedback_cb=None):
+        params = self._sweep_params[part_id]
+        return self._sweepAction.execute(robot_name, target_pose,
+                                         params['contact_offset'],
+                                         params['sweep_offset'],
+                                         params['approach_offset'],
+                                         params['departure_offset'],
+                                         params['speed_fast'],
+                                         params['speed_slow'],
+                                         wait, feedback_cb)
     # Utility functions
     def shift_pose(self, pose, offset):
         m44 = tfs.concatenate_matrices(self._listener.fromTranslationRotation(

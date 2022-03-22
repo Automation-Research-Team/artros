@@ -208,6 +208,22 @@ picking_parameters:
     speed_fast: 1.0
     speed_slow: 1.0
 
+sweep_parameters:
+  04_37D-GEARMOTOR-50-70:
+    approach_offset: [0.0, 0.0, 0.15]
+    contact_offset: [0.0, 0.0, 0.001]
+    sweep_offset: [0.0, 0.01, 0.0]
+    departure_offset: [0.0, 0.0, 0.15]
+    speed_fast: 1.0
+    speed_slow: 0.1
+  05_MBRFA30-2-P6:
+    approach_offset: [0.0, 0.0, 0.15]
+    contact_offset: [0.0, 0.0, 0.001]
+    sweep_offset: [0.0, 0.01, 0.0]
+    departure_offset: [0.0, 0.0, 0.15]
+    speed_fast: 1.0
+    speed_slow: 1.0
+
 graspability_parameters:
   04_37D-GEARMOTOR-50-70:
     ns: 2
