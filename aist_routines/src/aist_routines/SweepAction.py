@@ -65,7 +65,6 @@ class SweepAction(object):
         goal = amsg.sweepGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
-        goal.pick             = pick
         goal.contact_offset   = self._create_transform(contact_offset)
         goal.sweep_offset     = self._create_transform(sweep_offset)
         goal.approach_offset  = self._create_transform(approach_offset)
@@ -140,7 +139,7 @@ class SweepAction(object):
                                              goal.contact_offset.rotation.y,
                                              goal.contact_offset.rotation.z,
                                              goal.contact_offset.rotation.w))
-        routines.add_marker("pick_pose")
+        routines.add_marker("pick_pose", target_pose)
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
@@ -162,7 +161,7 @@ class SweepAction(object):
                                              goal.sweep_offset.rotation.y,
                                              goal.sweep_offset.rotation.z,
                                              goal.sweep_offset.rotation.w))
-        routines.add_marker("place_pose")
+        routines.add_marker("place_pose", target_pose)
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
