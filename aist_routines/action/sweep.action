@@ -7,6 +7,7 @@ geometry_msgs/Transform approach_offset
 geometry_msgs/Transform departure_offset
 float32 speed_fast
 float32 speed_slow
+bool interactive
 ---
 # Result
 int32 SUCCESS=0
