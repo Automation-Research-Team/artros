@@ -102,6 +102,11 @@ class SweepAction(object):
         return gmsg.Transform(gmsg.Vector3(*xyz), gmsg.Quaternion(*q))
 
     def _execute_cb(self, goal):
+        rospy.loginfo("*** Do sweeping ***")
+        routines = self._routines
+        gripper  = routines.gripper(goal.robot_name)
+        result   = amsg.sweepResult()
+
         if goal.interactive:
             print('------------ Select sweep direction -------------')
             print('  X: positive direction along x-axis')
@@ -132,11 +137,8 @@ class SweepAction(object):
                 y = goal.sweep_offset.translation.y
                 goal.sweep_offset.translation.x = y
                 goal.sweep_offset.translation.y = -x
-
-        rospy.loginfo("*** Do sweeping ***")
-        routines = self._routines
-        gripper  = routines.gripper(goal.robot_name)
-        result   = amsg.sweepResult()
+            else:
+                pass
 
         # Go to approach pose.
         rospy.loginfo("--- Go to approach pose. ---")
