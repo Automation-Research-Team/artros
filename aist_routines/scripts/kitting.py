@@ -36,6 +36,7 @@
 # Author: Toshio Ueshiba
 #
 import rospy, collections
+from math          import pi, radians, degrees
 from geometry_msgs import msg as gmsg
 from aist_routines import AISTBaseRoutines
 from aist_routines import msg as amsg
@@ -89,7 +90,7 @@ class KittingRoutines(AISTBaseRoutines):
 
         kitting.go_to_named_pose(kitting.former_robot_name, 'home')
 
-    def search(self, bin_id):
+    def search(self, bin_id, max_slant=pi/4):
         bin_props  = self._bin_props[bin_id]
         part_props = self._part_props[bin_props['part_id']]
         self.graspability_send_goal(part_props['robot_name'],
@@ -102,7 +103,7 @@ class KittingRoutines(AISTBaseRoutines):
         orientation.quaternion.y = 0
         orientation.quaternion.z = 0
         orientation.quaternion.w = 1
-        return self.graspability_wait_for_result(orientation)
+        return self.graspability_wait_for_result(orientation, max_slant)
 
     def attempt_bin(self, bin_id, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
@@ -170,7 +171,7 @@ class KittingRoutines(AISTBaseRoutines):
             self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
 
         # Search for graspabilities.
-        poses, _ = self.search(bin_id)
+        poses, _ = self.search(bin_id, 0.0)
 
         # Attempt to sweep the item.
         p = poses.poses[0]

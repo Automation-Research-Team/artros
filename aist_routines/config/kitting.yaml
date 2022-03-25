@@ -216,13 +216,15 @@ sweep_parameters:
     departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.1
+    interactive: true
   05_MBRFA30-2-P6:
     approach_offset: [0.0, 0.0, 0.15]
-    contact_offset: [-0.01, 0.0, -0.005]
-    sweep_offset: [0.01, 0.0, 0.0]
+    contact_offset: [-0.015, 0.0, -0.005]
+    sweep_offset: [0.01, 0.0, -0.005]
     departure_offset: [0.0, 0.0, 0.15]
-    speed_fast: 0.1
-    speed_slow: 1.0
+    speed_fast: 1.0
+    speed_slow: 0.02
+    interactive: true
 
 graspability_parameters:
   04_37D-GEARMOTOR-50-70:

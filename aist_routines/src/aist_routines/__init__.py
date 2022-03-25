@@ -439,6 +439,7 @@ class AISTBaseRoutines(object):
                                          params['departure_offset'],
                                          params['speed_fast'],
                                          params['speed_slow'],
+                                         params['interactive'],
                                          wait, feedback_cb)
     # Utility functions
     def shift_pose(self, pose, offset):

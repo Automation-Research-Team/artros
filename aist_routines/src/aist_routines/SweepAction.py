@@ -61,7 +61,7 @@ class SweepAction(object):
     # Client stuffs
     def execute(self, robot_name, pose_stamped, contact_offset, sweep_offset,
                 approach_offset, departure_offset, speed_fast, speed_slow,
-                wait=True, feedback_cb=None):
+                interactive, wait=True, feedback_cb=None):
         goal = amsg.sweepGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
@@ -71,6 +71,7 @@ class SweepAction(object):
         goal.departure_offset = self._create_transform(departure_offset)
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
+        goal.interactive      = interactive
         self._client.send_goal(goal, feedback_cb=feedback_cb)
         if wait:
             return self.wait_for_result()
@@ -105,6 +106,39 @@ class SweepAction(object):
         routines = self._routines
         gripper  = routines.gripper(goal.robot_name)
         result   = amsg.sweepResult()
+
+        if goal.interactive:
+            print('------------ Select sweep direction -------------')
+            print('  X: positive direction along x-axis')
+            print('  x: negative direction along x-axis')
+            print('  Y: positive direction along y-axis')
+            print('  y: negative direction along y-axis')
+            key = raw_input('> ')
+            if key == 'x':
+                goal.contact_offset.translation.x *= -1
+                goal.contact_offset.translation.y *= -1
+                goal.sweep_offset.translation.x   *= -1
+                goal.sweep_offset.translation.y   *= -1
+            elif key == 'Y':
+                x = goal.contact_offset.translation.x
+                y = goal.contact_offset.translation.y
+                goal.contact_offset.translation.x = -y
+                goal.contact_offset.translation.y = x
+                x = goal.sweep_offset.translation.x
+                y = goal.sweep_offset.translation.y
+                goal.sweep_offset.translation.x = -y
+                goal.sweep_offset.translation.y = x
+            elif key == 'y':
+                x = goal.contact_offset.translation.x
+                y = goal.contact_offset.translation.y
+                goal.contact_offset.translation.x = y
+                goal.contact_offset.translation.y = -x
+                x = goal.sweep_offset.translation.x
+                y = goal.sweep_offset.translation.y
+                goal.sweep_offset.translation.x = y
+                goal.sweep_offset.translation.y = -x
+            else:
+                pass
 
         # Go to approach pose.
         rospy.loginfo("--- Go to approach pose. ---")
