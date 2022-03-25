@@ -36,6 +36,7 @@ catkin_package(
     geometry_msgs
   INCLUDE_DIRS
     include
+    ${OpenCV_INCLUDE_DIRS}
   LIBRARIES
     ${PROJECT_NAME}
 )
