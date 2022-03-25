@@ -153,6 +153,32 @@ class KittingRoutines(AISTBaseRoutines):
 
         return False
 
+    def sweep_bin(self, bin_id):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        robot_name = part_props['robot_name']
+
+        # If using a different robot from the former, move it back to home.
+        if self._former_robot_name is not None and \
+           self._former_robot_name != robot_name:
+            self.go_to_named_pose(self._former_robot_name, 'back')
+        self._former_robot_name = robot_name
+
+        # Move to 0.15m above the bin if the camera is mounted on the robot.
+        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
+            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
+
+        # Search for graspabilities.
+        poses, _ = self.search(bin_id)
+
+        # Attempt to sweep the item.
+        p = poses.poses[0]
+        pose = gmsg.PoseStamped(poses.header, p)
+
+        result = self.sweep(robot_name, pose, part_id)
+        return result == amsg.sweepResult.SUCCESS
+
     def clear_fail_poses(self):
         self._fail_poses = []
 
@@ -187,6 +213,7 @@ if __name__ == '__main__':
             print('  s: Search graspabilities')
             print('  a: Attempt to pick and place')
             print('  A: Repeat attempts to pick and place')
+            print('  w: sWeep')
             print('  d: Perform small demo')
             print('  k: Do kitting task')
             print('  g: Grasp')
@@ -224,6 +251,11 @@ if __name__ == '__main__':
                     kitting.clear_fail_poses()
                     while kitting.attempt_bin(bin_id, 5):
                         pass
+                    kitting.go_to_named_pose(kitting.former_robot_name, 'home')
+                elif key == 'w':
+                    bin_id = 'bin_' + raw_input('  bin id? ')
+                    kitting.clear_fail_poses()
+                    kitting.sweep_bin(bin_id)
                     kitting.go_to_named_pose(kitting.former_robot_name, 'home')
                 elif key == 'd':
                     kitting.demo()

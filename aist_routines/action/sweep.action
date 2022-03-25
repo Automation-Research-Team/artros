@@ -1,0 +1,26 @@
+# Goal
+string robot_name
+geometry_msgs/PoseStamped pose
+geometry_msgs/Transform contact_offset
+geometry_msgs/Transform sweep_offset
+geometry_msgs/Transform approach_offset
+geometry_msgs/Transform departure_offset
+float32 speed_fast
+float32 speed_slow
+---
+# Result
+int32 SUCCESS=0
+int32 MOVE_FAILURE=1
+int32 APPROACH_FAILURE=2
+int32 SWEEP_FAILURE=3
+int32 DEPARTURE_FAILURE=4
+
+int32 result
+---
+# Feedback
+int32 MOVING=0
+int32 APPROACHING=1
+int32 SWEEPING=2
+int32 DEPARTING=3
+
+int32 state
