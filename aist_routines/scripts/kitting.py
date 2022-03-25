@@ -103,7 +103,7 @@ class KittingRoutines(AISTBaseRoutines):
         orientation.quaternion.y = 0
         orientation.quaternion.z = 0
         orientation.quaternion.w = 1
-        return self.graspability_wait_for_result(orientation)
+        return self.graspability_wait_for_result(orientation, max_slant)
 
     def attempt_bin(self, bin_id, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
