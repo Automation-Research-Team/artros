@@ -16,24 +16,17 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 {
     constexpr int	MAX_ITERATIONS = 15;
 
-  // Extract pointing_axis
-    const vector3_t	pointing_axis(goal->pointing_axis.x,
-				      goal->pointing_axis.y,
-				      goal->pointing_axis.z);
-    if (pointing_axis.isZero())
-	throw std::runtime_error("pointing_axis must not be zero");
-    
-  // Convert target point to base_link.
-    auto	original_point = goal->target;
-    original_point.header.stamp = ros::Time::now();
+  // Convert target pose base_link.
+    auto	original_pose = goal->target;
+    original_pose.header.stamp = ros::Time::now();
     _listener.waitForTransform(_base_link,
-			       original_point.header.frame_id,
-			       original_point.header.stamp,
+			       original_pose.header.frame_id,
+			       original_pose.header.stamp,
 			       ros::Duration(1.0));
-    geometry_msgs::PointStamped	transformed_point;
-    _listener.transformPoint(_base_link, original_point, transformed_point);
-    point_t	target;
-    tf::pointMsgToTF(transformed_point.point, target);
+    geometry_msgs::PoseStamped	transformed_pose;
+    _listener.transformPose(_base_link, original_pose, transformed_pose);
+    pose_t	target;
+    tf::poseMsgToTF(transformed_pose.pose, target);
 
   // Iteratively compute trajectory.
     double	err_p   = 2*M_PI;	// angular error in preveous step

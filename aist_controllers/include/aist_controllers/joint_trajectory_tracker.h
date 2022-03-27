@@ -85,6 +85,7 @@ class JointTrajectoryTracker
 
     using vector3_t	= tf::Vector3;
     using point_t	= tf::Point;
+    using pose_t	= tf::Pose;
 
     class Tracker
     {

@@ -98,18 +98,18 @@ depth_to_points(const sensor_msgs::CameraInfo& camera_info,
     std::copy_n(std::begin(camera_info.D), 4, D.begin());
 
     cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
-    for (int u = 0; u < depth.width; ++u)
+    for (uint32_t u = 0; u < depth.width; ++u)
 	uv(u).x = u;
 
-    for (int v = 0; v < depth.height; ++v)
+    for (uint32_t v = 0; v < depth.height; ++v)
     {
-	for (int u = 0; u < depth.width; ++u)
+	for (uint32_t u = 0; u < depth.width; ++u)
 	    uv(u).y = v;
 
 	cv::undistortPoints(uv, xy, K, D);
 
 	auto	p = ptr<T>(depth, v);
-	for (int u = 0; u < depth.width; ++u)
+	for (uint32_t u = 0; u < depth.width; ++u)
 	{
 	    const auto	d = unit(*p++);		// meters or milimeters
 	    *out++ = {xy(u).x * d, xy(u).y * d, d};
@@ -125,8 +125,8 @@ cloud_to_points(const sensor_msgs::PointCloud2& cloud, ITER out, UNIT unit)
 {
     sensor_msgs::PointCloud2ConstIterator<T>	xyz(cloud, "x");
 
-    for (int v = 0; v < cloud.height; ++v)
-	for (int u = 0; u < cloud.width; ++u)
+    for (uint32_t v = 0; v < cloud.height; ++v)
+	for (uint32_t u = 0; u < cloud.width; ++u)
 	{
 	    *out++ = {unit(xyz[0]), unit(xyz[1]), unit(xyz[2])};
 	    ++xyz;
@@ -204,21 +204,21 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     std::copy_n(std::begin(camera_info.D), 4, D.begin());
 
     cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
-    for (int u = 0; u < depth.width; ++u)
+    for (uint32_t u = 0; u < depth.width; ++u)
 	uv(u).x = u;
 
-    for (int v = 0; v < depth.height; ++v)
+    for (uint32_t v = 0; v < depth.height; ++v)
     {
 	PointCloud2Iterator<float>	xyz(cloud, "x");
 	xyz += v * cloud.width;
 
-	for (int u = 0; u < depth.width; ++u)
+	for (uint32_t u = 0; u < depth.width; ++u)
 	    uv(u).y = v;
 
 	cv::undistortPoints(uv, xy, K, D);
 
 	auto	p = ptr<T>(depth, v);
-	for (int u = 0; u < depth.width; ++u)
+	for (uint32_t u = 0; u < depth.width; ++u)
 	{
 	    const auto	d = meters<T>(*p++);
 
@@ -273,15 +273,15 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     std::copy_n(std::begin(camera_info.D), 4, D.begin());
 
     cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
-    for (int u = 0; u < depth.width; ++u)
+    for (uint32_t u = 0; u < depth.width; ++u)
 	uv(u).x = u;
 
-    for (int v = 0; v < depth.height; ++v)
+    for (uint32_t v = 0; v < depth.height; ++v)
     {
 	PointCloud2Iterator<float>	xyzn(cloud, "x");
 	xyzn += v * cloud.width;
 
-	for (int u = 0; u < depth.width; ++u)
+	for (uint32_t u = 0; u < depth.width; ++u)
 	    uv(u).y = v;
 
 	cv::undistortPoints(uv, xy, K, D);
@@ -289,7 +289,7 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
 	using	vec3_t = float[3];
 	auto	p = ptr<T>(depth, v);
 	auto	n = ptr<vec3_t>(normal, v);
-	for (int u = 0; u < depth.width; ++u)
+	for (uint32_t u = 0; u < depth.width; ++u)
 	{
 	    const auto	d = meters<T>(*p++);
 
@@ -324,13 +324,13 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
 
     if (cloud.height != image.height || cloud.width != image.width)
 	throw std::runtime_error("add_rgb_to_pointcloud(): cloud and image with different sizes!");
-    
+
     PointCloud2Iterator<uint8_t>	rgb(cloud, "rgb");
-    for (int v = 0; v < cloud.height; ++v)
+    for (uint32_t v = 0; v < cloud.height; ++v)
     {
 	auto	p = ptr<T>(image, v);
 
-	for (int u = 0; u < cloud.width; ++u)
+	for (uint32_t u = 0; u < cloud.width; ++u)
 	{
 	    rgb[0] = p->b;
 	    rgb[1] = p->g;
@@ -345,20 +345,20 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
 
 template <class T> sensor_msgs::PointCloud2&
 add_3field_to_pointcloud(sensor_msgs::PointCloud2& cloud,
-			const sensor_msgs::Image& image,
-			const std::string& field_name)
+			 const sensor_msgs::Image& image,
+			 const std::string& field_name)
 {
     using namespace	sensor_msgs;
 
     if (cloud.height != image.height || cloud.width != image.width)
 	throw std::runtime_error("add_3field_to_pointcloud(): cloud and image with different sizes!");
-    
+
     PointCloud2Iterator<T*>	field(cloud, field_name);
-    for (int v = 0; v < cloud.height; ++v)
+    for (uint32_t v = 0; v < cloud.height; ++v)
     {
 	auto	p = ptr<T>(image, v);
 
-	for (int u = 0; u < cloud.width; ++u)
+	for (uint32_t u = 0; u < cloud.width; ++u)
 	{
 	    field[0] = *p++;
 	    field[1] = *p++;
