@@ -8,7 +8,7 @@
 namespace aist_controllers
 {
 /************************************************************************
-*  class JointTrajectoryTracker<ACTION>::Tracker			*
+*  class JointTrajectoryTracker<control_msgs::PointHeadAction>::Tracker	*
 ************************************************************************/
 template <> bool
 JointTrajectoryTracker<control_msgs::PointHeadAction>

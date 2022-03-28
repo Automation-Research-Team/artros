@@ -8,7 +8,7 @@
 namespace aist_controllers
 {
 /************************************************************************
-*  class JointTrajectoryTracker<ACTION>::Tracker			*
+*  class JointTrajectoryTracker<PoseHeadAction>::Tracker		*
 ************************************************************************/
 template <> bool
 JointTrajectoryTracker<aist_controllers::PoseHeadAction>
@@ -16,7 +16,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 {
     constexpr int	MAX_ITERATIONS = 15;
 
-  // Convert target pose base_link.
+  // Convert target pose to base_link.
     auto	original_pose = goal->target;
     original_pose.header.stamp = ros::Time::now();
     _listener.waitForTransform(_base_link,
@@ -37,10 +37,9 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
       // Get transform from effector_link to base_link for current _jnt_pos
 	const auto	Tbe = get_chain_transform();
 
-      // Vector from the origin of effector_frame to the target w.r.t. itself
-	const auto	view_vector = Tbe.getBasis().inverse()
-				    * (target - Tbe.getOrigin()).normalized();
-	std::cerr << "view_vector: " << view_vector << std::endl;
+      // Target pose w.r.t. effector_frame
+	const auto	error_pose = Tbe.inverse() * target;
+      //std::cerr << "error_pose: " << error_pose << std::endl;
 
       // Angular error and its direction between pointing_axis and view_vector.
 	const auto	axis = Tbe.getBasis()
