@@ -83,9 +83,10 @@ class JointTrajectoryTracker
     using goal_cp	= boost::shared_ptr<const typename server_t::Goal>;
     using feedback_t	= typename server_t::Feedback;
 
-    using vector3_t	= tf::Vector3;
-    using point_t	= tf::Point;
-    using pose_t	= tf::Pose;
+    using vector3_t	= KDL::Vector;
+    using point_t	= KDL::Vector;
+    using pose_t	= KDL::Frame;
+    using transform_t	= KDL::Frame;
 
     class Tracker
     {
@@ -104,7 +105,7 @@ class JointTrajectoryTracker
 	bool		update(const goal_cp& goal)			;
 
       private:
-	tf::Transform	get_chain_transform()			const	;
+	KDL::Frame	get_chain_transform()			const	;
 	KDL::Wrench	compute_wrench(const goal_cp& goal)		;
 
       private:
@@ -307,12 +308,8 @@ template <class ACTION> tf::Transform
 JointTrajectoryTracker<ACTION>::Tracker::get_chain_transform() const
 {
   // Get the current pose of effector_link w.r.t. base_link.
-    KDL::Frame	pose_kdl;
-    _pos_solver->JntToCart(_jnt_pos, pose_kdl);
-
-  // Convert to tf::Transform
-    tf::Transform	transform;
-    tf::poseKDLToTF(pose_kdl, transform);
+    KDL::Frame	transform;
+    _pos_solver->JntToCart(_jnt_pos, transform);
 
     return transform;
 }

@@ -41,20 +41,9 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	const auto	error_pose = Tbe.inverse() * target;
       //std::cerr << "error_pose: " << error_pose << std::endl;
 
-      // Angular error and its direction between pointing_axis and view_vector.
-	const auto	axis = Tbe.getBasis()
-			     * pointing_axis.cross(view_vector);
-	const auto	err  = view_vector.angle(pointing_axis);
-
-	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = (" << _jnt_pos
-			 << "), anglular error = " << err*180.0/M_PI
-			 << "(deg)");
-
       // We apply a "wrench" proportional to the desired correction
 	KDL::Frame	correction_kdl;
-	tf::transformTFToKDL(tf::Transform(tf::Quaternion(axis, err),
-					   vector3_t(0, 0, 0)),
-			     correction_kdl);
+	tf::transformTFToKDL(error_pose, correction_kdl);
 	const auto	twist = diff(correction_kdl, KDL::Frame());
 
       // Compute jacobian for current _jnt_pos

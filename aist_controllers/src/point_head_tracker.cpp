@@ -17,10 +17,10 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     constexpr int	MAX_ITERATIONS = 15;
 
   // Extract pointing_axis
-    const vector3_t	pointing_axis(goal->pointing_axis.x,
+    const KDL::Vector	pointing_axis(goal->pointing_axis.x,
 				      goal->pointing_axis.y,
 				      goal->pointing_axis.z);
-    if (pointing_axis.isZero())
+    if (pointing_axis.Norm() < KDL::epsilon)
 	throw std::runtime_error("pointing_axis must not be zero");
 
   // Convert target point to base_link.
@@ -32,8 +32,8 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 			       ros::Duration(1.0));
     geometry_msgs::PointStamped	transformed_point;
     _listener.transformPoint(_base_link, original_point, transformed_point);
-    point_t	target;
-    tf::pointMsgToTF(transformed_point.point, target);
+    KDL::Frame	target;
+    tf::pointMsgToKDL(transformed_point.point, target);
 
   // Iteratively compute trajectory.
     double	err_p   = 2*M_PI;	// angular error in preveous step
@@ -45,12 +45,11 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	const auto	Tbe = get_chain_transform();
 
       // Vector from the origin of effector_frame to the target w.r.t. itself
-	const auto	view_vector = Tbe.getBasis().inverse()
-				    * (target - Tbe.getOrigin()).normalized();
+	auto		view_vector = Tbe.inverse(target - Tbe.p);
+	view_vector.Normalize();
 
       // Angular error and its direction between pointing_axis and view_vector.
-	const auto	axis = Tbe.getBasis()
-			     * pointing_axis.cross(view_vector);
+	const auto	axis = Tbe(pointing_axis * view_vector);
 	const auto	err  = view_vector.angle(pointing_axis);
 
 	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = (" << _jnt_pos
