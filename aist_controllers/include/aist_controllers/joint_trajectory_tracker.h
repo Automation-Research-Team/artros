@@ -306,13 +306,7 @@ JointTrajectoryTracker<ACTION>::Tracker::get_chain_transform() const
     KDL::Frame	transform;
     _pos_solver->JntToCart(_jnt_pos, transform);
 
-    return pose_kdl;
-
-  // Convert to tf::Transform
-    // tf::Transform	transform;
-    // tf::poseKDLToTF(pose_kdl, transform);
-
-    // return transform;
+    return transform;
 }
 
 template <class ACTION> void
