@@ -152,7 +152,7 @@ template <class ACTION>
 JointTrajectoryTracker<ACTION>::JointTrajectoryTracker(
 					const std::string& action_ns)
     :_nh("~"),
-     _state_sub(_nh.subscribe("/state", 1,
+     _state_sub(_nh.subscribe("/state", 10,
 			      &JointTrajectoryTracker::state_cb, this)),
      _command_pub(_nh.advertise<trajectory_t>(
 		      '/' + _nh.param<std::string>("controller",

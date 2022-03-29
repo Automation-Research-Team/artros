@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="sim"		default="false"/>
+  <arg name="scene"		default="a_bot_calibration"/>
   <arg name="robot_name"	default="a_bot"/>
   <arg name="camera_name"	default="$(arg robot_name)_outside_camera"/>
   <arg name="velocity_control"	default="false"/>
@@ -27,6 +28,7 @@
   <!-- Spawn a_bot -->
   <include file="$(find aist_bringup)/launch/a_bot_bringup.launch">
     <arg name="sim"		value="$(arg sim)"/>
+    <arg name="scene"		value="$(arg scene)"/>
   </include>
 
   <!-- Spawn aruco marker tracker -->

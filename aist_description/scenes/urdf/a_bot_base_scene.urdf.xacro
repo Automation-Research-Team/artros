@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot__base_scene" >
 
   <xacro:arg name="scene" default=""/>
 

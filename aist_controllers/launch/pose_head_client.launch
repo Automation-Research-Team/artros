@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="prefix"		default="a_bot_"/>
+  <arg name="publish_rate"	default="50"/>
+
+  <!-- Spawn controller -->
+  <node name="pose_head_client"
+        pkg="aist_controllers" type="pose_head_client.py"
+        output="screen" respawn="false">
+    <rosparam file="$(dirname)/../config/pose_head_client.yaml"
+              subst_value="true"/>
+  </node>
+
+</launch>
