@@ -17,11 +17,12 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     constexpr int	MAX_ITERATIONS = 15;
 
   // Extract pointing_axis
-    const KDL::Vector	pointing_axis(goal->pointing_axis.x,
+    KDL::Vector		pointing_axis(goal->pointing_axis.x,
 				      goal->pointing_axis.y,
 				      goal->pointing_axis.z);
     if (pointing_axis.Norm() < KDL::epsilon)
 	throw std::runtime_error("pointing_axis must not be zero");
+    pointing_axis.Normalize();
 
   // Convert target point to base_link.
     auto	original_point = goal->target;
@@ -32,7 +33,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 			       ros::Duration(1.0));
     geometry_msgs::PointStamped	transformed_point;
     _listener.transformPoint(_base_link, original_point, transformed_point);
-    KDL::Frame	target;
+    KDL::Vector	target;
     tf::pointMsgToKDL(transformed_point.point, target);
 
   // Iteratively compute trajectory.
@@ -44,23 +45,20 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
       // Get transform from effector_link to base_link for current _jnt_pos
 	const auto	Tbe = get_chain_transform();
 
-      // Vector from the origin of effector_frame to the target w.r.t. itself
-	auto		view_vector = Tbe.inverse(target - Tbe.p);
+      // Compute vector from the origin of effector_frame to the target
+	auto		view_vector = target - Tbe.p;
 	view_vector.Normalize();
 
       // Angular error and its direction between pointing_axis and view_vector.
-	const auto	axis = Tbe(pointing_axis * view_vector);
-	const auto	err  = view_vector.angle(pointing_axis);
+	auto		axis = (Tbe * pointing_axis) * view_vector;
+	const auto	err  = axis.Normalize();
 
 	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = (" << _jnt_pos
 			 << "), anglular error = " << err*180.0/M_PI
 			 << "(deg)");
 
       // We apply a "wrench" proportional to the desired correction
-	KDL::Frame	correction_kdl;
-	tf::transformTFToKDL(tf::Transform(tf::Quaternion(axis, err),
-					   vector3_t(0, 0, 0)),
-			     correction_kdl);
+	KDL::Frame	correction_kdl(KDL::Rotation::Rot2(axis, err));
 	const auto	twist = diff(correction_kdl, KDL::Frame());
 
       // Compute jacobian for current _jnt_pos
