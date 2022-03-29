@@ -5,7 +5,7 @@
   <arg name="velocity_control"	default="false"/>
   <arg name="prefix"		default="biclops_"/>
   <arg name="publish_rate"	default="100"/>
-  <arg name="serial_no"		default="639206003156"/>
+  <arg name="serial_no"		default="637202003429"/>
   <arg name="marker_id"		default="26"/>
 
   <arg if="$(arg velocity_control)"
