@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim"			default="false"/>
+  <arg name="scene"			default=""/>
+  <arg name="joint_state_frequency"	default="50"/>
+  <arg name="robot_state_frequency"	default="50"/>
+  <arg name="moveit_config"		default="$(find a_bot_moveit_config)"/>
+  <arg name="rviz_config"		default=""/>
+
+  <!-- Setup "aist" configuration -->
+  <arg name="config"		value="a_bot"/>
+  <arg name="gazebo_init_args"	value="-J a_bot_shoulder_pan_joint 1.5708
+  				       -J a_bot_shoulder_lift_joint -2.1
+  				       -J a_bot_elbow_joint 1.4
+  				       -J a_bot_wrist_1_joint -0.85
+  				       -J a_bot_wrist_2_joint -1.5708
+  				       -J a_bot_wrist_3_joint 0.0"/>
+  <arg name="prefixes"		value="a_bot_, a_bot_gripper_"/>
+  <arg name="devices"		value="ur5, robotiq_85"/>
+  <arg name="controllers"	value="ur, cmodel"/>
+  <arg name="drivers"		value="ur, cmodel"/>
+  <arg name="driver_args"	value="163.220.51.80, 50005, 50006, 50007, 0;
+				       urcap, 163.220.51.80" />
+
+  <!-- Bringup robots -->
+  <include file="$(dirname)/include/connect_robots.launch">
+    <arg name="robot_description_file"
+	 value="$(find aist_description
+		)/scenes/urdf/$(arg config)_base_scene.urdf.xacro
+		scene:=$(arg scene)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="joint_state_frequency"	value="$(arg joint_state_frequency)"/>
+    <arg name="gazebo_init_args"	value="$(arg gazebo_init_args)"/>
+    <arg name="prefixes"		value="$(arg prefixes)"/>
+    <arg name="devices"			value="$(arg devices)"/>
+    <arg name="controllers"		value="$(arg controllers)"/>
+    <arg name="drivers"			value="$(arg drivers)"/>
+    <arg name="driver_args"		value="$(arg driver_args)"/>
+  </include>
+
+  <!-- Start MoveIt! -->
+  <include file="$(dirname)/include/move_group.launch">
+    <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
+    <arg name="moveit_config"		value="$(arg moveit_config)"/>
+    <arg name="rviz_config"		value="$(arg rviz_config)"/>
+  </include>
+
+  <!-- Launch camera multiplexer and Realsense cameras if not sim -->
+  <arg name="camera_names"		default="a_bot_inside_camera,
+						 a_bot_outside_camera"/>
+  <arg name="serial_nos"		default="636203005853, 636203005303"/>
+  <arg name="camera_width"		default="640"/>
+  <arg name="camera_height"		default="480"/>
+  <arg name="fps"			default="30"/>
+  <arg name="manager"			default="camera_manager"/>
+
+  <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
+    <arg name="camera_names"		value="$(arg camera_names)"/>
+    <arg name="serial_nos"		value="$(arg serial_nos)"/>
+    <arg name="publish_tf"		value="false"/>
+    <arg name="camera_width"		value="$(arg camera_width)"/>
+    <arg name="camera_height"		value="$(arg camera_height)"/>
+    <arg name="fps"			value="$(arg fps)"/>
+    <arg name="manager"			value="$(arg manager)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+  </include>
+
+  <!-- Launch other hardware drivers -->
+  <group unless="$(arg sim)">
+
+    <!-- Drivers for the force sensors -->
+    <include ns="a_bot_ftsensor"
+    	     file="$(find aist_ftsensor)/launch/ft300.launch">
+      <arg name="calib_file"		value="a_bot_ftsensor"/>
+      <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
+      <arg name="hostname"		value="a_bot"/>
+    </include>
+
+  </group>
+
+</launch>

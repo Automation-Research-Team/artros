@@ -45,7 +45,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
       // Get transform from effector_link to base_link for current _jnt_pos
 	const auto	Tbe = get_chain_transform();
 
-      // Compute vector from the origin of effector_frame to the target
+      // Compute vector from the origin of effector_link to the target
 	auto		view_vector = target - Tbe.p;
 	view_vector.Normalize();
 
@@ -58,8 +58,8 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 			 << "(deg)");
 
       // We apply a "wrench" proportional to the desired correction
-	KDL::Frame	correction_kdl(KDL::Rotation::Rot2(axis, err));
-	const auto	twist = diff(correction_kdl, KDL::Frame());
+	const KDL::Frame	correction(KDL::Rotation::Rot2(axis, err));
+	const auto		twist = diff(correction, KDL::Frame());
 
       // Compute jacobian for current _jnt_pos
 	_jac_solver->JntToJac(_jnt_pos, _jacobian);

@@ -25,11 +25,12 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 			       ros::Duration(1.0));
     geometry_msgs::PoseStamped	transformed_pose;
     _listener.transformPose(_base_link, original_pose, transformed_pose);
-    pose_t	target;
-    tf::poseMsgToTF(transformed_pose.pose, target);
+    KDL::Frame	target;
+    tf::poseMsgToKDL(transformed_pose.pose, target);
 
   // Iteratively compute trajectory.
-    double	err_p   = 2*M_PI;	// angular error in preveous step
+    double	rot_err_p  = M_PI;	// angular error in preveous step
+    double	trns_err_p = 1.0;	// angular error in preveous step
     bool	success = false;
 
     for (int n = 0; n < MAX_ITERATIONS; ++n)
@@ -37,14 +38,12 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
       // Get transform from effector_link to base_link for current _jnt_pos
 	const auto	Tbe = get_chain_transform();
 
-      // Target pose w.r.t. effector_frame
-	const auto	error_pose = Tbe.inverse() * target;
-      //std::cerr << "error_pose: " << error_pose << std::endl;
-
-      // We apply a "wrench" proportional to the desired correction
-	KDL::Frame	correction_kdl;
-	tf::transformTFToKDL(error_pose, correction_kdl);
-	const auto	twist = diff(correction_kdl, KDL::Frame());
+      // Correction w.r.t. base_link
+	const auto	correction = Tbe.Inverse() * target;
+	KDL::Vector	axis;
+	const auto	rot_err  = correction.M.GetRotAngle(axis);
+	const auto	trns_err = correction.p.Norm();
+	const auto	twist = diff(correction, KDL::Frame());
 
       // Compute jacobian for current _jnt_pos
 	_jac_solver->JntToJac(_jnt_pos, _jacobian);
@@ -60,29 +59,32 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 				_jnt_pos_min(i), _jnt_pos_max(i));
 	}
 
-	if (err < _goal_error || std::abs(err - err_p) < 0.001)
+	if (rot_err < _goal_error || (std::abs(rot_err - rot_err_p) < 0.001 &&
+				      std::abs(trns_err - trns_err_p) < 0.001))
 	{
-	    err_p = err;
+	    rot_err_p  = rot_err;
+	    trns_err_p = trns_err;
 	    success = true;
-	    break;
 	}
 
-	err_p = err;
+	trns_err_p = trns_err;
+	rot_err_p  = rot_err;
     }
 
-    ROS_DEBUG_STREAM("Expected error: " << err_p*180.0/M_PI << "(deg)");
+    ROS_DEBUG_STREAM("Expected error: " << rot_err_p*180.0/M_PI << "(deg)");
 
-    _feedback.pointing_angle_error = err_p;
+    _feedback.pointing_angle_error    = rot_err_p;
+    _feedback.pointing_position_error = trns_err_p;
 
   //the goal will end when the angular error of the pointing axis
   //is lower than _goal_error. This variable is assigned with the maximum
   //between the ros param _goal_error and the estimated error
   //from the iterative solver last iteration, i.e. err_p
-    err_p = std::max(err_p, _goal_error);
+    rot_err_p = std::max(rot_err_p, _goal_error);
 
     ROS_DEBUG_STREAM("the goal will terminate when error is: "
-		     << err_p*180.0/M_PI << " degrees => "
-		     << err_p << " radians");
+		     << rot_err_p*180.0/M_PI << " degrees => "
+		     << rot_err_p << " radians");
 
   // Determines if we need to increase the duration of the movement
   // in order to enforce a maximum velocity.
