@@ -69,6 +69,18 @@
   <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
+    <!-- Load and publish hand-eye calibration -->
+    <include file="$(find aist_handeye_calibration
+    		   )/launch/publish_calibration.launch">
+      <arg name="config"	value="aist" />
+      <arg name="camera_name"	value="a_bot_inside_camera" />
+    </include>
+    <include file="$(find aist_handeye_calibration
+    		   )/launch/publish_calibration.launch">
+      <arg name="config"	value="aist" />
+      <arg name="camera_name"	value="a_bot_outside_camera" />
+    </include>
+
     <!-- Drivers for the force sensors -->
     <include ns="a_bot_ftsensor"
     	     file="$(find aist_ftsensor)/launch/ft300.launch">
