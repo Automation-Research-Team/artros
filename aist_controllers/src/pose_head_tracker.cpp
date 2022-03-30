@@ -29,8 +29,8 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     tf::poseMsgToKDL(transformed_pose.pose, target);
 
   // Iteratively compute trajectory.
-    double	rot_err_p  = M_PI;	// angular error in preveous step
-    double	trns_err_p = 1.0;	// angular error in preveous step
+    double	rot_err_p  = M_PI;	// rotational error in previous step
+    double	trns_err_p = 1.0;	// translational error in previous step
     bool	success = false;
 
     for (int n = 0; n < MAX_ITERATIONS; ++n)
@@ -38,7 +38,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
       // Get transform from effector_link to base_link for current _jnt_pos
 	const auto	Tbe = get_chain_transform();
 
-      // Correction w.r.t. base_link
+      // Correction for moving effector_link to target.
 	const auto	correction = Tbe.Inverse() * target;
 	KDL::Vector	axis;
 	const auto	rot_err  = correction.M.GetRotAngle(axis);
