@@ -17,6 +17,7 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr_jl.hpp>
+#include <kdl/frames_io.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
 #include <tf_conversions/tf_kdl.h>
@@ -47,7 +48,7 @@ operator <<(std::ostream& out, const KDL::JntArray& jnt_array)
 	out << ' ' << jnt_array(i);
     return out;
 }
-
+  /*
 static std::ostream&
 operator <<(std::ostream& out, const KDL::Twist& twist)
 {
@@ -69,7 +70,7 @@ operator <<(std::ostream& out, const KDL::Vector& v)
 {
     return out << ' ' << v.x() << ' ' << v.y() << ' ' << v.z();
 }
-
+  */
 /************************************************************************
 *  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/
