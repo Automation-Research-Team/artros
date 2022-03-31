@@ -40,10 +40,12 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 
       // Correction for moving effector_link to target.
 	const auto	correction = Tbe.Inverse() * target;
+	ROS_INFO_STREAM("correction: trns=" << correction.p);
 	KDL::Vector	axis;
 	const auto	rot_err  = correction.M.GetRotAngle(axis);
 	const auto	trns_err = correction.p.Norm();
 	const auto	twist = diff(correction, KDL::Frame());
+	ROS_INFO_STREAM("twist: rot=" << twist.rot << ", vel=" << twist.vel);
 
       // Compute jacobian for current _jnt_pos
 	_jac_solver->JntToJac(_jnt_pos, _jacobian);
@@ -55,7 +57,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	    double	jnt_eff = 0;
 	    for (size_t j = 0; j < 6; ++j)
 		jnt_eff -= (_jacobian(j, i) * twist(j));
-	    _jnt_pos(i) = clamp(_jnt_pos(i) + jnt_eff,
+	    _jnt_pos(i) = clamp(_jnt_pos(i) + 0.001*jnt_eff,
 				_jnt_pos_min(i), _jnt_pos_max(i));
 	}
 
@@ -71,7 +73,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	rot_err_p  = rot_err;
     }
 
-    ROS_DEBUG_STREAM("Expected error: " << rot_err_p*180.0/M_PI << "(deg)");
+    ROS_INFO_STREAM("Expected error: " << rot_err_p*180.0/M_PI << "(deg)");
 
     _feedback.pointing_angle_error    = rot_err_p;
     _feedback.pointing_position_error = trns_err_p;
@@ -82,9 +84,9 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
   //from the iterative solver last iteration, i.e. err_p
     rot_err_p = std::max(rot_err_p, _goal_error);
 
-    ROS_DEBUG_STREAM("the goal will terminate when error is: "
-		     << rot_err_p*180.0/M_PI << " degrees => "
-		     << rot_err_p << " radians");
+    ROS_INFO_STREAM("the goal will terminate when error is: "
+		    << rot_err_p*180.0/M_PI << " degrees => "
+		    << rot_err_p << " radians");
 
   // Determines if we need to increase the duration of the movement
   // in order to enforce a maximum velocity.

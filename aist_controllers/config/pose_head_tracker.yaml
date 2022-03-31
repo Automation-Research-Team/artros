@@ -1,4 +1,0 @@
-publish_rate: $(arg publish_rate)
-base_link: $(arg robot_name)_base_link
-effector_link: $(arg camera_name)_color_optical_frame
-controller: $(arg controller_name)

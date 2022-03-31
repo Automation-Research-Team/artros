@@ -53,6 +53,7 @@ class PoseHeadClient(object):
 
         server = rospy.get_param('~server', '/a_bot_pose_head_tracker')
         self._target_frame  = rospy.get_param('~target_frame', 'marker_frame')
+        self._target_offset = rospy.get_param('~target_offset', [0.0, 0.0, 0.2])
         self._min_duration  = rospy.get_param('~min_duration', 1.0)
         self._max_velocity  = rospy.get_param('~max_velocity', 0.0)
         self._pose_head_client = SimpleActionClient(server + '/pose_head',
@@ -64,7 +65,8 @@ class PoseHeadClient(object):
         goal = amsg.PoseHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = self._target_frame
-        goal.target.pose            = gmsg.Pose(gmsg.Point(0, 0, 0.2),
+        goal.target.pose            = gmsg.Pose(gmsg.Point(
+                                                    *self._target_offset),
                                                 gmsg.Quaternion(
                                                     *tfs.quaternion_from_euler(
                                                         0, radians(90), 0)))

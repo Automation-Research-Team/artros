@@ -65,7 +65,7 @@ operator <<(std::ostream& out, const KDL::Wrench& wrench)
 }
 
 static std::ostream&
-operator <<(std::ostream& out, const tf::Vector3& v)
+operator <<(std::ostream& out, const KDL::Vector& v)
 {
     return out << ' ' << v.x() << ' ' << v.y() << ' ' << v.z();
 }
@@ -278,8 +278,8 @@ JointTrajectoryTracker<ACTION>::Tracker
     _pos_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_pinv(_chain));
     _pos_iksolver.reset(new KDL::ChainIkSolverPos_NR_JL(
-			    _chain, _jnt_pos_min, _jnt_pos_max,
-			    *_pos_solver, *_vel_iksolver));
+    			    _chain, _jnt_pos_min, _jnt_pos_max,
+    			    *_pos_solver, *_vel_iksolver));
 
     ROS_INFO_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
 		    << _base_link << ", effector_link=" << _effector_link);

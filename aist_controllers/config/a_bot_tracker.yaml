@@ -1,4 +1,0 @@
-publish_rate: $(arg publish_rate)
-base_link: a_bot_base_link
-effector_link: a_bot_inside_camera_color_optical_frame
-joint_trajectory_controller: a_bot/scaled_pos_joint_traj_controller

@@ -40,9 +40,12 @@
   <node name="$(arg prefix)point_head_tracker"
         pkg="aist_controllers" type="point_head_tracker"
         output="screen" respawn="false">
-    <rosparam file="$(dirname)/../config/point_head_tracker.yaml"
-              subst_value="true"/>
-    <remap from="/state" to="$(arg controller_name)/state"/>
+    <param name="publish_rate"	value="$(arg publish_rate)"/>
+    <param name="base_link"	value="$(arg prefix)base_link"/>
+    <param name="effector_link"	value="$(arg prefix
+				       )camera_color_optical_frame"/>
+    <param name="controller"	value="$(arg controller_name)"/>
+    <remap from="/state"	to="/$(arg controller_name)/state"/>
   </node>
 
 </launch>

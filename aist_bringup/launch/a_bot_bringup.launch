@@ -66,7 +66,7 @@
     <arg name="sim"			value="$(arg sim)"/>
   </include>
 
-  <!-- Launch other hardware drivers -->
+  <!-- Launch calibration publisher and other hardware drivers -->
   <group unless="$(arg sim)">
 
     <!-- Load and publish hand-eye calibration -->
@@ -88,6 +88,21 @@
       <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
       <arg name="hostname"		value="a_bot"/>
     </include>
+
+  </group>
+
+  <group if="$(arg sim)">
+
+    <node name="inside_transform_publisher"
+          pkg="tf" type="static_transform_publisher"
+          args="0 0 0 0 0 0
+		a_bot_inside_camera_color_optical_frame
+		calibrated_a_bot_inside_camera_color_optical_frame 10"/>
+    <node name="outsidestatic_transform_publisher"
+          pkg="tf" type="static_transform_publisher"
+          args="0 0 0 0 0 0
+		a_bot_outside_camera_color_optical_frame
+		calibrated_a_bot_outside_camera_color_optical_frame 10"/>
 
   </group>
 
