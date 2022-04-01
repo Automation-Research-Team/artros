@@ -34,8 +34,8 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from aist_routines     import AISTBaseRoutines
-from URScriptPublisher import URScriptPublisher
+from aist_routines                   import AISTBaseRoutines
+from aist_routines.URScriptPublisher import URScriptPublisher
 
 ######################################################################
 #  class URRoutines                                                  #

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -104,7 +104,7 @@ class InteractiveRoutines(AISTBaseRoutines):
                    .format(axis, self.format_pose(current_pose),
                            'urscript' if self._ur_movel else 'moveit')
 
-            key = raw_input(prompt)
+            key = input(prompt)
 
             if key == 'q':
                 break
