@@ -18,6 +18,7 @@
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr_jl.hpp>
 #include <kdl/frames_io.hpp>
+#include <kdl/kinfam_io.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
 #include <tf_conversions/tf_kdl.h>
@@ -37,40 +38,9 @@ namespace aist_controllers
 template <class T> inline static const T&
 clamp(const T& val, const T& low, const T& high)
 {
-    return (val < low  ? low :
-	    val > high ? high : val);
+    return (val < low  ? low : val > high ? high : val);
 }
 
-static std::ostream&
-operator <<(std::ostream& out, const KDL::JntArray& jnt_array)
-{
-    for (size_t i = 0; i < jnt_array.rows(); ++i)
-	out << ' ' << jnt_array(i);
-    return out;
-}
-  /*
-static std::ostream&
-operator <<(std::ostream& out, const KDL::Twist& twist)
-{
-    for (size_t i = 0; i < 6; ++i)
-	out << ' ' << twist(i);
-    return out;
-}
-
-static std::ostream&
-operator <<(std::ostream& out, const KDL::Wrench& wrench)
-{
-    for (size_t i = 0; i < 6; ++i)
-	out << ' ' << wrench(i);
-    return out;
-}
-
-static std::ostream&
-operator <<(std::ostream& out, const KDL::Vector& v)
-{
-    return out << ' ' << v.x() << ' ' << v.y() << ' ' << v.z();
-}
-  */
 /************************************************************************
 *  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/

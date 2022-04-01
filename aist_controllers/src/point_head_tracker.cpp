@@ -53,8 +53,8 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	auto		axis = (Tbe * pointing_axis) * view_vector;
 	const auto	err  = axis.Normalize();
 
-	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = (" << _jnt_pos
-			 << "), anglular error = " << err*180.0/M_PI
+	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = " << _jnt_pos
+			 << ", anglular error = " << err*180.0/M_PI
 			 << "(deg)");
 
       // We apply a "wrench" proportional to the desired correction
