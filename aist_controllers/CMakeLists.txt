@@ -53,23 +53,23 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
-#add_executable(
-#  pose_head_tracker
-#  src/pose_head_tracker.cpp
-#)
+add_executable(
+  pose_head_tracker
+  src/pose_head_tracker.cpp
+)
 
-#target_link_libraries(
-#  pose_head_tracker
-#  ${Boost_LIBRARIES} ${orocos_kdl_LIBRARIES} ${catkin_LIBRARIES}
-#)
+target_link_libraries(
+  pose_head_tracker
+  ${Boost_LIBRARIES} ${orocos_kdl_LIBRARIES} ${catkin_LIBRARIES}
+)
 
-#add_dependencies(
-#  pose_head_tracker
-#  ${catkin_EXPORTED_TARGETS}
-#)
+add_dependencies(
+  pose_head_tracker
+  ${catkin_EXPORTED_TARGETS}
+)
 
 install(
-  TARGETS point_head_tracker
+  TARGETS point_head_tracker pose_head_tracker
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

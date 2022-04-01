@@ -17,6 +17,7 @@
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolvervel_pinv.hpp>
 #include <kdl/chainiksolverpos_nr_jl.hpp>
+#include <kdl/frames_io.hpp>
 #include <kdl_parser/kdl_parser.hpp>
 
 #include <tf_conversions/tf_kdl.h>
@@ -47,7 +48,7 @@ operator <<(std::ostream& out, const KDL::JntArray& jnt_array)
 	out << ' ' << jnt_array(i);
     return out;
 }
-
+  /*
 static std::ostream&
 operator <<(std::ostream& out, const KDL::Twist& twist)
 {
@@ -65,11 +66,11 @@ operator <<(std::ostream& out, const KDL::Wrench& wrench)
 }
 
 static std::ostream&
-operator <<(std::ostream& out, const tf::Vector3& v)
+operator <<(std::ostream& out, const KDL::Vector& v)
 {
     return out << ' ' << v.x() << ' ' << v.y() << ' ' << v.z();
 }
-
+  */
 /************************************************************************
 *  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/
@@ -82,10 +83,6 @@ class JointTrajectoryTracker
     using server_t	= actionlib::SimpleActionServer<ACTION>;
     using goal_cp	= boost::shared_ptr<const typename server_t::Goal>;
     using feedback_t	= typename server_t::Feedback;
-
-    using vector3_t	= tf::Vector3;
-    using point_t	= tf::Point;
-    using pose_t	= tf::Pose;
 
     class Tracker
     {
@@ -104,7 +101,7 @@ class JointTrajectoryTracker
 	bool		update(const goal_cp& goal)			;
 
       private:
-	tf::Transform	get_chain_transform()			const	;
+	KDL::Frame	get_chain_transform()			const	;
 	KDL::Wrench	compute_wrench(const goal_cp& goal)		;
 
       private:
@@ -156,7 +153,7 @@ template <class ACTION>
 JointTrajectoryTracker<ACTION>::JointTrajectoryTracker(
 					const std::string& action_ns)
     :_nh("~"),
-     _state_sub(_nh.subscribe("/state", 1,
+     _state_sub(_nh.subscribe("/state", 10,
 			      &JointTrajectoryTracker::state_cb, this)),
      _command_pub(_nh.advertise<trajectory_t>(
 		      '/' + _nh.param<std::string>("controller",
@@ -282,8 +279,8 @@ JointTrajectoryTracker<ACTION>::Tracker
     _pos_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_pinv(_chain));
     _pos_iksolver.reset(new KDL::ChainIkSolverPos_NR_JL(
-			    _chain, _jnt_pos_min, _jnt_pos_max,
-			    *_pos_solver, *_vel_iksolver));
+    			    _chain, _jnt_pos_min, _jnt_pos_max,
+    			    *_pos_solver, *_vel_iksolver));
 
     ROS_INFO_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
 		    << _base_link << ", effector_link=" << _effector_link);
@@ -303,16 +300,12 @@ JointTrajectoryTracker<ACTION>::Tracker::feedback() const
     return _feedback;
 }
 
-template <class ACTION> tf::Transform
+template <class ACTION> KDL::Frame
 JointTrajectoryTracker<ACTION>::Tracker::get_chain_transform() const
 {
   // Get the current pose of effector_link w.r.t. base_link.
-    KDL::Frame	pose_kdl;
-    _pos_solver->JntToCart(_jnt_pos, pose_kdl);
-
-  // Convert to tf::Transform
-    tf::Transform	transform;
-    tf::poseKDLToTF(pose_kdl, transform);
+    KDL::Frame	transform;
+    _pos_solver->JntToCart(_jnt_pos, transform);
 
     return transform;
 }

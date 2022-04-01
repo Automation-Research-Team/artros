@@ -8,7 +8,7 @@
 namespace aist_controllers
 {
 /************************************************************************
-*  class JointTrajectoryTracker<ACTION>::Tracker			*
+*  class JointTrajectoryTracker<PoseHeadAction>::Tracker		*
 ************************************************************************/
 template <> bool
 JointTrajectoryTracker<aist_controllers::PoseHeadAction>
@@ -16,7 +16,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 {
     constexpr int	MAX_ITERATIONS = 15;
 
-  // Convert target pose base_link.
+  // Convert target pose to base_link.
     auto	original_pose = goal->target;
     original_pose.header.stamp = ros::Time::now();
     _listener.waitForTransform(_base_link,
@@ -25,79 +25,12 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 			       ros::Duration(1.0));
     geometry_msgs::PoseStamped	transformed_pose;
     _listener.transformPose(_base_link, original_pose, transformed_pose);
-    pose_t	target;
-    tf::poseMsgToTF(transformed_pose.pose, target);
-
-  // Iteratively compute trajectory.
-    double	err_p   = 2*M_PI;	// angular error in preveous step
-    bool	success = false;
-
-    for (int n = 0; n < MAX_ITERATIONS; ++n)
-    {
-      // Get transform from effector_link to base_link for current _jnt_pos
-	const auto	Tbe = get_chain_transform();
-
-      // Vector from the origin of effector_frame to the target w.r.t. itself
-	const auto	view_vector = Tbe.getBasis().inverse()
-				    * (target - Tbe.getOrigin()).normalized();
-	std::cerr << "view_vector: " << view_vector << std::endl;
-
-      // Angular error and its direction between pointing_axis and view_vector.
-	const auto	axis = Tbe.getBasis()
-			     * pointing_axis.cross(view_vector);
-	const auto	err  = view_vector.angle(pointing_axis);
-
-	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = (" << _jnt_pos
-			 << "), anglular error = " << err*180.0/M_PI
-			 << "(deg)");
-
-      // We apply a "wrench" proportional to the desired correction
-	KDL::Frame	correction_kdl;
-	tf::transformTFToKDL(tf::Transform(tf::Quaternion(axis, err),
-					   vector3_t(0, 0, 0)),
-			     correction_kdl);
-	const auto	twist = diff(correction_kdl, KDL::Frame());
-
-      // Compute jacobian for current _jnt_pos
-	_jac_solver->JntToJac(_jnt_pos, _jacobian);
-
-      // Converts the "wrench" into "joint corrections"
-      // with a jacbobian-transpose
-	for (size_t i = 0; i < _jnt_pos.rows(); ++i)
-	{
-	    double	jnt_eff = 0;
-	    for (size_t j = 0; j < 6; ++j)
-		jnt_eff -= (_jacobian(j, i) * twist(j));
-	    _jnt_pos(i) = clamp(_jnt_pos(i) + jnt_eff,
-				_jnt_pos_min(i), _jnt_pos_max(i));
-	}
-
-	if (err < _goal_error || std::abs(err - err_p) < 0.001)
-	{
-	    err_p = err;
-	    success = true;
-	    break;
-	}
-
-	err_p = err;
-    }
-
-    ROS_DEBUG_STREAM("Expected error: " << err_p*180.0/M_PI << "(deg)");
-
-    _feedback.pointing_angle_error = err_p;
-
-  //the goal will end when the angular error of the pointing axis
-  //is lower than _goal_error. This variable is assigned with the maximum
-  //between the ros param _goal_error and the estimated error
-  //from the iterative solver last iteration, i.e. err_p
-    err_p = std::max(err_p, _goal_error);
-
-    ROS_DEBUG_STREAM("the goal will terminate when error is: "
-		     << err_p*180.0/M_PI << " degrees => "
-		     << err_p << " radians");
-
-  // Determines if we need to increase the duration of the movement
-  // in order to enforce a maximum velocity.
+    KDL::Frame	target;
+    tf::poseMsgToKDL(transformed_pose.pose, target);
+    std::cerr << "--- target ---\n" << target << std::endl;
+    
+    KDL::JntArray	jnt_pos(_jnt_pos);
+    _pos_iksolver->CartToJnt(jnt_pos, target, _jnt_pos);
 
   // Compute the largest required rotation among all the joints
     auto&	point   = _trajectory.points[0];

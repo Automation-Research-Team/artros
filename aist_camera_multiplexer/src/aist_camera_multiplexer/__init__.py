@@ -44,7 +44,7 @@ class CameraMultiplexerClient(object):
         super(CameraMultiplexerClient, self).__init__()
         self._camera_names = rospy.get_param(server + '/camera_names', [])
         self._dyn_reconf   = dynamic_reconfigure.client.Client(server,
-                                                               timeout=5.0)
+                                                               timeout=30.0)
 
     @property
     def camera_names(self):
@@ -68,7 +68,7 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
         def __init__(self, server):
             super(RealSenseMultiplexerClient.RealSenseCamera, self).__init__()
             self._dyn_camera = dynamic_reconfigure.client.Client(server,
-                                                                 timeout=5.0)
+                                                                 timeout=30.0)
             self._dyn_sensor = dynamic_reconfigure.client.Client(
                                 server + '/coded_light_depth_sensor',
                                 timeout=5.0)
