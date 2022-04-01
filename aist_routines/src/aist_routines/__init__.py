@@ -46,11 +46,11 @@ from moveit_commander.conversions import pose_to_list
 
 from geometry_msgs import msg as gmsg
 
-from GripperClient     import GripperClient, VoidGripper
-from CameraClient      import CameraClient
-from MarkerPublisher   import MarkerPublisher
-from PickOrPlaceAction import PickOrPlaceAction
-from SweepAction       import SweepAction
+from aist_routines.GripperClient     import GripperClient, VoidGripper
+from aist_routines.CameraClient      import CameraClient
+from aist_routines.MarkerPublisher   import MarkerPublisher
+from aist_routines.PickOrPlaceAction import PickOrPlaceAction
+from aist_routines.SweepAction       import SweepAction
 
 ######################################################################
 #  global functions                                                  #
