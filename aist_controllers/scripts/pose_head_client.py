@@ -69,7 +69,7 @@ class PoseHeadClient(object):
                                                     *self._target_offset),
                                                 gmsg.Quaternion(
                                                     *tfs.quaternion_from_euler(
-                                                        pi, 0, 0)))
+                                                        pi, 0, -pi/2)))
         goal.pointing_frame         = ''
         goal.min_duration           = rospy.Duration(self._min_duration)
         goal.max_velocity           = self._max_velocity

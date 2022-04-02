@@ -15,8 +15,8 @@
 #include <kdl/chain.hpp>
 #include <kdl/chainjnttojacsolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
-#include <kdl/chainiksolvervel_pinv.hpp>
-#include <kdl/chainiksolverpos_nr_jl.hpp>
+#include <kdl/chainiksolvervel_wdls.hpp>
+#include <kdl/chainiksolverpos_lma.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
 #include <kdl_parser/kdl_parser.hpp>
@@ -73,6 +73,8 @@ class JointTrajectoryTracker
       private:
 	KDL::Frame	get_chain_transform()			const	;
 	KDL::Wrench	compute_wrench(const goal_cp& goal)		;
+	static std::string
+			solver_error_message(int result)		;
 
       private:
 	std::string					_base_link;
@@ -247,13 +249,11 @@ JointTrajectoryTracker<ACTION>::Tracker
   // Create solvers.
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
     _pos_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
-    _vel_iksolver.reset(new KDL::ChainIkSolverVel_pinv(_chain));
-    _pos_iksolver.reset(new KDL::ChainIkSolverPos_NR_JL(
-    			    _chain, _jnt_pos_min, _jnt_pos_max,
-    			    *_pos_solver, *_vel_iksolver));
+    _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
+    _pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
 
-    ROS_INFO_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
-		    << _base_link << ", effector_link=" << _effector_link);
+    ROS_DEBUG_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
+		     << _base_link << ", effector_link=" << _effector_link);
 }
 
 template <class ACTION>
@@ -320,6 +320,34 @@ JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 	_jnt_pos(i) = state->actual.positions[i];
 	_jnt_vel(i) = state->actual.velocities[i];
     }
+}
+
+template <class ACTION> std::string
+JointTrajectoryTracker<ACTION>::Tracker::solver_error_message(int result)
+{
+    switch (result)
+    {
+      case KDL::SolverI::E_DEGRADED:
+	return "E_DEGRATED";
+      case KDL::SolverI::E_NO_CONVERGE:
+	return "E_NO_CONVERGE";
+      case KDL::SolverI::E_UNDEFINED:
+	return "E_UNDEFINED";
+      case KDL::SolverI::E_NOT_UP_TO_DATE:
+	return "E_NOT_UP_TO_DATE";
+      case KDL::SolverI::E_SIZE_MISMATCH:
+	return "E_SIZE_MISMATCH";
+      case KDL::SolverI::E_MAX_ITERATIONS_EXCEEDED:
+	return "E_MAX_ITERATIONS_EXCEEDED";
+      case KDL::SolverI::E_OUT_OF_RANGE:
+	return "E_OUT_OF_RANGE";
+      case KDL::SolverI::E_NOT_IMPLEMENTED:
+	return "E_NOT_IMPLEMENTED";
+      case KDL::SolverI::E_SVD_FAILED:
+	return "E_SVD_FAILED";
+    }
+
+    return "E_NOERROR";
 }
 
 }	// namespace aist_controllers

@@ -1,5 +1,5 @@
 server: /$(arg prefix)pose_head_tracker
 target_frame: marker_frame
 target_offset: [0.0, 0.0, 0.2]
-min_duration: 0.05
-max_velocity: 0.0
+min_duration: 0.1
+max_velocity: 2.0
