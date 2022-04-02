@@ -58,27 +58,26 @@ class JointTrajectoryTracker
     {
       public:
 			Tracker(const std::string& robot_desc_string,
-				const std::string& base_link,
-				const std::string& effector_link)	;
+				const std::string& base_link)		;
 
 	const trajectory_t&
 			trajectory()				const	;
 	const feedback_t&
 			feedback()				const	;
 
-	void		init(const state_cp& state)			;
+	void		init(const state_cp& state,
+			     const std::string& pointing_frame)		;
 	void		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
 
       private:
 	KDL::Frame	get_chain_transform()			const	;
-	KDL::Wrench	compute_wrench(const goal_cp& goal)		;
 	static std::string
 			solver_error_message(int result)		;
 
       private:
 	std::string					_base_link;
-	std::string					_effector_link;
+	std::string					_pointing_frame;
 
 	urdf::Model					_urdf;
 	trajectory_t					_trajectory;
@@ -122,8 +121,8 @@ class JointTrajectoryTracker
 };
 
 template <class ACTION>
-JointTrajectoryTracker<ACTION>::JointTrajectoryTracker(
-					const std::string& action_ns)
+JointTrajectoryTracker<ACTION>
+    ::JointTrajectoryTracker(const std::string& action_ns)
     :_nh("~"),
      _state_sub(_nh.subscribe("/state", 10,
 			      &JointTrajectoryTracker::state_cb, this)),
@@ -135,8 +134,7 @@ JointTrajectoryTracker<ACTION>::JointTrajectoryTracker(
 		  _nh.param<std::string>("robot_description",
 					 "/robot_description"),
 		  std::string()),
-	      _nh.param<std::string>("base_link", "base_link"),
-	      _nh.param<std::string>("effector_link", "effector_link")),
+	      _nh.param<std::string>("base_link", "base_link")),
      _last_state(nullptr),
      _tracker_srv(_nh, action_ns, false),
      _current_goal(nullptr)
@@ -158,12 +156,13 @@ JointTrajectoryTracker<ACTION>::goal_cb()
 
     try
     {
-	_tracker.init(_last_state);
+	_tracker.init(_last_state, _current_goal->pointing_frame);
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
 	_tracker_srv.setAborted();
+	ROS_ERROR_STREAM("(JointTrajectoryTracker) Goal aborted["
+			 << err.what() << ']');
     }
 }
 
@@ -215,9 +214,8 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 template <class ACTION>
 JointTrajectoryTracker<ACTION>::Tracker
 			      ::Tracker(const std::string& robot_desc_string,
-					const std::string& base_link,
-					const std::string& effector_link)
-    :_base_link(base_link), _effector_link(effector_link),
+					const std::string& base_link)
+    :_base_link(base_link), _pointing_frame(),
      _urdf(), _trajectory(),
      _tree(), _chain(),
      _jnt_pos(), _jnt_vel(), _jnt_pos_min(), _jnt_pos_max(), _jacobian(),
@@ -233,27 +231,7 @@ JointTrajectoryTracker<ACTION>::Tracker
     if (!kdl_parser::treeFromString(robot_desc_string, _tree))
 	throw std::runtime_error("Failed to construct kdl tree");
 
-  // Get chain from root to leaf.
-    if (!_tree.getChain(_base_link, _effector_link, _chain))
-	throw std::runtime_error("Couldn't create chain from "
-				 + _base_link + " to " + _effector_link);
-
-  // Resize state variable arrays.
-    _trajectory.joint_names.resize(_chain.getNrOfJoints());
-    _jnt_pos.resize(_trajectory.joint_names.size());
-    _jnt_vel.resize(_trajectory.joint_names.size());
-    _jnt_pos_min.resize(_trajectory.joint_names.size());
-    _jnt_pos_max.resize(_trajectory.joint_names.size());
-    _jacobian.resize(_trajectory.joint_names.size());
-
-  // Create solvers.
-    _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
-    _pos_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
-    _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
-    _pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
-
-    ROS_DEBUG_STREAM("(JointTrajectoryTracker) tracker initialized: base_link="
-		     << _base_link << ", effector_link=" << _effector_link);
+    ROS_INFO_STREAM("(JointTrajectoryTracker) tracker initialized");
 }
 
 template <class ACTION>
@@ -281,10 +259,36 @@ JointTrajectoryTracker<ACTION>::Tracker::get_chain_transform() const
 }
 
 template <class ACTION> void
-JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state)
+JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
+					      const std::string& pointing_frame)
 {
     if (!state)
 	throw std::runtime_error("No controller state available");
+
+    if (pointing_frame != _pointing_frame)
+    {
+      // Get chain from _base_link to pointing_frame.
+	if (!_tree.getChain(_base_link, pointing_frame, _chain))
+	    throw std::runtime_error("Couldn't create chain from "
+				     + _base_link + " to " + _pointing_frame);
+
+      // Update pointing frame.
+	_pointing_frame = pointing_frame;
+
+      // Resize state variable arrays.
+	_trajectory.joint_names.resize(_chain.getNrOfJoints());
+	_jnt_pos.resize(_trajectory.joint_names.size());
+	_jnt_vel.resize(_trajectory.joint_names.size());
+	_jnt_pos_min.resize(_trajectory.joint_names.size());
+	_jnt_pos_max.resize(_trajectory.joint_names.size());
+	_jacobian.resize(_trajectory.joint_names.size());
+
+      // Create solvers.
+	_jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
+	_pos_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
+	_vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
+	_pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
+    }
 
     auto&	joint_names = _trajectory.joint_names;
     if (state->joint_names.size() != joint_names.size())
@@ -323,9 +327,9 @@ JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 }
 
 template <class ACTION> std::string
-JointTrajectoryTracker<ACTION>::Tracker::solver_error_message(int result)
+JointTrajectoryTracker<ACTION>::Tracker::solver_error_message(int error)
 {
-    switch (result)
+    switch (error)
     {
       case KDL::SolverI::E_DEGRADED:
 	return "E_DEGRATED";

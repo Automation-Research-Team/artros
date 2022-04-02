@@ -42,10 +42,10 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 
     for (int n = 0; n < MAX_ITERATIONS; ++n)
     {
-      // Get transform from effector_link to base_link for current _jnt_pos
+      // Get transform from _pointing_frame to base_link for current _jnt_pos
 	const auto	Tbe = get_chain_transform();
 
-      // Compute vector from the origin of effector_link to the target
+      // Compute vector from the origin of _pointing_frame to the target
 	auto		view_vector = target - Tbe.p;
 	view_vector.Normalize();
 

@@ -52,10 +52,14 @@ class PoseHeadClient(object):
         super(PoseHeadClient, self).__init__()
 
         server = rospy.get_param('~server', '/a_bot_pose_head_tracker')
-        self._target_frame  = rospy.get_param('~target_frame', 'marker_frame')
-        self._target_offset = rospy.get_param('~target_offset', [0.0, 0.0, 0.2])
-        self._min_duration  = rospy.get_param('~min_duration', 1.0)
-        self._max_velocity  = rospy.get_param('~max_velocity', 0.0)
+        self._target_frame   = rospy.get_param('~target_frame', 'marker_frame')
+        self._target_offset  = rospy.get_param('~target_offset',
+                                               [0.0, 0.0, 0.2])
+        self._pointing_frame = rospy.get_param(
+                                   '~pointing_frame',
+                                   'a_bot_outside_camera_color_optical_frame')
+        self._min_duration   = rospy.get_param('~min_duration', 1.0)
+        self._max_velocity   = rospy.get_param('~max_velocity', 0.0)
         self._pose_head_client = SimpleActionClient(server + '/pose_head',
                                                     amsg.PoseHeadAction)
         thread = threading.Thread(target=self._interactive)
@@ -70,7 +74,7 @@ class PoseHeadClient(object):
                                                 gmsg.Quaternion(
                                                     *tfs.quaternion_from_euler(
                                                         pi, 0, -pi/2)))
-        goal.pointing_frame         = ''
+        goal.pointing_frame         = self._pointing_frame
         goal.min_duration           = rospy.Duration(self._min_duration)
         goal.max_velocity           = self._max_velocity
 

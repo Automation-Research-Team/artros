@@ -48,10 +48,13 @@ class PointHeadClient(object):
         super(PointHeadClient, self).__init__()
 
         server = rospy.get_param('~server', '/biclops_point_head_tracker')
-        self._target_frame  = rospy.get_param('~target_frame', 'marker_frame')
-        self._pointing_axis = rospy.get_param('~pointing_axis', [0, 0, 1])
-        self._min_duration  = rospy.get_param('~min_duration', 1.0)
-        self._max_velocity  = rospy.get_param('~max_velocity', 0.0)
+        self._target_frame   = rospy.get_param('~target_frame', 'marker_frame')
+        self._pointing_axis  = rospy.get_param('~pointing_axis', [0, 0, 1])
+        self._pointing_frame = rospy.get_param(
+                                   '~pointing_frame',
+                                   'biclops_camera_color_optical_frame')
+        self._min_duration   = rospy.get_param('~min_duration', 1.0)
+        self._max_velocity   = rospy.get_param('~max_velocity', 0.0)
         self._point_head_client = SimpleActionClient(server + '/point_head',
                                                      cmsg.PointHeadAction)
         thread = threading.Thread(target=self._interactive)
@@ -63,7 +66,7 @@ class PointHeadClient(object):
         goal.target.header.frame_id = self._target_frame
         goal.target.point           = gmsg.Point(0, 0, 0)
         goal.pointing_axis          = gmsg.Vector3(*self._pointing_axis)
-        goal.pointing_frame         = ''
+        goal.pointing_frame         = 'biclops_camera_color_optical_frame'
         goal.min_duration           = rospy.Duration(self._min_duration)
         goal.max_velocity           = self._max_velocity
 

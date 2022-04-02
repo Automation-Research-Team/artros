@@ -15,8 +15,6 @@ template <> bool
 JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
-    constexpr int	MAX_ITERATIONS = 15;
-
   // Convert target pose to base_link.
     auto	original_pose = goal->target;
     original_pose.header.stamp = ros::Time::now();
@@ -32,10 +30,11 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ROS_DEBUG_STREAM("current_jnt = " << _jnt_pos);
 
     KDL::JntArray	target_pos(_jnt_pos.rows());
-    const auto		result = _pos_iksolver->CartToJnt(_jnt_pos,
-							  target, target_pos);
-    if (result != KDL::SolverI::E_NOERROR)
-	ROS_ERROR_STREAM("iksolver: " << solver_error_message(result));
+    const auto		error = _pos_iksolver->CartToJnt(_jnt_pos,
+							 target, target_pos);
+    if (error != KDL::SolverI::E_NOERROR)
+	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
+			 << solver_error_message(error) << ']');
 
     ROS_DEBUG_STREAM("target_jnt  = " << target_pos);
 
@@ -53,7 +52,8 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     	if (rot > rot_max)
     	    rot_max = rot;
 
-    	point.positions[i] = target_pos(i);
+	point.positions[i] = clamp(target_pos(i),
+				   _jnt_pos_min(i), _jnt_pos_max(i));
     }
 
     point.time_from_start = std::max(goal->min_duration, ros::Duration(0.01));
