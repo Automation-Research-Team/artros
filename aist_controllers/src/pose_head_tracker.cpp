@@ -27,9 +27,14 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     KDL::Frame	target;
     tf::poseMsgToKDL(transformed_pose.pose, target);
 
+  // Get current joint positions.
+    auto&		point = _trajectory.points[0];
+    KDL::JntArray	current_pos(njoints());
+    jointsToKDL(point.positions, current_pos);
+
   // Compute target joint positions.
-    KDL::JntArray	target_pos(_jnt_pos.rows());
-    const auto		error = _pos_iksolver->CartToJnt(_jnt_pos,
+    KDL::JntArray	target_pos(njoints());
+    const auto		error = _pos_iksolver->CartToJnt(current_pos,
 							 target, target_pos);
     if (error != KDL::SolverI::E_NOERROR)
 	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
@@ -38,7 +43,6 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ROS_DEBUG_STREAM("target_pos  = " << target_pos);
 
   // Set desired positions of trajectory command.
-    auto&	point = _trajectory.points[0];
     jointsFromKDL(target_pos, point.positions);
 
   // Set desired time of the pointing_frame reaching at the target.
@@ -49,9 +53,9 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     {
       // Compute the largest required rotation among all the joints
 	double	rot_max = 0;
-	for (size_t i = 0; i < _jnt_pos.rows(); ++i)
+	for (size_t i = 0; i < current_pos.rows(); ++i)
 	{
-	    const auto	rot = std::abs(_jnt_pos(i) - target_pos(i));
+	    const auto	rot = std::abs(current_pos(i) - target_pos(i));
 	    if (rot > rot_max)
 		rot_max = rot;
 	}

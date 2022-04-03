@@ -33,17 +33,26 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 			       ros::Duration(1.0));
     geometry_msgs::PointStamped	transformed_point;
     _listener.transformPoint(_base_link, original_point, transformed_point);
-    KDL::Vector	target;
+    KDL::Vector		target;
     tf::pointMsgToKDL(transformed_point.point, target);
 
-  // Iteratively compute trajectory.
-    KDL::JntArray	target_pos(_jnt_pos);
+  // Get current joint positions.
+    auto&		point = _trajectory.points[0];
+    KDL::JntArray	current_pos(njoints());
+    jointsToKDL(point.positions, current_pos);
+
+  // Initialize target positions with current positions.
+    KDL::JntArray	target_pos(current_pos);
+
+  // Iteratively compute target positions.
+    KDL::Jacobian	jacobian(njoints());
     double		err_p   = 2*M_PI;  // angular error in preveous step
     bool		success = false;
     for (int n = 0; n < MAX_ITERATIONS; ++n)
     {
       // Get transform from _pointing_frame to base_link for current _jnt_pos
-	const auto	Tbe = get_chain_transform();
+	KDL::Frame	Tbe;
+	_pos_fksolver->JntToCart(target_pos, Tbe);
 
       // Compute vector from the origin of _pointing_frame to the target
 	auto		view_vector = target - Tbe.p;
@@ -53,7 +62,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	auto		axis = (Tbe * pointing_axis) * view_vector;
 	const auto	err  = axis.Normalize();
 
-	ROS_DEBUG_STREAM("Step[" << n << "]: jnt_pos = " << _jnt_pos
+	ROS_DEBUG_STREAM("Step[" << n << "]: joint_position = " << target_pos
 			 << ", anglular error = " << err*180.0/M_PI
 			 << "(deg)");
 
@@ -68,14 +77,14 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 	const KDL::Frame	correction(KDL::Rotation::Rot2(axis, err));
 	const auto		twist = diff(correction, KDL::Frame());
 
-      // Compute jacobian for current _jnt_pos
-	_jac_solver->JntToJac(_jnt_pos, _jacobian);
+      // Compute jacobian for current target positions.
+	_jac_solver->JntToJac(target_pos, jacobian);
 
       // Converts the "wrench" into "joint corrections"
       // with a jacbobian-transpose
-	for (size_t i = 0; i < _jnt_pos.rows(); ++i)
+	for (size_t i = 0; i < target_pos.rows(); ++i)
 	    for (size_t j = 0; j < 6; ++j)
-		target_pos(i) -= (_jacobian(j, i) * twist(j));
+		target_pos(i) -= jacobian(j, i) * twist(j);
 	clamp(target_pos);
     }
 
@@ -92,7 +101,6 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 		     << err_p << " radians");
 
   // Set desired positions of trajectory command.
-    auto&	point = _trajectory.points[0];
     jointsFromKDL(target_pos, point.positions);
 
   // Correct time_from_start in order to enforce maximum joint velocity.
@@ -100,9 +108,9 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     {
       // Compute the largest required rotation among all the joints
 	double	rot_max = 0;
-	for (size_t i = 0; i < _jnt_pos.rows(); ++i)
+	for (size_t i = 0; i < target_pos.rows(); ++i)
 	{
-	    const auto	rot = std::abs(_jnt_pos(i) - target_pos(i));
+	    const auto	rot = std::abs(current_pos(i) - target_pos(i));
 	    if (rot > rot_max)
 		rot_max = rot;
 	}
