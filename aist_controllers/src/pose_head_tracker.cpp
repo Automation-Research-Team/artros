@@ -27,43 +27,40 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     KDL::Frame	target;
     tf::poseMsgToKDL(transformed_pose.pose, target);
 
-    ROS_DEBUG_STREAM("current_jnt = " << _jnt_pos);
-
+  // Compute target joint positions.
     KDL::JntArray	target_pos(_jnt_pos.rows());
     const auto		error = _pos_iksolver->CartToJnt(_jnt_pos,
 							 target, target_pos);
     if (error != KDL::SolverI::E_NOERROR)
 	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
 			 << solver_error_message(error) << ']');
+    clamp(target_pos);
+    ROS_DEBUG_STREAM("target_pos  = " << target_pos);
 
-    ROS_DEBUG_STREAM("target_jnt  = " << target_pos);
-
+  // Set desired positions of trajectory command.
     auto&	point = _trajectory.points[0];
-#if 0
-    for (size_t i = 0; i < point.positions.size(); ++i)
-    	point.positions[i] = target_pos(i);
-    point.time_from_start = ros::Duration(goal->min_duration);
-#else
-  // Compute the largest required rotation among all the joints
-    double	rot_max = 0;
-    for (size_t i = 0; i < point.positions.size(); ++i)
-    {
-    	const auto	rot = std::abs(_jnt_pos(i) - target_pos(i));
-    	if (rot > rot_max)
-    	    rot_max = rot;
+    jointsFromKDL(target_pos, point.positions);
 
-	point.positions[i] = clamp(target_pos(i),
-				   _jnt_pos_min(i), _jnt_pos_max(i));
-    }
-
+  // Set desired time of the pointing_frame reaching at the target.
     point.time_from_start = std::max(goal->min_duration, ros::Duration(0.01));
+
+  // Correct time_from_start in order to enforce maximum joint velocity.
     if (goal->max_velocity > 0)
     {
+      // Compute the largest required rotation among all the joints
+	double	rot_max = 0;
+	for (size_t i = 0; i < _jnt_pos.rows(); ++i)
+	{
+	    const auto	rot = std::abs(_jnt_pos(i) - target_pos(i));
+	    if (rot > rot_max)
+		rot_max = rot;
+	}
+
     	ros::Duration	required_duration(rot_max / goal->max_velocity);
     	if (required_duration > point.time_from_start)
     	    point.time_from_start = required_duration;
     }
-#endif
+
     return false;
 }
 

@@ -33,15 +33,6 @@
 namespace aist_controllers
 {
 /************************************************************************
-*  static functions							*
-************************************************************************/
-template <class T> inline static const T&
-clamp(const T& val, const T& low, const T& high)
-{
-    return (val < low  ? low : val > high ? high : val);
-}
-
-/************************************************************************
 *  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/
 template <class ACTION>
@@ -72,14 +63,20 @@ class JointTrajectoryTracker
 
       private:
 	KDL::Frame	get_chain_transform()			const	;
+	void		clamp(KDL::JntArray& jnt_pos)		const	;
 	static std::string
 			solver_error_message(int result)		;
+	static void	jointsFromKDL(const KDL::JntArray& kdl_joints,
+				      std::vector<double>& joints)	;
+	static void	jointsToKDL(const std::vector<double>& joints,
+				    KDL::JntArray& kdl_joints)		;
 
       private:
 	std::string					_base_link;
 	std::string					_pointing_frame;
 
 	urdf::Model					_urdf;
+	tf::TransformListener				_listener;
 	trajectory_t					_trajectory;
 	feedback_t					_feedback;
 
@@ -90,12 +87,9 @@ class JointTrajectoryTracker
 	KDL::JntArray					_jnt_pos_min;
 	KDL::JntArray					_jnt_pos_max;
 	KDL::Jacobian					_jacobian;
-	std::vector<urdf::JointLimits>			_limits;
-	double						_goal_error;
-	tf::TransformListener				_listener;
 
 	boost::scoped_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
-	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pos_solver;
+	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pos_fksolver;
 	boost::scoped_ptr<KDL::ChainIkSolverVel>	_vel_iksolver;
 	boost::scoped_ptr<KDL::ChainIkSolverPos>	_pos_iksolver;
     };
@@ -135,7 +129,6 @@ JointTrajectoryTracker<ACTION>
 					 "/robot_description"),
 		  std::string()),
 	      _nh.param<std::string>("base_link", "base_link")),
-     _last_state(nullptr),
      _tracker_srv(_nh, action_ns, false),
      _current_goal(nullptr)
 {
@@ -216,12 +209,10 @@ JointTrajectoryTracker<ACTION>::Tracker
 			      ::Tracker(const std::string& robot_desc_string,
 					const std::string& base_link)
     :_base_link(base_link), _pointing_frame(),
-     _urdf(), _trajectory(),
+     _urdf(), _listener(), _trajectory(), _feedback(),
      _tree(), _chain(),
      _jnt_pos(), _jnt_vel(), _jnt_pos_min(), _jnt_pos_max(), _jacobian(),
-     _goal_error(0.001),
-     _listener(),
-     _jac_solver(), _pos_solver(), _vel_iksolver(), _pos_iksolver()
+     _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
   // Load URDF model.
     if (!_urdf.initString(robot_desc_string))
@@ -253,7 +244,7 @@ JointTrajectoryTracker<ACTION>::Tracker::get_chain_transform() const
 {
   // Get the current pose of effector_link w.r.t. base_link.
     KDL::Frame	transform;
-    _pos_solver->JntToCart(_jnt_pos, transform);
+    _pos_fksolver->JntToCart(_jnt_pos, transform);
 
     return transform;
 }
@@ -265,65 +256,67 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
     if (!state)
 	throw std::runtime_error("No controller state available");
 
-    if (pointing_frame != _pointing_frame)
-    {
-      // Get chain from _base_link to pointing_frame.
-	if (!_tree.getChain(_base_link, pointing_frame, _chain))
-	    throw std::runtime_error("Couldn't create chain from "
-				     + _base_link + " to " + _pointing_frame);
+    if (pointing_frame == _pointing_frame)
+	return;
 
-      // Update pointing frame.
-	_pointing_frame = pointing_frame;
+  // Get chain from _base_link to pointing_frame.
+    if (!_tree.getChain(_base_link, pointing_frame, _chain))
+	throw std::runtime_error("Couldn't create chain from "
+				 + _base_link + " to " + _pointing_frame);
 
-      // Resize state variable arrays.
-	_trajectory.joint_names.resize(_chain.getNrOfJoints());
-	_jnt_pos.resize(_trajectory.joint_names.size());
-	_jnt_vel.resize(_trajectory.joint_names.size());
-	_jnt_pos_min.resize(_trajectory.joint_names.size());
-	_jnt_pos_max.resize(_trajectory.joint_names.size());
-	_jacobian.resize(_trajectory.joint_names.size());
-
-      // Create solvers.
-	_jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
-	_pos_solver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
-	_vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
-	_pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
-    }
-
-    auto&	joint_names = _trajectory.joint_names;
-    if (state->joint_names.size() != joint_names.size())
+  // Check number of joints between controller state and URDF chain.
+    if (state->joint_names.size() != _chain.getNrOfJoints())
 	throw std::runtime_error("Number of joints mismatch: controller["
 				 + std::to_string(state->joint_names.size())
 				 + "] != urdf chain["
-				 + std::to_string(joint_names.size())
+				 + std::to_string(_chain.getNrOfJoints())
 				 + ']');
+    const auto	njoints = state->joint_names.size();
 
-  // Get initial joint positions and joint limits.
-    for (size_t i = 0; i < joint_names.size(); ++i)
+  // Update pointing frame.
+    _pointing_frame = pointing_frame;
+
+  // Prepare trajectory command.
+    _trajectory.header.stamp	= ros::Time(0);
+    _trajectory.header.frame_id	= state->header.frame_id;
+    _trajectory.joint_names	= state->joint_names;
+    _trajectory.points.resize(1);
+
+  // Resize state variable arrays.
+    _jnt_pos.resize(njoints);
+    _jnt_vel.resize(njoints);
+    _jnt_pos_min.resize(njoints);
+    _jnt_pos_max.resize(njoints);
+    _jacobian.resize(njoints);
+
+  // Set joint limits.
+    for (size_t i = 0; i < njoints; ++i)
     {
-	joint_names[i]	= state->joint_names[i];
-	_jnt_pos(i)	= state->actual.positions[i];
-	_jnt_vel(i)	= state->actual.velocities[i];
-	_jnt_pos_min(i)	= _urdf.joints_[joint_names[i]]->limits->lower;
-	_jnt_pos_max(i)	= _urdf.joints_[joint_names[i]]->limits->upper;
-	ROS_DEBUG_STREAM(joint_names[i] << '[' << i << "]: " << _jnt_pos(i)
-			 << ", limits: ("
-			 << _jnt_pos_min(i) << ", " << _jnt_pos_max(i) << ')');
+	const auto&	joint_name = _trajectory.joint_names[i];
+
+	_jnt_pos_min(i)	= _urdf.joints_[joint_name]->limits->lower;
+	_jnt_pos_max(i)	= _urdf.joints_[joint_name]->limits->upper;
+	ROS_INFO_STREAM(joint_name << ": limits=["
+			<< _jnt_pos_min(i) << ", " << _jnt_pos_max(i) << ']');
     }
+
+  // Create solvers.
+    _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
+    _pos_fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
+    _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
+    _pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
+
+  // Get current joint positions and velocities.
+    read(state);
 }
 
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _trajectory.header.stamp = ros::Time(0);
-    _trajectory.points.resize(1);
     _trajectory.points[0] = state->actual;
 
-    for (size_t i = 0; i < _jnt_pos.rows(); ++i)
-    {
-	_jnt_pos(i) = state->actual.positions[i];
-	_jnt_vel(i) = state->actual.velocities[i];
-    }
+    jointsToKDL(state->actual.positions,  _jnt_pos);
+    jointsToKDL(state->actual.velocities, _jnt_vel);
 }
 
 template <class ACTION> std::string
@@ -352,6 +345,29 @@ JointTrajectoryTracker<ACTION>::Tracker::solver_error_message(int error)
     }
 
     return "E_NOERROR";
+}
+
+template <class ACTION> void
+JointTrajectoryTracker<ACTION>::Tracker::clamp(KDL::JntArray& jnt_pos) const
+{
+    for (size_t i = 0; i < jnt_pos.rows(); ++i)
+	jnt_pos(i) = std::clamp(jnt_pos(i), _jnt_pos_min(i), _jnt_pos_max(i));
+}
+
+template <class ACTION> void
+JointTrajectoryTracker<ACTION>::Tracker::jointsFromKDL(
+    const KDL::JntArray& kdl_joints, std::vector<double>& joints)
+{
+    for (size_t i = 0; i < joints.size(); ++i)
+	joints[i] = kdl_joints(i);
+}
+
+template <class ACTION> void
+JointTrajectoryTracker<ACTION>::Tracker::jointsToKDL(
+    const std::vector<double>& joints, KDL::JntArray& kdl_joints)
+{
+    for (size_t i = 0; i < joints.size(); ++i)
+	kdl_joints(i) = joints[i];
 }
 
 }	// namespace aist_controllers
