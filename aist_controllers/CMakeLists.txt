@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
   trajectory_msgs
-  geometry_msgs
   control_msgs
   actionlib
   kdl_parser
@@ -34,12 +33,16 @@ generate_messages(
   DEPENDENCIES
     actionlib_msgs
     actionlib
-    geometry_msgs
-    std_msgs
+    trajectory_msgs
+    control_msgs
 )
 
 catkin_package(
-  CATKIN_DEPENDS trajectory_msgs control_msgs geometry_msgs
+  CATKIN_DEPENDS
+    roscpp
+    message_runtime
+    trajectory_msgs
+    control_msgs
 )
 
 add_executable(
@@ -69,6 +72,7 @@ target_link_libraries(
 
 add_dependencies(
   pose_head_tracker
+  ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 
