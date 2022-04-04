@@ -42,9 +42,7 @@
         output="screen" respawn="false">
     <param name="publish_rate"	value="$(arg publish_rate)"/>
     <param name="base_link"	value="$(arg prefix)base_link"/>
-    <param name="effector_link"	value="$(arg prefix
-				       )camera_color_optical_frame"/>
-    <param name="controller"	value="$(arg controller_name)"/>
+    <param name="controller"	value="/$(arg controller_name)"/>
     <remap from="/state"	to="/$(arg controller_name)/state"/>
   </node>
 

@@ -78,7 +78,9 @@ saveTiff(const sensor_msgs::Image& image, const std::string& file)
 
     for (int n = 0, offset = 0; n < image.height; ++n)
     {
-	TIFFWriteEncodedStrip(tiff, n, image.data.data() + offset, image.step);
+	TIFFWriteEncodedStrip(tiff, n,
+			      const_cast<uint8*>(image.data.data() + offset),
+			      image.step);
 	offset += image.step;
     }
 

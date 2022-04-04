@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot__base_scene" >
 
-  <xacro:arg name="scene" default=""/>
+  <xacro:arg name="scene" default="a_bot_calibration"/>
 
   <!-- Calibration help: If the robot is not moving far enough to the calibration point, increase these distances -->
   <xacro:property name="a_bot_x" value="0"/>

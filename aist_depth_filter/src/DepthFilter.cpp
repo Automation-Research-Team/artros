@@ -95,8 +95,10 @@ is_valid(T val)
 ************************************************************************/
 DepthFilter::DepthFilter(const ros::NodeHandle& nh)
     :_nh(nh),
-     _saveBG_srv(_nh.advertiseService("saveBG", &saveBG_cb, this)),
-     _capture_srv(_nh.advertiseService("capture", &capture_cb, this)),
+     _saveBG_srv(_nh.advertiseService("saveBG",
+				      &DepthFilter::saveBG_cb, this)),
+     _capture_srv(_nh.advertiseService("capture",
+				       &DepthFilter::capture_cb, this)),
      _it(_nh),
      _camera_info_sub(_nh, "/camera_info", 1),
      _image_sub( _it, "/image",  1),
@@ -137,7 +139,8 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
      _threshPlane(_nh.param("thresh_plane", 0.001))
 {
   // Setup DetectPlane action server.
-    _detect_plane_srv.registerPreemptCallback(boost::bind(&preempt_cb, this));
+    _detect_plane_srv.registerPreemptCallback(
+	boost::bind(&DepthFilter::preempt_cb, this));
     _detect_plane_srv.start();
 
   // Setup parameters
@@ -406,7 +409,7 @@ DepthFilter::filter_without_normal_cb(const camera_info_cp& camera_info,
 }
 
 void
-DepthFilter::preempt_cb() const
+DepthFilter::preempt_cb()
 {
     _detect_plane_srv.setPreempted();
     ROS_INFO_STREAM("(DepthFilter)   *DetectPlaneAction preempted*");

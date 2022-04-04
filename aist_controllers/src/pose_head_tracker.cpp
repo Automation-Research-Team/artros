@@ -4,6 +4,7 @@
  */
 #include <aist_controllers/joint_trajectory_tracker.h>
 #include <aist_controllers/PoseHeadAction.h>
+#include <kdl/solveri.hpp>
 
 namespace aist_controllers
 {
@@ -14,8 +15,6 @@ template <> bool
 JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
-    constexpr int	MAX_ITERATIONS = 15;
-
   // Convert target pose to base_link.
     auto	original_pose = goal->target;
     original_pose.header.stamp = ros::Time::now();
@@ -27,32 +26,45 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     _listener.transformPose(_base_link, original_pose, transformed_pose);
     KDL::Frame	target;
     tf::poseMsgToKDL(transformed_pose.pose, target);
-    std::cerr << "--- target ---\n" << target << std::endl;
-    
-    KDL::JntArray	jnt_pos(_jnt_pos);
-    _pos_iksolver->CartToJnt(jnt_pos, target, _jnt_pos);
 
-  // Compute the largest required rotation among all the joints
-    auto&	point   = _trajectory.points[0];
-    double	rot_max = 0;
-    for (size_t i = 0; i < point.positions.size(); ++i)
-    {
-	const auto	rot = std::abs(_jnt_pos(i) - point.positions[i]);
-	if (rot > rot_max)
-	    rot_max = rot;
+  // Get current joint positions.
+    auto&		point = _trajectory.points[0];
+    KDL::JntArray	current_pos(njoints());
+    jointsToKDL(point.positions, current_pos);
 
-	point.positions[i] = _jnt_pos(i);
-    }
+  // Compute target joint positions.
+    KDL::JntArray	target_pos(njoints());
+    const auto		error = _pos_iksolver->CartToJnt(current_pos,
+							 target, target_pos);
+    if (error != KDL::SolverI::E_NOERROR)
+	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
+			 << solver_error_message(error) << ']');
+    clamp(target_pos);
+    ROS_DEBUG_STREAM("target_pos  = " << target_pos);
 
+  // Set desired positions of trajectory command.
+    jointsFromKDL(target_pos, point.positions);
+
+  // Set desired time of the pointing_frame reaching at the target.
     point.time_from_start = std::max(goal->min_duration, ros::Duration(0.01));
+
+  // Correct time_from_start in order to enforce maximum joint velocity.
     if (goal->max_velocity > 0)
     {
-	ros::Duration	required_duration(rot_max / goal->max_velocity);
-	if (required_duration > point.time_from_start)
-	    point.time_from_start = required_duration;
+      // Compute the largest required rotation among all the joints
+	double	rot_max = 0;
+	for (size_t i = 0; i < current_pos.rows(); ++i)
+	{
+	    const auto	rot = std::abs(current_pos(i) - target_pos(i));
+	    if (rot > rot_max)
+		rot_max = rot;
+	}
+
+    	ros::Duration	required_duration(rot_max / goal->max_velocity);
+    	if (required_duration > point.time_from_start)
+    	    point.time_from_start = required_duration;
     }
 
-  //return success;
     return false;
 }
 

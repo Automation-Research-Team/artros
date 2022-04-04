@@ -105,8 +105,8 @@ class DepthFilter
 					 const image_cp& image,
 					 const image_cp& depth)		;
 
-    void	preempt_cb()					  const	;
-    void	detect_plane_cb(const goal_cp& goal)		;
+    void	preempt_cb()						;
+    void	detect_plane_cb(const goal_cp& goal)			;
 
     template <class T>
     void	filter(const camera_info_t& camera_info,

@@ -2,8 +2,13 @@ cmake_minimum_required(VERSION 2.8.3)
 project(aist_handeye_calibration)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++14)
-add_compile_options(-O2)
+enable_language(CXX)
+
+set(CMAKE_CXX_STANDARD		17)
+set(CMAKE_CXX_STANDARD_REQUIRED	ON)
+set(CMAKE_CXX_EXTENSIONS	OFF)
+set(CMAKE_CXX_FLAGS_RELEASE	"-Wall -O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG	"-g")
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)

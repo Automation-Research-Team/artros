@@ -2,6 +2,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(aist_controllers)
 
+set(CMAKE_CXX_STANDARD		17)
+set(CMAKE_CXX_STANDARD_REQUIRED	ON)
+set(CMAKE_CXX_EXTENSIONS	OFF)
+
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -10,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf_conversions
   trajectory_msgs
-  geometry_msgs
   control_msgs
   actionlib
   kdl_parser
@@ -30,12 +33,16 @@ generate_messages(
   DEPENDENCIES
     actionlib_msgs
     actionlib
-    geometry_msgs
-    std_msgs
+    trajectory_msgs
+    control_msgs
 )
 
 catkin_package(
-  CATKIN_DEPENDS trajectory_msgs control_msgs geometry_msgs
+  CATKIN_DEPENDS
+    roscpp
+    message_runtime
+    trajectory_msgs
+    control_msgs
 )
 
 add_executable(
@@ -65,6 +72,7 @@ target_link_libraries(
 
 add_dependencies(
   pose_head_tracker
+  ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 
