@@ -103,6 +103,9 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
   // Set desired positions of trajectory command.
     jointsFromKDL(target_pos, point.positions);
 
+  // Set desired time of the pointing_frame reaching at the target.
+    point.time_from_start = std::max(goal->min_duration, ros::Duration(0.01));
+
   // Correct time_from_start in order to enforce maximum joint velocity.
     if (goal->max_velocity > 0)
     {
