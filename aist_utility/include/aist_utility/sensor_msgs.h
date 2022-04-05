@@ -135,6 +135,22 @@ cloud_to_points(const sensor_msgs::PointCloud2& cloud, ITER out, UNIT unit)
     return out;
 }
 
+//! Extract RGB from pointcloud.
+template <class ITER> ITER
+cloud_to_rgb(const sensor_msgs::PointCloud2& cloud, ITER out)
+{
+    sensor_msgs::PointCloud2ConstIterator<uint8_t>	bgr(cloud, "rgb");
+
+    for (uint32_t v = 0; v < cloud.height; ++v)
+	for (uint32_t u = 0; u < cloud.width; ++u)
+	{
+	    *out++ = {bgr[2], bgr[1], bgr[0]};
+	    ++bgr;
+	}
+
+    return out;
+}
+
 template <class IN> sensor_msgs::PointCloud2
 create_pointcloud(IN in, IN ie,
 		  const ros::Time& stamp, const std::string& frame)
