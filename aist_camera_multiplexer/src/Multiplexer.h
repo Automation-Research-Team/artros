@@ -43,6 +43,7 @@
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
+#include <sensor_msgs/PointCloud2.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <aist_camera_multiplexer/ActivateCamera.h>
 
@@ -58,7 +59,9 @@ class Multiplexer
     using camera_info_cp = sensor_msgs::CameraInfoConstPtr;
     using image_t	 = sensor_msgs::Image;
     using image_cp	 = sensor_msgs::ImageConstPtr;
-
+    using cloud_t	 = sensor_msgs::PointCloud2;
+    using cloud_cp	 = sensor_msgs::PointCloud2ConstPtr;
+    
     class Subscribers
     {
       public:
@@ -73,6 +76,7 @@ class Multiplexer
 	image_transport::Subscriber	_image_sub;
 	image_transport::Subscriber	_depth_sub;
 	image_transport::Subscriber	_normal_sub;
+	ros::Subscriber			_cloud_sub;
 	ros::Subscriber			_camera_info_sub;
     };
 
@@ -96,6 +100,8 @@ class Multiplexer
 			 int camera_number)			const	;
     void	normal_cb(const image_cp& normal,
 			  int camera_number)			const	;
+    void	cloud_cb(const cloud_cp& cloud,
+			 int camera_number)			const	;
 
   private:
     ros::NodeHandle				_nh;
@@ -109,6 +115,7 @@ class Multiplexer
     const image_transport::Publisher		_image_pub;
     const image_transport::Publisher		_depth_pub;
     const image_transport::Publisher		_normal_pub;
+    const ros::Publisher			_cloud_pub;
     const ros::Publisher			_camera_info_pub;
 };
 
