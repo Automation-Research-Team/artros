@@ -43,6 +43,7 @@ from tf                           import transformations as tfs
 from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
 from aist_routines                import AISTBaseRoutines
 from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
+from actionlib_msgs.msg           import GoalStatus
 
 ######################################################################
 #  class HandEyeCalibrationRoutines                                  #
@@ -105,20 +106,20 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             return False
 
         if self.take_sample:
-            try:
-                rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
-                self.take_sample.send_goal(TakeSampleGoal())
-                self.trigger_frame(self._camera_name)
-                if not self.take_sample.wait_for_result(rospy.Duration()):
-                    self.take_sample.cencel_goal()  # timeout expired
-                    return False
-                n = len(self.get_sample_list().cMo)
-                print('  {} samples taken').format(n)
-            except rospy.ServiceException as e:
-                rospy.logerr('Service call failed: %s' % e)
-                success = False
+            rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
+            self.take_sample.send_goal(TakeSampleGoal())
+            self.trigger_frame(self._camera_name)
+            if not self.take_sample.wait_for_result(rospy.Duration()):
+                self.take_sample.cencel_goal()  # timeout expired
+                rospy.logerr('TakeSampleAction: timeout expired')
+                return False
+            if self.take_sample.get_state() != GoalStatus.SUCCEEDED:
+                rospy.logerr('TakeSampleAction: not in succeeded state')
+                return False
+            n = len(self.get_sample_list().cMo)
+            print('  {} samples taken').format(n)
 
-        return success
+        return True
 
     def move_to_subposes(self, pose, keypose_num):
         subpose = copy.copy(pose)
