@@ -45,8 +45,10 @@
 #include <tf/transform_listener.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
+#include <actionlib/server/simple_action_server.h>
 #include <aist_handeye_calibration/GetSampleList.h>
 #include <aist_handeye_calibration/ComputeCalibration.h>
+#include <aist_handeye_calibration/TakeSampleAction.h>
 
 namespace aist_handeye_calibration
 {
@@ -56,8 +58,11 @@ namespace aist_handeye_calibration
 class Calibrator
 {
   public:
-    using transformMsg_t	= geometry_msgs::TransformStamped;
+    using transformMsg_t  = geometry_msgs::TransformStamped;
 
+  private:
+    using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
+    using goal_cp	  = TakeSampleGoalConstPtr;
   public:
 		Calibrator(const ros::NodeHandle& nh)			;
 		~Calibrator()						;
@@ -72,23 +77,22 @@ class Calibrator
 
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
-    bool	take_sample(std_srvs::Trigger::Request&,
-			    std_srvs::Trigger::Response& res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
 				    ComputeCalibration::Response& res)	;
     bool	save_calibration(std_srvs::Trigger::Request&,
 				 std_srvs::Trigger::Response& res)	;
     bool	reset(std_srvs::Empty::Request&,
 		      std_srvs::Empty::Response&)			;
+    void	take_sample(const TakeSampleGoalConstPtr& goal)		;
 
   private:
     ros::NodeHandle		_nh;
 
     const ros::ServiceServer	_get_sample_list_srv;
-    const ros::ServiceServer	_take_sample_srv;
     const ros::ServiceServer	_compute_calibration_srv;
     const ros::ServiceServer	_save_calibration_srv;
     const ros::ServiceServer	_reset_srv;
+    action_server_t		_take_sample_srv;
 
     const tf::TransformListener	_listener;
 
