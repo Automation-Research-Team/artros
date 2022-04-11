@@ -317,20 +317,19 @@ Calibrator::take_sample(const TakeSampleGoalConstPtr& goal)
 	_listener.lookupTransform(camera_frame(), object_frame(),   time, cMo);
 	_listener.lookupTransform(world_frame(),  effector_frame(), time, wMe);
 
-	transformMsg_t	msg;
-	tf::transformStampedTFToMsg(cMo, msg);
-	_cMo.emplace_back(msg);
-	tf::transformStampedTFToMsg(wMe, msg);
-	_wMe.emplace_back(msg);
-
 	TakeSampleResult	result;
-	_take_sample_srv.setSucceeded(result);
+	tf::transformStampedTFToMsg(cMo, result.cMo);
+	_cMo.emplace_back(result.cMo);
+	tf::transformStampedTFToMsg(wMe, result.wMe);
+	_wMe.emplace_back(result.wMe);
 
+	_take_sample_srv.setSucceeded(result);
 	ROS_INFO_STREAM("take_sample(): succeeded");
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("take_sample(): " << err.what());
+	_take_sample_srv.setAborted();
+	ROS_ERROR_STREAM("take_sample(): aborted[" << err.what() << ']');
     }
 }
 

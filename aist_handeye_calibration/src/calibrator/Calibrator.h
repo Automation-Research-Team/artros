@@ -62,7 +62,7 @@ class Calibrator
 
   private:
     using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
-    using goal_cp	  = TakeSampleGoalConstPtr;
+
   public:
 		Calibrator(const ros::NodeHandle& nh)			;
 		~Calibrator()						;
