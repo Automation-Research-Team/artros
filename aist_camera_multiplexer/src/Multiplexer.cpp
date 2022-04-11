@@ -61,6 +61,11 @@ Multiplexer::Subscribers::Subscribers(Multiplexer* multiplexer,
 			       boost::bind(&Multiplexer::normal_cb,
 					   multiplexer, _1,
 					   multiplexer->ncameras()))),
+     _cloud_sub(multiplexer->_nh.subscribe<cloud_t>(
+			  _camera_name + "/pointcloud", 1,
+			  boost::bind(&Multiplexer::cloud_cb,
+				      multiplexer, _1,
+				      multiplexer->ncameras()))),
      _camera_info_sub(multiplexer->_nh.subscribe<camera_info_t>(
 			  _camera_name + "/camera_info", 1,
 			  boost::bind(&Multiplexer::camera_info_cb,
@@ -87,6 +92,7 @@ Multiplexer::Multiplexer(const ros::NodeHandle& nh)
      _image_pub( _it.advertise("image",  1)),
      _depth_pub( _it.advertise("depth",  1)),
      _normal_pub(_it.advertise("normal", 1)),
+     _cloud_pub(_nh.advertise<cloud_t>("pointcloud", 1)),
      _camera_info_pub(_nh.advertise<camera_info_t>("camera_info", 1))
 {
     std::vector<std::string>	camera_names;
@@ -181,6 +187,13 @@ Multiplexer::normal_cb(const image_cp& normal, int camera_number) const
 {
     if (camera_number == _camera_number)
 	_normal_pub.publish(normal);
+}
+
+void
+Multiplexer::cloud_cb(const cloud_cp& cloud, int camera_number) const
+{
+    if (camera_number == _camera_number)
+	_cloud_pub.publish(cloud);
 }
 
 }	// namespace aist_camera_multiplexer

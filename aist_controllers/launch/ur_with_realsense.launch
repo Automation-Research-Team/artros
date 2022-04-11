@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="sim"		default="false"/>
+  <arg name="enable_pointcloud"	default="false"/>
   <arg name="scene"		default="a_bot_calibration"/>
   <arg name="robot_name"	default="a_bot"/>
   <arg name="camera_name"	default="$(arg robot_name)_outside_camera"/>
@@ -17,16 +18,21 @@
 
   <!-- Spawn a_bot -->
   <include file="$(find aist_bringup)/launch/a_bot_bringup.launch">
-    <arg name="sim"		value="$(arg sim)"/>
-    <arg name="scene"		value="$(arg scene)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="scene"			value="$(arg scene)"/>
+    <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
   </include>
 
   <!-- Spawn aruco marker tracker -->
   <node name="aruco_detector"
         pkg="aist_aruco_ros" type="aist_aruco_detector" output="screen">
-    <remap from="/camera_info"  to="camera_multiplexer/camera_info"/>
-    <remap from="/image"        to="camera_multiplexer/image"/>
-    <remap from="/depth"        to="camera_multiplexer/depth"/>
+    <remap from="/camera_info"	to="camera_multiplexer/camera_info"/>
+    <remap unless="$(arg enable_pointcloud)"
+	   from="/image"	to="camera_multiplexer/image"/>
+    <remap unless="$(arg enable_pointcloud)"
+	   from="/depth"	to="camera_multiplexer/depth"/>
+    <remap if="$(arg enable_pointcloud)"
+	   from="/pointcloud"	to="camera_multiplexer/pointcloud"/>
     <rosparam file="$(find aist_handeye_calibration
   		    )/config/aist/$(arg camera_name).yaml"/>
   </node>
