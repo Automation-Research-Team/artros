@@ -35,13 +35,14 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, copy
+import rospy, copy, actionlib
 from math                         import radians
 from std_srvs.srv                 import Empty, Trigger
 from geometry_msgs                import msg as gmsg
 from tf                           import transformations as tfs
 from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
 from aist_routines                import AISTBaseRoutines
+from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
 
 ######################################################################
 #  class HandEyeCalibrationRoutines                                  #
@@ -67,18 +68,20 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             ns = '/handeye_calibrator'
             self.get_sample_list = rospy.ServiceProxy(ns + '/get_sample_list',
                                                     GetSampleList)
-            self.take_sample = rospy.ServiceProxy(ns + '/take_sample', Trigger)
             self.compute_calibration = rospy.ServiceProxy(
                 ns + '/compute_calibration', ComputeCalibration)
             self.save_calibration = rospy.ServiceProxy(ns + '/save_calibration',
                                                     Trigger)
             self.reset = rospy.ServiceProxy(ns + '/reset', Empty)
+            self.take_sample = actionlib.SimpleActionClient(ns + '/take_sample',
+                                                            TakeSampleAction)
+
         else:
             self.get_sample_list     = None
-            self.take_sample         = None
             self.compute_calibration = None
             self.save_calibration    = None
             self.reset               = None
+            self.take_sample         = None
 
     def move(self, pose):
         poseStamped = gmsg.PoseStamped()
@@ -104,11 +107,13 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         if self.take_sample:
             try:
                 rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
+                self.take_sample.send_goal(TakeSampleGoal())
                 self.trigger_frame(self._camera_name)
-                res = self.take_sample()
-
+                if not self.take_sample.wait_for_result(rospy.Duration()):
+                    self.take_sample.cencel_goal()  # timeout expired
+                    return False
                 n = len(self.get_sample_list().cMo)
-                print('  {} samples taken: {}').format(n, res.message)
+                print('  {} samples taken').format(n)
             except rospy.ServiceException as e:
                 rospy.logerr('Service call failed: %s' % e)
                 success = False
