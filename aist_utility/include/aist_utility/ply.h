@@ -50,4 +50,4 @@ void	savePly(const sensor_msgs::CameraInfo& camera_info,
 		const sensor_msgs::Image& normal,
 		const std::string& file)				;
 }	// namespace aist_utility
-#endif AIST_UTILITY_PLY_H
+#endif	// AIST_UTILITY_PLY_H
