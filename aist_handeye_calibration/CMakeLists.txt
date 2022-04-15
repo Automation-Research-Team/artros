@@ -73,12 +73,12 @@ catkin_package(
 ###########
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  src/calibrator
+  src
 )
 
 add_executable(calibrator
-  src/calibrator/main.cpp
-  src/calibrator/Calibrator.cpp
+  src/main.cpp
+  src/Calibrator.cpp
 )
 
 add_dependencies(calibrator
