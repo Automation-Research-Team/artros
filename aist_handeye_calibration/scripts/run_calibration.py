@@ -101,8 +101,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         return success
 
     def move_to(self, pose, keypose_num, subpose_num):
-        success = self.move(pose)
-        if not success:
+        if not self.move(pose):
             return False
 
         if self.take_sample:
@@ -116,6 +115,18 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             if self.take_sample.get_state() != GoalStatus.SUCCEEDED:
                 rospy.logerr('TakeSampleAction: not in succeeded state')
                 return False
+
+            result = self.take_sample.get_result()
+            pose = gmsg.PoseStamped()
+            pose.header = result.cMo.header
+            pose.pose.position    = result.cMo.transform.translation
+            pose.pose.orientation = result.cMo.transform.rotation
+            print('  camera <= obejct   ' + self.format_pose(pose))
+            pose.header = result.wMe.header
+            pose.pose.position    = result.wMe.transform.translation
+            pose.pose.orientation = result.wMe.transform.rotation
+            print('  world  <= effector ' + self.format_pose(pose))
+
             n = len(self.get_sample_list().cMo)
             print('  {} samples taken').format(n)
 
@@ -144,7 +155,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             subpose[4] -= 30
 
     def calibrate(self):
-        #self.continuous_shot(self._camera_name, False)
+        self.continuous_shot(self._camera_name, False)
 
         if self.reset:
             self.reset()
@@ -152,19 +163,18 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         # Reset pose
         self.go_to_named_pose(self._robot_name, 'home')
         self.move(self._initpose)
-        self.trigger_frame(self._camera_name)
 
         # Collect samples over pre-defined poses
         keyposes = self._keyposes
         for i, keypose in enumerate(keyposes, 1):
             print('\n*** Keypose [{}/{}]: Try! ***'
-                .format(i, len(keyposes)))
+                  .format(i, len(keyposes)))
             if self._eye_on_hand:
                 self.move_to(keypose, i, 1)
             else:
                 self.move_to_subposes(keypose, i)
             print('*** Keypose [{}/{}]: Completed. ***'
-                .format(i, len(keyposes)))
+                  .format(i, len(keyposes)))
 
         if self.compute_calibration:
             try:

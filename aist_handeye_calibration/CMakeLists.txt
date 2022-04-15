@@ -32,6 +32,7 @@ find_package(catkin REQUIRED
     genmsg
     actionlib
     actionlib_msgs
+    aist_utility
 )
 
 generate_dynamic_reconfigure_options(

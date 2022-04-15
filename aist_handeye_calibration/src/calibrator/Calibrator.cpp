@@ -45,6 +45,7 @@
 #include <errno.h>
 #include <tf/transform_datatypes.h>
 #include <yaml-cpp/yaml.h>
+#include <aist_utility/geometry_msgs.h>
 #include "Calibrator.h"
 #include "HandeyeCalibration.h"
 
@@ -306,22 +307,30 @@ Calibrator::take_sample(const TakeSampleGoalConstPtr& goal)
 {
     try
     {
+	using aist_utility::operator <<;
+
 	ros::Time	time;
 	std::string	error_string;
-	_listener.getLatestCommonTime(camera_frame(), object_frame(), time,
-				      &error_string);
-	_listener.waitForTransform(world_frame(), effector_frame(),
-				   time, ros::Duration(_timeout));
+	if (_listener.getLatestCommonTime(camera_frame(), object_frame(), time,
+					  &error_string) != tf::NO_ERROR)
+	    throw std::runtime_error(error_string);
+
+	// _listener.waitForTransform(world_frame(), effector_frame(),
+	// 			   time, ros::Duration(_timeout));
 
 	tf::StampedTransform	cMo, wMe;
 	_listener.lookupTransform(camera_frame(), object_frame(),   time, cMo);
 	_listener.lookupTransform(world_frame(),  effector_frame(), time, wMe);
+	ROS_INFO_STREAM("camera <= object:   " << cMo);
+	ROS_INFO_STREAM("world  <= effector: " << wMe);
 
 	TakeSampleResult	result;
 	tf::transformStampedTFToMsg(cMo, result.cMo);
 	_cMo.emplace_back(result.cMo);
 	tf::transformStampedTFToMsg(wMe, result.wMe);
 	_wMe.emplace_back(result.wMe);
+	// ROS_INFO_STREAM("camera <= object:   " << result.cMo.transform);
+	// ROS_INFO_STREAM("world  <= effector: " << result.wMe.transform);
 
 	_take_sample_srv.setSucceeded(result);
 	ROS_INFO_STREAM("take_sample(): succeeded");
