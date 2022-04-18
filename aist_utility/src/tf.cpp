@@ -30,24 +30,31 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
- *  \file	ply.h
+ *  \file	tf.cpp
  *  \author	Toshio Ueshiba
- *  \brief	Save depth and color images to Ordered PLY file
+ *  \brief	Utility functions concerning with tf
  */
-#ifndef AIST_UTILITY_PLY_H
-#define AIST_UTILITY_PLY_H
-
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <string>
+#include <aist_utility/tf.h>
 
 namespace aist_utility
 {
-void	savePly(const sensor_msgs::CameraInfo& camera_info,
-		const sensor_msgs::Image& image,
-		const sensor_msgs::Image& depth,
-		const sensor_msgs::Image& normal,
-		const std::string& file)				;
+/************************************************************************
+*  global functions to save/load TIFF images				*
+************************************************************************/
+std::ostream&
+operator <<(std::ostream& out, const tf::Quaternion& q)
+{
+    static constexpr tfScalar	DEG = 180.0 / M_PI;
+
+    tf::Matrix3x3	R(q);
+    tfScalar		roll, pitch, yaw;
+    R.getEulerZYX(yaw, pitch, roll);
+
+    return out << '[' << roll*DEG << ',' << pitch*DEG << ',' << yaw*DEG << ']';
+}
+
 }	// namespace aist_utility
-#endif	// AIST_UTILITY_PLY_H

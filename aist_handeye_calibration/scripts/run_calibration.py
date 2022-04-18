@@ -35,13 +35,15 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, copy
+import rospy, copy, actionlib
 from math                         import radians
 from std_srvs.srv                 import Empty, Trigger
 from geometry_msgs                import msg as gmsg
 from tf                           import transformations as tfs
 from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
 from aist_routines                import AISTBaseRoutines
+from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
+from actionlib_msgs.msg           import GoalStatus
 
 ######################################################################
 #  class HandEyeCalibrationRoutines                                  #
@@ -67,18 +69,20 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             ns = '/handeye_calibrator'
             self.get_sample_list = rospy.ServiceProxy(ns + '/get_sample_list',
                                                     GetSampleList)
-            self.take_sample = rospy.ServiceProxy(ns + '/take_sample', Trigger)
             self.compute_calibration = rospy.ServiceProxy(
                 ns + '/compute_calibration', ComputeCalibration)
             self.save_calibration = rospy.ServiceProxy(ns + '/save_calibration',
                                                     Trigger)
             self.reset = rospy.ServiceProxy(ns + '/reset', Empty)
+            self.take_sample = actionlib.SimpleActionClient(ns + '/take_sample',
+                                                            TakeSampleAction)
+
         else:
             self.get_sample_list     = None
-            self.take_sample         = None
             self.compute_calibration = None
             self.save_calibration    = None
             self.reset               = None
+            self.take_sample         = None
 
     def move(self, pose):
         poseStamped = gmsg.PoseStamped()
@@ -97,23 +101,36 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         return success
 
     def move_to(self, pose, keypose_num, subpose_num):
-        success = self.move(pose)
-        if not success:
+        if not self.move(pose):
             return False
 
         if self.take_sample:
-            try:
-                rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
-                self.trigger_frame(self._camera_name)
-                res = self.take_sample()
+            rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
+            self.take_sample.send_goal(TakeSampleGoal())
+            self.trigger_frame(self._camera_name)
+            if not self.take_sample.wait_for_result(rospy.Duration()):
+                self.take_sample.cencel_goal()  # timeout expired
+                rospy.logerr('TakeSampleAction: timeout expired')
+                return False
+            if self.take_sample.get_state() != GoalStatus.SUCCEEDED:
+                rospy.logerr('TakeSampleAction: not in succeeded state')
+                return False
 
-                n = len(self.get_sample_list().cMo)
-                print('  {} samples taken: {}').format(n, res.message)
-            except rospy.ServiceException as e:
-                rospy.logerr('Service call failed: %s' % e)
-                success = False
+            result = self.take_sample.get_result()
+            pose = gmsg.PoseStamped()
+            pose.header = result.cMo.header
+            pose.pose.position    = result.cMo.transform.translation
+            pose.pose.orientation = result.cMo.transform.rotation
+            print('  camera <= obejct   ' + self.format_pose(pose))
+            pose.header = result.wMe.header
+            pose.pose.position    = result.wMe.transform.translation
+            pose.pose.orientation = result.wMe.transform.rotation
+            print('  world  <= effector ' + self.format_pose(pose))
 
-        return success
+            n = len(self.get_sample_list().cMo)
+            print('  {} samples taken').format(n)
+
+        return True
 
     def move_to_subposes(self, pose, keypose_num):
         subpose = copy.copy(pose)
@@ -138,7 +155,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             subpose[4] -= 30
 
     def calibrate(self):
-        #self.continuous_shot(self._camera_name, False)
+        self.continuous_shot(self._camera_name, False)
 
         if self.reset:
             self.reset()
@@ -146,19 +163,18 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         # Reset pose
         self.go_to_named_pose(self._robot_name, 'home')
         self.move(self._initpose)
-        self.trigger_frame(self._camera_name)
 
         # Collect samples over pre-defined poses
         keyposes = self._keyposes
         for i, keypose in enumerate(keyposes, 1):
             print('\n*** Keypose [{}/{}]: Try! ***'
-                .format(i, len(keyposes)))
+                  .format(i, len(keyposes)))
             if self._eye_on_hand:
                 self.move_to(keypose, i, 1)
             else:
                 self.move_to_subposes(keypose, i)
             print('*** Keypose [{}/{}]: Completed. ***'
-                .format(i, len(keyposes)))
+                  .format(i, len(keyposes)))
 
         if self.compute_calibration:
             try:

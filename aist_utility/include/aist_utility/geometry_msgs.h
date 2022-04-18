@@ -30,24 +30,56 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
- *  \file	ply.h
+ *  \file	geometry_msgs.h
  *  \author	Toshio Ueshiba
- *  \brief	Save depth and color images to Ordered PLY file
+ *  \brief	Utilities
  */
-#ifndef AIST_UTILITY_PLY_H
-#define AIST_UTILITY_PLY_H
+#ifndef AIST_UTILITY_GEOMETRY_MSGS_H
+#define AIST_UTILITY_GEOMETRY_MSGS_H
 
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <string>
+#include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Transform.h>
+#include <aist_utility/tf.h>
 
 namespace aist_utility
 {
-void	savePly(const sensor_msgs::CameraInfo& camera_info,
-		const sensor_msgs::Image& image,
-		const sensor_msgs::Image& depth,
-		const sensor_msgs::Image& normal,
-		const std::string& file)				;
+inline std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Point& p)
+{
+    return out << '[' << p.x << ',' << p.y << ',' << p.z << ']';
+}
+
+inline std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Vector3& v)
+{
+    return out << '[' << v.x << ',' << v.y << ',' << v.z << ']';
+}
+
+inline std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Quaternion& q)
+{
+    tf::Quaternion	qq;
+    tf::quaternionMsgToTF(q, qq);
+
+    return out << qq;
+}
+
+inline std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
+{
+    return out << '[' << pose.position << "; " << pose.orientation << ']';
+}
+
+inline std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Transform& transform)
+{
+    return out << '['  << transform.translation
+	       << "; " << transform.rotation << ']';
+}
+
 }	// namespace aist_utility
-#endif	// AIST_UTILITY_PLY_H
+#endif	// !AIST_UTILITY_GEOMETRY_MSGS_H

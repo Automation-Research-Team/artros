@@ -20,6 +20,7 @@ find_package(
     rospy
     sensor_msgs
     geometry_msgs
+    tf
 )
 
 find_package(OpenCV REQUIRED)
@@ -60,6 +61,7 @@ link_directories(
 
 add_library(
   ${PROJECT_NAME}
+  src/tf.cpp
   src/tiff.cpp
   src/ply.cpp
   src/oply/OrderedPly.cpp

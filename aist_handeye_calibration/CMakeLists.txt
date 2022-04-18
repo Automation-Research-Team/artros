@@ -29,6 +29,10 @@ find_package(catkin REQUIRED
     dynamic_reconfigure
     pcl_ros
     pcl_conversions
+    genmsg
+    actionlib
+    actionlib_msgs
+    aist_utility
 )
 
 generate_dynamic_reconfigure_options(
@@ -41,10 +45,16 @@ add_service_files(
     ComputeCalibration.srv
 )
 
+add_action_files(
+  FILES
+    TakeSample.action
+)
+
 generate_messages(
   DEPENDENCIES
     std_msgs
     geometry_msgs
+    actionlib_msgs
 )
 
 catkin_package(
@@ -53,6 +63,7 @@ catkin_package(
     message_runtime
     std_msgs
     geometry_msgs
+    actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -62,12 +73,12 @@ catkin_package(
 ###########
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  src/calibrator
+  src
 )
 
 add_executable(calibrator
-  src/calibrator/main.cpp
-  src/calibrator/Calibrator.cpp
+  src/main.cpp
+  src/Calibrator.cpp
 )
 
 add_dependencies(calibrator

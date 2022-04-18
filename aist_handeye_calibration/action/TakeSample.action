@@ -1,0 +1,7 @@
+# Goal
+---
+# Result
+geometry_msgs/TransformStamped cMo  # camera <- object   transform
+geometry_msgs/TransformStamped wMe  # world  <- effector transform
+---
+# Feedback

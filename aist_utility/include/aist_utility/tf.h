@@ -30,24 +30,36 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
- *  \file	ply.h
+ *  \file	tf.h
  *  \author	Toshio Ueshiba
- *  \brief	Save depth and color images to Ordered PLY file
+ *  \brief	Utilities
  */
-#ifndef AIST_UTILITY_PLY_H
-#define AIST_UTILITY_PLY_H
+#ifndef AIST_UTILITY_TF_H
+#define AIST_UTILITY_TF_H
 
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <string>
+#include <tf/transform_datatypes.h>
 
 namespace aist_utility
 {
-void	savePly(const sensor_msgs::CameraInfo& camera_info,
-		const sensor_msgs::Image& image,
-		const sensor_msgs::Image& depth,
-		const sensor_msgs::Image& normal,
-		const std::string& file)				;
+inline std::ostream&
+operator <<(std::ostream& out, const tf::Vector3& v)
+{
+    return out << '[' << v.x() << ',' << v.y() << ',' << v.z() << ']';
+}
+
+std::ostream&
+operator <<(std::ostream& out, const tf::Quaternion& q)			;
+
+inline std::ostream&
+operator <<(std::ostream& out, const tf::Transform& transform)
+{
+    return out << '['  << transform.getOrigin()
+	       << "; " << transform.getRotation() << ']';
+}
+
 }	// namespace aist_utility
-#endif	// AIST_UTILITY_PLY_H
+#endif	// !AIST_UTILITY_GEOMETRY_MSGS_H
