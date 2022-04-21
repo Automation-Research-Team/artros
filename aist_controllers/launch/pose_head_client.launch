@@ -2,6 +2,10 @@
 <launch>
 
   <arg name="prefix"		default="a_bot_"/>
+  <arg name="pointing_frame"	default="$(arg prefix
+					 )outside_camera_color_optical_frame"/>
+  <arg name="offset"		default="0.25"/>
+  <arg name="yaw"		default="-90.0"/>
   <arg name="publish_rate"	default="50"/>
 
   <!-- Spawn controller -->

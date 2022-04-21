@@ -55,6 +55,8 @@ class PoseHeadClient(object):
         self._target_frame   = rospy.get_param('~target_frame', 'marker_frame')
         self._target_offset  = rospy.get_param('~target_offset',
                                                [0.0, 0.0, 0.2])
+        self._target_rpy     = rospy.get_param('~target_rpy',
+                                               [180.0, 0.0, -90.0])
         self._pointing_frame = rospy.get_param(
                                    '~pointing_frame',
                                    'a_bot_outside_camera_color_optical_frame')
@@ -69,11 +71,10 @@ class PoseHeadClient(object):
         goal = amsg.PoseHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = self._target_frame
-        goal.target.pose            = gmsg.Pose(gmsg.Point(
-                                                    *self._target_offset),
-                                                gmsg.Quaternion(
-                                                    *tfs.quaternion_from_euler(
-                                                        pi, 0, -pi/2)))
+        goal.target.pose \
+            = gmsg.Pose(gmsg.Point(*self._target_offset),
+                        gmsg.Quaternion(*tfs.quaternion_from_euler(
+                                            *map(radians, self._target_rpy))))
         goal.pointing_frame         = self._pointing_frame
         goal.min_duration           = rospy.Duration(self._min_duration)
         goal.max_velocity           = self._max_velocity
