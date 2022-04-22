@@ -91,11 +91,6 @@ class RealSenseCamera(object):
             self._recent_laser_power = self.laser_power
             self._dyn_sensor.update_configuration({"laser_power" : 0})
 
-    def continuous_shot(self, enabled):
-        self._dyn_camera.update_configuration({"enable_streaming" : enabled})
-        rospy.sleep(0.2)
-        return True
-
 #########################################################################
 #  class RealSenseMultiplexer                                           #
 #########################################################################
@@ -136,9 +131,6 @@ class RealSenseMultiplexer(object):
 
     def enalbe_laser(self, enabled):
         self._camera.enable_laser(enabled)
-
-    def continuous_shot(self, enabled):
-        self._camera.continuous_shot(enabled)
 
     # Filter control stuffs
     def saveBG(self):
