@@ -4,11 +4,17 @@
   <arg name="sim"		default="false"/>
   <arg name="phoxi_name"	default="camera"/>
   <arg name="realsense_name"	default="realsense"/>
+  <arg name="manager"		default="camera_manager"/>
   <arg name="robot_name"	default="arm"/>
 
   <!-- Calibration arguments -->
   <arg name="camera_name"	default="realsense"/>
   <arg name="publish_rate"	default="100"/>
+
+  <!-- Launch MoveIt! planner -->
+  <include file="$(find toyota1_bringup)/launch/calibration_move_group.launch">
+    <arg name="vis"		value="$(arg sim)"/>
+  </include>
 
   <!-- Launch cameras -->
   <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
@@ -16,6 +22,7 @@
     <arg name="phoxi_name"	value="$(arg phoxi_name)"/>
     <arg name="realsense_name"	value="$(arg realsense_name)"/>
     <arg name="motomachi"	value="false"/>
+    <arg name="manager"		value="$(arg manager)"/>
   </include>
 
   <!-- Start ArUco -->
