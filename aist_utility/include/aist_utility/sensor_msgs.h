@@ -121,7 +121,8 @@ depth_to_points(const sensor_msgs::CameraInfo& camera_info,
 
 //! Extract 3D points from pointcloud.
 template <class T=float, class ITER, class UNIT> ITER
-cloud_to_points(const sensor_msgs::PointCloud2& cloud, ITER out, UNIT unit)
+pointcloud_to_points(const sensor_msgs::PointCloud2& cloud,
+		     ITER out, UNIT unit)
 {
     sensor_msgs::PointCloud2ConstIterator<T>	xyz(cloud, "x");
 
@@ -137,7 +138,7 @@ cloud_to_points(const sensor_msgs::PointCloud2& cloud, ITER out, UNIT unit)
 
 //! Extract RGB from pointcloud.
 template <class ITER> ITER
-cloud_to_rgb(const sensor_msgs::PointCloud2& cloud, ITER out)
+pointcloud_to_rgb(const sensor_msgs::PointCloud2& cloud, ITER out)
 {
     sensor_msgs::PointCloud2ConstIterator<uint8_t>	bgr(cloud, "rgb");
 

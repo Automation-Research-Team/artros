@@ -33,6 +33,7 @@
 //
 // Author: Toshio Ueshiba
 //
+#include <cctype>
 #include <iostream>
 #include <tf/transform_datatypes.h>
 
@@ -55,13 +56,20 @@ main()
     for (;;)
     {
 	constexpr tfScalar	degree = 180.0/M_PI;
-	tfScalar		qx, qy, qz, qw;
-	char			c;
-
+	tfScalar		q[4];
 	std::cerr << "> ";
-	std::cin >> qx >> c >> qy >> c >> qz >> c >> qw;
-
-	auto	rpy = TU::getRPY(tf::Quaternion(qx, qy, qz, qw));
+	for (size_t i = 0; i < 4; )
+	{
+	    char	c;
+	    std::cin.get(c);
+	    if (std::isdigit(c) || c == '+' || c == '-')
+	    {
+		std::cin.unget();
+		std::cin >> q[i++];
+	    }
+	}
+	
+	auto	rpy = TU::getRPY(tf::Quaternion(q[0], q[1], q[2], q[3]));
 
 	std::cout << rpy[0]*degree << ", "
 		  << rpy[1]*degree << ", "

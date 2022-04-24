@@ -103,8 +103,8 @@ class RealSenseCamera(DepthCamera):
         self._dyn_camera = dynamic_reconfigure.client.Client(name, timeout=5.0)
         self._dyn_sensor = dynamic_reconfigure.client.Client(
                                name + '/coded_light_depth_sensor', timeout=5.0)
-        self._recent_laser_power = 16
-        self.laser_power = 0
+        self.laser_power = 16
+        self._recent_laser_power = self.laser_power
 
     @property
     def laser_power(self):
@@ -116,11 +116,6 @@ class RealSenseCamera(DepthCamera):
         if value != 0:
             self._recent_laser_power = value
         self._dyn_sensor.update_configuration({'laser_power' : value})
-
-    def continuous_shot(self, enabled):
-        self._dyn_camera.update_configuration({'enable_streaming' : enabled})
-        rospy.sleep(0.2)
-        return True
 
 ######################################################################
 #  class PhoXiCamera                                                 #

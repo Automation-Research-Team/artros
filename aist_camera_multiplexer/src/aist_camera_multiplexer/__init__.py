@@ -92,11 +92,6 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
                 self.laser_power = 0
             rospy.sleep(0.2)
 
-        def continuous_shot(self, enabled):
-            self._dyn_camera.update_configuration({'enable_streaming': enabled})
-            rospy.sleep(0.2)
-            return True
-
     def __init__(self, server='camera_multiplexer'):
         try:
             super(RealSenseMultiplexerClient, self).__init__(server)

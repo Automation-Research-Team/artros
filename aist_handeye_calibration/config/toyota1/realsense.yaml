@@ -1,0 +1,24 @@
+camera_type: DepthCamera
+camera_name: realsense
+robot_name: arm
+eye_on_hand: true
+robot_base_frame: basement_link
+robot_effector_frame: arm_ee_link
+camera_frame: calibrated_realsense_color_optical_frame
+marker_id: 26
+marker_size: 0.186
+planarity_tolerance: 0.003
+initpose: [0.60, -0.05, 0.70, 135, 0, 0]
+keyposes:
+  - [ 0.15, -0.05, 0.65, 135, -25,   0]
+  - [ 0.30, -0.05, 0.70, 135, -15,   0]
+  - [ 0.50, -0.05, 0.80, 135,   0,   0]
+  - [ 0.70, -0.05, 0.70, 135,  15,   0]
+  - [ 0.85, -0.05, 0.70, 135,  25,   0]
+  - [ 0.50, -0.40, 0.65, 165,   0,   0]
+  - [ 0.50, -0.20, 0.75, 150,   0,   0]
+  - [ 0.50,  0.10, 0.75, 120,   0,   0]
+  - [ 0.50,  0.30, 0.65, 105,   0,   0]
+
+camera_body_frame: realsense_link
+camera_optical_frame: realsense_color_optical_frame

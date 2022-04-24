@@ -1,6 +1,7 @@
 server: /$(arg prefix)pose_head_tracker
 target_frame: marker_frame
-target_offset: [0.0, 0.0, 0.25]
-pointing_frame: $(arg prefix)outside_camera_color_optical_frame
+target_offset: [0.0, 0.0, $(arg offset)]
+target_rpy: [180.0, 0.0, $(arg yaw)]
+pointing_frame: $(arg pointing_frame)
 min_duration: 0.05
-max_velocity: 0.5
+max_velocity: 0.1
