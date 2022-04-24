@@ -20,5 +20,5 @@ keyposes:
   - [ 0.60,  0.10, 0.75, 120,   0,   0]
   - [ 0.60,  0.30, 0.65, 105,   0,   0]
 
-camera_body_frame: magripper_realsense_link
-camera_optical_frame: magripper_realsense_color_optical_frame
+camera_body_frame: realsense_link
+camera_optical_frame: realsense_color_optical_frame
