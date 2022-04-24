@@ -2,10 +2,12 @@
 <launch>
 
   <arg name="prefix"		default="arm_"/>
-  <arg name="pointing_frame"	default="sensor"/>
-  <arg name="offset"		default="0.55"/>
-  <arg name="yaw"		default="90.0"/>
+  <arg name="pointing_frame"	default="magnet_tip_link"/>
+  <arg name="offset"		default="0.20"/>
+  <arg name="yaw"		default="0.0"/>
   <arg name="publish_rate"	default="50"/>
+  <arg name="min_duration"	default="0.05"/>
+  <arg name="max_velocity"	default="0.7"/>
 
   <!-- Spawn controller -->
   <node name="pose_head_client"

@@ -56,7 +56,7 @@ class PoseHeadClient(object):
         self._target_offset  = rospy.get_param('~target_offset',
                                                [0.0, 0.0, 0.2])
         self._target_rpy     = rospy.get_param('~target_rpy',
-                                               [180.0, 0.0, -90.0])
+                                               [0.0, 90.0, 0.0])
         self._pointing_frame = rospy.get_param(
                                    '~pointing_frame',
                                    'a_bot_outside_camera_color_optical_frame')
