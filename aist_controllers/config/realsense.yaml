@@ -1,0 +1,4 @@
+camera_frame: calibrated_realsense_color_optical_frame
+marker_id: 32
+marker_size: 0.070
+planarity_tolerance: 0.003

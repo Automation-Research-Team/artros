@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"		default="a_bot_"/>
-  <arg name="pointing_frame"	default="$(arg prefix
-					 )outside_camera_color_optical_frame"/>
-  <arg name="offset"		default="0.25"/>
+  <arg name="prefix"		default="arm_"/>
+  <arg name="pointing_frame"	default="magnet_tip_link"/>
+  <arg name="offset"		default="0.20"/>
   <arg name="yaw"		default="0.0"/>
   <arg name="publish_rate"	default="50"/>
   <arg name="min_duration"	default="0.05"/>
