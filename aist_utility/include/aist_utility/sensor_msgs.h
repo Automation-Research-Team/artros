@@ -361,6 +361,26 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
 }
 
 template <class T> sensor_msgs::PointCloud2&
+add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud, const T& color)
+{
+    using namespace	sensor_msgs;
+
+    PointCloud2Iterator<uint8_t>	rgb(cloud, "rgb");
+    for (uint32_t v = 0; v < cloud.height; ++v)
+    {
+	for (uint32_t u = 0; u < cloud.width; ++u)
+	{
+	    rgb[0] = color.b;
+	    rgb[1] = color.g;
+	    rgb[2] = color.r;
+	    ++rgb;
+	}
+    }
+
+    return cloud;
+}
+
+template <class T> sensor_msgs::PointCloud2&
 add_3field_to_pointcloud(sensor_msgs::PointCloud2& cloud,
 			 const sensor_msgs::Image& image,
 			 const std::string& field_name)
