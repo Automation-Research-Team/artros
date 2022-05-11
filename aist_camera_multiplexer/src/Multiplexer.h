@@ -45,7 +45,6 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
-#include <aist_camera_multiplexer/ActivateCamera.h>
 
 namespace aist_camera_multiplexer
 {
@@ -61,7 +60,7 @@ class Multiplexer
     using image_cp	 = sensor_msgs::ImageConstPtr;
     using cloud_t	 = sensor_msgs::PointCloud2;
     using cloud_cp	 = sensor_msgs::PointCloud2ConstPtr;
-    
+
     class Subscribers
     {
       public:
@@ -82,6 +81,19 @@ class Multiplexer
 
     using subscribers_cp = std::shared_ptr<const Subscribers>;
 
+    struct ddynamic_reconfigure_t : ddynamic_reconfigure::DDynamicReconfigure
+    {
+	using super	= ddynamic_reconfigure::DDynamicReconfigure;
+
+	ddynamic_reconfigure_t(const ros::NodeHandle& nh) :super(nh)	{}
+
+	void	publishServicesTopics()
+		{
+		    super::publishServicesTopics();
+		    super::updateConfigData(generateConfig());
+		}
+    };
+
   public:
     Multiplexer(const ros::NodeHandle& nh)				;
 
@@ -89,9 +101,7 @@ class Multiplexer
 
   private:
     int		ncameras()					const	;
-    void	activate_camera(int camera_number)			;
-    bool	activate_camera_cb(ActivateCamera::Request&  req,
-				   ActivateCamera::Response& res)	;
+    void	activate_camera(const std::string& camera_name)		;
     void	camera_info_cb(const camera_info_cp& camera_info,
 			       int camera_number)		const	;
     void	image_cb(const image_cp& image,
@@ -104,19 +114,19 @@ class Multiplexer
 			 int camera_number)			const	;
 
   private:
-    ros::NodeHandle				_nh;
+    ros::NodeHandle			_nh;
 
-    std::vector<subscribers_cp>			_subscribers;
-    int						_camera_number;
+    std::vector<subscribers_cp>		_subscribers;
+    int					_camera_number;
 
-    ddynamic_reconfigure::DDynamicReconfigure	_ddr;
+    ddynamic_reconfigure_t		_ddr;
 
-    image_transport::ImageTransport		_it;
-    const image_transport::Publisher		_image_pub;
-    const image_transport::Publisher		_depth_pub;
-    const image_transport::Publisher		_normal_pub;
-    const ros::Publisher			_cloud_pub;
-    const ros::Publisher			_camera_info_pub;
+    image_transport::ImageTransport	_it;
+    const image_transport::Publisher	_image_pub;
+    const image_transport::Publisher	_depth_pub;
+    const image_transport::Publisher	_normal_pub;
+    const ros::Publisher		_cloud_pub;
+    const ros::Publisher		_camera_info_pub;
 };
 
 }	// namespace aist_camera_multiplexer

@@ -20,7 +20,7 @@ grippers:
       eject: false
 
 cameras:
-  camera: PhoXiCamera
+  phoxi: PhoXiCamera
   realsense: RealSenseCamera
 
 moveit_pose_reference_frame: base_link

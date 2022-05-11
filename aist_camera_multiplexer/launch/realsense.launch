@@ -2,9 +2,11 @@
 <launch>
 
   <arg name="multiplexer_name"	default="camera_multiplexer"/>
-  <arg name="camera_names"	default="a_bot_inside_camera,
-					 a_bot_outside_camera"/>
-  <arg name="serial_nos"	default="636203005853, 636203005303"/>
+  <!-- <arg name="camera_names"	default="a_bot_inside_camera, -->
+  <!-- 					 a_bot_outside_camera"/> -->
+  <!-- <arg name="serial_nos"	default="636203005853, 636203005303"/> -->
+  <arg name="camera_names"	default="a_bot_inside_camera"/>
+  <arg name="serial_nos"	default="639204000513,"/>
 
   <arg name="publish_tf"	default="true"/>
   <arg name="enable_pointcloud"	default="false"/>
@@ -12,11 +14,11 @@
   <arg name="camera_height"	default="480"/>
   <arg name="fps"		default="30"/>
   <arg name="manager"		default=""/>
+  <arg name="external_manager"	default="False"/>
   <arg name="camera_no"		default="0"/>
   <arg name="sim"		default="false"/>
   <arg name="vis"		default="false"/>
 
-  <arg name="external_manager"	value="$(eval manager != '')"/>
   <arg name="enable_depth"	value="$(eval not enable_pointcloud)"/>
 
   <!-- Launch nodelet manger -->
@@ -48,9 +50,9 @@
       <arg name="color_width"		value="$(arg camera_width)"/>
       <arg name="color_height"		value="$(arg camera_height)"/>
       <arg name="color_fps"		value="$(arg fps)"/>
-      <arg name="external_manager"	value="$(arg external_manager)"/>
+      <arg name="external_manager"	value="$(eval manager != '')"/>
       <arg name="manager"		value="/$(arg manager)"
-	   if="$(arg external_manager)"/>
+	   if="$(eval manager != '')"/>
     </include>
 
     <!-- Connect camera outputs to the multiplexer -->
@@ -82,26 +84,19 @@
 
   <!-- Launch the multiplexer after all cameras have been launched -->
   <group unless="$(eval camera_no != len(camera_names.split(',')))">
+    <arg if    ="$(eval manager == '')"	name="command"	value="standalone"/>
+    <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
-    <node unless="$(arg external_manager)"
-	  name="$(arg multiplexer_name)"
-	  pkg="aist_camera_multiplexer" type="aist_camera_multiplexer"
-	  output="screen">
+    <node name="$(arg multiplexer_name)"
+	  pkg="nodelet" type="nodelet" output="screen"
+  	  args="$(arg command) aist_camera_multiplexer/aist_camera_multiplexer
+		$(arg manager)">
       <rosparam param="camera_names"
 		subst_value="true">[$(arg camera_names)]</rosparam>
     </node>
-
-    <group if="$(arg external_manager)">
-      <node name="$(arg multiplexer_name)"
-	    pkg="nodelet" type="nodelet" output="screen"
-  	    args="load aist_camera_multiplexer/aist_camera_multiplexer_nodelet
-		  $(arg manager)">
-	<rosparam param="camera_names"
-		  subst_value="true">[$(arg camera_names)]</rosparam>
-      </node>
-      <node name="$(arg manager)" pkg="nodelet" type="nodelet"
-	    args="manager" output="screen" respawn="false"/>
-    </group>
+    <node if="$(eval manager != '' and not external_manager)"
+	  name="$(arg manager)" pkg="nodelet" type="nodelet"
+	  args="manager" output="screen" respawn="false"/>
 
     <group if="$(arg vis)">
       <node name="$(anon rviz)" pkg="rviz" type="rviz"
@@ -109,7 +104,6 @@
       <node name="rqt_reconfigure"
 	    pkg="rqt_reconfigure" type="rqt_reconfigure"/>
     </group>
-
   </group>
 
 </launch>

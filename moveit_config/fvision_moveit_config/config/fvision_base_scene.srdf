@@ -69,7 +69,7 @@
     </group_state>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="d_bot_base_link_inertia" link2="d_bot_shoulder_link" reason="Adjacent" />
-    <disable_collisions link1="d_bot_base_link_inertia" link2="d_phoxi_m_camera" reason="Adjacent" />
+    <disable_collisions link1="d_bot_base_link_inertia" link2="d_phoxi_m_camera_link" reason="Adjacent" />
     <disable_collisions link1="d_bot_base_link_inertia" link2="workbox" reason="Adjacent" />
     <disable_collisions link1="d_bot_camera_link" link2="d_bot_gripper_coupling_base_link" reason="Adjacent" />
     <disable_collisions link1="d_bot_camera_link" link2="d_bot_gripper_left_inner_finger" reason="Never" />
@@ -86,11 +86,10 @@
     <disable_collisions link1="d_bot_camera_link" link2="d_bot_wrist_1_link" reason="Never" />
     <disable_collisions link1="d_bot_camera_link" link2="d_bot_wrist_2_link" reason="Never" />
     <disable_collisions link1="d_bot_camera_link" link2="d_bot_wrist_3_link" reason="Never" />
-    <disable_collisions link1="d_bot_camera_link" link2="d_phoxi_m_camera" reason="Never" />
     <disable_collisions link1="d_bot_forearm_link" link2="d_bot_upper_arm_link" reason="Adjacent" />
     <disable_collisions link1="d_bot_forearm_link" link2="d_bot_wrist_1_link" reason="Adjacent" />
     <disable_collisions link1="d_bot_forearm_link" link2="d_bot_wrist_2_link" reason="Never" />
-    <disable_collisions link1="d_bot_forearm_link" link2="d_phoxi_m_camera" reason="Never" />
+    <disable_collisions link1="d_bot_forearm_link" link2="d_phoxi_m_camera_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_bot_gripper_left_inner_finger" reason="Never" />
     <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_bot_gripper_left_inner_finger_pad" reason="Never" />
     <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_bot_gripper_left_inner_knuckle" reason="Never" />
@@ -105,7 +104,7 @@
     <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_bot_wrist_1_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_bot_wrist_2_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_bot_wrist_3_link" reason="Adjacent" />
-    <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_phoxi_m_camera" reason="Never" />
+    <disable_collisions link1="d_bot_gripper_coupling_base_link" link2="d_phoxi_m_camera_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_left_inner_finger" link2="d_bot_gripper_left_inner_finger_pad" reason="Adjacent" />
     <disable_collisions link1="d_bot_gripper_left_inner_finger" link2="d_bot_gripper_left_inner_knuckle" reason="Default" />
     <disable_collisions link1="d_bot_gripper_left_inner_finger" link2="d_bot_gripper_left_outer_finger" reason="Adjacent" />
@@ -160,7 +159,7 @@
     <disable_collisions link1="d_bot_gripper_left_outer_knuckle" link2="d_bot_wrist_1_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_left_outer_knuckle" link2="d_bot_wrist_2_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_left_outer_knuckle" link2="d_bot_wrist_3_link" reason="Never" />
-    <disable_collisions link1="d_bot_gripper_left_outer_knuckle" link2="d_phoxi_m_camera" reason="Never" />
+    <disable_collisions link1="d_bot_gripper_left_outer_knuckle" link2="d_phoxi_m_camera_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_right_inner_finger" link2="d_bot_gripper_right_inner_finger_pad" reason="Adjacent" />
     <disable_collisions link1="d_bot_gripper_right_inner_finger" link2="d_bot_gripper_right_inner_knuckle" reason="Default" />
     <disable_collisions link1="d_bot_gripper_right_inner_finger" link2="d_bot_gripper_right_outer_finger" reason="Adjacent" />
@@ -191,18 +190,19 @@
     <disable_collisions link1="d_bot_gripper_right_outer_knuckle" link2="d_bot_wrist_1_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_right_outer_knuckle" link2="d_bot_wrist_2_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_right_outer_knuckle" link2="d_bot_wrist_3_link" reason="Never" />
+    <disable_collisions link1="d_bot_gripper_right_outer_knuckle" link2="d_phoxi_m_camera_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_robotiq_arg2f_base_link" link2="d_bot_wrist_1_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_robotiq_arg2f_base_link" link2="d_bot_wrist_2_link" reason="Never" />
     <disable_collisions link1="d_bot_gripper_robotiq_arg2f_base_link" link2="d_bot_wrist_3_link" reason="Never" />
     <disable_collisions link1="d_bot_shoulder_link" link2="d_bot_upper_arm_link" reason="Adjacent" />
-    <disable_collisions link1="d_bot_shoulder_link" link2="d_phoxi_m_camera" reason="Never" />
+    <disable_collisions link1="d_bot_shoulder_link" link2="d_phoxi_m_camera_link" reason="Never" />
     <disable_collisions link1="d_bot_shoulder_link" link2="workbox" reason="Never" />
-    <disable_collisions link1="d_bot_upper_arm_link" link2="d_phoxi_m_camera" reason="Never" />
+    <disable_collisions link1="d_bot_upper_arm_link" link2="d_phoxi_m_camera_link" reason="Never" />
     <disable_collisions link1="d_bot_wrist_1_link" link2="d_bot_wrist_2_link" reason="Adjacent" />
     <disable_collisions link1="d_bot_wrist_1_link" link2="d_bot_wrist_3_link" reason="Never" />
-    <disable_collisions link1="d_bot_wrist_1_link" link2="d_phoxi_m_camera" reason="Never" />
+    <disable_collisions link1="d_bot_wrist_1_link" link2="d_phoxi_m_camera_link" reason="Never" />
     <disable_collisions link1="d_bot_wrist_2_link" link2="d_bot_wrist_3_link" reason="Adjacent" />
-    <disable_collisions link1="d_bot_wrist_2_link" link2="d_phoxi_m_camera" reason="Never" />
-    <disable_collisions link1="d_bot_wrist_3_link" link2="d_phoxi_m_camera" reason="Never" />
-    <disable_collisions link1="d_phoxi_m_camera" link2="workbox" reason="Adjacent" />
+    <disable_collisions link1="d_bot_wrist_2_link" link2="d_phoxi_m_camera_link" reason="Never" />
+    <disable_collisions link1="d_bot_wrist_3_link" link2="d_phoxi_m_camera_link" reason="Never" />
+    <disable_collisions link1="d_phoxi_m_camera_link" link2="workbox" reason="Adjacent" />
 </robot>

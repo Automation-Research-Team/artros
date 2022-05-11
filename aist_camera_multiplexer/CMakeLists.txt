@@ -15,7 +15,6 @@ find_package(catkin REQUIRED
     ddynamic_reconfigure
     sensor_msgs
     image_transport
-    message_generation
     rospy
 )
 
@@ -28,32 +27,21 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_service_files(
-  FILES
-    ActivateCamera.srv
-)
-
-generate_messages()
-
 catkin_package(
   CATKIN_DEPENDS
     roscpp
     rospy
-    message_runtime
     sensor_msgs
     pluginlib
     nodelet
 )
 
-add_executable(
-  ${PROJECT_NAME}
-  src/main.cpp
+add_library(${PROJECT_NAME}
+  src/nodelet.cpp
   src/Multiplexer.cpp
 )
 
-add_dependencies(
-  ${PROJECT_NAME}
-  ${PROJECT_NAME}_generate_messages_cpp
+add_dependencies(${PROJECT_NAME}
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
@@ -64,29 +52,12 @@ target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARIES}
 )
 
-add_library(${PROJECT_NAME}_nodelet
-  src/nodelet.cpp
-  src/Multiplexer.cpp
-)
-
-add_dependencies(${PROJECT_NAME}_nodelet
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(${PROJECT_NAME}_nodelet
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${Boost_LIBRARIES}
-)
-
 #############
 ## Install ##
 #############
 install(
   TARGETS
-    ${PROJECT_NAME} ${PROJECT_NAME}_nodelet
+    ${PROJECT_NAME}
   ARCHIVE
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY

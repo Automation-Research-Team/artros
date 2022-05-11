@@ -102,17 +102,18 @@ Multiplexer::Multiplexer(const ros::NodeHandle& nh)
 	return;
     }
 
-    std::map<std::string, int>	enum_cameras;
+    std::map<std::string, std::string>	enum_cameras;
     for (const auto& camera_name : camera_names)
     {
-	enum_cameras[camera_name] = ncameras();
+	std::cerr << camera_name << std::endl;
+	enum_cameras[camera_name] = camera_name;
 	_subscribers.emplace_back(new Subscribers(this, camera_name));
     }
 
-    _ddr.registerEnumVariable<int>("active_camera", 0,
-				   boost::bind(&Multiplexer::activate_camera,
-					       this, _1),
-				   "Currently active camera", enum_cameras);
+    _ddr.registerEnumVariable<std::string>(
+	"active_camera", _subscribers[_camera_number]->camera_name(),
+	boost::bind(&Multiplexer::activate_camera, this, _1),
+	"Currently active camera", enum_cameras);
     _ddr.publishServicesTopics();
 }
 
@@ -129,35 +130,18 @@ Multiplexer::ncameras() const
 }
 
 void
-Multiplexer::activate_camera(int camera_number)
-{
-    if (0 <= camera_number && camera_number < ncameras())
-    {
-	_camera_number = camera_number;
-
-	ROS_INFO_STREAM("(Multiplexer) activate camera["
-			<< _subscribers[camera_number]->camera_name() << ']');
-    }
-    else
-    {
-	ROS_ERROR_STREAM("(Multiplexer) requested camera number["
-			 << camera_number << "] is out of range");
-    }
-}
-
-bool
-Multiplexer::activate_camera_cb(ActivateCamera::Request&  req,
-				ActivateCamera::Response& res)
+Multiplexer::activate_camera(const std::string& camera_name)
 {
     for (int i = 0; i < ncameras(); ++i)
-	if (_subscribers[i]->camera_name() == req.camera_name)
+	if (_subscribers[i]->camera_name() == camera_name)
 	{
-	    activate_camera(i);
-	    res.success = true;
-	    return true;
+	    _camera_number = i;
+	    ROS_INFO_STREAM("(Multiplexer) activate camera["
+			    << camera_name << ']');
+	    return;
 	}
-    res.success = false;
-    return true;
+
+    ROS_ERROR_STREAM("(Multiplexer) unknown camera[" << camera_name << ']');
 }
 
 void
