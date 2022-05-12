@@ -2,11 +2,9 @@
 <launch>
 
   <arg name="multiplexer_name"	default="camera_multiplexer"/>
-  <!-- <arg name="camera_names"	default="a_bot_inside_camera, -->
-  <!-- 					 a_bot_outside_camera"/> -->
-  <!-- <arg name="serial_nos"	default="636203005853, 636203005303"/> -->
-  <arg name="camera_names"	default="a_bot_inside_camera"/>
-  <arg name="serial_nos"	default="639204000513,"/>
+  <arg name="camera_names"	default="a_bot_inside_camera,
+  					 a_bot_outside_camera"/>
+  <arg name="serial_nos"	default="636203005853, 636203005303"/>
 
   <arg name="publish_tf"	default="true"/>
   <arg name="enable_pointcloud"	default="false"/>
@@ -14,7 +12,6 @@
   <arg name="camera_height"	default="480"/>
   <arg name="fps"		default="30"/>
   <arg name="manager"		default=""/>
-  <arg name="external_manager"	default="False"/>
   <arg name="camera_no"		default="0"/>
   <arg name="sim"		default="false"/>
   <arg name="vis"		default="false"/>
@@ -94,9 +91,6 @@
       <rosparam param="camera_names"
 		subst_value="true">[$(arg camera_names)]</rosparam>
     </node>
-    <node if="$(eval manager != '' and not external_manager)"
-	  name="$(arg manager)" pkg="nodelet" type="nodelet"
-	  args="manager" output="screen" respawn="false"/>
 
     <group if="$(arg vis)">
       <node name="$(anon rviz)" pkg="rviz" type="rviz"

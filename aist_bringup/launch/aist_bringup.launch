@@ -53,7 +53,7 @@
     <arg name="rviz_config"		value="$(arg rviz_config)"/>
   </include>
 
-  <!-- Launch camera multiplexer and Realsense cameras if not sim -->
+  <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
   <arg name="camera_names"		default="a_bot_inside_camera,
 						 a_bot_outside_camera"/>
   <arg name="serial_nos"		default="636203005853, 636203005303"/>
@@ -62,6 +62,12 @@
   <arg name="camera_height"		default="480"/>
   <arg name="fps"			default="30"/>
   <arg name="manager"			default="camera_manager"/>
+  <arg name="manager_threads"		default="4"/>
+
+  <node name="$(arg manager)"
+	pkg ="nodelet" type="nodelet" args="manager" output="screen">
+    <param name="num_worker_threads"	value="$(arg manager_threads)"/>
+  </node>
 
   <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
     <arg name="camera_names"		value="$(arg camera_names)"/>
