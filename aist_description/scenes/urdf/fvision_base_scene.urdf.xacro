@@ -79,11 +79,10 @@
 
   <!-- Add RealSense camera -->
   <xacro:include filename="$(find aist_description
-			   )/devices/urdf/_d435.urdf.xacro"/>
-  <xacro:sensor_d435 name="d_bot_camera" parent="d_bot_gripper_base_link"
-		     use_nominal_extrinsics="true">
+			   )/devices/urdf/_sr305.urdf.xacro"/>
+  <xacro:sensor_sr305 name="d_bot_camera" parent="d_bot_gripper_base_link">
     <origin xyz="0.030 0.000 0.043" rpy="0 ${0.0*pi/180.0} 0" />
-  </xacro:sensor_d435>
+  </xacro:sensor_sr305>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

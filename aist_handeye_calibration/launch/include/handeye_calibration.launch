@@ -52,9 +52,10 @@
   <node unless="$(arg check)"
 	name="handeye_calibrator"
 	pkg="aist_handeye_calibration" type="calibrator" output="screen">
-    <param name="use_dual_quaternion"	 value="$(arg use_dual_quaternion)"/>
-    <param name="calib_file"		 value="$(arg calib_file)"/>
+    <param name="use_dual_quaternion"	value="$(arg use_dual_quaternion)"/>
+    <param name="calib_file"		value="$(arg calib_file)"/>
     <rosparam file="$(arg config_file)"/>
+    <remap from="/pose"			to="/aruco_detector/pose"/>
   </node>
 
 </launch>
