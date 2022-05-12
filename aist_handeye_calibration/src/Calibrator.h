@@ -43,6 +43,7 @@
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
 #include <actionlib/server/simple_action_server.h>
@@ -61,6 +62,8 @@ class Calibrator
     using transformMsg_t  = geometry_msgs::TransformStamped;
 
   private:
+    using poseMsg_t	  = geometry_msgs::PoseStamped;
+    using poseMsg_cp	  = geometry_msgs::PoseStampedConstPtr;
     using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
 
   public:
@@ -75,6 +78,7 @@ class Calibrator
     const std::string&	object_frame()				const	;
     const std::string&	world_frame()				const	;
 
+    void	pose_cb(const poseMsg_cp& pose)				;
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
@@ -83,10 +87,12 @@ class Calibrator
 				 std_srvs::Trigger::Response& res)	;
     bool	reset(std_srvs::Empty::Request&,
 		      std_srvs::Empty::Response&)			;
-    void	take_sample(const TakeSampleGoalConstPtr& goal)		;
+    void	take_sample()						;
 
   private:
     ros::NodeHandle		_nh;
+
+    ros::Subscriber		_pose_sub;
 
     const ros::ServiceServer	_get_sample_list_srv;
     const ros::ServiceServer	_compute_calibration_srv;

@@ -48,7 +48,7 @@ aluminum peripherial evaluation case.
           <imageTopicName>color/image_raw</imageTopicName>
           <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
           <depthImageTopicName>aligned_depth_to_color/image_raw</depthImageTopicName>
-          <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+          <depthImageCameraInfoTopicName>aligned_depth_to_color/camera_info</depthImageCameraInfoTopicName>
           <pointCloudTopicName>depth/color/points</pointCloudTopicName>
           <pointCloudCutoff>0.1</pointCloudCutoff>
           <!-- <hackBaseline>0.07</hackBaseline> -->
