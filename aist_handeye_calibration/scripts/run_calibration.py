@@ -63,7 +63,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         self._initpose             = rospy.get_param('~initpose', [])
         self._keyposes             = rospy.get_param('~keyposes', [])
         self._speed                = rospy.get_param('~speed', 1)
-        self._sleep_time           = rospy.get_param('~sleep_time', 1)
+        self._sleep_time           = rospy.get_param('~sleep_time', 3)
 
         if rospy.get_param('calibration', True):
             ns = '/handeye_calibrator'
@@ -108,8 +108,8 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
             self.take_sample.send_goal(TakeSampleGoal())
             self.trigger_frame(self._camera_name)
-            if not self.take_sample.wait_for_result(rospy.Duration()):
-                self.take_sample.cencel_goal()  # timeout expired
+            if not self.take_sample.wait_for_result(rospy.Duration(5.0)):
+                self.take_sample.cancel_goal()  # timeout expired
                 rospy.logerr('TakeSampleAction: timeout expired')
                 return False
             if self.take_sample.get_state() != GoalStatus.SUCCEEDED:

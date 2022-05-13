@@ -88,6 +88,7 @@ class Calibrator
     bool	reset(std_srvs::Empty::Request&,
 		      std_srvs::Empty::Response&)			;
     void	take_sample()						;
+    void	cancel()						;
 
   private:
     ros::NodeHandle		_nh;
@@ -107,10 +108,9 @@ class Calibrator
     transformMsg_t		_eMc;	//!< out: effector <- camera transform
     transformMsg_t		_wMo;	//!< out: world    <- object transform
 
-    bool			_use_dual_quaternion;
-
-    bool			_eye_on_hand;
-    double			_timeout;
+    const bool			_use_dual_quaternion;
+    const bool			_eye_on_hand;
+    const ros::Duration		_timeout;
 };
 }	// namespace aist_hnadeye_calibration
 #endif	// !CALIBRATOR_H

@@ -71,36 +71,35 @@ Calibrator::Calibrator(const ros::NodeHandle& nh)
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
      _take_sample_srv(_nh, "take_sample", false),
      _listener(),
-     _use_dual_quaternion(false),
-     _eye_on_hand(true),
-     _timeout(5.0)
+     _use_dual_quaternion(_nh.param<bool>("use_dual_quaternion", true)),
+     _eye_on_hand(_nh.param<bool>("eye_on_hand", true)),
+     _timeout(_nh.param<double>("timeout", 5.0))
 {
     ROS_INFO_STREAM("initializing calibrator...");
 
-    _nh.param<bool>("use_dual_quaternion",
-		    _use_dual_quaternion, _use_dual_quaternion);
-    _nh.param<bool>("eye_on_hand", _eye_on_hand, _eye_on_hand);
-
     if (_eye_on_hand)
     {
-	_nh.param<std::string>("robot_effector_frame",	_eMc.header.frame_id,
-			       "tool0");
-	_nh.param<std::string>("robot_base_frame",	_wMo.header.frame_id,
-			       "base_link");
+	_eMc.header.frame_id = _nh.param<std::string>("robot_effector_frame",
+						      "tool0");
+	_wMo.header.frame_id = _nh.param<std::string>("robot_base_frame",
+						      "base_link");
     }
     else
     {
-	_nh.param<std::string>("robot_effector_frame",	_wMo.header.frame_id,
-			       "tool0");
-	_nh.param<std::string>("robot_base_frame",	_eMc.header.frame_id,
-			       "base_link");
+	_wMo.header.frame_id = _nh.param<std::string>("robot_effector_frame",
+						      "tool0");
+	_eMc.header.frame_id = _nh.param<std::string>("robot_base_frame",
+						      "base_link");
     }
 
-    _nh.param<std::string>("camera_frame", _eMc.child_frame_id, "camera_frame");
-    _nh.param<std::string>("marker_frame", _wMo.child_frame_id, "marker_frame");
+    _eMc.child_frame_id = "";
+    _wMo.child_frame_id = _nh.param<std::string>("marker_frame",
+						 "marker_frame");
 
     _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::take_sample,
 						      this));
+    _take_sample_srv.registerPreemptCallback(boost::bind(&Calibrator::cancel,
+							 this));
     _take_sample_srv.start();
 }
 
@@ -148,16 +147,20 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
     {
 	using aist_utility::operator <<;
 
+      // Set camera frame.
+	_eMc.child_frame_id = poseMsg->header.frame_id;
+
+      // Convert marker pose to TF.
 	tf::Pose	pose;
 	tf::poseMsgToTF(poseMsg->pose, pose);
 	tf::StampedTransform	cMo(pose, poseMsg->header.stamp,
-				    poseMsg->header.frame_id, object_frame());
+				    camera_frame(), object_frame());
 
+      // Lookup world <= effector transform at the moment marker detected.
 	_listener.waitForTransform(world_frame(), effector_frame(),
-	 			   poseMsg->header.stamp,
-				   ros::Duration(_timeout));
+	 			   poseMsg->header.stamp, _timeout);
 	tf::StampedTransform	wMe;
-	_listener.lookupTransform(world_frame(),  effector_frame(),
+	_listener.lookupTransform(world_frame(), effector_frame(),
 				  poseMsg->header.stamp, wMe);
 	ROS_INFO_STREAM("camera <= object:   " << cMo);
 	ROS_INFO_STREAM("world  <= effector: " << wMe);
@@ -353,6 +356,13 @@ Calibrator::take_sample()
     _take_sample_srv.acceptNewGoal();
 
     ROS_INFO_STREAM("take_sample(): accepted new goal");
+}
+
+void
+Calibrator::cancel()
+{
+    ROS_WARN_STREAM("cancel(): taking sample canceled.");
+    _take_sample_srv.setPreempted();
 }
 
 }	// namespace aist_handeye_calibration
