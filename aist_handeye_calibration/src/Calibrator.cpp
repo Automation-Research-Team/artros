@@ -157,28 +157,32 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
 				    camera_frame(), object_frame());
 
       // Lookup world <= effector transform at the moment marker detected.
-	_listener.waitForTransform(world_frame(), effector_frame(),
-	 			   poseMsg->header.stamp, _timeout);
+	if (!_listener.waitForTransform(world_frame(), effector_frame(),
+					poseMsg->header.stamp, _timeout))
+	    throw std::runtime_error("take_sample(): timeout expired in waiting for transform from " + effector_frame() + " to " + world_frame());
+	
 	tf::StampedTransform	wMe;
 	_listener.lookupTransform(world_frame(), effector_frame(),
 				  poseMsg->header.stamp, wMe);
-	ROS_INFO_STREAM("camera <= object:   " << cMo);
-	ROS_INFO_STREAM("world  <= effector: " << wMe);
+	ROS_INFO_STREAM(cMo);
+	ROS_INFO_STREAM(wMe);
 
 	TakeSampleResult	result;
 	tf::transformStampedTFToMsg(cMo, result.cMo);
 	_cMo.emplace_back(result.cMo);
 	tf::transformStampedTFToMsg(wMe, result.wMe);
 	_wMe.emplace_back(result.wMe);
-	// ROS_INFO_STREAM("camera <= object:   " << result.cMo.transform);
-	// ROS_INFO_STREAM("world  <= effector: " << result.wMe.transform);
+	// ROS_INFO_STREAM(result.cMo);
+	// ROS_INFO_STREAM(result.wMe);
 
 	_take_sample_srv.setSucceeded(result);
+
 	ROS_INFO_STREAM("take_sample(): succeeded");
     }
     catch (const std::exception& err)
     {
 	_take_sample_srv.setAborted();
+
 	ROS_ERROR_STREAM("take_sample(): aborted[" << err.what() << ']');
     }
 
@@ -326,6 +330,7 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 
 	res.success = true;
 	res.message = "saved in " + calib_file;
+
 	ROS_INFO_STREAM("save_calibration(): " << res.message);
     }
     catch (const std::exception& err)
