@@ -85,18 +85,18 @@
   <group unless="$(arg sim)">
 
     <!-- Drivers for the force sensors -->
-    <!-- <include ns="a_bot_ftsensor" -->
-    <!-- 	     file="$(find aist_ftsensor)/launch/ft300.launch"> -->
-    <!--   <arg name="calib_file"		value="a_bot_ftsensor"/> -->
-    <!--   <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/> -->
-    <!--   <arg name="hostname"		value="a_bot"/> -->
-    <!-- </include> -->
-    <!-- <include ns="b_bot_ftsensor" -->
-    <!-- 	     file="$(find aist_ftsensor)/launch/ft300.launch"> -->
-    <!--   <arg name="calib_file"		value="b_bot_ftsensor"/> -->
-    <!--   <arg name="frame_id"		value="b_bot_ftsensor_wrench_link"/> -->
-    <!--   <arg name="hostname"		value="b_bot"/> -->
-    <!-- </include> -->
+    <include ns="a_bot_ftsensor"
+    	     file="$(find aist_ftsensor)/launch/ft300.launch">
+      <arg name="calib_file"		value="a_bot_ftsensor"/>
+      <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
+      <arg name="hostname"		value="a_bot"/>
+    </include>
+    <include ns="b_bot_ftsensor"
+    	     file="$(find aist_ftsensor)/launch/ft300.launch">
+      <arg name="calib_file"		value="b_bot_ftsensor"/>
+      <arg name="frame_id"		value="b_bot_ftsensor_wrench_link"/>
+      <arg name="hostname"		value="b_bot"/>
+    </include>
 
     <!-- Launch suction controller -->
     <include ns="b_bot"
