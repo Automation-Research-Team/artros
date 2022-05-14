@@ -91,7 +91,6 @@ class ft300_driver : public hardware_interface::RobotHW
 
   private:
     ros::NodeHandle	_nh;
-    const double	_rate;
     const int		_socket;
     interface_t		_interface;
     double		_ft[6];
@@ -99,7 +98,6 @@ class ft300_driver : public hardware_interface::RobotHW
 
 ft300_driver::ft300_driver()
     :_nh("~"),
-     _rate(_nh.param<int>("rate", 100)),
      _socket(::socket(AF_INET, SOCK_STREAM, 0)),
      _interface(),
      _ft{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}

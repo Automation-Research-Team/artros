@@ -172,8 +172,6 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
 	_cMo.emplace_back(result.cMo);
 	tf::transformStampedTFToMsg(wMe, result.wMe);
 	_wMe.emplace_back(result.wMe);
-	// ROS_INFO_STREAM(result.cMo);
-	// ROS_INFO_STREAM(result.wMe);
 
 	_take_sample_srv.setSucceeded(result);
 
