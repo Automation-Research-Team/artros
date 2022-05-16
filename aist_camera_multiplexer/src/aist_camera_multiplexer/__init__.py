@@ -69,13 +69,11 @@ class CameraMultiplexerClient(object):
 class RealSenseMultiplexerClient(CameraMultiplexerClient):
 
     class RealSenseCamera(object):
-        def __init__(self, server):
+        def __init__(self, camera_name):
             super(RealSenseMultiplexerClient.RealSenseCamera, self).__init__()
             self._ddr_client = dynamic_reconfigure.client.Client(
-                                   server + '/coded_light_depth_sensor',
+                                   camera_name + '/coded_light_depth_sensor',
                                    timeout=5.0)
-            self.laser_power = 16
-            self._recent_laser_power = self.laser_power
 
         @property
         def laser_power(self):
@@ -85,15 +83,7 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
         def laser_power(self, value):
             self._ddr_client.update_configuration({'laser_power': value})
 
-        def enable_laser(self, enabled):
-            if enabled:
-                self.laser_power = self._recent_laser_power
-            else:
-                self._recent_laser_power = self.laser_power
-                self.laser_power = 0
-            rospy.sleep(0.2)
-
-    def __init__(self, server='camera_multiplexer'):
+    def __init__(self, server='camera_multiplexer', value=16):
         try:
             super(RealSenseMultiplexerClient, self).__init__(server)
             self._cameras = dict(zip(self.camera_names,
@@ -106,10 +96,10 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
             "Are the camera nodes started? Does /camera_multiplexer/camera_names"
             "contain unused cameras? camera_names: " + str(self.camera_names))
         for camera in self._cameras.values():
-            camera.enable_laser(False)
-        self._cameras[self.active_camera].enable_laser(True)
+            camera.laser_power = 0
+        self._cameras[self.active_camera].laser_power = value
 
-    def activate_camera(self, camera_name):
-        self._cameras[self.active_camera].enable_laser(False)
+    def activate_camera(self, camera_name, value=16):
+        self._cameras[self.active_camera].laser_power = 0
         super(RealSenseMultiplexerClient, self).activate_camera(camera_name)
-        self._cameras[self.active_camera].enable_laser(True)
+        self._cameras[self.active_camera].laser_power = value

@@ -5,7 +5,6 @@
   <arg name="camera_names"	default="a_bot_inside_camera,
   					 a_bot_outside_camera"/>
   <arg name="serial_nos"	default="636203005853, 636203005303"/>
-
   <arg name="publish_tf"	default="true"/>
   <arg name="enable_pointcloud"	default="false"/>
   <arg name="camera_width"	default="640"/>
@@ -34,7 +33,7 @@
       <arg name="tf_prefix"		value="calibrated_$(arg camera_name)"/>
       <arg name="publish_tf"		value="$(arg publish_tf)"/>
       <arg name="enable_depth"		value="$(arg enable_depth)"/>
-      <arg name="enable_infra1"		value="true"/>
+      <arg name="enable_infra1"		value="false"/>
       <arg name="enable_infra2"		value="false"/>
       <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
       <arg name="align_depth"		value="true"/>
