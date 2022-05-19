@@ -2,7 +2,7 @@
 
   <arg name="camera_name"	default="phoxi"/>
   <arg name="config_file"	default="$(dirname
-					 )/../config/a_phoxi_m_camera.yaml"/>
+					 )/../config/$(arg camera_name).yaml"/>
   <arg name="external_manager"	default="false"/>
   <arg name="manager"		default=""/>
 

@@ -63,7 +63,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         self._initpose             = rospy.get_param('~initpose', [])
         self._keyposes             = rospy.get_param('~keyposes', [])
         self._speed                = rospy.get_param('~speed', 1)
-        self._sleep_time           = rospy.get_param('~sleep_time', 3)
+        self._sleep_time           = rospy.get_param('~sleep_time', 0.5)
 
         if rospy.get_param('calibration', True):
             ns = '/handeye_calibrator'
