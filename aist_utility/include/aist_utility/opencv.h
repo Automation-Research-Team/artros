@@ -94,10 +94,10 @@ rodrigues(const cv::Matx<T, 3, 1>& r)
     return R;
 }
 
-inline cv::Point3f
+template <class T=double> inline cv::Point3_<T>
 pointTFToCV(const tf::Point& p)
 {
-    return {p.x(), p.y(), p.z()};
+    return {T(p.x()), T(p.y()), T(p.z())};
 }
 
 /************************************************************************
@@ -232,8 +232,8 @@ Rigidity<T, D>::fit(ITER begin, ITER end)
 {
   // 充分な個数の点対があるか？
     const size_t	ndata = std::distance(begin, end);
-    if (ndata < D)		// beginが有効か？
-	throw std::invalid_argument("Rigidity::fit(): not enough data!!");
+    if (ndata < D)
+	throw std::runtime_error("Rigidity::fit(): not enough data!!");
 
   // 重心の計算
     vector_t	xc(vector_t::zeros()), yc(vector_t::zeros());
@@ -334,7 +334,7 @@ Similarity<T, D>::fit(ITER begin, ITER end)
   // 充分な個数の点対があるか？
     const size_t	ndata = std::distance(begin, end);
     if (ndata < D)
-	throw std::invalid_argument("Similarity::fit(): not enough data!!");
+	throw std::runtime_error("Similarity::fit(): not enough data!!");
 
   // 重心の計算
     vector_t	xc(vector_t::zeros()), yc(vector_t::zeros());

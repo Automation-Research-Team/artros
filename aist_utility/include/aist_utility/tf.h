@@ -61,5 +61,13 @@ operator <<(std::ostream& out, const tf::Transform& transform)
 	       << "; " << transform.getRotation() << ']';
 }
 
+inline std::ostream&
+operator <<(std::ostream& out, const tf::StampedTransform& transform)
+{
+    return out << '('    << transform.frame_id_
+	       << " <= " << transform.child_frame_id_
+	       << ") "   << static_cast<const tf::Transform&>(transform);
+}
+
 }	// namespace aist_utility
 #endif	// !AIST_UTILITY_GEOMETRY_MSGS_H

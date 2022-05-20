@@ -103,18 +103,15 @@ class RealSenseCamera(DepthCamera):
         self._dyn_camera = dynamic_reconfigure.client.Client(name, timeout=5.0)
         self._dyn_sensor = dynamic_reconfigure.client.Client(
                                name + '/coded_light_depth_sensor', timeout=5.0)
-        self.laser_power = 16
-        self._recent_laser_power = self.laser_power
+        # Don't change current value of laser power not to activate
+        # multiple realsense cameras simultaneously.
 
     @property
     def laser_power(self):
-        ret = self._dyn_sensor.get_configuration()
-        return ret['laser_power']
+        return self._dyn_sensor.get_configuration()['laser_power']
 
     @laser_power.setter
     def laser_power(self, value):
-        if value != 0:
-            self._recent_laser_power = value
         self._dyn_sensor.update_configuration({'laser_power' : value})
 
 ######################################################################

@@ -77,7 +77,6 @@ class dynpick_driver : public hardware_interface::RobotHW
 
   private:
     ros::NodeHandle	_nh;
-    const double	_rate;
     const int		_fd;
     interface_t		_interface;
     const vector6_t	_gains;
@@ -86,7 +85,6 @@ class dynpick_driver : public hardware_interface::RobotHW
 
 dynpick_driver::dynpick_driver()
     :_nh("~"),
-     _rate(_nh.param<int>("rate", 1000)),
      _fd(open_tty(_nh.param<std::string>("dev", "/dev/ttyUSB0").c_str(),
 		  _nh.param<int>("baud", 921600))),
      _interface(),

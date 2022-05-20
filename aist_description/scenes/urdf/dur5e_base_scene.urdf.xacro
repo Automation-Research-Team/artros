@@ -110,7 +110,7 @@
 
   <!-- Add PhoXi 3D scanner -->
   <xacro:include filename="$(find aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
-  <xacro:phoxi_m_camera prefix="b_" parent="ground">
+  <xacro:phoxi_m_camera name="b_phoxi_m_camera" parent="ground">
     <origin xyz="0.547941636523
 		 -0.00827443204237
 		 1.67030171767"

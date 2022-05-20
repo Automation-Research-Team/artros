@@ -27,5 +27,5 @@ keyposes:
   - [ 0.00, 0.12, 0.16, -150, 25, -90]
   - [ 0.15, 0.17, 0.16, -150, 25, -90]
 
-camera_body_frame: d_phoxi_m_camera
+camera_body_frame: d_phoxi_m_camera_link
 camera_optical_frame: d_phoxi_m_camera_sensor

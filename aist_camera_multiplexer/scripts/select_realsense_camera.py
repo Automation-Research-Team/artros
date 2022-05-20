@@ -10,6 +10,8 @@ if __name__ == '__main__':
 
     camera_name = sys.argv[1]
 
-    rospy.init_node('~')
+    rospy.init_node('select_realsense_camera')
     multiplexer = RealSenseMultiplexerClient('camera_multiplexer')
-    multiplexer.activate_camera(camera_name)
+
+    if not multiplexer.activate_camera(camera_name):
+        print('Unknown camera[{}]'.format(camera_name))

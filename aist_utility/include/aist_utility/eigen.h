@@ -251,8 +251,8 @@ Similarity<T, D>::fit(ITER begin, ITER end)
 
   // 充分な個数の点対があるか？
     const size_t	ndata = std::distance(begin, end);
-    if (ndata == 0)		// beginが有効か？
-	throw std::invalid_argument("Similarity::fit(): 0-length input data!!");
+    if (ndata == 0)
+	throw std::runtime_error("Similarity::fit(): 0-length input data!!");
   // 重心の計算
     vector_t	xc = vector_t::Zero(), yc = vector_t::Zero();
     for (auto corres = begin; corres != end; ++corres)

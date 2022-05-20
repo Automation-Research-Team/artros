@@ -48,8 +48,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <aist_depth_filter/FileInfo.h>
 #include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/time_synchronizer.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_depth_filter/DetectPlaneAction.h>
@@ -70,12 +69,10 @@ class DepthFilter
     using image_cp	 = sensor_msgs::ImageConstPtr;
     using image_p	 = sensor_msgs::ImagePtr;
     using cloud_t	 = sensor_msgs::PointCloud2;
-    using sync_policy_t	 = message_filters::sync_policies::
-				ApproximateTime<camera_info_t, image_t,
-						image_t, image_t>;
-    using sync_policy2_t = message_filters::sync_policies::
-				ApproximateTime<camera_info_t,
-						image_t, image_t>;
+    using sync_t	 = message_filters::TimeSynchronizer<
+				camera_info_t, image_t, image_t, image_t>;
+    using sync2_t	 = message_filters::TimeSynchronizer<
+				camera_info_t, image_t, image_t>;
     using file_info_t	 = aist_depth_filter::FileInfo;
     using plane_t	 = aist_utility::opencv::Plane<value_t, 3>;
 
@@ -132,70 +129,70 @@ class DepthFilter
 		open_dir()					  	;
 
   private:
-    ros::NodeHandle					_nh;
+    ros::NodeHandle				_nh;
 
-    const ros::ServiceServer				_saveBG_srv;
-    const ros::ServiceServer				_capture_srv;
+    const ros::ServiceServer			_saveBG_srv;
+    const ros::ServiceServer			_capture_srv;
 
-    image_transport::ImageTransport			_it;
+    image_transport::ImageTransport		_it;
 
-    message_filters::Subscriber<camera_info_t>		_camera_info_sub;
-    image_transport::SubscriberFilter			_image_sub;
-    image_transport::SubscriberFilter			_depth_sub;
-    image_transport::SubscriberFilter			_normal_sub;
-    message_filters::Synchronizer<sync_policy_t>	_sync;
-    message_filters::Synchronizer<sync_policy2_t>	_sync2;
+    message_filters::Subscriber<camera_info_t>	_camera_info_sub;
+    image_transport::SubscriberFilter		_image_sub;
+    image_transport::SubscriberFilter		_depth_sub;
+    image_transport::SubscriberFilter		_normal_sub;
+    sync_t					_sync;
+    sync2_t					_sync2;
 
-    const image_transport::Publisher			_image_pub;
-    const image_transport::Publisher			_depth_pub;
-    const image_transport::Publisher			_normal_pub;
-    const image_transport::Publisher			_colored_normal_pub;
-    const ros::Publisher				_plane_pub;
-    const ros::Publisher				_camera_info_pub;
-    const ros::Publisher				_file_info_pub;
+    const image_transport::Publisher		_image_pub;
+    const image_transport::Publisher		_depth_pub;
+    const image_transport::Publisher		_normal_pub;
+    const image_transport::Publisher		_colored_normal_pub;
+    const ros::Publisher			_plane_pub;
+    const ros::Publisher			_camera_info_pub;
+    const ros::Publisher			_file_info_pub;
 
-    server_t						_detect_plane_srv;
+    server_t					_detect_plane_srv;
 
-    ddynamic_reconfigure::DDynamicReconfigure		_ddr;
+    ddynamic_reconfigure::DDynamicReconfigure	_ddr;
 
-    camera_info_cp					_camera_info_org;
-    camera_info_t					_camera_info;
-    image_cp						_image_org;
-    image_t						_image;
-    image_cp						_depth_org;
-    image_cp						_depth_bg;
-    image_t						_depth;
-    image_t						_normal;
-    image_t						_colored_normal;
+    camera_info_cp				_camera_info_org;
+    camera_info_t				_camera_info;
+    image_cp					_image_org;
+    image_t					_image;
+    image_cp					_depth_org;
+    image_cp					_depth_bg;
+    image_t					_depth;
+    image_t					_normal;
+    image_t					_colored_normal;
 
   // Remove background.
-    double						_threshBG;
-    std::string						_fileBG;
+    double					_threshBG;
+    std::string					_fileBG;
 
   // Clip outside of [_near, _far].
-    double						_near;
-    double						_far;
+    double					_near;
+    double					_far;
 
   // Mask outside of ROI.
-    int							_top;
-    int							_bottom;
-    int							_left;
-    int							_right;
+    int						_top;
+    int						_bottom;
+    int						_left;
+    int						_right;
 
   // Scaling of depth values.
-    double						_scale;
+    double					_scale;
 
   // Save as OrderPly file.
-    std::string						_fileOPly;
+    std::string					_fileOPly;
 
   // Radius of window for computing normals.
-    int							_window_radius;
+    int						_window_radius;
 
   // Threshold of plane fitting for bottom plane detection
-    double						_threshPlane;
+    double					_threshPlane;
 
   private:
-    constexpr static double				FarMax = 4.0;
+    constexpr static double			FarMax = 4.0;
 };
 
 }	// namespace aist_photoneo_localization

@@ -58,6 +58,7 @@ namespace aist_handeye_calibration
 ************************************************************************/
 Calibrator::Calibrator(const ros::NodeHandle& nh)
     :_nh(nh),
+     _pose_sub(_nh.subscribe("/pose", 5, &Calibrator::pose_cb, this)),
      _get_sample_list_srv(
 	 _nh.advertiseService("get_sample_list",
 			      &Calibrator::get_sample_list, this)),
@@ -68,37 +69,37 @@ Calibrator::Calibrator(const ros::NodeHandle& nh)
 	 _nh.advertiseService("save_calibration",
 			      &Calibrator::save_calibration, this)),
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
-     _take_sample_srv(_nh, "take_sample",
-		      boost::bind(&Calibrator::take_sample, this, _1), false),
+     _take_sample_srv(_nh, "take_sample", false),
      _listener(),
-     _use_dual_quaternion(false),
-     _eye_on_hand(true),
-     _timeout(5.0)
+     _use_dual_quaternion(_nh.param<bool>("use_dual_quaternion", true)),
+     _eye_on_hand(_nh.param<bool>("eye_on_hand", true)),
+     _timeout(_nh.param<double>("timeout", 5.0))
 {
     ROS_INFO_STREAM("initializing calibrator...");
 
-    _nh.param<bool>("use_dual_quaternion",
-		    _use_dual_quaternion, _use_dual_quaternion);
-    _nh.param<bool>("eye_on_hand", _eye_on_hand, _eye_on_hand);
-
     if (_eye_on_hand)
     {
-	_nh.param<std::string>("robot_effector_frame",	_eMc.header.frame_id,
-			       "tool0");
-	_nh.param<std::string>("robot_base_frame",	_wMo.header.frame_id,
-			       "base_link");
+	_eMc.header.frame_id = _nh.param<std::string>("robot_effector_frame",
+						      "tool0");
+	_wMo.header.frame_id = _nh.param<std::string>("robot_base_frame",
+						      "base_link");
     }
     else
     {
-	_nh.param<std::string>("robot_effector_frame",	_wMo.header.frame_id,
-			       "tool0");
-	_nh.param<std::string>("robot_base_frame",	_eMc.header.frame_id,
-			       "base_link");
+	_wMo.header.frame_id = _nh.param<std::string>("robot_effector_frame",
+						      "tool0");
+	_eMc.header.frame_id = _nh.param<std::string>("robot_base_frame",
+						      "base_link");
     }
 
-    _nh.param<std::string>("camera_frame", _eMc.child_frame_id, "camera_frame");
-    _nh.param<std::string>("marker_frame", _wMo.child_frame_id, "marker_frame");
+    _eMc.child_frame_id = "";
+    _wMo.child_frame_id = _nh.param<std::string>("marker_frame",
+						 "marker_frame");
 
+    _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::take_sample,
+						      this));
+    _take_sample_srv.registerPreemptCallback(boost::bind(&Calibrator::cancel,
+							 this));
     _take_sample_srv.start();
 }
 
@@ -134,6 +135,55 @@ const std::string&
 Calibrator::world_frame() const
 {
     return _wMo.header.frame_id;
+}
+
+void
+Calibrator::pose_cb(const poseMsg_cp& poseMsg)
+{
+    if (!_take_sample_srv.isActive())
+	return;
+
+    try
+    {
+	using aist_utility::operator <<;
+
+      // Set camera frame.
+	_eMc.child_frame_id = poseMsg->header.frame_id;
+
+      // Convert marker pose to TF.
+	tf::Pose	pose;
+	tf::poseMsgToTF(poseMsg->pose, pose);
+	tf::StampedTransform	cMo(pose, poseMsg->header.stamp,
+				    camera_frame(), object_frame());
+
+      // Lookup world <= effector transform at the moment marker detected.
+	if (!_listener.waitForTransform(world_frame(), effector_frame(),
+					poseMsg->header.stamp, _timeout))
+	    throw std::runtime_error("take_sample(): timeout expired in waiting for transform from " + effector_frame() + " to " + world_frame());
+	
+	tf::StampedTransform	wMe;
+	_listener.lookupTransform(world_frame(), effector_frame(),
+				  poseMsg->header.stamp, wMe);
+	ROS_INFO_STREAM(cMo);
+	ROS_INFO_STREAM(wMe);
+
+	TakeSampleResult	result;
+	tf::transformStampedTFToMsg(cMo, result.cMo);
+	_cMo.emplace_back(result.cMo);
+	tf::transformStampedTFToMsg(wMe, result.wMe);
+	_wMe.emplace_back(result.wMe);
+
+	_take_sample_srv.setSucceeded(result);
+
+	ROS_INFO_STREAM("take_sample(): succeeded");
+    }
+    catch (const std::exception& err)
+    {
+	_take_sample_srv.setAborted();
+
+	ROS_ERROR_STREAM("take_sample(): aborted[" << err.what() << ']');
+    }
+
 }
 
 bool
@@ -278,6 +328,7 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 
 	res.success = true;
 	res.message = "saved in " + calib_file;
+
 	ROS_INFO_STREAM("save_calibration(): " << res.message);
     }
     catch (const std::exception& err)
@@ -303,43 +354,18 @@ Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 }
 
 void
-Calibrator::take_sample(const TakeSampleGoalConstPtr& goal)
+Calibrator::take_sample()
 {
-    try
-    {
-	using aist_utility::operator <<;
+    _take_sample_srv.acceptNewGoal();
 
-	ros::Time	time;
-	std::string	error_string;
-	if (_listener.getLatestCommonTime(camera_frame(), object_frame(), time,
-					  &error_string) != tf::NO_ERROR)
-	    throw std::runtime_error(error_string);
+    ROS_INFO_STREAM("take_sample(): accepted new goal");
+}
 
-	// _listener.waitForTransform(world_frame(), effector_frame(),
-	// 			   time, ros::Duration(_timeout));
-
-	tf::StampedTransform	cMo, wMe;
-	_listener.lookupTransform(camera_frame(), object_frame(),   time, cMo);
-	_listener.lookupTransform(world_frame(),  effector_frame(), time, wMe);
-	ROS_INFO_STREAM("camera <= object:   " << cMo);
-	ROS_INFO_STREAM("world  <= effector: " << wMe);
-
-	TakeSampleResult	result;
-	tf::transformStampedTFToMsg(cMo, result.cMo);
-	_cMo.emplace_back(result.cMo);
-	tf::transformStampedTFToMsg(wMe, result.wMe);
-	_wMe.emplace_back(result.wMe);
-	// ROS_INFO_STREAM("camera <= object:   " << result.cMo.transform);
-	// ROS_INFO_STREAM("world  <= effector: " << result.wMe.transform);
-
-	_take_sample_srv.setSucceeded(result);
-	ROS_INFO_STREAM("take_sample(): succeeded");
-    }
-    catch (const std::exception& err)
-    {
-	_take_sample_srv.setAborted();
-	ROS_ERROR_STREAM("take_sample(): aborted[" << err.what() << ']');
-    }
+void
+Calibrator::cancel()
+{
+    ROS_WARN_STREAM("cancel(): taking sample canceled.");
+    _take_sample_srv.setPreempted();
 }
 
 }	// namespace aist_handeye_calibration

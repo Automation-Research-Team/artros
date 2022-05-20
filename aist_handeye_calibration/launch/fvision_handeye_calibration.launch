@@ -9,7 +9,7 @@
   <!-- Set camera topic names -->
   <arg name="camera_info_topic"
        value="$(eval 'camera_info' if 'phoxi' in camera_name
-	      else 'color/camera_info')"/>
+	      else 'aligned_depth_to_color/camera_info')"/>
   <arg name="image_topic"
        value="$(eval 'texture' if 'phoxi' in camera_name
 	      else 'color/image_raw')"/>
