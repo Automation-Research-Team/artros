@@ -44,6 +44,15 @@
 #include <opencv2/core/core.hpp>
 #include <tf/tf.h>
 
+namespace cv
+{
+template <size_t I, class T, int N> inline T
+get(const Vec<T, N>& x)
+{
+    return x(I);
+}
+}
+
 namespace aist_utility
 {
 namespace opencv
