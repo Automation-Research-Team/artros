@@ -177,10 +177,12 @@ create_pointcloud(IN in, IN ie,
     PointCloud2Iterator<float>	out(cloud, "x");
     for (; in != ie; ++in, ++out)
     {
+	using	std::get;
+	
 	const auto&	xyz = *in;
-	out[0] = xyz(0);
-	out[1] = xyz(1);
-	out[2] = xyz(2);
+	out[0] = get<0>(xyz);
+	out[1] = get<1>(xyz);
+	out[2] = get<2>(xyz);
     }
 
     return cloud;
