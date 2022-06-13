@@ -418,7 +418,7 @@ class MagswitchGripper(GripperClient):
         if self._goal.command.calibration_trigger == 1:
             self._calibration_step = result.magswitch_out.calibration_step
             return position > 0 and result.magswitch_out.calibration_state != 0
-        return result.reached_goal
+        return result.magswitch_out.calibration_state == 3
 
     def cancel(self):
         if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
