@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="sim"		default="false"/>
-  <arg name="phoxi_name"	default="camera"/>
+  <arg name="phoxi_name"	default="phoxi"/>
   <arg name="realsense_name"	default="realsense"/>
   <arg name="manager"		default="camera_manager"/>
   <arg name="robot_name"	default="arm"/>
