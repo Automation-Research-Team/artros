@@ -4,7 +4,7 @@ robot_name: c_bot
 eye_on_hand: false
 robot_base_frame: workspace_center
 robot_effector_frame: c_bot_flange
-camera_frame: calibrated_realsenseD435_color_optical_frame
+robot_effector_tip_frame: c_bot_gripper_tip_link
 marker_id: 32
 marker_size: 0.16
 planarity_tolerance: 0.01
@@ -21,13 +21,3 @@ keyposes:
 
 camera_body_frame: realsenseD435_link
 camera_optical_frame: realsenseD435_color_optical_frame
-
-
-
-# code .ros/aist_handeye_calibration/realsenseD435.yaml
-# eye_on_hand: false
-# parent: workspace_center
-# child: calibrated_realsenseD435_color_optical_frame
-# transform: {x: -0.007246830067568003, y: 0.7569737959974279, z: 0.4969053662449773, qx: -0.02040936309453232, qy: 0.843216014011098, qz: -0.5366985963778543, qw: 0.02290913048005611}
-# calibration_date: Wed Dec  2 13:24:04 2020
-

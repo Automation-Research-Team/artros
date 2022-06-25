@@ -121,7 +121,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             pose.header = result.cMo.header
             pose.pose.position    = result.cMo.transform.translation
             pose.pose.orientation = result.cMo.transform.rotation
-            print('  camera <= obejct   ' + self.format_pose(pose))
+#            print('  camera <= obejct   ' + self.format_pose(pose))
             pose.header = result.wMe.header
             pose.pose.position    = result.wMe.transform.translation
             pose.pose.orientation = result.wMe.transform.rotation

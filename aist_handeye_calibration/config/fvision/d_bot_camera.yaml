@@ -4,7 +4,7 @@ robot_name: d_bot
 eye_on_hand: true
 robot_base_frame: workspace_center
 robot_effector_frame: d_bot_flange
-camera_frame: calibrated_d_bot_camera_color_optical_frame
+robot_effector_tip_frame: d_bot_gripper_tip_link
 marker_id: 26
 marker_size: 0.07
 planarity_tolerance: 0.003
