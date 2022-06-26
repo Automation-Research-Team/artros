@@ -20,5 +20,5 @@ keyposes:
   - [ 0.50,  0.10, 0.75, 120,   0,   0]
   - [ 0.50,  0.30, 0.65, 105,   0,   0]
 
-camera_body_frame: realsense_link
-camera_optical_frame: realsense_color_optical_frame
+body_frame: realsense_link
+tcp_frame: realsense_color_optical_frame

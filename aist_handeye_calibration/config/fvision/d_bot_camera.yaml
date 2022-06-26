@@ -20,5 +20,5 @@ keyposes:
   - [ 0.00,  0.15, 0.25,   0, 110, 90]
   - [ 0.00,  0.20, 0.25,   0, 120, 90]
 
-camera_body_frame: d_bot_camera_link
-camera_optical_frame: d_bot_camera_color_optical_frame
+body_frame: d_bot_camera_link
+tcp_frame: d_bot_camera_color_optical_frame

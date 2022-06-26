@@ -39,12 +39,12 @@
     <rosparam file="$(arg config_file)"/>
   </node>
 
-  <!-- Publish dummy or calibrated camera pose -->
+  <!-- Publish calibrated camera pose -->
   <node if="$(arg check)"
 	name="$(anon handeye_publisher)"
 	pkg="aist_handeye_calibration" type="publish_calibration.py"
 	output="screen">
-    <rosparam file="$(arg calib_file)" if="$(arg check)"/>
+    <rosparam file="$(arg calib_file)"/>
     <rosparam file="$(arg config_file)"/>
   </node>
 

@@ -19,5 +19,5 @@ keyposes:
   - [-0.00,  0.10, 0.30,  0,  80, -90]
   - [-0.00,  0.00, 0.30,  0, 100, -90]
 
-camera_body_frame: a_bot_inside_camera_link
-camera_optical_frame: a_bot_inside_camera_color_optical_frame
+body_frame: a_bot_inside_camera_link
+tcp_frame: a_bot_inside_camera_color_optical_frame

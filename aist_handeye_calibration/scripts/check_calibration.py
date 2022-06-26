@@ -50,16 +50,16 @@ class CheckCalibrationRoutines(AISTBaseRoutines):
     def __init__(self):
         super(CheckCalibrationRoutines, self).__init__()
         self._camera_name      = rospy.get_param('~camera_name',
-                                                'realsenseD435')
+                                                 'realsenseD435')
         self._robot_name       = rospy.get_param('~robot_name', 'b_bot')
         self._robot_base_frame = rospy.get_param('~robot_base_frame',
-                                                'workspace_center')
+                                                 'workspace_center')
         self._robot_effector_frame \
-                                = rospy.get_param('~robot_effector_frame',
-                                                'b_bot_ee_link')
+                               = rospy.get_param('~robot_effector_frame',
+                                                 'b_bot_ee_link')
         self._robot_effector_tip_frame \
-                                = rospy.get_param('~robot_effector_tip_frame',
-                                                '')
+                               = rospy.get_param('~robot_effector_tip_frame',
+                                                 '')
         self._initpose         = rospy.get_param('~initpose', [])
         self._speed            = rospy.get_param('~speed', 1)
 

@@ -65,11 +65,11 @@ class CalibrationPublisher(object):
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
-        # Get camera(optical) <- camera(body) transform
-        opt_body = self._get_transform(
-                     rospy.get_param("~camera_optical_frame"),
-                     rospy.get_param("~camera_body_frame"))
-        bot_opt  = ((self._transform.transform.translation.x,
+        # Get camera(tcp) <- camera(body) transform
+        tcp_body = self._get_transform(
+                     rospy.get_param("~tcp_frame"),
+                     rospy.get_param("~body_frame"))
+        bot_tcp  = ((self._transform.transform.translation.x,
                      self._transform.transform.translation.y,
                      self._transform.transform.translation.z),
                     (self._transform.transform.rotation.x,
@@ -78,8 +78,8 @@ class CalibrationPublisher(object):
                      self._transform.transform.rotation.w))
 
         mat = tfs.concatenate_matrices(
-                self._listener.fromTranslationRotation(*bot_opt),
-                self._listener.fromTranslationRotation(*opt_body))
+                self._listener.fromTranslationRotation(*bot_tcp),
+                self._listener.fromTranslationRotation(*tcp_body))
         print("\n=== Estimated effector/base <- camera_body transform ===")
         self._print_mat(mat)
         print("\n")
