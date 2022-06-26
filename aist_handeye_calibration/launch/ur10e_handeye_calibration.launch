@@ -12,8 +12,7 @@
   <arg name="depth_topic"	value="aligned_depth_to_color/image_raw"/>
 
   <!-- Launch devices and calibrator -->
-  <include file="$(find aist_handeye_calibration
-		 )/launch/include/handeye_calibration.launch">
+  <include file="$(dirname)/include/handeye_calibration.launch">
     <arg name="config"			value="ur10e"/>
 
     <arg name="camera_info_topic"	value="$(arg camera_info_topic)"/>
