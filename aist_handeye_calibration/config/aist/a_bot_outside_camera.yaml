@@ -4,7 +4,7 @@ robot_name: a_bot
 eye_on_hand: true
 robot_base_frame: workspace_center
 robot_effector_frame: a_bot_flange
-camera_frame: calibrated_a_bot_outside_camera_color_optical_frame
+robot_effector_tip_frame: a_bot_gripper_tip_link
 marker_id: 32
 marker_size: 0.07
 planarity_tolerance: 0.003
@@ -20,5 +20,5 @@ keyposes:
   - [ 0.00, -0.20, 0.30,  0, 100, -90]
   - [ 0.00, -0.25, 0.30,  0, 110, -90]
 
-camera_body_frame: a_bot_outside_camera_link
-camera_optical_frame: a_bot_outside_camera_color_optical_frame
+body_frame: a_bot_outside_camera_link
+tcp_frame: a_bot_outside_camera_color_optical_frame

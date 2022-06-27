@@ -4,7 +4,7 @@ robot_name: arm
 eye_on_hand: true
 robot_base_frame: basement_link
 robot_effector_frame: arm_ee_link
-camera_frame: calibrated_realsense_color_optical_frame
+robot_effector_tip_frame: magnet_link
 marker_id: 26
 marker_size: 0.186
 planarity_tolerance: 0.003
@@ -20,5 +20,5 @@ keyposes:
   - [ 0.50,  0.10, 0.75, 120,   0,   0]
   - [ 0.50,  0.30, 0.65, 105,   0,   0]
 
-camera_body_frame: realsense_link
-camera_optical_frame: realsense_color_optical_frame
+body_frame: realsense_link
+tcp_frame: realsense_color_optical_frame

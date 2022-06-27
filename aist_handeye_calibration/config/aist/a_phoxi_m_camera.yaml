@@ -4,8 +4,7 @@ robot_name: b_bot
 eye_on_hand: false
 robot_base_frame: workspace_center
 robot_effector_frame: b_bot_flange
-robot_effector_tip_frame: b_bot_single_suction_gripper_pad_link
-camera_frame: calibrated_a_phoxi_m_camera_sensor
+robot_effector_tip_frame: b_bot_gripper_tip_link
 marker_id: 26
 marker_size: 0.07
 planarity_tolerance: 0.001
@@ -27,5 +26,5 @@ keyposes:
   - [0.00,  0.00, 0.16, -150, 25, 0]
   - [0.00,  0.15, 0.16, -150, 25, 0]
 
-camera_body_frame: a_phoxi_m_camera_link
-camera_optical_frame: a_phoxi_m_camera_sensor
+body_frame: a_phoxi_m_camera_link
+tcp_frame: a_phoxi_m_camera_sensor
