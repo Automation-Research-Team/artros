@@ -133,11 +133,14 @@ class GenericGripper(GripperClient):
                                              base_link, tip_link)
         self._client = actionlib.SimpleActionClient(action_ns,
                                                     cmsg.GripperCommandAction)
-        self._client.wait_for_server()
-
         self.parameters = {'grasp_position':   min_position,
                            'release_position': max_position,
                            'max_effort':       max_effort}
+
+        if not self._client.wait_for_server(timeout=rospy.Duration(5)):
+            self._client = None
+            rospy.logerr('(GenericGripper) failed to connect to server[%s]',
+                         action_ns)
 
         rospy.loginfo('%s initialized.', action_ns)
 
@@ -261,6 +264,11 @@ class SuctionGripper(GripperClient):
         self._goal.turn_suction_on = False
         self._goal.eject           = False
 
+        if not self._client.wait_for_server(timeout=rospy.Duration(5)):
+            self._client = None
+            rospy.logerr('(SuctionGripper) failed to connect to server[%s]',
+                         action_ns)
+
     @staticmethod
     def base(name, action_ns, state_ns, eject):
         return GripperClient(*SuctionGripper._initargs(name, action_ns,
@@ -323,6 +331,11 @@ class Lecp6Gripper(GripperClient):
         self.parameters = {'release_stepdata': open_no,
                            'grasp_stepdata':   close_no}
 
+        if not self._client.wait_for_server(timeout=rospy.Duration(5)):
+            self._client = None
+            rospy.logerr('(Lecp6Gripper) failed to connect to server[%s]',
+                         '/arm_driver/lecp6_driver/lecp6')
+
     @staticmethod
     def base(prefix):
         return GripperClient(*Lecp6Gripper._initargs(prefix))
@@ -377,6 +390,11 @@ class MagswitchGripper(GripperClient):
         self.parameters = {'sensitivity':      sensitivity,
                            'grasp_position':   grasp_position,
                            'confirm_position': confirm_position}
+
+        if not self._client.wait_for_server(timeout=rospy.Duration(5)):
+            self._client = None
+            rospy.logerr('(MagswitchGripper) failed to connect to server[%s]',
+                         '/arm_driver/magswitch_driver/magswitch')
 
     @staticmethod
     def base(prefix):
