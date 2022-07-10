@@ -36,50 +36,17 @@
 # Author: Toshio Ueshiba
 #
 import rospy, threading
-from geometry_msgs import msg as gmsg
-from control_msgs  import msg as cmsg
-from actionlib     import SimpleActionClient
+from aist_controllers.PointHeadClient import PointHeadClinet
 
 ######################################################################
-#  class PointHeadClient                                             #
+#  class InteractivePointHeadClient                                  #
 ######################################################################
-class PointHeadClient(object):
-    def __init__(self):
-        super(PointHeadClient, self).__init__()
+class InteractivePointHeadClient(PointHeadClient):
+    def __init__(self, server="/point_head_tracker"):
+        super(InteractivePointHeadClient, self).__init__(server)
 
-        server = rospy.get_param('~server', '/biclops_point_head_tracker')
-        self._target_frame   = rospy.get_param('~target_frame', 'marker_frame')
-        self._pointing_axis  = rospy.get_param('~pointing_axis', [0, 0, 1])
-        self._pointing_frame = rospy.get_param(
-                                   '~pointing_frame',
-                                   'biclops_camera_color_optical_frame')
-        self._min_duration   = rospy.get_param('~min_duration', 1.0)
-        self._max_velocity   = rospy.get_param('~max_velocity', 0.0)
-        self._point_head_client = SimpleActionClient(server + '/point_head',
-                                                     cmsg.PointHeadAction)
         thread = threading.Thread(target=self._interactive)
         thread.start()
-
-    def send_goal(self, feedback_cb=None):
-        goal = cmsg.PointHeadGoal()
-        goal.target.header.stamp    = rospy.Time.now()
-        goal.target.header.frame_id = self._target_frame
-        goal.target.point           = gmsg.Point(0, 0, 0)
-        goal.pointing_axis          = gmsg.Vector3(*self._pointing_axis)
-        goal.pointing_frame         = 'biclops_camera_color_optical_frame'
-        goal.min_duration           = rospy.Duration(self._min_duration)
-        goal.max_velocity           = self._max_velocity
-
-        self._point_head_client.send_goal(goal, feedback_cb=feedback_cb)
-
-    def wait_for_result(self, timeout=rospy.Duration()):
-        if not self._point_head_client.wait_for_result(timeout):
-            self._point_head_client.cancel_goal()  # timeout expired
-            return False
-        return self._point_head_client.get_state() == GoalStatus.SUCCEEDED
-
-    def cancel_goal(self):
-        self._point_head_client.cancel_goal()
 
     def _interactive(self):
         while not rospy.is_shutdown():
@@ -90,7 +57,7 @@ class PointHeadClient(object):
                 elif key == 'c':
                     self.cancel_goal()
                 else:
-                    self.send_goal()
+                    self.send_goal('marker_frame')
             except Exception as e:
                 print(e.message)
 
@@ -99,5 +66,5 @@ if __name__ == '__main__':
 
     rospy.init_node('point_head_client', anonymous=True)
 
-    point_head_client = PointHeadClient()
+    point_head_client = InteractivePointHeadClient()
     rospy.spin()
