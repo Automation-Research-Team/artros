@@ -33,11 +33,13 @@ class PoseHeadClient(object):
         self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
         self._pose_head     = SimpleActionClient(server, PoseHeadAction)
 
-        if not self._pose_head.wait_for_server(timeout=rospy.Duration(5)):
+        if self._pose_head.wait_for_server(timeout=rospy.Duration(5)):
+            rospy.loginfo('(PoseHeadClient) connected to server[%s]', server)
+        else:
             self._pose_head = None
             rospy.logerr('(PoseHeadClient) failed to connect to server[%s]',
                          server)
-        rospy.loginfo('(PoseHeadClient) connected to server[%s]', server)
+
 
     @property
     def is_connected(self):

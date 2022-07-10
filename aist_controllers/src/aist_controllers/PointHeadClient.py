@@ -34,11 +34,12 @@ class PointHeadClient(object):
         self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
         self._point_head    = SimpleActionClient(server, PointHeadAction)
 
-        if not self._point_head.wait_for_server(timeout=rospy.Duration(5)):
+        if self._point_head.wait_for_server(timeout=rospy.Duration(5)):
+            rospy.loginfo('(PointHeadClient) connected to server[%s]', server)
+        else:
             self._point_head = None
             rospy.logerr('(PointHeadClient) failed to connect to server[%s]',
                          server)
-        rospy.loginfo('(PointHeadClient) connected to server[%s]', server)
 
     @property
     def is_connected(self):
