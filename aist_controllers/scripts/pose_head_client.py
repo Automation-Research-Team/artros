@@ -42,8 +42,8 @@ from aist_controllers.PoseHeadClient import PoseHeadClinet
 #  class InteractivePoseHeadClient                                   #
 ######################################################################
 class InteractivePoseHeadClient(PoseHeadClient):
-    def __init__(self, server="/pose_head_tracker"):
-        super(InteractivePoseHeadClient, self).__init__(server)
+    def __init__(self):
+        super(InteractivePoseHeadClient, self).__init__()
 
         thread = threading.Thread(target=self._interactive)
         thread.start()

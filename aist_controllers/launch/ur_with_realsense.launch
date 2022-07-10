@@ -39,7 +39,7 @@
 
   <!-- Spawn pose_head_controller -->
   <node name="$(arg robot_name)_pose_head_tracker"
-        pkg="aist_controllers" type="pose_head_tracker"
+	pkg="aist_controllers" type="pose_head_tracker"
         output="screen" respawn="false">
     <param name="publish_rate"	value="$(arg publish_rate)"/>
     <param name="base_link"	value="$(arg robot_name)_base_link"/>

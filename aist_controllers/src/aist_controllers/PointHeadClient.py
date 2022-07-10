@@ -19,8 +19,11 @@ from aist_controllers.msg import PointHeadAction, PointHeadGoal
 #  class PointHeadClient                                              #
 ######################################################################
 class PointHeadClient(object):
-    def __init__(self, server="/point_head_tracker"):
+    def __init__(self):
         super(PointHeadClient, self).__init__()
+
+        server = rospy.get_param('~server', '/point_head_tracker')
+               + 'point_head'
 
         self.target_point   = rospy.get_param('~target_point',  [0, 0, 0])
         self.pointing_axis  = rospy.get_param('~pointing_axis', [0, 0, 1])
@@ -29,8 +32,17 @@ class PointHeadClient(object):
                                   'biclops_camera_color_optical_frame')
         self.min_duration   = rospy.get_param('~min_duration', 0.05)
         self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
-        self._point_head    = SimpleActionClient(server + '/point_head',
-                                                 PointHeadAction)
+        self._point_head    = SimpleActionClient(server, PointHeadAction)
+
+        if not self._point_head.wait_for_server(timeout=rospy.Duration(5)):
+            self._point_head = None
+            rospy.logerr('(PointHeadClient) failed to connect to server[%s]',
+                         server)
+        rospy.loginfo('(PointHeadClient) connected to server[%s]', server)
+
+    @property
+    def is_connected(self):
+        return self._point_head is not None
 
     @property
     def target_point(self):

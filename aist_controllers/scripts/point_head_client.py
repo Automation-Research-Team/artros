@@ -42,8 +42,8 @@ from aist_controllers.PointHeadClient import PointHeadClinet
 #  class InteractivePointHeadClient                                  #
 ######################################################################
 class InteractivePointHeadClient(PointHeadClient):
-    def __init__(self, server="/point_head_tracker"):
-        super(InteractivePointHeadClient, self).__init__(server)
+    def __init__(self):
+        super(InteractivePointHeadClient, self).__init__()
 
         thread = threading.Thread(target=self._interactive)
         thread.start()

@@ -22,6 +22,8 @@ class PoseHeadClient(object):
     def __init__(self, server="/pose_head_tracker"):
         super(PoseHeadClient, self).__init__()
 
+        server = rospy.get_param('~server', '/pose_head_tracker') + 'pose_head'
+
         self.target_pose    = rospy.get_param('~target_pose',
                                               [0, 0, 0.3, 180, 0, 0])
         self.pointing_frame = rospy.get_param(
@@ -29,8 +31,17 @@ class PoseHeadClient(object):
                                   'a_bot_inside_camera_color_optical_frame')
         self.min_duration   = rospy.get_param('~min_duration', 0.05)
         self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
-        self._pose_head     = SimpleActionClient(server + '/pose_head',
-                                                 PoseHeadAction)
+        self._pose_head     = SimpleActionClient(server, PoseHeadAction)
+
+        if not self._pose_head.wait_for_server(timeout=rospy.Duration(5)):
+            self._pose_head = None
+            rospy.logerr('(PoseHeadClient) failed to connect to server[%s]',
+                         server)
+        rospy.loginfo('(PoseHeadClient) connected to server[%s]', server)
+
+    @property
+    def is_connected(self):
+        return self._pose_head is not None
 
     @property
     def target_pose(self):
