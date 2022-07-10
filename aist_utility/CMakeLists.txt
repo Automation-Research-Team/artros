@@ -61,7 +61,6 @@ link_directories(
 
 add_library(
   ${PROJECT_NAME}
-  src/tf.cpp
   src/tiff.cpp
   src/ply.cpp
   src/oply/OrderedPly.cpp
@@ -82,9 +81,26 @@ target_link_libraries(
   ${OpenCV_LIBRARIES}
 )
 
+add_executable(rotconv
+  src/rotconv/main.cpp
+)
+
+target_link_libraries(rotconv
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
+install(
+  TARGETS
+    rotconv
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 install(
   DIRECTORY   include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
