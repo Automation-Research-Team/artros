@@ -42,8 +42,8 @@ from aist_controllers.PoseHeadClient import PoseHeadClient
 #  class InteractivePoseHeadClient                                   #
 ######################################################################
 class InteractivePoseHeadClient(PoseHeadClient):
-    def __init__(self):
-        super(InteractivePoseHeadClient, self).__init__()
+    def __init__(self, server):
+        super(InteractivePoseHeadClient, self).__init__(server)
 
         thread = threading.Thread(target=self._interactive)
         thread.start()
@@ -66,5 +66,6 @@ if __name__ == '__main__':
 
     rospy.init_node('pose_head_client', anonymous=True)
 
+    server = rospy.get_param('server', 'pose_head_tracker')
     pose_head_client = InteractivePoseHeadClient()
     rospy.spin()

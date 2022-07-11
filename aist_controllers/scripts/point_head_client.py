@@ -42,8 +42,8 @@ from aist_controllers.PointHeadClient import PointHeadClient
 #  class InteractivePointHeadClient                                  #
 ######################################################################
 class InteractivePointHeadClient(PointHeadClient):
-    def __init__(self):
-        super(InteractivePointHeadClient, self).__init__()
+    def __init__(self, server):
+        super(InteractivePointHeadClient, self).__init__(server)
 
         thread = threading.Thread(target=self._interactive)
         thread.start()
@@ -66,5 +66,6 @@ if __name__ == '__main__':
 
     rospy.init_node('point_head_client', anonymous=True)
 
-    point_head_client = InteractivePointHeadClient()
+    server = rospy.get_param('server', 'point_head_tracker')
+    point_head_client = InteractivePointHeadClient(server)
     rospy.spin()

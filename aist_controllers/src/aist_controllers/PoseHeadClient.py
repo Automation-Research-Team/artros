@@ -20,27 +20,27 @@ from aist_controllers.msg import PoseHeadAction, PoseHeadGoal
 #  class PoseHeadClient                                              #
 ######################################################################
 class PoseHeadClient(object):
-    def __init__(self, server="/pose_head_tracker"):
+    def __init__(self, server="pose_head_tracker"):
         super(PoseHeadClient, self).__init__()
 
-        server = rospy.get_param('~server', '/pose_head_tracker') \
-               + '/pose_head'
+        ns = '~' + server.strip('/')
 
-        self.target_pose    = rospy.get_param('~target_pose',
+        self.target_pose    = rospy.get_param(ns + '/target_pose',
                                               [0, 0, 0.3, 180, 0, 0])
-        self.pointing_frame = rospy.get_param(
-                                  '~pointing_frame',
-                                  'a_bot_inside_camera_color_optical_frame')
-        self.min_duration   = rospy.get_param('~min_duration', 0.05)
-        self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
-        self._pose_head     = SimpleActionClient(server, PoseHeadAction)
+        self.pointing_frame = rospy.get_param(ns + '/pointing_frame',
+                                              'a_bot_outside_camera_color_optical_frame')
+        self.min_duration   = rospy.get_param(ns + '/min_duration', 0.05)
+        self.max_velocity   = rospy.get_param(ns + '/max_velocity', 0.7)
+        self._pose_head     = SimpleActionClient(server + '/pose_head',
+                                                 PoseHeadAction)
 
         if self._pose_head.wait_for_server(timeout=rospy.Duration(5)):
-            rospy.loginfo('(PoseHeadClient) connected to server[%s]', server)
+            rospy.loginfo('(PoseHeadClient) connected to server[%s]',
+                          server + '/pose_head')
         else:
             self._pose_head = None
             rospy.logerr('(PoseHeadClient) failed to connect to server[%s]',
-                         server)
+                         server + '/pose_head')
 
 
     @property
