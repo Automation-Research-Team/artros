@@ -9,6 +9,7 @@ set(CMAKE_CXX_EXTENSIONS	OFF)
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   genmsg
   message_generation
   tf
@@ -21,6 +22,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(orocos_kdl REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
+
+catkin_python_setup()
 
 include_directories(
   ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}

@@ -36,59 +36,17 @@
 # Author: Toshio Ueshiba
 #
 import rospy, threading
-
-from math             import pi, radians, degrees
-from tf               import transformations as tfs
-from geometry_msgs    import msg as gmsg
-from control_msgs     import msg as cmsg
-from aist_controllers import msg as amsg
-from actionlib        import SimpleActionClient
+from aist_controllers.PoseHeadClient import PoseHeadClient
 
 ######################################################################
-#  class PoseHeadClient                                              #
+#  class InteractivePoseHeadClient                                   #
 ######################################################################
-class PoseHeadClient(object):
+class InteractivePoseHeadClient(PoseHeadClient):
     def __init__(self):
-        super(PoseHeadClient, self).__init__()
+        super(InteractivePoseHeadClient, self).__init__()
 
-        server = rospy.get_param('~server', '/a_bot_pose_head_tracker')
-        self._target_frame   = rospy.get_param('~target_frame', 'marker_frame')
-        self._target_offset  = rospy.get_param('~target_offset',
-                                               [0.0, 0.0, 0.2])
-        self._target_rpy     = rospy.get_param('~target_rpy',
-                                               [0.0, 90.0, 0.0])
-        self._pointing_frame = rospy.get_param(
-                                   '~pointing_frame',
-                                   'a_bot_outside_camera_color_optical_frame')
-        self._min_duration   = rospy.get_param('~min_duration', 1.0)
-        self._max_velocity   = rospy.get_param('~max_velocity', 0.0)
-        self._pose_head_client = SimpleActionClient(server + '/pose_head',
-                                                    amsg.PoseHeadAction)
         thread = threading.Thread(target=self._interactive)
         thread.start()
-
-    def send_goal(self, feedback_cb=None):
-        goal = amsg.PoseHeadGoal()
-        goal.target.header.stamp    = rospy.Time.now()
-        goal.target.header.frame_id = self._target_frame
-        goal.target.pose \
-            = gmsg.Pose(gmsg.Point(*self._target_offset),
-                        gmsg.Quaternion(*tfs.quaternion_from_euler(
-                                            *map(radians, self._target_rpy))))
-        goal.pointing_frame         = self._pointing_frame
-        goal.min_duration           = rospy.Duration(self._min_duration)
-        goal.max_velocity           = self._max_velocity
-
-        self._pose_head_client.send_goal(goal, feedback_cb=feedback_cb)
-
-    def wait_for_result(self, timeout=rospy.Duration()):
-        if not self._pose_head_client.wait_for_result(timeout):
-            self._pose_head_client.cancel_goal()  # timeout expired
-            return False
-        return self._pose_head_client.get_state() == GoalStatus.SUCCEEDED
-
-    def cancel_goal(self):
-        self._pose_head_client.cancel_goal()
 
     def _interactive(self):
         while not rospy.is_shutdown():
@@ -99,7 +57,7 @@ class PoseHeadClient(object):
                 elif key == 'c':
                     self.cancel_goal()
                 else:
-                    self.send_goal()
+                    self.send_goal('marker_frame')
             except Exception as e:
                 print(e.message)
 
@@ -108,5 +66,5 @@ if __name__ == '__main__':
 
     rospy.init_node('pose_head_client', anonymous=True)
 
-    pose_head_client = PoseHeadClient()
+    pose_head_client = InteractivePoseHeadClient()
     rospy.spin()

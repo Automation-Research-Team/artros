@@ -24,8 +24,8 @@
   </include>
 
   <!-- Spawn aruco marker tracker -->
-  <node name="aruco_detector"
-        pkg="aist_aruco_ros" type="aist_aruco_detector" output="screen">
+  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
+        args="load aist_aruco_ros/aruco_detector camera_manager">
     <remap from="/camera_info"	to="camera_multiplexer/camera_info"/>
     <remap unless="$(arg enable_pointcloud)"
 	   from="/image"	to="camera_multiplexer/image"/>
@@ -39,7 +39,7 @@
 
   <!-- Spawn pose_head_controller -->
   <node name="$(arg robot_name)_pose_head_tracker"
-        pkg="aist_controllers" type="pose_head_tracker"
+	pkg="aist_controllers" type="pose_head_tracker"
         output="screen" respawn="false">
     <param name="publish_rate"	value="$(arg publish_rate)"/>
     <param name="base_link"	value="$(arg robot_name)_base_link"/>

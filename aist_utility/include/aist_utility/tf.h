@@ -51,8 +51,18 @@ operator <<(std::ostream& out, const tf::Vector3& v)
     return out << '[' << v.x() << ',' << v.y() << ',' << v.z() << ']';
 }
 
-std::ostream&
-operator <<(std::ostream& out, const tf::Quaternion& q)			;
+inline std::ostream&
+operator <<(std::ostream& out, const tf::Quaternion& q)
+{
+    return out << '[' << q.x() << ',' << q.y() << ',' << q.z() << ',' << q.w()
+	       << ']';
+}
+
+inline std::ostream&
+operator <<(std::ostream& out, const tf::Matrix3x3& m)
+{
+    return out << '[' << m[0] << "\n " << m[1] << "\n " << m[2] << ']';
+}
 
 inline std::ostream&
 operator <<(std::ostream& out, const tf::Transform& transform)

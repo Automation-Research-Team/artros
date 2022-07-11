@@ -1,7 +1,6 @@
 server: /$(arg prefix)pose_head_tracker
 target_frame: marker_frame
-target_offset: [0.0, 0.0, $(arg offset)]
-target_rpy: [0.0, 90.0, $(arg yaw)]
+target_pose: [0.0, 0.0, $(arg offset), 180.0, 0.0, $(arg yaw)]
 pointing_frame: $(arg pointing_frame)
 min_duration: $(arg min_duration)
 max_velocity: $(arg max_velocity)
