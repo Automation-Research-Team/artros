@@ -56,6 +56,15 @@ class PointHeadClient(object):
         self._target_point = Point(*target_point)
 
     @property
+    def pointing_axis(self):
+        axis = self._pointing_axis
+        return (axis.x, axis.y, axis.z)
+
+    @pointing_axis.setter
+    def pointing_axis(self, pointing_axis):
+        self._pointing_axis = Vector3(*pointing_axis)
+
+    @property
     def pointing_frame(self):
         return self._pointing_frame
 
@@ -84,6 +93,7 @@ class PointHeadClient(object):
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = target_frame
         goal.target.point           = self._target_point
+        goal.pointing_axis          = self._pointing_axis
         goal.pointing_frame         = self._pointing_frame
         goal.min_duration           = self._min_duration
         goal.max_velocity           = self._max_velocity
