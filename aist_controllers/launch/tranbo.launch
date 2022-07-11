@@ -22,8 +22,8 @@
   </include>
 
   <!-- Start ArUco -->
-  <node name="aruco_detector"
-	pkg="aist_aruco_ros" type="aist_aruco_detector" output="screen">
+  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
+        args="load aist_aruco_ros/aruco_detector camera_manager">
     <remap if="$(eval camera_name == 'phoxi')"
 	   from="/camera_info"	to="$(arg camera_name)/camera_info"/>
     <remap if="$(eval camera_name == 'phoxi')"

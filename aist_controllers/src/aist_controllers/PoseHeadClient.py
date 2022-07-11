@@ -11,6 +11,7 @@
 # the use or other dealings in the software.
 import rospy
 from math                 import radians, degrees
+from tf                   import transformations as tfs
 from geometry_msgs.msg    import Pose, Point, Quaternion
 from actionlib            import SimpleActionClient
 from aist_controllers.msg import PoseHeadAction, PoseHeadGoal
@@ -22,7 +23,7 @@ class PoseHeadClient(object):
     def __init__(self, server="/pose_head_tracker"):
         super(PoseHeadClient, self).__init__()
 
-        server = rospy.get_param('~server', '/pose_head_tracker') + 'pose_head'
+        server = rospy.get_param('~server', '/pose_head_tracker') + '/pose_head'
 
         self.target_pose    = rospy.get_param('~target_pose',
                                               [0, 0, 0.3, 180, 0, 0])
@@ -55,9 +56,9 @@ class PoseHeadClient(object):
 
     @target_pose.setter
     def target_pose(self, target_pose):
-        self._trarget_pose = Pose(Point(*target_pose[0:3]),
-                                  Quaternion(*tfs.quaternion_from_euler(
-                                      *map(radians, target_pose[3:6]))))
+        self._target_pose = Pose(Point(*target_pose[0:3]),
+                                 Quaternion(*tfs.quaternion_from_euler(
+                                     *map(radians, target_pose[3:6]))))
 
     @property
     def pointing_frame(self):
@@ -84,7 +85,7 @@ class PoseHeadClient(object):
         self._max_velocity = max_velocity
 
     def send_goal(self, target_frame, feedback_cb=None):
-        goal = amsg.PoseHeadGoal()
+        goal = PoseHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = target_frame
         goal.target.pose            = self._target_pose

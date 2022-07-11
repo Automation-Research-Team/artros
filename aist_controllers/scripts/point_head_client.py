@@ -36,7 +36,7 @@
 # Author: Toshio Ueshiba
 #
 import rospy, threading
-from aist_controllers.PointHeadClient import PointHeadClinet
+from aist_controllers.PointHeadClient import PointHeadClient
 
 ######################################################################
 #  class InteractivePointHeadClient                                  #

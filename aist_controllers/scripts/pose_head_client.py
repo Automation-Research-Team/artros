@@ -36,7 +36,7 @@
 # Author: Toshio Ueshiba
 #
 import rospy, threading
-from aist_controllers.PoseHeadClient import PoseHeadClinet
+from aist_controllers.PoseHeadClient import PoseHeadClient
 
 ######################################################################
 #  class InteractivePoseHeadClient                                   #

@@ -11,6 +11,7 @@
 # the use or other dealings in the software.
 import rospy
 from math                 import radians, degrees
+from tf                   import transformations as tfs
 from geometry_msgs.msg    import Point, Vector3
 from actionlib            import SimpleActionClient
 from aist_controllers.msg import PointHeadAction, PointHeadGoal
@@ -23,7 +24,7 @@ class PointHeadClient(object):
         super(PointHeadClient, self).__init__()
 
         server = rospy.get_param('~server', '/point_head_tracker')
-               + 'point_head'
+               + '/point_head'
 
         self.target_point   = rospy.get_param('~target_point',  [0, 0, 0])
         self.pointing_axis  = rospy.get_param('~pointing_axis', [0, 0, 1])
@@ -52,7 +53,7 @@ class PointHeadClient(object):
 
     @target_point.setter
     def target_point(self, target_point):
-        self._trarget_point = Point(*target_point)
+        self._target_point = Point(*target_point)
 
     @property
     def pointing_frame(self):
@@ -79,7 +80,7 @@ class PointHeadClient(object):
         self._max_velocity = max_velocity
 
     def send_goal(self, target_frame, feedback_cb=None):
-        goal = amsg.PointHeadGoal()
+        goal = PointHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = target_frame
         goal.target.point           = self._target_point
