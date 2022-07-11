@@ -1,4 +1,4 @@
-camera_frame: calibrated_camera
+camera_frame: calibrated_phoxi_sensor
 marker_id: 32
 marker_size: 0.070
 planarity_tolerance: 0.001

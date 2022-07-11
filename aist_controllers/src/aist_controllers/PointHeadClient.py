@@ -10,11 +10,11 @@
 # otherwise, arising from, out of or in connection with the software or
 # the use or other dealings in the software.
 import rospy
-from math                 import radians, degrees
-from tf                   import transformations as tfs
-from geometry_msgs.msg    import Point, Vector3
-from actionlib            import SimpleActionClient
-from aist_controllers.msg import PointHeadAction, PointHeadGoal
+from math              import radians, degrees
+from tf                import transformations as tfs
+from geometry_msgs.msg import Point, Vector3
+from actionlib         import SimpleActionClient
+from control_msgs.msg  import PointHeadAction, PointHeadGoal
 
 ######################################################################
 #  class PointHeadClient                                              #
@@ -23,7 +23,7 @@ class PointHeadClient(object):
     def __init__(self):
         super(PointHeadClient, self).__init__()
 
-        server = rospy.get_param('~server', '/point_head_tracker')
+        server = rospy.get_param('~server', '/point_head_tracker') \
                + '/point_head'
 
         self.target_point   = rospy.get_param('~target_point',  [0, 0, 0])
@@ -69,7 +69,7 @@ class PointHeadClient(object):
 
     @min_duration.setter
     def min_duration(self, min_duration):
-        self._min_duration = ropy.Duration(min_duration)
+        self._min_duration = rospy.Duration(min_duration)
 
     @property
     def max_velocity(self):

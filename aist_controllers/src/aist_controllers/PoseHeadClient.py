@@ -23,7 +23,8 @@ class PoseHeadClient(object):
     def __init__(self, server="/pose_head_tracker"):
         super(PoseHeadClient, self).__init__()
 
-        server = rospy.get_param('~server', '/pose_head_tracker') + '/pose_head'
+        server = rospy.get_param('~server', '/pose_head_tracker') \
+               + '/pose_head'
 
         self.target_pose    = rospy.get_param('~target_pose',
                                               [0, 0, 0.3, 180, 0, 0])
