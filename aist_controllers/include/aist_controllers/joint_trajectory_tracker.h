@@ -194,7 +194,7 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
     catch (const std::exception& err)
     {
 	ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
-      //_tracker_srv.setAborted();
+	_tracker_srv.setAborted();
     }
 }
 
@@ -254,7 +254,7 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
   // Get chain from _base_link to pointing_frame.
     if (!_tree.getChain(_base_link, pointing_frame, _chain))
 	throw std::runtime_error("Couldn't create chain from "
-				 + _base_link + " to " + _pointing_frame);
+				 + _base_link + " to " + pointing_frame);
 
   // Check number of joints between controller state and URDF chain.
     if (state->joint_names.size() != njoints())

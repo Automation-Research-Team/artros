@@ -45,6 +45,9 @@ class InteractivePoseHeadClient(PoseHeadClient):
     def __init__(self, server):
         super(InteractivePoseHeadClient, self).__init__(server)
 
+        self._target_frame = rospy.get_param('~target_frame', 'marker_frame')
+        self._target_pose  = rospy.get_param('~target_pose',
+                                             [0, 0, 0.3, 180, 0, 0])
         thread = threading.Thread(target=self._interactive)
         thread.start()
 
@@ -57,7 +60,7 @@ class InteractivePoseHeadClient(PoseHeadClient):
                 elif key == 'c':
                     self.cancel_goal()
                 else:
-                    self.send_goal('marker_frame')
+                    self.send_goal(self._target_frame, self._target_pose)
             except Exception as e:
                 print(e.message)
 

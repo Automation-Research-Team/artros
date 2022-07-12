@@ -25,8 +25,6 @@ class PoseHeadClient(object):
 
         ns = '~' + server.strip('/')
 
-        self.target_pose    = rospy.get_param(ns + '/target_pose',
-                                              [0, 0, 0.3, 180, 0, 0])
         self.pointing_frame = rospy.get_param(ns + '/pointing_frame',
                                               'a_bot_outside_camera_color_optical_frame')
         self.min_duration   = rospy.get_param(ns + '/min_duration', 0.05)
@@ -46,20 +44,6 @@ class PoseHeadClient(object):
     @property
     def is_connected(self):
         return self._pose_head is not None
-
-    @property
-    def target_pose(self):
-        position = self._target_pose.position
-        rpy      = list(map(degrees,
-                            tfs.euler_from_quaternion(
-                                self._target_pose.orientation)))
-        return (position.x, position.y, position.z, rpy[0], rpy[1], rpy[2])
-
-    @target_pose.setter
-    def target_pose(self, target_pose):
-        self._target_pose = Pose(Point(*target_pose[0:3]),
-                                 Quaternion(*tfs.quaternion_from_euler(
-                                     *map(radians, target_pose[3:6]))))
 
     @property
     def pointing_frame(self):
@@ -85,16 +69,23 @@ class PoseHeadClient(object):
     def max_velocity(self, max_velocity):
         self._max_velocity = max_velocity
 
-    def send_goal(self, target_frame, feedback_cb=None):
+    def send_goal(self, target_frame, target_pose=[0, 0, 0.3, 180, 0, 0],
+                  feedback_cb=None):
         goal = PoseHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = target_frame
-        goal.target.pose            = self._target_pose
+        goal.target.pose            = Pose(Point(*target_pose[0:3]),
+                                           Quaternion(
+                                               *tfs.quaternion_from_euler(
+                                                   *map(radians,
+                                                        target_pose[3:6]))))
         goal.pointing_frame         = self._pointing_frame
         goal.min_duration           = self._min_duration
         goal.max_velocity           = self._max_velocity
 
         self._pose_head.send_goal(goal, feedback_cb=feedback_cb)
 
+        rospy.loginfo('(PoseHeadClient) send goal[target_frame=%s,pointing_frame=%s]',
+                      goal.target.header.frame_id, goal.pointing_frame)
     def cancel_goal(self):
         self._pose_head.cancel_goal()

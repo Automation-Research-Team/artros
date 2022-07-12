@@ -25,8 +25,6 @@ class PointHeadClient(object):
 
         ns = '~' + server.strip('/')
 
-        self.target_point   = rospy.get_param(ns + '/target_point',
-                                              [0, 0, 0])
         self.pointing_axis  = rospy.get_param(ns + '/pointing_axis',
                                               [0, 0, 1])
         self.pointing_frame = rospy.get_param(ns + '/pointing_frame',
@@ -47,15 +45,6 @@ class PointHeadClient(object):
     @property
     def is_connected(self):
         return self._point_head is not None
-
-    @property
-    def target_point(self):
-        point = self._target_point
-        return (point.x, point.y, point.z)
-
-    @target_point.setter
-    def target_point(self, target_point):
-        self._target_point = Point(*target_point)
 
     @property
     def pointing_axis(self):
@@ -90,11 +79,12 @@ class PointHeadClient(object):
     def max_velocity(self, max_velocity):
         self._max_velocity = max_velocity
 
-    def send_goal(self, target_frame, feedback_cb=None):
+    def send_goal(self, target_frame, target_point=[0, 0, 0],
+                  feedback_cb=None):
         goal = PointHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = target_frame
-        goal.target.point           = self._target_point
+        goal.target.point           = Point(*target_point)
         goal.pointing_axis          = self._pointing_axis
         goal.pointing_frame         = self._pointing_frame
         goal.min_duration           = self._min_duration

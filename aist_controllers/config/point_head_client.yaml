@@ -1,4 +1,3 @@
-target_frame: marker_frame
 pointing_axis: [0, 0, 1]
 pointing_frame: $(arg prefix)camera_color_optical_frame
 min_duration: 0.05
