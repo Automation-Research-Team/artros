@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="prefix"	default="a_bot_"/>
-  <arg name="server"	default="$(arg prefix)pose_head_controller"/>
+  <arg name="server"	default="$(arg prefix)pose_head_tracker"/>
 
   <!-- Spawn controller -->
   <node name="pose_head_client"

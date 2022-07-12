@@ -66,6 +66,6 @@ if __name__ == '__main__':
 
     rospy.init_node('point_head_client', anonymous=True)
 
-    server = rospy.get_param('server', 'point_head_tracker')
+    server = rospy.get_param('~server', 'point_head_tracker')
     point_head_client = InteractivePointHeadClient(server)
     rospy.spin()

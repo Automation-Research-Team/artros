@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="prefix"	default="biclops_"/>
-  <arg name="server"	default="$(arg prefix)point_head_controller"/>
+  <arg name="server"	default="$(arg prefix)point_head_tracker"/>
 
   <!-- Spawn controller -->
   <node name="point_head_client"

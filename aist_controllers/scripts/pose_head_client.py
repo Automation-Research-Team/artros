@@ -66,6 +66,6 @@ if __name__ == '__main__':
 
     rospy.init_node('pose_head_client', anonymous=True)
 
-    server = rospy.get_param('server', 'pose_head_tracker')
-    pose_head_client = InteractivePoseHeadClient()
+    server = rospy.get_param('~server', 'pose_head_tracker')
+    pose_head_client = InteractivePoseHeadClient(server)
     rospy.spin()
