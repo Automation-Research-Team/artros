@@ -94,3 +94,6 @@ class PointHeadClient(object):
 
     def cancel_goal(self):
         self._point_head.cancel_goal()
+
+    def get_state(self):
+        return self._point_head.get_state()

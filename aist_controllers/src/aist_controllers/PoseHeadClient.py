@@ -89,3 +89,6 @@ class PoseHeadClient(object):
                       goal.target.header.frame_id, goal.pointing_frame)
     def cancel_goal(self):
         self._pose_head.cancel_goal()
+
+    def get_state(self):
+        return self._pose_head.get_state()
