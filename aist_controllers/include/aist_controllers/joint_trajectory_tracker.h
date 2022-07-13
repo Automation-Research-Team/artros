@@ -194,7 +194,8 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
     catch (const std::exception& err)
     {
 	ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
-	_tracker_srv.setAborted();
+      //ROS_ERROR_STREAM("(JointTrajectoryTracker) Goal aborted");
+      //_tracker_srv.setAborted();
     }
 }
 

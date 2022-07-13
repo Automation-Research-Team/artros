@@ -178,7 +178,7 @@ create_pointcloud(IN in, IN ie,
     for (; in != ie; ++in, ++out)
     {
 	using	std::get;
-	
+
 	const auto&	xyz = *in;
 	out[0] = get<0>(xyz);
 	out[1] = get<1>(xyz);
@@ -331,6 +331,30 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
 	    ++n;
 	}
     }
+
+    return cloud;
+}
+
+sensor_msgs::PointCloud2
+create_empty_pointcloud(const ros::Time& stamp, const std::string& frame)
+{
+    using namespace	sensor_msgs;
+
+    PointCloud2	cloud;
+    cloud.is_bigendian	  = false;
+    cloud.is_dense	  = true;
+    cloud.header.stamp	  = stamp;
+    cloud.header.frame_id = frame;
+    cloud.height	  = 1;
+    cloud.width		  = 0;
+
+    PointCloud2Modifier	modifier(cloud);
+    modifier.setPointCloud2Fields(3,
+				  "x", 1, PointField::FLOAT32,
+				  "y", 1, PointField::FLOAT32,
+				  "z", 1, PointField::FLOAT32);
+    modifier.resize(cloud.width);
+    cloud.row_step = cloud.width * cloud.point_step;
 
     return cloud;
 }
