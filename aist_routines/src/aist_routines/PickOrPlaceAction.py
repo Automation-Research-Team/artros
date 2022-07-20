@@ -37,8 +37,9 @@ import rospy
 import actionlib
 import numpy as np
 from actionlib_msgs.msg import GoalStatus
-from geometry_msgs      import msg as gmsg
-from aist_routines      import msg as amsg
+from geometry_msgs.msg  import Transform, Vector3, Quaternion
+from aist_routines.msg  import (pickOrPlaceAction, pickOrPlaceGoal,
+                                pickOrPlaceResult, pickOrPlaceFeedback)
 from tf                 import transformations as tfs
 
 ######################################################################
@@ -50,19 +51,18 @@ class PickOrPlaceAction(object):
 
         self._routines = routines
         self._server   = actionlib.SimpleActionServer("pickOrPlace",
-                                                      amsg.pickOrPlaceAction,
+                                                      pickOrPlaceAction,
                                                       self._execute_cb, False)
-        self._server.register_preempt_callback(self._preempt_callback)
         self._server.start()
         self._client = actionlib.SimpleActionClient("pickOrPlace",
-                                                    amsg.pickOrPlaceAction)
+                                                    pickOrPlaceAction)
         self._client.wait_for_server()
 
     # Client stuffs
     def execute(self, robot_name, pose_stamped, pick, offset,
                 approach_offset, departure_offset, speed_fast, speed_slow,
                 wait=True, feedback_cb=None):
-        goal = amsg.pickOrPlaceGoal()
+        goal = pickOrPlaceGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
         goal.pick             = pick
@@ -98,17 +98,17 @@ class PickOrPlaceAction(object):
               tfs.quaternion_from_euler(
                   *np.radians(offset[3:6])) if len(offset) == 6 else \
               offset[3:7]
-        return gmsg.Transform(gmsg.Vector3(*xyz), gmsg.Quaternion(*q))
+        return Transform(Vector3(*xyz), Quaternion(*q))
 
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do %s ***", "picking" if goal.pick else "placing")
         routines = self._routines
         gripper  = routines.gripper(goal.robot_name)
-        result   = amsg.pickOrPlaceResult()
+        result   = pickOrPlaceResult()
 
         # Go to approach pose.
         rospy.loginfo("--- Go to approach pose. ---")
-        if not self._is_active(amsg.pickOrPlaceFeedback.MOVING):
+        if self._check_if_canceled(pickOrPlaceFeedback.MOVING):
             return
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
@@ -123,14 +123,14 @@ class PickOrPlaceAction(object):
                                   goal.approach_offset.rotation.w)),
                              goal.speed_fast if goal.pick else goal.speed_slow)
         if not success:
-            result.result = amsg.pickOrPlaceResult.MOVE_FAILURE
+            result.result = pickOrPlaceResult.MOVE_FAILURE
             self._server.set_aborted(result, "Failed to go to approach pose")
             return
 
         # Approach pick/place pose.
         rospy.loginfo("--- Go to %s pose. ---",
                       "pick" if goal.pick else "place")
-        if not self._is_active(amsg.pickOrPlaceFeedback.APPROACHING):
+        if self._check_if_canceled(pickOrPlaceFeedback.APPROACHING):
             return
         if goal.pick:
             gripper.pregrasp(-1)               # Pregrasp (not wait)
@@ -149,12 +149,12 @@ class PickOrPlaceAction(object):
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
         if not success:
-            result.result = amsg.pickOrPlaceResult.APPROACH_FAILURE
+            result.result = pickOrPlaceResult.APPROACH_FAILURE
             self._server.set_aborted(result, "Failed to approach target")
             return
 
         # Grasp/release at pick/place pose.
-        if not self._is_active(amsg.pickOrPlaceFeedback.GRASPING_OR_RELEASING):
+        if self._check_if_canceled(pickOrPlaceFeedback.GRASPING_OR_RELEASING):
             return
         if goal.pick:
             gripper.wait()                      # Wait for pregrasp completed
@@ -165,7 +165,7 @@ class PickOrPlaceAction(object):
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo("--- Go back to departure pose. ---")
 
-        if not self._is_active(amsg.pickOrPlaceFeedback.DEPARTING):
+        if self._check_if_canceled(pickOrPlaceFeedback.DEPARTING):
             return
         if goal.pick:
             gripper.postgrasp(-1)    # Postgrap (not wait)
@@ -186,7 +186,7 @@ class PickOrPlaceAction(object):
                                                       offset.rotation.w)),
                                                  speed)
         if not success:
-            result.result = amsg.pickOrPlaceResult.DEPARTURE_FAILURE
+            result.result = pickOrPlaceResult.DEPARTURE_FAILURE
             self._server.set_aborted(result, "Failed to depart from target")
             return
         if goal.pick:
@@ -197,20 +197,15 @@ class PickOrPlaceAction(object):
                 rospy.logwarn("--- Pick failed. ---")
 
         if success:
-            result.result = amsg.pickOrPlaceResult.SUCCESS
+            result.result = pickOrPlaceResult.SUCCESS
             self._server.set_succeeded(result, "Succeeded")
         else:
-            result.result = amsg.pickOrPlaceResult.GRASP_FAILURE
+            result.result = pickOrPlaceResult.GRASP_FAILURE
             self._server.set_aborted(result, "Failed to grasp")
 
-    def _preempt_callback(self):
-        robot_name = self._server.current_goal.get_goal().robot_name
-        self._routines.stop(robot_name)
-        self._routines.gripper(robot_name).cancel()
-        self._server.set_preempted()
-
-    def _is_active(self, state):
-        if self._server.is_active():
-            self._server.publish_feedback(amsg.pickOrPlaceFeedback(state=state))
+    def _check_if_canceled(self, state):
+        self._server.publish_feedback(pickOrPlaceFeedback(state))
+        if self._server.is_preempt_requested():
+            self._server.set_preempted(pickOrPlaceResult(state))
             return True
         return False

@@ -253,6 +253,8 @@ if __name__ == '__main__':
                     while kitting.attempt_bin(bin_id, 5):
                         pass
                     kitting.go_to_named_pose(kitting.former_robot_name, 'home')
+                elif key == 'c':
+                    self.pick_or_place_cancel()
                 elif key == 'w':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     kitting.clear_fail_poses()
