@@ -1,20 +1,16 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"		default="a_bot_"/>
-  <arg name="pointing_frame"	default="$(arg prefix
-					 )outside_camera_color_optical_frame"/>
-  <arg name="offset"		default="0.25"/>
-  <arg name="yaw"		default="0.0"/>
-  <arg name="publish_rate"	default="50"/>
-  <arg name="min_duration"	default="0.05"/>
-  <arg name="max_velocity"	default="0.7"/>
+  <arg name="prefix"	default="a_bot_"/>
+  <arg name="server"	default="$(arg prefix)pose_head_tracker"/>
 
   <!-- Spawn controller -->
   <node name="pose_head_client"
         pkg="aist_controllers" type="pose_head_client.py"
         output="screen" respawn="false">
-    <rosparam file="$(dirname)/../config/pose_head_client.yaml"
+    <param name="server"	value="$(arg server)"/>
+    <rosparam param="$(arg server)"
+	      file="$(dirname)/../config/pose_head_client.yaml"
               subst_value="true"/>
   </node>
 

@@ -10,50 +10,50 @@
 # otherwise, arising from, out of or in connection with the software or
 # the use or other dealings in the software.
 import rospy
-from math                 import radians, degrees
-from tf                   import transformations as tfs
-from geometry_msgs.msg    import Point, Vector3
-from actionlib            import SimpleActionClient
-from aist_controllers.msg import PointHeadAction, PointHeadGoal
+from math              import radians, degrees
+from tf                import transformations as tfs
+from geometry_msgs.msg import Point, Vector3
+from actionlib         import SimpleActionClient
+from control_msgs.msg  import PointHeadAction, PointHeadGoal
 
 ######################################################################
 #  class PointHeadClient                                              #
 ######################################################################
 class PointHeadClient(object):
-    def __init__(self):
+    def __init__(self, server='point_head_tracker'):
         super(PointHeadClient, self).__init__()
 
-        server = rospy.get_param('~server', '/point_head_tracker')
-               + '/point_head'
+        ns = '~' + server.strip('/')
 
-        self.target_point   = rospy.get_param('~target_point',  [0, 0, 0])
-        self.pointing_axis  = rospy.get_param('~pointing_axis', [0, 0, 1])
-        self.pointing_frame = rospy.get_param(
-                                  '~pointing_frame',
-                                  'biclops_camera_color_optical_frame')
-        self.min_duration   = rospy.get_param('~min_duration', 0.05)
-        self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
-        self._point_head    = SimpleActionClient(server, PointHeadAction)
+        self.pointing_axis  = rospy.get_param(ns + '/pointing_axis',
+                                              [0, 0, 1])
+        self.pointing_frame = rospy.get_param(ns + '/pointing_frame',
+                                              'biclops_camera_color_optical_frame')
+        self.min_duration   = rospy.get_param(ns + '/min_duration', 0.05)
+        self.max_velocity   = rospy.get_param(ns + '/max_velocity', 0.7)
+        self._point_head    = SimpleActionClient(server + '/point_head',
+                                                 PointHeadAction)
 
         if self._point_head.wait_for_server(timeout=rospy.Duration(5)):
-            rospy.loginfo('(PointHeadClient) connected to server[%s]', server)
+            rospy.loginfo('(PointHeadClient) connected to server[%s]',
+                          server + '/point_head')
         else:
             self._point_head = None
             rospy.logerr('(PointHeadClient) failed to connect to server[%s]',
-                         server)
+                         server + '/point_head')
 
     @property
     def is_connected(self):
         return self._point_head is not None
 
     @property
-    def target_point(self):
-        point = self._target_point
-        return (point.x, point.y, point.z)
+    def pointing_axis(self):
+        axis = self._pointing_axis
+        return (axis.x, axis.y, axis.z)
 
-    @target_point.setter
-    def target_point(self, target_point):
-        self._target_point = Point(*target_point)
+    @pointing_axis.setter
+    def pointing_axis(self, pointing_axis):
+        self._pointing_axis = Vector3(*pointing_axis)
 
     @property
     def pointing_frame(self):
@@ -69,7 +69,7 @@ class PointHeadClient(object):
 
     @min_duration.setter
     def min_duration(self, min_duration):
-        self._min_duration = ropy.Duration(min_duration)
+        self._min_duration = rospy.Duration(min_duration)
 
     @property
     def max_velocity(self):
@@ -79,11 +79,13 @@ class PointHeadClient(object):
     def max_velocity(self, max_velocity):
         self._max_velocity = max_velocity
 
-    def send_goal(self, target_frame, feedback_cb=None):
+    def send_goal(self, target_frame, target_point=[0, 0, 0],
+                  feedback_cb=None):
         goal = PointHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()
         goal.target.header.frame_id = target_frame
-        goal.target.point           = self._target_point
+        goal.target.point           = Point(*target_point)
+        goal.pointing_axis          = self._pointing_axis
         goal.pointing_frame         = self._pointing_frame
         goal.min_duration           = self._min_duration
         goal.max_velocity           = self._max_velocity
@@ -92,3 +94,6 @@ class PointHeadClient(object):
 
     def cancel_goal(self):
         self._point_head.cancel_goal()
+
+    def get_state(self):
+        return self._point_head.get_state()
