@@ -335,7 +335,7 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     return cloud;
 }
 
-sensor_msgs::PointCloud2
+inline sensor_msgs::PointCloud2
 create_empty_pointcloud(const ros::Time& stamp, const std::string& frame)
 {
     using namespace	sensor_msgs;
