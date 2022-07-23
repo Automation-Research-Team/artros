@@ -112,7 +112,7 @@ class HMIRoutines(AISTBaseRoutines):
 
         # Attempt to pick the item.
         nattempts = 0
-        for i, p in enumerate(poses.poses):
+        for p in poses.poses:
             if nattempts == max_attempts:
                 break
 
@@ -133,23 +133,24 @@ class HMIRoutines(AISTBaseRoutines):
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == pickOrPlaceResult.GRASP_FAILURE:
+                rospy.logwarn('(hmi_demo) Pick failed. Request help!')
                 if not self.request_help(robot_name, part_id, pose):
-                    rospy.logerr('(hmi_demo) no response received to the request')
+                    rospy.logerr('(hmi_demo) No response to the request!')
                     self._fail_poses.append(pose)
                     nattempts += 1
                     continue
                 res = self._request_help.get_result().response
                 if res.pointing_state == pointing.SWEEP_RES:
-                    rospy.loginfo('(hmi_demo) given sweep direction.')
+                    rospy.loginfo('(hmi_demo) Sweep direction given.')
                     self.sweep_bin(bin_id,
                                    self._compute_sweep_dir(res.header,
                                                            res.finger_pos,
                                                            res.finger_dir))
                 elif res.pointing_state == pointing.RECAPTURE_RES:
-                    rospy.loginfo('(hmi_demo) commanded recapture.')
+                    rospy.loginfo('(hmi_demo) Recapture required.')
                     return False
                 else:
-                    raise RuntimeError('received unknown command!')
+                    raise RuntimeError('Received unknown command!')
 
             self.release(robot_name)
 
@@ -165,7 +166,7 @@ class HMIRoutines(AISTBaseRoutines):
         return self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
                is GoalStatus.SUCCEEDED
 
-    def sweep_bin(self, bin_id):
+    def sweep_bin(self, bin_id, sweep_dir):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
