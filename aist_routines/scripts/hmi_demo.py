@@ -44,7 +44,6 @@ from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
                                       RequestHelpResult, request_help)
 from actionlib                import SimpleActionClient
 from actionlib_msgs.msg       import GoalStatus
-from tf                       import TransformListener, transformations as tfs
 
 ######################################################################
 #  class HMIRoutines                                                 #
@@ -59,7 +58,6 @@ class HMIRoutines(AISTBaseRoutines):
         self._part_props        = rospy.get_param('~part_props')
         self._former_robot_name = None
         self._fail_poses        = []
-        self._listener          = TransformListener()
         self._request_help      = SimpleActionClient(server + '/request_help',
                                                      RequestHelpAction)
         self._request_help.wait_for_server()
@@ -161,7 +159,7 @@ class HMIRoutines(AISTBaseRoutines):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
-        req.pose       = self._listenr.transform_pose('ground', pose)
+        req.pose       = self.listener.transform_pose('ground', pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = 'Picking failed! Please specify sweep direction.'
         return self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
