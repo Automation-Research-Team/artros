@@ -39,7 +39,7 @@ import rospy, collections
 from math                     import pi, radians, degrees
 from geometry_msgs.msg        import QuaternionStamped, PoseStamped
 from aist_routines            import AISTBaseRoutines
-from aist_routines.msg        import pickOrPlaceResult, sweepResult
+from aist_routines.msg        import PickOrPlaceResult, SweepResult
 from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
                                       RequestHelpResult, request_help)
 from actionlib                import SimpleActionClient
@@ -121,18 +121,18 @@ class HMIRoutines(AISTBaseRoutines):
                 continue
 
             result = self.pick(robot_name, pose, part_id)
-            if result == pickOrPlaceResult.SUCCESS:
+            if result == PickOrPlaceResult.SUCCESS:
                 result = self.place_at_frame(robot_name,
                                              part_props['destination'],
                                              part_id)
-                return result == pickOrPlaceResult.SUCCESS
-            elif result == pickOrPlaceResult.MOVE_FAILURE or \
-                 result == pickOrPlaceResult.APPROACH_FAILURE:
+                return result == PickOrPlaceResult.SUCCESS
+            elif result == PickOrPlaceResult.MOVE_FAILURE or \
+                 result == PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
-            elif result == pickOrPlaceResult.DEPARTURE_FAILURE:
+            elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
-            elif result == pickOrPlaceResult.GRASP_FAILURE:
+            elif result == PickOrPlaceResult.GRASP_FAILURE:
                 rospy.logwarn('(hmi_demo) Pick failed. Request help!')
                 if not self.request_help(robot_name, part_id, pose):
                     rospy.logerr('(hmi_demo) No response to the request!')
@@ -190,7 +190,7 @@ class HMIRoutines(AISTBaseRoutines):
         pose = PoseStamped(poses.header, p)
 
         result = self.sweep(robot_name, pose, part_id)
-        return result == sweepResult.SUCCESS
+        return result == SweepResult.SUCCESS
 
     def clear_fail_poses(self):
         self._fail_poses = []

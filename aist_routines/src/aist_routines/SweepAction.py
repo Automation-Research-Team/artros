@@ -37,32 +37,31 @@ import rospy
 import actionlib
 import numpy as np
 from actionlib_msgs.msg import GoalStatus
-from geometry_msgs      import msg as gmsg
-from aist_routines      import msg as amsg
+from geometry_msgs.msg  import Transform, Vector3, Quaternion
+from aist_routines.msg  import (SweepAction, SweepGoal,
+                                SweepResult, SweepFeedback)
 from tf                 import transformations as tfs
 
 ######################################################################
-#  class SweepAction                                                 #
+#  class Sweep                                                       #
 ######################################################################
-class SweepAction(object):
+class Sweep(object):
     def __init__(self, routines):
-        super(SweepAction, self).__init__()
+        super(Sweep, self).__init__()
 
         self._routines = routines
-        self._server   = actionlib.SimpleActionServer("sweep",
-                                                      amsg.sweepAction,
+        self._server   = actionlib.SimpleActionServer("sweep", SweepAction,
                                                       self._execute_cb, False)
         self._server.register_preempt_callback(self._preempt_callback)
         self._server.start()
-        self._client = actionlib.SimpleActionClient("sweep",
-                                                    amsg.sweepAction)
+        self._client = actionlib.SimpleActionClient("sweep", SweepAction)
         self._client.wait_for_server()
 
     # Client stuffs
     def execute(self, robot_name, pose_stamped, contact_offset, sweep_offset,
                 approach_offset, departure_offset, speed_fast, speed_slow,
                 interactive, wait=True, feedback_cb=None):
-        goal = amsg.sweepGoal()
+        goal = SweepGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
         goal.contact_offset   = self._create_transform(contact_offset)
@@ -99,13 +98,13 @@ class SweepAction(object):
               tfs.quaternion_from_euler(
                   *np.radians(offset[3:6])) if len(offset) == 6 else \
               offset[3:7]
-        return gmsg.Transform(gmsg.Vector3(*xyz), gmsg.Quaternion(*q))
+        return Transform(Vector3(*xyz), Quaternion(*q))
 
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do sweeping ***")
         routines = self._routines
         gripper  = routines.gripper(goal.robot_name)
-        result   = amsg.sweepResult()
+        result   = SweepResult()
 
         if goal.interactive:
             print('------------ Select sweep direction -------------')
@@ -142,7 +141,7 @@ class SweepAction(object):
 
         # Go to approach pose.
         rospy.loginfo("--- Go to approach pose. ---")
-        if not self._is_active(amsg.sweepFeedback.MOVING):
+        if not self._is_active(SweepFeedback.MOVING):
             return
         target_pose \
             = routines.effector_target_pose(goal.pose,
@@ -156,13 +155,13 @@ class SweepAction(object):
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_fast)
         if not success:
-            result.result = amsg.sweepResult.MOVE_FAILURE
+            result.result = SweepResult.MOVE_FAILURE
             self._server.set_aborted(result, "Failed to go to approach pose")
             return
 
         # Approach contact pose.
         rospy.loginfo("--- Go to contact pose. ---")
-        if not self._is_active(amsg.sweepFeedback.APPROACHING):
+        if not self._is_active(SweepFeedback.APPROACHING):
             return
         target_pose \
             = routines.effector_target_pose(goal.pose,
@@ -178,13 +177,13 @@ class SweepAction(object):
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
         if not success:
-            result.result = amsg.sweepResult.APPROACH_FAILURE
+            result.result = SweepResult.APPROACH_FAILURE
             self._server.set_aborted(result, "Failed to approach target")
             return
 
         # Sweep.
         rospy.loginfo("--- Sweep. ---")
-        if not self._is_active(amsg.sweepFeedback.SWEEPING):
+        if not self._is_active(SweepFeedback.SWEEPING):
             return
         target_pose \
             = routines.effector_target_pose(goal.pose,
@@ -200,14 +199,14 @@ class SweepAction(object):
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
         if not success:
-            result.result = amsg.sweepResult.SWEEP_FAILURE
+            result.result = SweepResult.SWEEP_FAILURE
             self._server.set_aborted(result, "Failed to sweep")
             return
 
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo("--- Go back to departure pose. ---")
 
-        if not self._is_active(amsg.sweepFeedback.DEPARTING):
+        if not self._is_active(SweepFeedback.DEPARTING):
             return
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
@@ -222,15 +221,15 @@ class SweepAction(object):
                                   goal.departure_offset.rotation.w)),
                              goal.speed_fast)
         if not success:
-            result.result = amsg.sweepResult.DEPARTURE_FAILURE
+            result.result = SweepResult.DEPARTURE_FAILURE
             self._server.set_aborted(result, "Failed to depart from target")
             return
 
         if success:
-            result.result = amsg.sweepResult.SUCCESS
+            result.result = SweepResult.SUCCESS
             self._server.set_succeeded(result, "Succeeded")
         else:
-            result.result = amsg.sweepResult.GRASP_FAILURE
+            result.result = SweepResult.GRASP_FAILURE
             self._server.set_aborted(result, "Failed to grasp")
 
     def _preempt_callback(self):
@@ -241,6 +240,6 @@ class SweepAction(object):
 
     def _is_active(self, state):
         if self._server.is_active():
-            self._server.publish_feedback(amsg.sweepFeedback(state=state))
+            self._server.publish_feedback(SweepFeedback(state=state))
             return True
         return False

@@ -35,11 +35,11 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, collections
-from math          import pi, radians, degrees
-from geometry_msgs import msg as gmsg
-from aist_routines import AISTBaseRoutines
-from aist_routines import msg as amsg
+import rospy
+from math              import pi, radians, degrees
+from geometry_msgs.msg import PoseStamped, QuaternionStamped
+from aist_routines     import AISTBaseRoutines
+from aist_routines.msg import PickOrPlaceResult, SweepResult
 
 ######################################################################
 #  class KittingRoutines                                             #
@@ -97,7 +97,7 @@ class KittingRoutines(AISTBaseRoutines):
                                     bin_props['part_id'], bin_props['mask_id'])
         self.camera(part_props['camera_name']).trigger_frame()
 
-        orientation = gmsg.QuaternionStamped()
+        orientation = QuaternionStamped()
         orientation.header.frame_id = self.reference_frame
         orientation.quaternion.x = 0
         orientation.quaternion.y = 0
@@ -126,27 +126,27 @@ class KittingRoutines(AISTBaseRoutines):
 
         # Attempt to pick the item.
         nattempts = 0
-        for i, p in enumerate(poses.poses):
+        for p in poses.poses:
             if nattempts == max_attempts:
                 break
 
-            pose = gmsg.PoseStamped(poses.header, p)
+            pose = PoseStamped(poses.header, p)
             if self._is_close_to_fail_poses(pose):
                 continue
 
             result = self.pick(robot_name, pose, part_id)
-            if result == amsg.pickOrPlaceResult.SUCCESS:
+            if result == PickOrPlaceResult.SUCCESS:
                 result = self.place_at_frame(robot_name,
                                              part_props['destination'],
                                              part_id)
-                return result == amsg.pickOrPlaceResult.SUCCESS
-            elif result == amsg.pickOrPlaceResult.MOVE_FAILURE or \
-                 result == amsg.pickOrPlaceResult.APPROACH_FAILURE:
+                return result == PickOrPlaceResult.SUCCESS
+            elif result == PickOrPlaceResult.MOVE_FAILURE or \
+                 result == PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
-            elif result == amsg.pickOrPlaceResult.DEPARTURE_FAILURE:
+            elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
-            elif result == amsg.pickOrPlaceResult.GRASP_FAILURE:
+            elif result == PickOrPlaceResult.GRASP_FAILURE:
                 self._fail_poses.append(pose)
                 nattempts += 1
 
@@ -175,10 +175,10 @@ class KittingRoutines(AISTBaseRoutines):
 
         # Attempt to sweep the item.
         p = poses.poses[0]
-        pose = gmsg.PoseStamped(poses.header, p)
+        pose = PoseStamped(poses.header, p)
 
         result = self.sweep(robot_name, pose, part_id)
-        return result == amsg.sweepResult.SUCCESS
+        return result == SweepResult.SUCCESS
 
     def clear_fail_poses(self):
         self._fail_poses = []
