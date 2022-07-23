@@ -44,20 +44,22 @@ from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
                                       RequestHelpResult, request_help)
 from actionlib                import SimpleActionClient
 from actionlib_msgs.msg       import GoalStatus
+from tf                       import TransformListener, transformations as tfs
 
 ######################################################################
-#  class HMIDemoRoutines                                             #
+#  class HMIRoutines                                                 #
 ######################################################################
-class HMIDemoRoutines(AISTBaseRoutines):
+class HMIRoutines(AISTBaseRoutines):
     """Implements HMI routines for aist robot system."""
 
     def __init__(self, server='hmi_server'):
-        super(HMIDemoRoutines, self).__init__()
+        super(HMIRoutines, self).__init__()
 
         self._bin_props         = rospy.get_param('~bin_props')
         self._part_props        = rospy.get_param('~part_props')
         self._former_robot_name = None
         self._fail_poses        = []
+        self._listener          = TransformListener()
         self._request_help      = SimpleActionClient(server + '/request_help',
                                                      RequestHelpAction)
         self._request_help.wait_for_server()
@@ -71,14 +73,6 @@ class HMIDemoRoutines(AISTBaseRoutines):
         return self._former_robot_name
 
     ###----- main procedure
-    def run(self):
-        self.go_to_named_pose('all_bots', 'back')
-        for bin_id in self._binprops.keys():
-            if rospy.is_shutdown():
-                break
-            self.attempt_bin(bin_id, 1)
-        self.go_to_named_pose('all_bots', 'home')
-
     def demo(self, bin_id, max_attempts=1):
         while kitting.attempt_bin(bin_id, 5):
             pass
@@ -141,26 +135,19 @@ class HMIDemoRoutines(AISTBaseRoutines):
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == pickOrPlaceResult.GRASP_FAILURE:
-                goal = RequestHelpGoal()
-                goal.request.robot_name = robot_name
-                goal.request.item_id    = part_id
-                goal.request.pose       = pose
-                goal.request.request    = request_help.SWEEP_DIR_REQ
-                goal.request.message    = 'Picking failed! Please specify sweep direction.'
-                if self._request_help.send_goal_and_wait(goal) \
-                   is not GoalStatus.SUCCEEDED:
+                if not self.request_help(pose):
                     rospy.logerr('(hmi_demo) no response received to the request')
                     self._fail_poses.append(pose)
                     nattempts += 1
                     continue
-                response = self_request_help.get_result().response
-                if response.pointing_state == pointing.SWEEP_RES:
+                res = self._request_help.get_result().response
+                if res.pointing_state == pointing.SWEEP_RES:
                     rospy.loginfo('(hmi_demo) given sweep direction.')
                     self.sweep_bin(bin_id,
-                                   self._compute_sweep_dir(response.header,
-                                                           response.finger_pos,
-                                                           response.finger_dir))
-                elif response.pointing_state == pointing.RECAPTURE_RES:
+                                   self._compute_sweep_dir(res.header,
+                                                           res.finger_pos,
+                                                           res.finger_dir))
+                elif res.pointing_state == pointing.RECAPTURE_RES:
                     rospy.loginfo('(hmi_demo) commanded recapture.')
                     return False
                 else:
@@ -169,6 +156,16 @@ class HMIDemoRoutines(AISTBaseRoutines):
             self.release(robot_name)
 
         return False
+
+    def request_help(self, pose):
+        req = request_help()
+        req.robot_name = robot_name
+        req.item_id    = part_id
+        req.pose       = self._listenr.transform_pose('ground', pose)
+        req.request    = request_help.SWEEP_DIR_REQ
+        req.message    = 'Picking failed! Please specify sweep direction.'
+        return self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
+               is GoalStatus.SUCCEEDED
 
     def sweep_bin(self, bin_id):
         bin_props  = self._bin_props[bin_id]
@@ -225,7 +222,7 @@ if __name__ == '__main__':
 
     rospy.init_node('hmi_demo', anonymous=True)
 
-    with HMIDemoRoutines() as hmi_demo:
+    with HMIRoutines() as hmi:
         while not rospy.is_shutdown():
             print('============ hmi_ procedures ============ ')
             print('  b: Create a backgroud image')
@@ -234,62 +231,57 @@ if __name__ == '__main__':
             print('  a: Attempt to pick and place')
             print('  A: Repeat attempts to pick and place')
             print('  w: sWeep')
-            print('  d: Perform small demo')
-            print('  k: Do hmi_demo task')
+            print('  d: Perform Demo')
             print('  g: Grasp')
             print('  r: Release')
-            print('  H: Move all robots to home')
-            print('  B: Move all robots to back')
+            print('  H: Move all robots to Home')
+            print('  B: Move all robots to Back')
             print('  q: Quit')
 
             try:
                 key = raw_input('>> ')
                 if key == 'q':
-                    if hmi_demo.former_robot_name is not None:
-                        hmi_demo.go_to_named_pose(hmi_demo.former_robot_name,
-                                                 'home')
+                    if hmi.former_robot_name is not None:
+                        hmi.go_to_named_pose(hmi.former_robot_name, 'home')
                     break
                 elif key == 'H':
-                    hmi_demo.go_to_named_pose('all_bots', 'home')
+                    hmi.go_to_named_pose('all_bots', 'home')
                 elif key == 'B':
-                    hmi_demo.go_to_named_pose('all_bots', 'back')
+                    hmi.go_to_named_pose('all_bots', 'back')
                 elif key == 'b':
-                    hmi_demo.create_background_image('a_phoxi_m_camera')
+                    hmi.create_background_image('a_phoxi_m_camera')
                 elif key == 'm':
-                    hmi_demo.create_mask_image('a_phoxi_m_camera',
-                                              hmi_demo.nbins)
+                    hmi.create_mask_image('a_phoxi_m_camera', hmi.nbins)
                 elif key == 's':
                     bin_id = 'bin_' + raw_input('  bin id? ')
-                    hmi_demo.search(bin_id)
+                    hmi.search(bin_id)
                 elif key == 'a':
                     bin_id = 'bin_' + raw_input('  bin id? ')
-                    hmi_demo.clear_fail_poses()
-                    hmi_demo.attempt_bin(bin_id, 5)
-                    hmi_demo.go_to_named_pose(hmi_demo.former_robot_name, 'home')
+                    hmi.clear_fail_poses()
+                    hmi.attempt_bin(bin_id, 5)
+                    hmi.go_to_named_pose(hmi.former_robot_name, 'home')
                 elif key == 'A':
                     bin_id = 'bin_' + raw_input('  bin id? ')
-                    hmi_demo.clear_fail_poses()
-                    while hmi_demo.attempt_bin(bin_id, 5):
+                    hmi.clear_fail_poses()
+                    while hmi.attempt_bin(bin_id, 5):
                         pass
-                    hmi_demo.go_to_named_pose(hmi_demo.former_robot_name, 'home')
+                    hmi.go_to_named_pose(hmi.former_robot_name, 'home')
                 elif key == 'c':
                     self.pick_or_place_cancel()
                 elif key == 'w':
                     bin_id = 'bin_' + raw_input('  bin id? ')
-                    hmi_demo.clear_fail_poses()
-                    hmi_demo.sweep_bin(bin_id)
-                    hmi_demo.go_to_named_pose(hmi_demo.former_robot_name, 'home')
+                    hmi.clear_fail_poses()
+                    hmi.sweep_bin(bin_id)
+                    hmi.go_to_named_pose(hmi.former_robot_name, 'home')
                 elif key == 'd':
                     bin_id = 'bin_' + raw_input('  bin id? ')
-                    hmi_demo.clear_fail_poses()
-                    hmi_demo.demo(bin_id, 1)
-                elif key == 'k':
-                    hmi_demo.run()
+                    hmi.clear_fail_poses()
+                    hmi.demo(bin_id, 1)
                 elif key == 'g':
-                    if hmi_demo.former_robot_name is not None:
-                        hmi_demo.grasp(hmi_demo.former_robot_name)
+                    if hmi.former_robot_name is not None:
+                        hmi.grasp(hmi.former_robot_name)
                 elif key == 'r':
-                    if hmi_demo.former_robot_name is not None:
-                        hmi_demo.release(hmi_demo.former_robot_name)
+                    if hmi.former_robot_name is not None:
+                        hmi.release(hmi.former_robot_name)
             except Exception as e:
-                print(e.message)
+                print('(hmi_demo) ' + e.message)
