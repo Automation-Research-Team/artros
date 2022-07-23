@@ -135,7 +135,7 @@ class HMIRoutines(AISTBaseRoutines):
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == pickOrPlaceResult.GRASP_FAILURE:
-                if not self.request_help(pose):
+                if not self.request_help(robot_name, part_id, pose):
                     rospy.logerr('(hmi_demo) no response received to the request')
                     self._fail_poses.append(pose)
                     nattempts += 1
@@ -157,7 +157,7 @@ class HMIRoutines(AISTBaseRoutines):
 
         return False
 
-    def request_help(self, pose):
+    def request_help(self, robot_name, part_id, pose):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
