@@ -35,9 +35,11 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, collections
+import rospy
+import numpy as np
 from math                     import pi, radians, degrees
-from geometry_msgs.msg        import QuaternionStamped, PoseStamped
+from geometry_msgs.msg        import (QuaternionStamped, PoseStamped,
+                                      PointStamped, Vector3Stamped, Vector3)
 from aist_routines            import AISTBaseRoutines
 from aist_routines.msg        import PickOrPlaceResult, SweepResult
 from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
@@ -54,6 +56,7 @@ class HMIRoutines(AISTBaseRoutines):
     def __init__(self, server='hmi_server'):
         super(HMIRoutines, self).__init__()
 
+        self._ground_frame      = rospy.get_param('~ground_frame', 'ground')
         self._bin_props         = rospy.get_param('~bin_props')
         self._part_props        = rospy.get_param('~part_props')
         self._former_robot_name = None
@@ -121,76 +124,84 @@ class HMIRoutines(AISTBaseRoutines):
                 continue
 
             result = self.pick(robot_name, pose, part_id)
-            if result == PickOrPlaceResult.SUCCESS:
+
+            if result is PickOrPlaceResult.SUCCESS:
                 result = self.place_at_frame(robot_name,
                                              part_props['destination'],
                                              part_id)
-                return result == PickOrPlaceResult.SUCCESS
-            elif result == PickOrPlaceResult.MOVE_FAILURE or \
-                 result == PickOrPlaceResult.APPROACH_FAILURE:
+                return result is PickOrPlaceResult.SUCCESS
+            elif result is PickOrPlaceResult.MOVE_FAILURE or \
+                 result is PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
-            elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
+            elif result is PickOrPlaceResult.DEPARTURE_FAILURE:
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
-            elif result == PickOrPlaceResult.GRASP_FAILURE:
+            elif result is PickOrPlaceResult.GRASP_FAILURE:
                 rospy.logwarn('(hmi_demo) Pick failed. Request help!')
-                if not self.request_help(robot_name, part_id, pose):
-                    rospy.logerr('(hmi_demo) No response to the request!')
-                    self._fail_poses.append(pose)
-                    nattempts += 1
-                    continue
-                res = self._request_help.get_result().response
-                if res.pointing_state == pointing.SWEEP_RES:
-                    rospy.loginfo('(hmi_demo) Sweep direction given.')
-                    self.sweep_bin(bin_id,
-                                   self._compute_sweep_dir(res.header,
-                                                           res.finger_pos,
-                                                           res.finger_dir))
-                elif res.pointing_state == pointing.RECAPTURE_RES:
-                    rospy.loginfo('(hmi_demo) Recapture required.')
-                    return False
-                else:
-                    raise RuntimeError('Received unknown command!')
+                message = 'Picking failed! Please specify sweep direction.'
+                while self.request_help(robot_name, pose, part_id, message):
+                    res = self._request_help.get_result().response
+                    if res.pointing_state is pointing.SWEEP_RES:
+                        rospy.loginfo('(hmi_demo) Sweep direction given.')
+                        result = self.sweep(robot_name, pose,
+                                            self._compute_sweep_dir(pose, res),
+                                            part_id)
+                        if result is SweepResult.SUCCESS:
+                            return True
+                        elif result is SweepResult.MOVE_FAILURE or \
+                             result is SweepResult.APPROACH_FAILURE:
+                            message = 'Planning for sweeping failed. Please specify another sweep direction.'
+                            continue
+                        else:
+                            raise RuntimeError('Failed to depart from sweep pose')
+                    elif res.pointing_state is pointing.RECAPTURE_RES:
+                        rospy.loginfo('(hmi_demo) Recapture required.')
+                        return True
+                    else:
+                        Raise('Unknown command received!')
+                break
 
             self.release(robot_name)
 
         return False
 
-    def request_help(self, robot_name, part_id, pose):
+    def request_help_and_sweep(self, robot_name, pose, part_id):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
-        req.pose       = self.listener.transform_pose('ground', pose)
+        req.pose       = self.listener.transform_pose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
-        req.message    = 'Picking failed! Please specify sweep direction.'
+
+        while True:
+            req.message    = 'Picking failed! Please specify sweep direction.'
+
+            if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
+               is not GoalStatus.SUCCEEDED:
+                rospy.logerr('(hmi_demo) No response to the request!')
+                return False
+
+            res = self._request_help.get_result().response
+            if res.pointing_state == pointing.SWEEP_RES:
+                rospy.loginfo('(hmi_demo) Sweep direction given.')
+                result = self.sweep(robot_name, pose,
+                                    self._compute_sweep_dir(pose, res),
+                                    part_id)
+            elif res.pointing_state == pointing.RECAPTURE_RES:
+                rospy.loginfo('(hmi_demo) Recapture required.')
+                return False
+            else:
+                raise RuntimeError('Received unknown command!')
+
+
+    def request_help(self, robot_name, pose, part_id, message):
+        req = request_help()
+        req.robot_name = robot_name
+        req.item_id    = part_id
+        req.pose       = self.listener.transform_pose(self._ground_frame, pose)
+        req.request    = request_help.SWEEP_DIR_REQ
+        req.message    = message
         return self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
                is GoalStatus.SUCCEEDED
-
-    def sweep_bin(self, bin_id, sweep_dir):
-        bin_props  = self._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        robot_name = part_props['robot_name']
-
-        # If using a different robot from the former, move it back to home.
-        if self._former_robot_name is not None and \
-           self._former_robot_name != robot_name:
-            self.go_to_named_pose(self._former_robot_name, 'back')
-        self._former_robot_name = robot_name
-
-        # Move to 0.15m above the bin if the camera is mounted on the robot.
-        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
-            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
-
-        # Search for graspabilities.
-        poses, _ = self.search(bin_id, 0.0)
-
-        # Attempt to sweep the item.
-        p = poses.poses[0]
-        pose = PoseStamped(poses.header, p)
-
-        result = self.sweep(robot_name, pose, part_id)
-        return result == SweepResult.SUCCESS
 
     def clear_fail_poses(self):
         self._fail_poses = []
@@ -213,8 +224,23 @@ class HMIRoutines(AISTBaseRoutines):
             return False
         return True
 
-    def _compute_sweep_dir(self, header, finger_pos, finger_dir):
-        pass
+    def _compute_sweep_dir(self, pose, res):
+        fpos = self.listener.transformPoint(pose.header.frame_id,
+                                            PointStamped(res.header,
+                                                         res.finger_pos))
+        fdir = self.listener.transformVector3(pose.header.frame_id,
+                                              Vector3Stamped(res.header,
+                                                             res.finger_dir))
+        ppos = pose.pose.position
+        fnrm = np.cross((fdir.x, fdir.y, fdir.z),
+                        (ppos.x - fpos.x, ppos.y - fpos.y, ppos.z - fpos.z))
+        gnrm = self.listener.transformVector3(pose.header.frame_id,
+                                              Vector3Stamped(res.header,
+                                                             Vector3(0, 0, 1)))
+        sdir = np.cross(fnrm, gnrm)
+        sdir = sdir / np.linalg.norm(sdir)
+
+        return (sdir[0], sdir[1], sdir[2])
 
 
 if __name__ == '__main__':
@@ -229,8 +255,6 @@ if __name__ == '__main__':
             print('  s: Search graspabilities')
             print('  a: Attempt to pick and place')
             print('  A: Repeat attempts to pick and place')
-            print('  w: sWeep')
-            print('  d: Perform Demo')
             print('  g: Grasp')
             print('  r: Release')
             print('  H: Move all robots to Home')
@@ -267,15 +291,6 @@ if __name__ == '__main__':
                     hmi.go_to_named_pose(hmi.former_robot_name, 'home')
                 elif key == 'c':
                     self.pick_or_place_cancel()
-                elif key == 'w':
-                    bin_id = 'bin_' + raw_input('  bin id? ')
-                    hmi.clear_fail_poses()
-                    hmi.sweep_bin(bin_id)
-                    hmi.go_to_named_pose(hmi.former_robot_name, 'home')
-                elif key == 'd':
-                    bin_id = 'bin_' + raw_input('  bin id? ')
-                    hmi.clear_fail_poses()
-                    hmi.demo(bin_id, 1)
                 elif key == 'g':
                     if hmi.former_robot_name is not None:
                         hmi.grasp(hmi.former_robot_name)

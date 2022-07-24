@@ -52,19 +52,19 @@ class Sweep(object):
         self._routines = routines
         self._server   = actionlib.SimpleActionServer("sweep", SweepAction,
                                                       self._execute_cb, False)
-        self._server.register_preempt_callback(self._preempt_callback)
         self._server.start()
         self._client = actionlib.SimpleActionClient("sweep", SweepAction)
         self._client.wait_for_server()
 
     # Client stuffs
-    def execute(self, robot_name, pose_stamped, contact_offset, sweep_offset,
-                approach_offset, departure_offset, speed_fast, speed_slow,
-                interactive, wait=True, feedback_cb=None):
+    def execute(self, robot_name, pose_stamped, sweep_vector,
+                sweep_offset, approach_offset, departure_offset,
+                speed_fast, speed_slow, timeout=rospy.Duration(0),
+                feedback_cb=None):
         goal = SweepGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
-        goal.contact_offset   = self._create_transform(contact_offset)
+        goal.sweep_vector     = Vector3(*sweep_vector)
         goal.sweep_offset     = self._create_transform(sweep_offset)
         goal.approach_offset  = self._create_transform(approach_offset)
         goal.departure_offset = self._create_transform(departure_offset)
@@ -72,10 +72,7 @@ class Sweep(object):
         goal.speed_slow       = speed_slow
         goal.interactive      = interactive
         self._client.send_goal(goal, feedback_cb=feedback_cb)
-        if wait:
-            return self.wait_for_result()
-        else:
-            return None
+        return self.wait_for_result(timeout)
 
     def wait_for_result(self, timeout=rospy.Duration(0)):
         if self._client.wait_for_result(timeout):
@@ -103,75 +100,37 @@ class Sweep(object):
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do sweeping ***")
         routines = self._routines
-        gripper  = routines.gripper(goal.robot_name)
         result   = SweepResult()
-
-        if goal.interactive:
-            print('------------ Select sweep direction -------------')
-            print('  X: positive direction along x-axis')
-            print('  x: negative direction along x-axis')
-            print('  Y: positive direction along y-axis')
-            print('  y: negative direction along y-axis')
-            key = raw_input('> ')
-            if key == 'x':
-                goal.contact_offset.translation.x *= -1
-                goal.contact_offset.translation.y *= -1
-                goal.sweep_offset.translation.x   *= -1
-                goal.sweep_offset.translation.y   *= -1
-            elif key == 'Y':
-                x = goal.contact_offset.translation.x
-                y = goal.contact_offset.translation.y
-                goal.contact_offset.translation.x = -y
-                goal.contact_offset.translation.y = x
-                x = goal.sweep_offset.translation.x
-                y = goal.sweep_offset.translation.y
-                goal.sweep_offset.translation.x = -y
-                goal.sweep_offset.translation.y = x
-            elif key == 'y':
-                x = goal.contact_offset.translation.x
-                y = goal.contact_offset.translation.y
-                goal.contact_offset.translation.x = y
-                goal.contact_offset.translation.y = -x
-                x = goal.sweep_offset.translation.x
-                y = goal.sweep_offset.translation.y
-                goal.sweep_offset.translation.x = y
-                goal.sweep_offset.translation.y = -x
-            else:
-                pass
 
         # Go to approach pose.
         rospy.loginfo("--- Go to approach pose. ---")
-        if not self._is_active(SweepFeedback.MOVING):
-            return
-        target_pose \
-            = routines.effector_target_pose(goal.pose,
-                                            (goal.approach_offset.translation.x,
-                                             goal.approach_offset.translation.y,
-                                             goal.approach_offset.translation.z,
-                                             goal.approach_offset.rotation.x,
-                                             goal.approach_offset.rotation.y,
-                                             goal.approach_offset.rotation.z,
-                                             goal.approach_offset.rotation.w))
-        success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
-                                                 goal.speed_fast)
+        success, _, _ = routines.go_to_pose_goal(
+                             goal.robot_name,
+                             routines.effector_target_pose(
+                                 goal.pose,
+                                 (goal.approach_offset.translation.x,
+                                  goal.approach_offset.translation.y,
+                                  goal.approach_offset.translation.z,
+                                  goal.approach_offset.rotation.x,
+                                  goal.approach_offset.rotation.y,
+                                  goal.approach_offset.rotation.z,
+                                  goal.approach_offset.rotation.w)),
+                             goal.speed_fast)
         if not success:
             result.result = SweepResult.MOVE_FAILURE
             self._server.set_aborted(result, "Failed to go to approach pose")
             return
 
-        # Approach contact pose.
-        rospy.loginfo("--- Go to contact pose. ---")
-        if not self._is_active(SweepFeedback.APPROACHING):
-            return
-        target_pose \
-            = routines.effector_target_pose(goal.pose,
-                                            (goal.contact_offset.translation.x,
-                                             goal.contact_offset.translation.y,
-                                             goal.contact_offset.translation.z,
-                                             goal.contact_offset.rotation.x,
-                                             goal.contact_offset.rotation.y,
-                                             goal.contact_offset.rotation.z,
-                                             goal.contact_offset.rotation.w))
+        # Approach sweep pose.
+        target_pose = routines.effector_target_pose(
+                          goal.pose,
+                          (goal.sweep_offset.translation.x,
+                           goal.sweep_offset.translation.y,
+                           goal.sweep_offset.translation.z,
+                           goal.sweep_offset.rotation.x,
+                           goal.sweep_offset.rotation.y,
+                           goal.sweep_offset.rotation.z,
+                           goal.sweep_offset.rotation.w))
         routines.add_marker("pick_pose", target_pose)
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
@@ -183,17 +142,15 @@ class Sweep(object):
 
         # Sweep.
         rospy.loginfo("--- Sweep. ---")
-        if not self._is_active(SweepFeedback.SWEEPING):
-            return
-        target_pose \
-            = routines.effector_target_pose(goal.pose,
-                                            (goal.sweep_offset.translation.x,
-                                             goal.sweep_offset.translation.y,
-                                             goal.sweep_offset.translation.z,
-                                             goal.sweep_offset.rotation.x,
-                                             goal.sweep_offset.rotation.y,
-                                             goal.sweep_offset.rotation.z,
-                                             goal.sweep_offset.rotation.w))
+        target_pose = routines.effector_target_pose(
+                          goal_pose,
+                          (goal.sweep_offset.translation.x + sweep_vector.x,
+                           goal.sweep_offset.translation.y + sweep_vector.y,
+                           goal.sweep_offset.translation.z + sweep_vector.z,
+                           goal.sweep_offset.rotation.x,
+                           goal.sweep_offset.rotation.y,
+                           goal.sweep_offset.rotation.z,
+                           goal.sweep_offset.rotation.w))
         routines.add_marker("place_pose", target_pose)
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
@@ -206,8 +163,6 @@ class Sweep(object):
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo("--- Go back to departure pose. ---")
 
-        if not self._is_active(SweepFeedback.DEPARTING):
-            return
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
                              routines.effector_target_pose(
@@ -231,15 +186,3 @@ class Sweep(object):
         else:
             result.result = SweepResult.GRASP_FAILURE
             self._server.set_aborted(result, "Failed to grasp")
-
-    def _preempt_callback(self):
-        robot_name = self._server.current_goal.get_goal().robot_name
-        self._routines.stop(robot_name)
-        self._routines.gripper(robot_name).cancel()
-        self._server.set_preempted()
-
-    def _is_active(self, state):
-        if self._server.is_active():
-            self._server.publish_feedback(SweepFeedback(state=state))
-            return True
-        return False

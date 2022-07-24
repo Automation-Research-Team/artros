@@ -429,17 +429,19 @@ class AISTBaseRoutines(object):
         return self._pick_or_place.cancel()
 
     # Sweep action stuffs
-    def sweep(self, robot_name, target_pose, part_id,
+    def sweep(self, robot_name, target_pose, sweep_dir, part_id,
               wait=True, feedback_cb=None):
-        params = self._sweep_params[part_id]
-        return self._sweep.execute(robot_name, target_pose,
-                                   params['contact_offset'],
+        params       = self._sweep_params[part_id]
+        sweep_length = params['sweep_length']
+        sweep_vector = (sweep_length*sweep_dir[0],
+                        sweep_length*sweep_dir[1],
+                        sweep_length*sweep_dir[2])
+        return self._sweep.execute(robot_name, target_pose, sweep_vector,
                                    params['sweep_offset'],
                                    params['approach_offset'],
                                    params['departure_offset'],
                                    params['speed_fast'],
                                    params['speed_slow'],
-                                   params['interactive'],
                                    wait, feedback_cb)
     # Utility functions
     def shift_pose(self, pose, offset):

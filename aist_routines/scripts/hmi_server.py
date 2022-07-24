@@ -36,8 +36,8 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from finger_pointing_msgs.msg import (RequestHelpAction,
-                                      RequestHelpGoal, RequestHelpResult,
+from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
+                                      RequestHelpResult, RequestHelpFeedback,
                                       request_help, pointing)
 from actionlib                import SimpleActionServer
 
@@ -70,16 +70,18 @@ class HMIServer(object):
             rate.sleep()
 
     def _pointing_cb(self, pointing_msg):
-        if self._hmi_srv.is_active() and \
-           self._prev_state is pointing.NO_RES and \
-           pointing_msg.pointing_state is not pointing.NO_RES:
-            self._hmi_srv.set_succeeded(RequestHelpResult(pointing_msg))
-            self._curr_req = self._no_req
+        pointing_msg.header.stamp = rospy.Time.now()
+        if self._hmi_srv.is_active():
+            self._hmi_srv.publish_feedback(RequestHelpFeedback(pointing_msg))
+            if self._prev_state is pointing.NO_RES and \
+               pointing_msg.pointing_state is not pointing.NO_RES:
+                self._hmi_srv.set_succeeded(RequestHelpResult(pointing_msg))
+                self._curr_req = self._no_req
 
         self._prev_state = pointing_msg.pointing_state
 
     def _goal_cb(self):
-        self._curr_req = goal.request
+        self._curr_req = self._hmi_srv.accept_new_goal().request
         rospy.loginfo('(hmi_server) ACCPETED new goal[robot_name=%s, item_id=%s. request=%d]',
                       self._curr_req.robot_name, self._curr_req.item_id,
                       self._curr_req.request)

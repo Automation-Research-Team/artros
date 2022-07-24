@@ -1,13 +1,12 @@
 # Goal
 string robot_name
 geometry_msgs/PoseStamped pose
-geometry_msgs/Transform contact_offset
+geometry_msgs/Vector3 sweep_vector
 geometry_msgs/Transform sweep_offset
 geometry_msgs/Transform approach_offset
 geometry_msgs/Transform departure_offset
 float32 speed_fast
 float32 speed_slow
-bool interactive
 ---
 # Result
 int32 SUCCESS=0

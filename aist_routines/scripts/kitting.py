@@ -135,18 +135,18 @@ class KittingRoutines(AISTBaseRoutines):
                 continue
 
             result = self.pick(robot_name, pose, part_id)
-            if result == PickOrPlaceResult.SUCCESS:
+            if result is PickOrPlaceResult.SUCCESS:
                 result = self.place_at_frame(robot_name,
                                              part_props['destination'],
                                              part_id)
-                return result == PickOrPlaceResult.SUCCESS
-            elif result == PickOrPlaceResult.MOVE_FAILURE or \
-                 result == PickOrPlaceResult.APPROACH_FAILURE:
+                return result is PickOrPlaceResult.SUCCESS
+            elif result is PickOrPlaceResult.MOVE_FAILURE or \
+                 result is PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
-            elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
+            elif result is PickOrPlaceResult.DEPARTURE_FAILURE:
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
-            elif result == PickOrPlaceResult.GRASP_FAILURE:
+            elif result is PickOrPlaceResult.GRASP_FAILURE:
                 self._fail_poses.append(pose)
                 nattempts += 1
 
@@ -178,7 +178,7 @@ class KittingRoutines(AISTBaseRoutines):
         pose = PoseStamped(poses.header, p)
 
         result = self.sweep(robot_name, pose, part_id)
-        return result == SweepResult.SUCCESS
+        return result is SweepResult.SUCCESS
 
     def clear_fail_poses(self):
         self._fail_poses = []
