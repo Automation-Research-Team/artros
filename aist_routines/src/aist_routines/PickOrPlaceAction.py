@@ -146,6 +146,8 @@ class PickOrPlace(object):
         if not success:
             result.result = PickOrPlaceResult.APPROACH_FAILURE
             self._server.set_aborted(result, "Failed to approach target")
+            if goal.pick:
+                gripper.release()
             return
 
         # Grasp/release at pick/place pose.
