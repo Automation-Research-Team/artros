@@ -183,20 +183,19 @@ class PickOrPlace(object):
         if not success:
             result.result = PickOrPlaceResult.DEPARTURE_FAILURE
             self._server.set_aborted(result, "Failed to depart from target")
+            gripper.release()
             return
-        if goal.pick:
-            success = gripper.wait()  # Wait for postgrasp completed
-            if success:
-                rospy.loginfo("--- Pick succeeded. ---")
-            else:
-                rospy.logwarn("--- Pick failed. ---")
 
-        if success:
-            result.result = PickOrPlaceResult.SUCCESS
-            self._server.set_succeeded(result, "Succeeded")
-        else:
+        if goal.pick and not gripper.wait():  # Wait for postgrasp completed
+            rospy.logwarn("--- Pick failed. ---")
             result.result = PickOrPlaceResult.GRASP_FAILURE
             self._server.set_aborted(result, "Failed to grasp")
+            gripper.release()
+
+        rospy.loginfo("--- %s succeeded. ---",
+                      "Pick" if goal.pick else "Place")
+        result.result = PickOrPlaceResult.SUCCESS
+        self._server.set_succeeded(result, "Succeeded")
 
     def _check_if_canceled(self, state):
         self._server.publish_feedback(PickOrPlaceFeedback(state))

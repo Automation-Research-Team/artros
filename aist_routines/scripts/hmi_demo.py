@@ -134,74 +134,46 @@ class HMIRoutines(AISTBaseRoutines):
                  result == PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
             elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
-                self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == PickOrPlaceResult.GRASP_FAILURE:
                 rospy.logwarn('(hmi_demo) Pick failed. Request help!')
                 message = 'Picking failed! Please specify sweep direction.'
-                while self.request_help(robot_name, pose, part_id, message):
-                    res = self._request_help.get_result().response
-                    if res.pointing_state == pointing.SWEEP_RES:
-                        rospy.loginfo('(hmi_demo) Sweep direction given.')
-                        result = self.sweep(robot_name, pose,
-                                            self._compute_sweep_dir(pose, res),
-                                            part_id)
-                        if result == SweepResult.SUCCESS:
-                            return True
-                        elif result == SweepResult.MOVE_FAILURE or \
-                             result == SweepResult.APPROACH_FAILURE:
-                            message = 'Planning for sweeping failed. Please specify another sweep direction.'
-                            continue
-                        else:
-                            raise RuntimeError('Failed to depart from sweep pose')
-                    elif res.pointing_state == pointing.RECAPTURE_RES:
-                        rospy.loginfo('(hmi_demo) Recapture required.')
-                        return True
-                    else:
-                        Raise('Unknown command received!')
-                break
-
-            self.release(robot_name)
+                while self.request_help_and_sweep(robot_name, pose, part_id,
+                                                  message):
+                    message = 'Planning for sweeping failed! Please specify another sweep direction.'
+                return True
 
         return False
 
-    def request_help_and_sweep(self, robot_name, pose, part_id):
-        req = request_help()
-        req.robot_name = robot_name
-        req.item_id    = part_id
-        req.pose       = self.listener.transform_pose(self._ground_frame, pose)
-        req.request    = request_help.SWEEP_DIR_REQ
-
-        while True:
-            req.message    = 'Picking failed! Please specify sweep direction.'
-
-            if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-               != GoalStatus.SUCCEEDED:
-                rospy.logerr('(hmi_demo) No response to the request!')
-                return False
-
-            res = self._request_help.get_result().response
-            if res.pointing_state == pointing.SWEEP_RES:
-                rospy.loginfo('(hmi_demo) Sweep direction given.')
-                result = self.sweep(robot_name, pose,
-                                    self._compute_sweep_dir(pose, res),
-                                    part_id)
-            elif res.pointing_state == pointing.RECAPTURE_RES:
-                rospy.loginfo('(hmi_demo) Recapture required.')
-                return False
-            else:
-                raise RuntimeError('Received unknown command!')
-
-
-    def request_help(self, robot_name, pose, part_id, message):
+    def request_help_and_sweep(self, robot_name, pose, part_id, message):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
         req.pose       = self.listener.transform_pose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
-        return self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-               is GoalStatus.SUCCEEDED
+
+        if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
+           is not GoalStatus.SUCCEEDED:
+            return False
+
+        res = self._request_help.get_result().response
+
+        if res.pointing_state == pointing.SWEEP_RES:
+            rospy.loginfo('(hmi_demo) Sweep direction given.')
+            result = self.sweep(robot_name, pose,
+                                self._compute_sweep_dir(pose, res), part_id)
+            if result == SweepResult.MOVE_FAILURE or \
+               result == SweepResult.APPROACH_FAILURE:
+                return True
+            elif result == SweepResult.DEPARTURE_FAILURE:
+                raise RuntimeError('Failed to depart from sweep pose')
+        elif res.pointing_state == pointing.RECAPTURE_RES:
+            rospy.loginfo('(hmi_demo) Recapture required.')
+        else:
+            rospy.logerr('(hmi_demo) Unknown command received!')
+
+        return False
 
     def clear_fail_poses(self):
         self._fail_poses = []

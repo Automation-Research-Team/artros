@@ -147,13 +147,10 @@ class KittingRoutines(AISTBaseRoutines):
                  result == PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
             elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
-                self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == PickOrPlaceResult.GRASP_FAILURE:
                 self._fail_poses.append(pose)
                 nattempts += 1
-
-            self.release(robot_name)
 
         return False
 
