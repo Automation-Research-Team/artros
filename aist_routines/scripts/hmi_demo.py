@@ -125,36 +125,36 @@ class HMIRoutines(AISTBaseRoutines):
 
             result = self.pick(robot_name, pose, part_id)
 
-            if result is PickOrPlaceResult.SUCCESS:
+            if result == PickOrPlaceResult.SUCCESS:
                 result = self.place_at_frame(robot_name,
                                              part_props['destination'],
                                              part_id)
-                return result is PickOrPlaceResult.SUCCESS
-            elif result is PickOrPlaceResult.MOVE_FAILURE or \
-                 result is PickOrPlaceResult.APPROACH_FAILURE:
+                return result == PickOrPlaceResult.SUCCESS
+            elif result == PickOrPlaceResult.MOVE_FAILURE or \
+                 result == PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
-            elif result is PickOrPlaceResult.DEPARTURE_FAILURE:
+            elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self.release(robot_name)
                 raise RuntimeError('Failed to depart from pick/place pose')
-            elif result is PickOrPlaceResult.GRASP_FAILURE:
+            elif result == PickOrPlaceResult.GRASP_FAILURE:
                 rospy.logwarn('(hmi_demo) Pick failed. Request help!')
                 message = 'Picking failed! Please specify sweep direction.'
                 while self.request_help(robot_name, pose, part_id, message):
                     res = self._request_help.get_result().response
-                    if res.pointing_state is pointing.SWEEP_RES:
+                    if res.pointing_state == pointing.SWEEP_RES:
                         rospy.loginfo('(hmi_demo) Sweep direction given.')
                         result = self.sweep(robot_name, pose,
                                             self._compute_sweep_dir(pose, res),
                                             part_id)
-                        if result is SweepResult.SUCCESS:
+                        if result == SweepResult.SUCCESS:
                             return True
-                        elif result is SweepResult.MOVE_FAILURE or \
-                             result is SweepResult.APPROACH_FAILURE:
+                        elif result == SweepResult.MOVE_FAILURE or \
+                             result == SweepResult.APPROACH_FAILURE:
                             message = 'Planning for sweeping failed. Please specify another sweep direction.'
                             continue
                         else:
                             raise RuntimeError('Failed to depart from sweep pose')
-                    elif res.pointing_state is pointing.RECAPTURE_RES:
+                    elif res.pointing_state == pointing.RECAPTURE_RES:
                         rospy.loginfo('(hmi_demo) Recapture required.')
                         return True
                     else:
@@ -176,7 +176,7 @@ class HMIRoutines(AISTBaseRoutines):
             req.message    = 'Picking failed! Please specify sweep direction.'
 
             if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-               is not GoalStatus.SUCCEEDED:
+               != GoalStatus.SUCCEEDED:
                 rospy.logerr('(hmi_demo) No response to the request!')
                 return False
 

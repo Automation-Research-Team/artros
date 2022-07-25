@@ -61,7 +61,7 @@ class PickOrPlace(object):
     # Client stuffs
     def execute(self, robot_name, pose_stamped, pick, offset,
                 approach_offset, departure_offset, speed_fast, speed_slow,
-                timeout=rospy.Duration(0), feedback_cb=None):
+                wait=True, feedback_cb=None):
         goal = PickOrPlaceGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
@@ -72,13 +72,11 @@ class PickOrPlace(object):
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
         self._client.send_goal(goal, feedback_cb=feedback_cb)
-        return self.wait_for_result(timeout)
+        return self.wait_for_result() if wait else None
 
-    def wait_for_result(self, timeout=rospy.Duration(0)):
-        if self._client.wait_for_result(timeout):
-            return self._client.get_result().result
-        else:
-            return None
+    def wait_for_result(self):
+        self._client.wait_for_result()
+        return self._client.get_result().result
 
     def cancel(self):
         if self._client.get_state() in ( GoalStatus.PENDING,
