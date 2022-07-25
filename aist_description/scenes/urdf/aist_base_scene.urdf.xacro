@@ -104,7 +104,7 @@
   </xacro:single_suction_gripper>
 
   <!-- Add virtual wall to avoid collisions-->
-  <xacro:aist_box name="vwall1" width="0.01" length="0.3" height="0.5"
+  <xacro:aist_box name="vwall1" width="0.01" length="0.40" height="0.55"
 		  parent="ground" transparent="true">
     <origin xyz="0.41 -0.20 ${bots_z}" rpy="0 0 0"/>
   </xacro:aist_box>
