@@ -46,11 +46,11 @@ from moveit_commander.conversions import pose_to_list
 
 from geometry_msgs import msg as gmsg
 
-from aist_routines.GripperClient     import GripperClient, VoidGripper
-from aist_routines.CameraClient      import CameraClient
-from aist_routines.MarkerPublisher   import MarkerPublisher
-from aist_routines.PickOrPlaceAction import PickOrPlaceAction
-from aist_routines.SweepAction       import SweepAction
+from GripperClient     import GripperClient, VoidGripper
+from CameraClient      import CameraClient
+from MarkerPublisher   import MarkerPublisher
+from PickOrPlaceAction import PickOrPlace
+from SweepAction       import Sweep
 
 ######################################################################
 #  global functions                                                  #
@@ -120,17 +120,17 @@ class AISTBaseRoutines(object):
 
         # Pick and place action
         if rospy.has_param('~picking_parameters'):
-            self._picking_params    = rospy.get_param('~picking_parameters')
-            self._pickOrPlaceAction = PickOrPlaceAction(self)
+            self._picking_params = rospy.get_param('~picking_parameters')
+            self._pick_or_place  = PickOrPlace(self)
         else:
-            self._pickOrPlaceAction = None
+            self._pick_or_place = None
 
         # Sweep action
         if rospy.has_param('~sweep_parameters'):
             self._sweep_params = rospy.get_param('~sweep_parameters')
-            self._sweepAction  = SweepAction(self)
+            self._sweep        = Sweep(self)
         else:
-            self._sweepAction = None
+            self._sweep = None
 
         # Marker publisher
         self._markerPublisher = MarkerPublisher()
@@ -141,10 +141,10 @@ class AISTBaseRoutines(object):
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
-        if self._pickOrPlaceAction:
-            self._pickOrPlaceAction.shutdown()
-        if self._sweepAction:
-            self._sweepAction.shutdown()
+        if self._pick_or_place:
+            self._pick_or_place.shutdown()
+        if self._sweep:
+            self._sweep.shutdown()
         rospy.signal_shutdown('AISTBaseRoutines() completed.')
         return False  # Do not forward exceptions
 
@@ -379,13 +379,13 @@ class AISTBaseRoutines(object):
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
             self.gripper(robot_name).parameters = params['gripper_parameters']
-        return self._pickOrPlaceAction.execute(robot_name, target_pose, True,
-                                               params['grasp_offset'],
-                                               params['approach_offset'],
-                                               params['departure_offset'],
-                                               params['speed_fast'],
-                                               params['speed_slow'],
-                                               wait, feedback_cb)
+        return self._pick_or_place.execute(robot_name, target_pose, True,
+                                           params['grasp_offset'],
+                                           params['approach_offset'],
+                                           params['departure_offset'],
+                                           params['speed_fast'],
+                                           params['speed_slow'],
+                                           wait, feedback_cb)
 
     def place(self, robot_name, target_pose, part_id,
               wait=True, feedback_cb=None):
@@ -394,13 +394,13 @@ class AISTBaseRoutines(object):
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
             self.gripper(robot_name).parameters = params['gripper_parameters']
-        return self._pickOrPlaceAction.execute(robot_name, target_pose, False,
-                                               params['place_offset'],
-                                               params['approach_offset'],
-                                               params['departure_offset'],
-                                               params['speed_fast'],
-                                               params['speed_slow'],
-                                               wait, feedback_cb)
+        return self._pick_or_place.execute(robot_name, target_pose, False,
+                                           params['place_offset'],
+                                           params['approach_offset'],
+                                           params['departure_offset'],
+                                           params['speed_fast'],
+                                           params['speed_slow'],
+                                           wait, feedback_cb)
 
     def pick_at_frame(self, robot_name, target_frame, part_id,
                       offset=(0, 0, 0), wait=True, feedback_cb=None):
@@ -423,24 +423,26 @@ class AISTBaseRoutines(object):
         return self.place(robot_name, target_pose, part_id, wait, feedback_cb)
 
     def pick_or_place_wait_for_result(self):
-        return self._pickOrPlaceAction.wait_for_result()
+        return self._pick_or_place.wait_for_result()
 
     def pick_or_place_cancel(self):
-        return self._pickOrPlaceAction.cancel()
+        return self._pick_or_place.cancel()
 
     # Sweep action stuffs
-    def sweep(self, robot_name, target_pose, part_id,
+    def sweep(self, robot_name, target_pose, sweep_dir, part_id,
               wait=True, feedback_cb=None):
-        params = self._sweep_params[part_id]
-        return self._sweepAction.execute(robot_name, target_pose,
-                                         params['contact_offset'],
-                                         params['sweep_offset'],
-                                         params['approach_offset'],
-                                         params['departure_offset'],
-                                         params['speed_fast'],
-                                         params['speed_slow'],
-                                         params['interactive'],
-                                         wait, feedback_cb)
+        params       = self._sweep_params[part_id]
+        sweep_length = params['sweep_length']
+        sweep_vector = (sweep_length*sweep_dir[0],
+                        sweep_length*sweep_dir[1],
+                        sweep_length*sweep_dir[2])
+        return self._sweep.execute(robot_name, target_pose, sweep_vector,
+                                   params['sweep_offset'],
+                                   params['approach_offset'],
+                                   params['departure_offset'],
+                                   params['speed_fast'],
+                                   params['speed_slow'],
+                                   wait, feedback_cb)
     # Utility functions
     def shift_pose(self, pose, offset):
         m44 = tfs.concatenate_matrices(self._listener.fromTranslationRotation(
