@@ -154,7 +154,7 @@ class HMIRoutines(AISTBaseRoutines):
         req.message    = message
 
         if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-           is not GoalStatus.SUCCEEDED:
+           != GoalStatus.SUCCEEDED:
             return False
 
         res = self._request_help.get_result().response
@@ -165,7 +165,7 @@ class HMIRoutines(AISTBaseRoutines):
                                 self._compute_sweep_dir(pose, res), part_id)
             if result == SweepResult.MOVE_FAILURE or \
                result == SweepResult.APPROACH_FAILURE:
-                return True
+                return True                     # Need to send request again
             elif result == SweepResult.DEPARTURE_FAILURE:
                 raise RuntimeError('Failed to depart from sweep pose')
         elif res.pointing_state == pointing.RECAPTURE_RES:
@@ -173,7 +173,7 @@ class HMIRoutines(AISTBaseRoutines):
         else:
             rospy.logerr('(hmi_demo) Unknown command received!')
 
-        return False
+        return False                            # No more requests required.
 
     def clear_fail_poses(self):
         self._fail_poses = []
