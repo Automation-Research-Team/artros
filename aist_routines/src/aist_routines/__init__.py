@@ -443,7 +443,7 @@ class AISTBaseRoutines(object):
                                             *tfs.quaternion_from_matrix(R))
         params = self._sweep_params[part_id]
         return self._sweep.execute(robot_name, target_pose,
-                                   params['sweep_length']
+                                   params['sweep_length'],
                                    params['sweep_offset'],
                                    params['approach_offset'],
                                    params['departure_offset'],
