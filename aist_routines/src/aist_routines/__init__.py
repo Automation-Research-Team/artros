@@ -431,18 +431,26 @@ class AISTBaseRoutines(object):
     # Sweep action stuffs
     def sweep(self, robot_name, target_pose, sweep_dir, part_id,
               wait=True, feedback_cb=None):
-        params       = self._sweep_params[part_id]
-        sweep_length = params['sweep_length']
-        sweep_vector = (sweep_length*sweep_dir[0],
-                        sweep_length*sweep_dir[1],
-                        sweep_length*sweep_dir[2])
-        return self._sweep.execute(robot_name, target_pose, sweep_vector,
+        R = tfs.quaternion_matrix((target_pose.pose.orientation.x,
+                                   target_pose.pose.orientation.y,
+                                   target_pose.pose.orientation.z,
+                                   target_pose.pose.orientation.w))
+        xdir = np.cross(sweep_dir, R[0:3, 2])   # sweep_dir ^ surface_normal
+        R[0:3, 0] = xdir/np.linalg.norm(xdir)
+        R[0:3, 1] = sweep_dir/np.linalg.norm(sweep_dir)
+        R[0:3, 2] = np.cross(R[0:3, 0], R[0:3, 1])
+        target_pose.pose.orientation = gmsg.Quaternion(
+                                            *tfs.quaternion_from_matrix(R))
+        params = self._sweep_params[part_id]
+        return self._sweep.execute(robot_name, target_pose,
+                                   params['sweep_length']
                                    params['sweep_offset'],
                                    params['approach_offset'],
                                    params['departure_offset'],
                                    params['speed_fast'],
                                    params['speed_slow'],
                                    wait, feedback_cb)
+
     # Utility functions
     def shift_pose(self, pose, offset):
         m44 = tfs.concatenate_matrices(self._listener.fromTranslationRotation(
