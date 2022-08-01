@@ -46,6 +46,7 @@ from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
                                       RequestHelpResult, request_help)
 from actionlib                import SimpleActionClient
 from actionlib_msgs.msg       import GoalStatus
+from tf                       import transformations as tfs
 
 ######################################################################
 #  class HMIRoutines                                                 #

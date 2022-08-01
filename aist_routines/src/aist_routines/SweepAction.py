@@ -70,7 +70,6 @@ class Sweep(object):
         goal.departure_offset = self._create_transform(departure_offset)
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
-        goal.interactive      = interactive
         self._client.send_goal(goal, feedback_cb=feedback_cb)
         return self.wait_for_result(timeout)
 
@@ -143,7 +142,7 @@ class Sweep(object):
         # Sweep.
         rospy.loginfo("--- Sweep. ---")
         target_pose = routines.effector_target_pose(
-                          goal_pose,
+                          goal.pose,
                           (goal.sweep_offset.translation.x,
                            goal.sweep_offset.translation.y + goal.sweep_length,
                            goal.sweep_offset.translation.z,
