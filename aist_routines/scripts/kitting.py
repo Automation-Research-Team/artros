@@ -50,10 +50,10 @@ class KittingRoutines(AISTBaseRoutines):
     def __init__(self):
         super(KittingRoutines, self).__init__()
 
-        self._bin_props         = rospy.get_param('~bin_props')
-        self._part_props        = rospy.get_param('~part_props')
-        self._former_robot_name = None
-        self._fail_poses        = []
+        self._bin_props          = rospy.get_param('~bin_props')
+        self._part_props         = rospy.get_param('~part_props')
+        self._current_robot_name = None
+        self._fail_poses         = []
         #self.go_to_named_pose('all_bots', 'home')
 
     @property
@@ -61,8 +61,8 @@ class KittingRoutines(AISTBaseRoutines):
         return len(self._bin_props)
 
     @property
-    def former_robot_name(self):
-        return self._former_robot_name
+    def current_robot_name(self):
+        return self._current_robot_name
 
     ###----- main procedure
     def run(self):
@@ -88,7 +88,7 @@ class KittingRoutines(AISTBaseRoutines):
             if completed:
                 break
 
-        kitting.go_to_named_pose(kitting.former_robot_name, 'home')
+        kitting.go_to_named_pose(kitting.current_robot_name, 'home')
 
     def search(self, bin_id, max_slant=pi/4):
         bin_props  = self._bin_props[bin_id]
@@ -112,10 +112,10 @@ class KittingRoutines(AISTBaseRoutines):
         robot_name = part_props['robot_name']
 
         # If using a different robot from the former, move it back to home.
-        if self._former_robot_name is not None and \
-           self._former_robot_name != robot_name:
-            self.go_to_named_pose(self._former_robot_name, 'back')
-        self._former_robot_name = robot_name
+        if self._current_robot_name is not None and \
+           self._current_robot_name != robot_name:
+            self.go_to_named_pose(self._current_robot_name, 'back')
+        self._current_robot_name = robot_name
 
         # Move to 0.15m above the bin if the camera is mounted on the robot.
         if self._is_eye_on_hand(robot_name, part_props['camera_name']):
@@ -160,11 +160,11 @@ class KittingRoutines(AISTBaseRoutines):
         part_props = self._part_props[part_id]
         robot_name = part_props['robot_name']
 
-        # If using a different robot from the former, move it back to home.
-        if self._former_robot_name is not None and \
-           self._former_robot_name != robot_name:
-            self.go_to_named_pose(self._former_robot_name, 'back')
-        self._former_robot_name = robot_name
+        # If using a different robot from the current, move it back to home.
+        if self._current_robot_name is not None and \
+           self._current_robot_name != robot_name:
+            self.go_to_named_pose(self._current_robot_name, 'back')
+        self._current_robot_name = robot_name
 
         # Move to 0.15m above the bin if the camera is mounted on the robot.
         if self._is_eye_on_hand(robot_name, part_props['camera_name']):
@@ -226,8 +226,8 @@ if __name__ == '__main__':
             try:
                 key = raw_input('>> ')
                 if key == 'q':
-                    if kitting.former_robot_name is not None:
-                        kitting.go_to_named_pose(kitting.former_robot_name,
+                    if kitting.current_robot_name is not None:
+                        kitting.go_to_named_pose(kitting.current_robot_name,
                                                  'home')
                     break
                 elif key == 'H':
@@ -246,29 +246,32 @@ if __name__ == '__main__':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     kitting.clear_fail_poses()
                     kitting.attempt_bin(bin_id, 5)
-                    kitting.go_to_named_pose(kitting.former_robot_name, 'home')
+                    kitting.go_to_named_pose(kitting.current_robot_name,
+                                             'home')
                 elif key == 'A':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     kitting.clear_fail_poses()
                     while kitting.attempt_bin(bin_id, 5):
                         pass
-                    kitting.go_to_named_pose(kitting.former_robot_name, 'home')
+                    kitting.go_to_named_pose(kitting.current_robot_name,
+                                             'home')
                 elif key == 'c':
                     self.pick_or_place_cancel()
                 elif key == 'w':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     kitting.clear_fail_poses()
                     kitting.sweep_bin(bin_id)
-                    kitting.go_to_named_pose(kitting.former_robot_name, 'home')
+                    kitting.go_to_named_pose(kitting.current_robot_name,
+                                             'home')
                 elif key == 'd':
                     kitting.demo()
                 elif key == 'k':
                     kitting.run()
                 elif key == 'g':
-                    if kitting.former_robot_name is not None:
-                        kitting.grasp(kitting.former_robot_name)
+                    if kitting.current_robot_name is not None:
+                        kitting.grasp(kitting.current_robot_name)
                 elif key == 'r':
-                    if kitting.former_robot_name is not None:
-                        kitting.release(kitting.former_robot_name)
+                    if kitting.current_robot_name is not None:
+                        kitting.release(kitting.current_robot_name)
             except Exception as e:
                 print(e.message)

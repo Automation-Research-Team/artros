@@ -1,7 +1,7 @@
 # Goal
 string robot_name
 geometry_msgs/PoseStamped pose
-geometry_msgs/Vector3 sweep_vector
+float32 sweep_length
 geometry_msgs/Transform sweep_offset
 geometry_msgs/Transform approach_offset
 geometry_msgs/Transform departure_offset

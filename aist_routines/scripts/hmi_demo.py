@@ -46,6 +46,7 @@ from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
                                       RequestHelpResult, request_help)
 from actionlib                import SimpleActionClient
 from actionlib_msgs.msg       import GoalStatus
+from tf                       import transformations as tfs
 
 ######################################################################
 #  class HMIRoutines                                                 #
@@ -56,13 +57,13 @@ class HMIRoutines(AISTBaseRoutines):
     def __init__(self, server='hmi_server'):
         super(HMIRoutines, self).__init__()
 
-        self._ground_frame      = rospy.get_param('~ground_frame', 'ground')
-        self._bin_props         = rospy.get_param('~bin_props')
-        self._part_props        = rospy.get_param('~part_props')
-        self._former_robot_name = None
-        self._fail_poses        = []
-        self._request_help      = SimpleActionClient(server + '/request_help',
-                                                     RequestHelpAction)
+        self._ground_frame       = rospy.get_param('~ground_frame', 'ground')
+        self._bin_props          = rospy.get_param('~bin_props')
+        self._part_props         = rospy.get_param('~part_props')
+        self._current_robot_name = None
+        self._fail_poses         = []
+        self._request_help       = SimpleActionClient(server + '/request_help',
+                                                      RequestHelpAction)
         self._request_help.wait_for_server()
 
     @property
@@ -70,14 +71,14 @@ class HMIRoutines(AISTBaseRoutines):
         return len(self._bin_props)
 
     @property
-    def former_robot_name(self):
-        return self._former_robot_name
+    def current_robot_name(self):
+        return self._current_robot_name
 
     ###----- main procedure
     def demo(self, bin_id, max_attempts=1):
         while kitting.attempt_bin(bin_id, 5):
             pass
-        self.go_to_named_pose(self.former_robot_name, 'home')
+        self.go_to_named_pose(self.current_robot_name, 'home')
 
     def search(self, bin_id, max_slant=pi/4):
         bin_props  = self._bin_props[bin_id]
@@ -101,10 +102,10 @@ class HMIRoutines(AISTBaseRoutines):
         robot_name = part_props['robot_name']
 
         # If using a different robot from the former, move it back to home.
-        if self._former_robot_name is not None and \
-           self._former_robot_name != robot_name:
-            self.go_to_named_pose(self._former_robot_name, 'back')
-        self._former_robot_name = robot_name
+        if self._current_robot_name is not None and \
+           self._current_robot_name != robot_name:
+            self.go_to_named_pose(self._current_robot_name, 'back')
+        self._current_robot_name = robot_name
 
         # Move to 0.15m above the bin if the camera is mounted on the robot.
         if self._is_eye_on_hand(robot_name, part_props['camera_name']):
@@ -154,7 +155,7 @@ class HMIRoutines(AISTBaseRoutines):
         req.message    = message
 
         if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-           is not GoalStatus.SUCCEEDED:
+           != GoalStatus.SUCCEEDED:
             return False
 
         res = self._request_help.get_result().response
@@ -165,7 +166,7 @@ class HMIRoutines(AISTBaseRoutines):
                                 self._compute_sweep_dir(pose, res), part_id)
             if result == SweepResult.MOVE_FAILURE or \
                result == SweepResult.APPROACH_FAILURE:
-                return True
+                return True                     # Need to send request again
             elif result == SweepResult.DEPARTURE_FAILURE:
                 raise RuntimeError('Failed to depart from sweep pose')
         elif res.pointing_state == pointing.RECAPTURE_RES:
@@ -173,10 +174,38 @@ class HMIRoutines(AISTBaseRoutines):
         else:
             rospy.logerr('(hmi_demo) Unknown command received!')
 
-        return False
+        return False                            # No more requests required.
 
     def clear_fail_poses(self):
         self._fail_poses = []
+
+    def sweep_bin(self, bin_id):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        robot_name = part_props['robot_name']
+
+        # If using a different robot from the former, move it back to home.
+        if self._current_robot_name is not None and \
+           self._current_robot_name != robot_name:
+            self.go_to_named_pose(self._current_robot_name, 'back')
+        self._current_robot_name = robot_name
+
+        # Move to 0.15m above the bin if the camera is mounted on the robot.
+        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
+            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
+
+        # Search for graspabilities.
+        poses, _ = self.search(bin_id, 0.0)
+
+        # Attempt to sweep the item along y-axis.
+        pose  = PoseStamped(poses.header, poses.poses[0])
+        R     = tfs.quaternion_matrix((pose.pose.orientation.x,
+                                       pose.pose.orientation.y,
+                                       pose.pose.orientation.z,
+                                       pose.pose.orientation.w))
+        result = self.sweep(robot_name, pose, R[0:3, 1], part_id)
+        return result == SweepResult.SUCCESS
 
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'
@@ -227,6 +256,7 @@ if __name__ == '__main__':
             print('  s: Search graspabilities')
             print('  a: Attempt to pick and place')
             print('  A: Repeat attempts to pick and place')
+            print('  w: attempts to sWeep')
             print('  g: Grasp')
             print('  r: Release')
             print('  H: Move all robots to Home')
@@ -236,8 +266,8 @@ if __name__ == '__main__':
             try:
                 key = raw_input('>> ')
                 if key == 'q':
-                    if hmi.former_robot_name is not None:
-                        hmi.go_to_named_pose(hmi.former_robot_name, 'home')
+                    if hmi.current_robot_name is not None:
+                        hmi.go_to_named_pose(hmi.current_robot_name, 'home')
                     break
                 elif key == 'H':
                     hmi.go_to_named_pose('all_bots', 'home')
@@ -254,20 +284,25 @@ if __name__ == '__main__':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     hmi.clear_fail_poses()
                     hmi.attempt_bin(bin_id, 5)
-                    hmi.go_to_named_pose(hmi.former_robot_name, 'home')
+                    hmi.go_to_named_pose(hmi.current_robot_name, 'home')
                 elif key == 'A':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     hmi.clear_fail_poses()
                     while hmi.attempt_bin(bin_id, 5):
                         pass
-                    hmi.go_to_named_pose(hmi.former_robot_name, 'home')
+                    hmi.go_to_named_pose(hmi.current_robot_name, 'home')
+                elif key == 'w':
+                    bin_id = 'bin_' + raw_input('  bin id? ')
+                    hmi.clear_fail_poses()
+                    hmi.sweep_bin(bin_id)
+                    hmi.go_to_named_pose(hmi.current_robot_name, 'home')
                 elif key == 'c':
                     self.pick_or_place_cancel()
                 elif key == 'g':
-                    if hmi.former_robot_name is not None:
-                        hmi.grasp(hmi.former_robot_name)
+                    if hmi.current_robot_name is not None:
+                        hmi.grasp(hmi.current_robot_name)
                 elif key == 'r':
-                    if hmi.former_robot_name is not None:
-                        hmi.release(hmi.former_robot_name)
+                    if hmi.current_robot_name is not None:
+                        hmi.release(hmi.current_robot_name)
             except Exception as e:
                 print('(hmi_demo) ' + e.message)

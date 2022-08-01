@@ -57,20 +57,19 @@ class Sweep(object):
         self._client.wait_for_server()
 
     # Client stuffs
-    def execute(self, robot_name, pose_stamped, sweep_vector,
+    def execute(self, robot_name, pose_stamped, sweep_length,
                 sweep_offset, approach_offset, departure_offset,
                 speed_fast, speed_slow, timeout=rospy.Duration(0),
                 feedback_cb=None):
         goal = SweepGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
-        goal.sweep_vector     = Vector3(*sweep_vector)
+        goal.sweep_length     = sweep_length
         goal.sweep_offset     = self._create_transform(sweep_offset)
         goal.approach_offset  = self._create_transform(approach_offset)
         goal.departure_offset = self._create_transform(departure_offset)
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
-        goal.interactive      = interactive
         self._client.send_goal(goal, feedback_cb=feedback_cb)
         return self.wait_for_result(timeout)
 
@@ -143,10 +142,10 @@ class Sweep(object):
         # Sweep.
         rospy.loginfo("--- Sweep. ---")
         target_pose = routines.effector_target_pose(
-                          goal_pose,
-                          (goal.sweep_offset.translation.x + sweep_vector.x,
-                           goal.sweep_offset.translation.y + sweep_vector.y,
-                           goal.sweep_offset.translation.z + sweep_vector.z,
+                          goal.pose,
+                          (goal.sweep_offset.translation.x,
+                           goal.sweep_offset.translation.y + goal.sweep_length,
+                           goal.sweep_offset.translation.z,
                            goal.sweep_offset.rotation.x,
                            goal.sweep_offset.rotation.y,
                            goal.sweep_offset.rotation.z,

@@ -51,7 +51,7 @@ class HMIServer(object):
         self._no_req     = request_help(request=request_help.NO_REQ)
         self._curr_req   = self._no_req
         self._prev_state = pointing.NO_RES
-        self._hmi_pub    = rospy.Publisher('request_help', request_help,
+        self._hmi_pub    = rospy.Publisher('/request_help', request_help,
                                            queue_size=10)
         self._hmi_sub    = rospy.Subscriber('/pointing', pointing,
                                             self._pointing_cb)
