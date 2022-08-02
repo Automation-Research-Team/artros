@@ -193,6 +193,7 @@ class PickOrPlace(object):
             result.result = PickOrPlaceResult.GRASP_FAILURE
             self._server.set_aborted(result, "Failed to grasp")
             gripper.release()
+            return
 
         rospy.loginfo("--- %s succeeded. ---",
                       "Pick" if goal.pick else "Place")
