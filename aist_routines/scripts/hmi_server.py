@@ -48,7 +48,10 @@ class HMIServer(object):
     def __init__(self):
         super(HMIServer, self).__init__()
 
-        self._no_req     = request_help(request=request_help.NO_REQ)
+        self._no_req     = request_help(robot_name='unknown robot name',
+                                        part_id='unknown part ID',
+                                        request=request_help.NO_REQ,
+                                        message='no requests')
         self._curr_req   = self._no_req
         self._prev_state = pointing.NO_RES
         self._hmi_pub    = rospy.Publisher('/request_help', request_help,
