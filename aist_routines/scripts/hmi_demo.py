@@ -150,7 +150,7 @@ class HMIRoutines(AISTBaseRoutines):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
-        req.pose       = self.listener.transform_pose(self._ground_frame, pose)
+        req.pose       = self.listener.transformPose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
 
@@ -222,7 +222,7 @@ class HMIRoutines(AISTBaseRoutines):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
-        req.pose       = self.listener.transform_pose(self._ground_frame, pose)
+        req.pose       = self.listener.transformPose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
 
@@ -234,10 +234,7 @@ class HMIRoutines(AISTBaseRoutines):
 
         # Receive response and print.
         res = self._request_help.get_result().response
-        print('frame_id=%s, pointing_state=%d, finger_pos=(%f,%f,%f), finger_dir=(%f, %f, %f)' %
-              (res.header.frame_id, res.pointing_state,
-               res.finger_pos.x, res.finger_pos.y, res.finger_pos.z,
-               res.finger_dir.x, res.finter_dir.y, res.finger_dir.z))
+        print('respose=%s' % str(res))
 
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'

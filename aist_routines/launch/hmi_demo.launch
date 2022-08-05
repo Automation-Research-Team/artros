@@ -7,7 +7,7 @@
   <!-- Start hmi_demo server -->
   <node name="hmi_server"
 	pkg="aist_routines" type="hmi_server.py" output="screen">
-    <remap from="/pointing"	to="$(arg rosbridge_name)/pointing"/>
+    <!-- <remap from="/pointing"	to="$(arg rosbridge_name)/pointing"/> -->
   </node>
 
   <!-- Start hmi_demo client -->

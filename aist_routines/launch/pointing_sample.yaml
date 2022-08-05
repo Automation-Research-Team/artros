@@ -1,0 +1,15 @@
+header:
+  seq: 0
+  stamp:
+    secs: 0
+    nsecs: 0
+  frame_id: "ground"
+pointing_state: 2
+finger_pos:
+  x: 0.30
+  y: 0.10
+  z: 0.90
+finger_dir:
+  x: 0.00
+  y: 1.00
+  z: 0.00
