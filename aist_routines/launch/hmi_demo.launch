@@ -22,4 +22,10 @@
     <arg name="port"	value="$(arg port)"/>
   </include>
 
+  <!-- Start live camera -->
+  <node name="live_camera"
+  	pkg="usb_cam" type="usb_cam_node" output="screen">
+    <rosparam file="$(find aist_routines)/config/live_camera.yaml"/>
+  </node>
+
 </launch>
