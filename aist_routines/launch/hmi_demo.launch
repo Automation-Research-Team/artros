@@ -7,7 +7,7 @@
   <!-- Start hmi_demo server -->
   <node name="hmi_server"
 	pkg="aist_routines" type="hmi_server.py" output="screen">
-    <remap from="/pointing"	to="$(arg rosbridge_name)/pointing"/>
+    <!-- <remap from="/pointing"	to="$(arg rosbridge_name)/pointing"/> -->
   </node>
 
   <!-- Start hmi_demo client -->
@@ -21,5 +21,11 @@
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
     <arg name="port"	value="$(arg port)"/>
   </include>
+
+  <!-- Start live camera -->
+  <node name="live_camera"
+  	pkg="usb_cam" type="usb_cam_node" output="screen">
+    <rosparam file="$(find aist_routines)/config/live_camera.yaml"/>
+  </node>
 
 </launch>

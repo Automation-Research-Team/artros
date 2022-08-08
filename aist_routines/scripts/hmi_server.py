@@ -48,10 +48,13 @@ class HMIServer(object):
     def __init__(self):
         super(HMIServer, self).__init__()
 
-        self._no_req     = request_help(request=request_help.NO_REQ)
+        self._no_req     = request_help(robot_name='unknown robot name',
+                                        item_id='unknown part ID',
+                                        request=request_help.NO_REQ,
+                                        message='no requests')
         self._curr_req   = self._no_req
         self._prev_state = pointing.NO_RES
-        self._hmi_pub    = rospy.Publisher('/request_help', request_help,
+        self._hmi_pub    = rospy.Publisher('/help', request_help,
                                            queue_size=10)
         self._hmi_sub    = rospy.Subscriber('/pointing', pointing,
                                             self._pointing_cb)
@@ -73,8 +76,7 @@ class HMIServer(object):
         pointing_msg.header.stamp = rospy.Time.now()
         if self._hmi_srv.is_active():
             self._hmi_srv.publish_feedback(RequestHelpFeedback(pointing_msg))
-            if self._prev_state is pointing.NO_RES and \
-               pointing_msg.pointing_state is not pointing.NO_RES:
+            if pointing_msg.pointing_state is not pointing.NO_RES:
                 self._hmi_srv.set_succeeded(RequestHelpResult(pointing_msg))
                 self._curr_req = self._no_req
 

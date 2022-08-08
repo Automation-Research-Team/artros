@@ -150,7 +150,7 @@ class HMIRoutines(AISTBaseRoutines):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
-        req.pose       = self.listener.transform_pose(self._ground_frame, pose)
+        req.pose       = self.listener.transformPose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
 
@@ -207,6 +207,35 @@ class HMIRoutines(AISTBaseRoutines):
         result = self.sweep(robot_name, pose, R[0:3, 1], part_id)
         return result == SweepResult.SUCCESS
 
+    def request_help_bin(self, bin_id):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        robot_name = part_props['robot_name']
+        message    = '[Request testing] Please specify sweep direction.'
+
+        # Search for graspabilities.
+        poses, _ = self.search(bin_id)
+        pose     = PoseStamped(poses.header, poses.poses[0])
+
+        # Create request.
+        req = request_help()
+        req.robot_name = robot_name
+        req.item_id    = part_id
+        req.pose       = self.listener.transformPose(self._ground_frame, pose)
+        req.request    = request_help.SWEEP_DIR_REQ
+        req.message    = message
+
+        # Send request.
+        if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
+           != GoalStatus.SUCCEEDED:
+            print('Failed to request help!')
+            return
+
+        # Receive response and print.
+        res = self._request_help.get_result().response
+        print('respose=%s' % str(res))
+
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'
 
@@ -257,6 +286,7 @@ if __name__ == '__main__':
             print('  a: Attempt to pick and place')
             print('  A: Repeat attempts to pick and place')
             print('  w: attempts to sWeep')
+            print('  h: request help')
             print('  g: Grasp')
             print('  r: Release')
             print('  H: Move all robots to Home')
@@ -296,6 +326,9 @@ if __name__ == '__main__':
                     hmi.clear_fail_poses()
                     hmi.sweep_bin(bin_id)
                     hmi.go_to_named_pose(hmi.current_robot_name, 'home')
+                elif key == 'h':
+                    bin_id = 'bin_' + raw_input('  bin id? ')
+                    hmi.request_help_bin(bin_id)
                 elif key == 'c':
                     self.pick_or_place_cancel()
                 elif key == 'g':
