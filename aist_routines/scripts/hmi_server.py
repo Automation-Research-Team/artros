@@ -48,6 +48,7 @@ class HMIServer(object):
     def __init__(self):
         super(HMIServer, self).__init__()
 
+        self._seq        = 0
         self._no_req     = request_help(robot_name='unknown robot name',
                                         item_id='unknown part ID',
                                         request=request_help.NO_REQ,
@@ -69,7 +70,9 @@ class HMIServer(object):
     def run(self):
         rate = rospy.Rate(10)   # 10Hz
         while not rospy.is_shutdown():
+            self._curr_req.pose.header.seq = self._seq
             self._hmi_pub.publish(self._curr_req)
+            self._seq += 1
             rate.sleep()
 
     def _pointing_cb(self, pointing_msg):
