@@ -95,6 +95,34 @@ class HMIRoutines(AISTBaseRoutines):
         orientation.quaternion.w = 1
         return self.graspability_wait_for_result(orientation, max_slant)
 
+    def sweep_bin(self, bin_id):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        robot_name = part_props['robot_name']
+
+        # If using a different robot from the former, move it back to home.
+        if self._current_robot_name is not None and \
+           self._current_robot_name != robot_name:
+            self.go_to_named_pose(self._current_robot_name, 'back')
+        self._current_robot_name = robot_name
+
+        # Move to 0.15m above the bin if the camera is mounted on the robot.
+        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
+            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
+
+        # Search for graspabilities.
+        poses, _ = self.search(bin_id, 0.0)
+
+        # Attempt to sweep the item along y-axis.
+        pose = PoseStamped(poses.header, poses.poses[0])
+        R    = tfs.quaternion_matrix((pose.pose.orientation.x,
+                                      pose.pose.orientation.y,
+                                      pose.pose.orientation.z,
+                                      pose.pose.orientation.w))
+        result = self.sweep(robot_name, pose, R[0:3, 1], part_id)
+        return result == SweepResult.SUCCESS
+
     def attempt_bin(self, bin_id, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
@@ -137,6 +165,7 @@ class HMIRoutines(AISTBaseRoutines):
             elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == PickOrPlaceResult.GRASP_FAILURE:
+
                 rospy.logwarn('(hmi_demo) Pick failed. Request help!')
                 message = 'Picking failed! Please specify sweep direction.'
                 while self.request_help_and_sweep(robot_name, pose, part_id,
@@ -146,19 +175,35 @@ class HMIRoutines(AISTBaseRoutines):
 
         return False
 
-    def request_help_and_sweep(self, robot_name, pose, part_id, message):
+    def request_help_bin(self, bin_id):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        robot_name = part_props['robot_name']
+        message    = '[Request testing] Please specify sweep direction.'
+
+        # Search for graspabilities.
+        poses, _ = self.search(bin_id)
+        pose     = PoseStamped(poses.header, poses.poses[0])
+
+        # Send request and receive response.
+        res = self.request_help(robot_name, pose, part_id, message)
+        print('*** response=%s' % str(res))
+
+    def request_help(self, robot_name, pose, part_id, message):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
         req.pose       = self.listener.transformPose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
+        self._request_help.send_goal(RequestHelpGoal(req),
+                                     feedback_cb=self._feedback_cb)
+        self._request_help.wait_for_result()
+        return self._request_help.get_result().response
 
-        if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-           != GoalStatus.SUCCEEDED:
-            return False
-
-        res = self._request_help.get_result().response
+    def request_help_and_sweep(self, robot_name, pose, part_id, message):
+        res = self.request_help(robot_name, pose, part_id, message)
 
         if res.pointing_state == pointing.SWEEP_RES:
             rospy.loginfo('(hmi_demo) Sweep direction given.')
@@ -173,68 +218,10 @@ class HMIRoutines(AISTBaseRoutines):
             rospy.loginfo('(hmi_demo) Recapture required.')
         else:
             rospy.logerr('(hmi_demo) Unknown command received!')
-
         return False                            # No more requests required.
 
     def clear_fail_poses(self):
         self._fail_poses = []
-
-    def sweep_bin(self, bin_id):
-        bin_props  = self._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        robot_name = part_props['robot_name']
-
-        # If using a different robot from the former, move it back to home.
-        if self._current_robot_name is not None and \
-           self._current_robot_name != robot_name:
-            self.go_to_named_pose(self._current_robot_name, 'back')
-        self._current_robot_name = robot_name
-
-        # Move to 0.15m above the bin if the camera is mounted on the robot.
-        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
-            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
-
-        # Search for graspabilities.
-        poses, _ = self.search(bin_id, 0.0)
-
-        # Attempt to sweep the item along y-axis.
-        pose  = PoseStamped(poses.header, poses.poses[0])
-        R     = tfs.quaternion_matrix((pose.pose.orientation.x,
-                                       pose.pose.orientation.y,
-                                       pose.pose.orientation.z,
-                                       pose.pose.orientation.w))
-        result = self.sweep(robot_name, pose, R[0:3, 1], part_id)
-        return result == SweepResult.SUCCESS
-
-    def request_help_bin(self, bin_id):
-        bin_props  = self._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        robot_name = part_props['robot_name']
-        message    = '[Request testing] Please specify sweep direction.'
-
-        # Search for graspabilities.
-        poses, _ = self.search(bin_id)
-        pose     = PoseStamped(poses.header, poses.poses[0])
-
-        # Create request.
-        req = request_help()
-        req.robot_name = robot_name
-        req.item_id    = part_id
-        req.pose       = self.listener.transformPose(self._ground_frame, pose)
-        req.request    = request_help.SWEEP_DIR_REQ
-        req.message    = message
-
-        # Send request.
-        if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-           != GoalStatus.SUCCEEDED:
-            print('Failed to request help!')
-            return
-
-        # Receive response and print.
-        res = self._request_help.get_result().response
-        print('respose=%s' % str(res))
 
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'
@@ -272,6 +259,10 @@ class HMIRoutines(AISTBaseRoutines):
 
         return (sdir[0], sdir[1], sdir[2])
 
+    def _feedback_cb(self, feedback):
+        res = feedback.response
+        print('*** feedback=%s' % str(res))
+        # print res.finger_pos, res.finger_dir
 
 if __name__ == '__main__':
 
