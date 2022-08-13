@@ -48,19 +48,19 @@ class HMIServer(object):
     def __init__(self):
         super(HMIServer, self).__init__()
 
-        self._seq        = 0
-        self._no_req     = request_help(robot_name='unknown robot name',
-                                        item_id='unknown part ID',
-                                        request=request_help.NO_REQ,
-                                        message='no requests')
-        self._curr_req   = self._no_req
-        self._hmi_pub    = rospy.Publisher('/help', request_help,
-                                           queue_size=10)
-        self._hmi_sub    = rospy.Subscriber('/pointing', pointing,
-                                            self._pointing_cb)
-        self._hmi_srv    = SimpleActionServer('~request_help',
-                                              RequestHelpAction,
-                                              auto_start=False)
+        self._seq     = 0
+        self._no_req  = request_help(robot_name='unknown robot name',
+                                     item_id='unknown part ID',
+                                     request=request_help.NO_REQ,
+                                     message='no requests')
+        self._curr_req = self._no_req
+        self._hmi_pub  = rospy.Publisher('/help', request_help,
+                                             queue_size=10)
+        self._hmi_sub  = rospy.Subscriber('/pointing', pointing,
+                                              self._pointing_cb)
+        self._hmi_srv  = SimpleActionServer('~request_help',
+                                            RequestHelpAction,
+                                            auto_start=False)
 
         self._hmi_srv.register_goal_callback(self._goal_cb)
         self._hmi_srv.register_preempt_callback(self._preempt_cb)
@@ -94,6 +94,7 @@ class HMIServer(object):
         self._request.set_preempted()
         self._request = self._no_req
         rospy.loginfo('(hmi_server) PREEMPTED current goal')
+
 
 #########################################################################
 #  entry point                                                          #
