@@ -212,7 +212,7 @@ class HMIRoutines(AISTBaseRoutines):
         if res.pointing_state == pointing.SWEEP_RES:
             sweep_dir = self._compute_sweep_dir(pose, res)
             self._publish_marker('sweep', pose.header, pose.pose.position,
-                                 Vector3(*tuple(sweep_dir)))
+                                 Vector3(*sweep_dir))
         print('*** response=%s' % str(res))
 
     def clear_fail_poses(self):
@@ -238,7 +238,7 @@ class HMIRoutines(AISTBaseRoutines):
             rospy.loginfo('(hmi_demo) Sweep direction given.')
             sweep_dir = self._compute_sweep_dir(pose, res)
             self._publish_marker('sweep', pose.header, pose.pose.position,
-                                 Vector3(*tuple(sweep_dir)))
+                                 Vector3(*sweep_dir))
             result = self.sweep(robot_name, pose, sweep_dir, part_id)
             if result == SweepResult.MOVE_FAILURE or \
                result == SweepResult.APPROACH_FAILURE:
@@ -267,8 +267,7 @@ class HMIRoutines(AISTBaseRoutines):
                                                   res.header,
                                                   Vector3(0, 0, 1))).vector
         sdir = np.cross(fnrm, (gnrm.x, gnrm.y, gnrm.z))
-        sdir = sdir / np.linalg.norm(sdir)
-        return (sdir[0], sdir[1], sdir[2])
+        return tuple(sdir / np.linalg.norm(sdir))
 
     def _feedback_cb(self, feedback):
         res = feedback.response
