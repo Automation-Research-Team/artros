@@ -68,7 +68,6 @@ class MarkerPublisher(object):
         self._pub = rospy.Publisher("visualization_marker",
                                     vmsg.MarkerArray, queue_size=10)
         self._markers  = vmsg.MarkerArray()
-        self._nmarkers = 0
 
     def delete_all(self):
         marker        = vmsg.Marker()

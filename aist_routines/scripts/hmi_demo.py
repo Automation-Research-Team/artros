@@ -35,24 +35,37 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+import rospy, collections, copy
 import numpy as np
 from math                     import pi, radians, degrees
 from geometry_msgs.msg        import (QuaternionStamped, PoseStamped,
-                                      PointStamped, Vector3Stamped, Vector3)
+                                      PointStamped, Vector3Stamped,
+                                      Point, Quaternion, Vector3)
 from aist_routines            import AISTBaseRoutines
 from aist_routines.msg        import PickOrPlaceResult, SweepResult
 from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
-                                      RequestHelpResult, request_help)
+                                      RequestHelpResult,
+                                      request_help, pointing)
 from actionlib                import SimpleActionClient
 from actionlib_msgs.msg       import GoalStatus
 from tf                       import transformations as tfs
+from visualization_msgs.msg   import Marker
+from std_msgs.msg             import ColorRGBA
 
 ######################################################################
 #  class HMIRoutines                                                 #
 ######################################################################
 class HMIRoutines(AISTBaseRoutines):
     """Implements HMI routines for aist robot system."""
+
+    MarkerProps = collections.namedtuple("MarkerProps",
+                                         "id, length, scale, color")
+    _marker_props = {
+        "finger" :
+        MarkerProps(0, 0.1,  (0.004, 0.010, 0.015), (1.0, 0.0, 1.0, 0.8)),
+        "sweep"  :
+        MarkerProps(1, 0.03, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8)),
+        }
 
     def __init__(self, server='hmi_server'):
         super(HMIRoutines, self).__init__()
@@ -62,9 +75,11 @@ class HMIRoutines(AISTBaseRoutines):
         self._part_props         = rospy.get_param('~part_props')
         self._current_robot_name = None
         self._fail_poses         = []
-        self._request_help       = SimpleActionClient(server + '/request_help',
+        self._request_help_srv   = SimpleActionClient(server + '/request_help',
                                                       RequestHelpAction)
-        self._request_help.wait_for_server()
+        self._marker_pub         = rospy.Publisher("pointing_marker",
+                                                   Marker, queue_size=10)
+        self._request_help_srv.wait_for_server()
 
     @property
     def nbins(self):
@@ -94,6 +109,34 @@ class HMIRoutines(AISTBaseRoutines):
         orientation.quaternion.z = 0
         orientation.quaternion.w = 1
         return self.graspability_wait_for_result(orientation, max_slant)
+
+    def sweep_bin(self, bin_id):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        robot_name = part_props['robot_name']
+
+        # If using a different robot from the former, move it back to home.
+        if self._current_robot_name is not None and \
+           self._current_robot_name != robot_name:
+            self.go_to_named_pose(self._current_robot_name, 'back')
+        self._current_robot_name = robot_name
+
+        # Move to 0.15m above the bin if the camera is mounted on the robot.
+        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
+            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
+
+        # Search for graspabilities.
+        poses, _ = self.search(bin_id, 0.0)
+
+        # Attempt to sweep the item along y-axis.
+        pose = PoseStamped(poses.header, poses.poses[0])
+        R    = tfs.quaternion_matrix((pose.pose.orientation.x,
+                                      pose.pose.orientation.y,
+                                      pose.pose.orientation.z,
+                                      pose.pose.orientation.w))
+        result = self.sweep(robot_name, pose, R[0:3, 1], part_id)
+        return result == SweepResult.SUCCESS
 
     def attempt_bin(self, bin_id, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
@@ -137,75 +180,15 @@ class HMIRoutines(AISTBaseRoutines):
             elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == PickOrPlaceResult.GRASP_FAILURE:
+
                 rospy.logwarn('(hmi_demo) Pick failed. Request help!')
                 message = 'Picking failed! Please specify sweep direction.'
-                while self.request_help_and_sweep(robot_name, pose, part_id,
-                                                  message):
+                while self._request_help_and_sweep(robot_name, pose, part_id,
+                                                   message):
                     message = 'Planning for sweeping failed! Please specify another sweep direction.'
                 return True
 
         return False
-
-    def request_help_and_sweep(self, robot_name, pose, part_id, message):
-        req = request_help()
-        req.robot_name = robot_name
-        req.item_id    = part_id
-        req.pose       = self.listener.transformPose(self._ground_frame, pose)
-        req.request    = request_help.SWEEP_DIR_REQ
-        req.message    = message
-
-        if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-           != GoalStatus.SUCCEEDED:
-            return False
-
-        res = self._request_help.get_result().response
-
-        if res.pointing_state == pointing.SWEEP_RES:
-            rospy.loginfo('(hmi_demo) Sweep direction given.')
-            result = self.sweep(robot_name, pose,
-                                self._compute_sweep_dir(pose, res), part_id)
-            if result == SweepResult.MOVE_FAILURE or \
-               result == SweepResult.APPROACH_FAILURE:
-                return True                     # Need to send request again
-            elif result == SweepResult.DEPARTURE_FAILURE:
-                raise RuntimeError('Failed to depart from sweep pose')
-        elif res.pointing_state == pointing.RECAPTURE_RES:
-            rospy.loginfo('(hmi_demo) Recapture required.')
-        else:
-            rospy.logerr('(hmi_demo) Unknown command received!')
-
-        return False                            # No more requests required.
-
-    def clear_fail_poses(self):
-        self._fail_poses = []
-
-    def sweep_bin(self, bin_id):
-        bin_props  = self._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        robot_name = part_props['robot_name']
-
-        # If using a different robot from the former, move it back to home.
-        if self._current_robot_name is not None and \
-           self._current_robot_name != robot_name:
-            self.go_to_named_pose(self._current_robot_name, 'back')
-        self._current_robot_name = robot_name
-
-        # Move to 0.15m above the bin if the camera is mounted on the robot.
-        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
-            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
-
-        # Search for graspabilities.
-        poses, _ = self.search(bin_id, 0.0)
-
-        # Attempt to sweep the item along y-axis.
-        pose  = PoseStamped(poses.header, poses.poses[0])
-        R     = tfs.quaternion_matrix((pose.pose.orientation.x,
-                                       pose.pose.orientation.y,
-                                       pose.pose.orientation.z,
-                                       pose.pose.orientation.w))
-        result = self.sweep(robot_name, pose, R[0:3, 1], part_id)
-        return result == SweepResult.SUCCESS
 
     def request_help_bin(self, bin_id):
         bin_props  = self._bin_props[bin_id]
@@ -218,24 +201,108 @@ class HMIRoutines(AISTBaseRoutines):
         poses, _ = self.search(bin_id)
         pose     = PoseStamped(poses.header, poses.poses[0])
 
-        # Create request.
+        # pose = PoseStamped()
+        # pose.header.frame_id  = 'workspace_center'
+        # pose.header.stamp     = rospy.Time.now()
+        # pose.pose.position    = Point(0, 0, 0.1)
+        # pose.pose.orientation = Quaternion(0, 0, 0, 1)
+
+        # Send request and receive response.
+        res = self._request_help(robot_name, pose, part_id, message)
+        if res.pointing_state == pointing.SWEEP_RES:
+            sweep_dir = self._compute_sweep_dir(pose, res)
+            self._publish_marker('sweep', pose.header, pose.pose.position,
+                                 Vector3(*sweep_dir))
+        print('*** response=%s' % str(res))
+
+    def clear_fail_poses(self):
+        self._fail_poses = []
+
+    # Request help stuffs
+    def _request_help(self, robot_name, pose, part_id, message):
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
         req.pose       = self.listener.transformPose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
+        self._request_help_srv.send_goal(RequestHelpGoal(req),
+                                         feedback_cb=self._feedback_cb)
+        self._request_help_srv.wait_for_result()
+        return self._request_help_srv.get_result().response
 
-        # Send request.
-        if self._request_help.send_goal_and_wait(RequestHelpGoal(req)) \
-           != GoalStatus.SUCCEEDED:
-            print('Failed to request help!')
-            return
+    def _request_help_and_sweep(self, robot_name, pose, part_id, message):
+        res = self._request_help(robot_name, pose, part_id, message)
 
-        # Receive response and print.
-        res = self._request_help.get_result().response
-        print('respose=%s' % str(res))
+        if res.pointing_state == pointing.SWEEP_RES:
+            rospy.loginfo('(hmi_demo) Sweep direction given.')
+            sweep_dir = self._compute_sweep_dir(pose, res)
+            self._publish_marker('sweep', pose.header, pose.pose.position,
+                                 Vector3(*sweep_dir))
+            result = self.sweep(robot_name, pose, sweep_dir, part_id)
+            if result == SweepResult.MOVE_FAILURE or \
+               result == SweepResult.APPROACH_FAILURE:
+                return True                     # Need to send request again
+            elif result == SweepResult.DEPARTURE_FAILURE:
+                raise RuntimeError('Failed to depart from sweep pose')
+        elif res.pointing_state == pointing.RECAPTURE_RES:
+            rospy.loginfo('(hmi_demo) Recapture required.')
+        else:
+            rospy.logerr('(hmi_demo) Unknown command received!')
+        return False                            # No more requests required.
 
+    def _compute_sweep_dir(self, pose, res):
+        fpos = self.listener.transformPoint(pose.header.frame_id,
+                                            PointStamped(res.header,
+                                                         res.finger_pos)).point
+        fdir = self.listener.transformVector3(pose.header.frame_id,
+                                              Vector3Stamped(
+                                                  res.header,
+                                                  res.finger_dir)).vector
+        ppos = pose.pose.position
+        fnrm = np.cross((fdir.x, fdir.y, fdir.z),
+                        (ppos.x - fpos.x, ppos.y - fpos.y, ppos.z - fpos.z))
+        gnrm = self.listener.transformVector3(pose.header.frame_id,
+                                              Vector3Stamped(
+                                                  res.header,
+                                                  Vector3(0, 0, 1))).vector
+        sdir = np.cross(fnrm, (gnrm.x, gnrm.y, gnrm.z))
+        return tuple(sdir / np.linalg.norm(sdir))
+
+    def _feedback_cb(self, feedback):
+        res = feedback.response
+        self._publish_marker('finger',
+                             res.header, res.finger_pos, res.finger_dir)
+        print('*** feedback=%s' % str(res))
+        # print res.finger_pos, res.finger_dir
+
+    # Marker stuffs
+    def _delete_marker(self):
+        marker        = Marker()
+        marker.action = Marker.DELETEALL
+        marker.ns     = "pointing"
+        self._marker_pub.publish(marker)
+
+    def _publish_marker(self, marker_type, header, pos, dir, lifetime=15):
+        marker_prop = HMIRoutines._marker_props[marker_type]
+        marker              = Marker()
+        marker.header       = header
+        marker.header.stamp = rospy.Time.now()
+        marker.ns           = "pointing"
+        marker.id           = marker_prop.id
+        marker.type         = Marker.ARROW
+        marker.action       = Marker.ADD
+        marker.scale        = Vector3(*marker_prop.scale)
+        marker.color        = ColorRGBA(*marker_prop.color)
+        marker.lifetime     = rospy.Duration(lifetime)
+        marker.points.append(pos)
+        marker.points.append(Point(pos.x + marker_prop.length*dir.x,
+                                   pos.y + marker_prop.length*dir.y,
+                                   pos.z + marker_prop.length*dir.z))
+
+        self._marker_pub.publish(marker)
+
+    # Misc stuffs
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'
 
@@ -253,24 +320,6 @@ class HMIRoutines(AISTBaseRoutines):
            abs(position.z - fail_position.z) > tolerance:
             return False
         return True
-
-    def _compute_sweep_dir(self, pose, res):
-        fpos = self.listener.transformPoint(pose.header.frame_id,
-                                            PointStamped(res.header,
-                                                         res.finger_pos))
-        fdir = self.listener.transformVector3(pose.header.frame_id,
-                                              Vector3Stamped(res.header,
-                                                             res.finger_dir))
-        ppos = pose.pose.position
-        fnrm = np.cross((fdir.x, fdir.y, fdir.z),
-                        (ppos.x - fpos.x, ppos.y - fpos.y, ppos.z - fpos.z))
-        gnrm = self.listener.transformVector3(pose.header.frame_id,
-                                              Vector3Stamped(res.header,
-                                                             Vector3(0, 0, 1)))
-        sdir = np.cross(fnrm, gnrm)
-        sdir = sdir / np.linalg.norm(sdir)
-
-        return (sdir[0], sdir[1], sdir[2])
 
 
 if __name__ == '__main__':
