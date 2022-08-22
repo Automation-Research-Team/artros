@@ -3,7 +3,7 @@ $(arg prefix)controller:
   action_ns: follow_joint_trajectory  # for moveit
   action_type: FollowJointTrajectory  # for moveit (==>type)
   action_default: true                # for moveit (==>default)
-  joints:
+  joints: &robot_joints
     - $(arg prefix)joint1
     - $(arg prefix)joint2
     - $(arg prefix)joint3
@@ -20,3 +20,7 @@ $(arg prefix)controller:
   state_publish_rate:  50
   action_monitor_rate: 20
   #hold_trajectory_duration: 0
+
+$(arg prefix)joint_group_controller:
+  type: position_controllers/JointGroupPositionController
+  joints: *robot_joints
