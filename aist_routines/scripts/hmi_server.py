@@ -75,6 +75,15 @@ class HMIServer(object):
             rate.sleep()
 
     def _pointing_cb(self, pointing_msg):
+        """
+        Receive response message with finger direction from VR side.
+        Send feedback to the action client if pointing_state is NO_RES.
+        Set state of the goal to SUCCEEDED, send the message as a result
+        and revert _curr_req to _no_req, otherwise.
+
+        @type  pointing_msg: finger_pointing_msgs.msg.pointing
+        @param pointing_msg: finger direction response from VR side
+        """
         pointing_msg.header.stamp = rospy.Time.now()
         if self._hmi_srv.is_active():
             if pointing_msg.pointing_state is pointing.NO_RES:
@@ -82,17 +91,25 @@ class HMIServer(object):
                     RequestHelpFeedback(pointing_msg))
             else:
                 self._hmi_srv.set_succeeded(RequestHelpResult(pointing_msg))
-                self._curr_req = self._no_req
+                self._curr_req = self._no_req   # Revert to _no_req
 
     def _goal_cb(self):
+        """
+        Accept new goal from action client and store the help request from
+        robot side in _curr_req.
+        """
         self._curr_req = self._hmi_srv.accept_new_goal().request
         rospy.loginfo('(hmi_server) ACCPETED new goal[robot_name=%s, item_id=%s. request=%d]',
                       self._curr_req.robot_name, self._curr_req.item_id,
                       self._curr_req.request)
 
     def _preempt_cb(self):
-        self._request.set_preempted()
-        self._request = self._no_req
+        """
+        Set state of the goal to PREEMPTED and revert _curr_req to _no_req
+        upon a cancel request from the action client.
+        """
+        self._hmi_srv.set_preempted()
+        self._curr_req = self._no_req           # Revert to _no_req
         rospy.loginfo('(hmi_server) PREEMPTED current goal')
 
 
