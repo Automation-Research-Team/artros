@@ -36,7 +36,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     KDL::JntArray	target_pos(njoints());
     const auto		error = _pos_iksolver->CartToJnt(current_pos,
 							 target, target_pos);
-    if (error != KDL::SolverI::E_NOERROR)
+    if (error < 0)
 	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
 			 << solver_error_message(error) << ']');
     clamp(target_pos);

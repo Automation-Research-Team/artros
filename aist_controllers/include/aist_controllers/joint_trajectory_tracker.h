@@ -6,7 +6,6 @@
 #define AIST_CONTROLLERS_JOINT_TRAJECTORY_TRACKER_H
 
 #include <ros/ros.h>
-#include <boost/scoped_ptr.hpp>
 #include <cmath>
 
 #include <actionlib/server/simple_action_server.h>
@@ -20,6 +19,7 @@
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
 #include <kdl_parser/kdl_parser.hpp>
+#include <trac_ik/trac_ik.hpp>
 
 #include <tf_conversions/tf_kdl.h>
 #include <tf/transform_datatypes.h>
@@ -85,10 +85,10 @@ class JointTrajectoryTracker
 	KDL::JntArray					_jnt_pos_min;
 	KDL::JntArray					_jnt_pos_max;
 
-	boost::scoped_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
-	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pos_fksolver;
-	boost::scoped_ptr<KDL::ChainIkSolverVel>	_vel_iksolver;
-	boost::scoped_ptr<KDL::ChainIkSolverPos>	_pos_iksolver;
+	std::unique_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
+	std::unique_ptr<KDL::ChainFkSolverPos>		_pos_fksolver;
+	std::unique_ptr<KDL::ChainIkSolverVel>		_vel_iksolver;
+	std::unique_ptr<TRAC_IK::TRAC_IK>		_pos_iksolver;
     };
 
   public:
@@ -291,7 +291,8 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
     _pos_fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
-    _pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
+    _pos_iksolver.reset(new TRAC_IK::TRAC_IK(_chain,
+					     _jnt_pos_min, _jnt_pos_max));
 
   // Get current joint positions and velocities.
     read(state);

@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   control_msgs
   actionlib
   kdl_parser
+  trac_ik_lib
 )
 
 find_package(orocos_kdl REQUIRED)
