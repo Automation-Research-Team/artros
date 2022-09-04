@@ -17,7 +17,7 @@
     <param name="min_duration"		value="$(arg min_duration)"/>
     <param name="max_velocity"		value="$(arg max_velocity)"/>
     <param name="target_frame"		value="$(arg target_frame)"/>
-    <param name="target_point"		value="$(arg target_point)"/>
+    <rosparam name="target_point">$(arg target_point)</rosparam>
   </node>
 
 </launch>
