@@ -116,7 +116,7 @@ template <class ACTION>
 JointGroupTracker<ACTION>
     ::JointGroupTracker(const std::string& action_ns)
     :_nh("~"),
-     _state_sub(_nh.subscribe("/joint_state", 10,
+     _state_sub(_nh.subscribe("/joint_states", 10,
 			      &JointGroupTracker::state_cb, this)),
      _command_pub(_nh.advertise<positions_t>(
 		      _nh.param<std::string>("controller",
