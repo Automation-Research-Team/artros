@@ -1,17 +1,23 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"	default="a_bot_"/>
-  <arg name="server"	default="$(arg prefix)pose_head_tracker"/>
+  <arg name="prefix"		default="a_bot_"/>
+  <arg name="pointing_frame"	default="$(arg prefix
+					 )outside_camera_optical_frame"/>
+  <arg name="min_duration"	default="0.05"/>
+  <arg name="max_velocity"	default="0.7"/>
+  <arg name="target_frame"	default="marker_frame"/>
+  <arg name="target_pose"	default="[0, 0, 0.3, 180, 0, 0]"/>
 
   <!-- Spawn controller -->
   <node name="pose_head_client"
         pkg="aist_controllers" type="pose_head_client.py"
         output="screen" respawn="false">
-    <param name="server"	value="$(arg server)"/>
-    <rosparam param="$(arg server)"
-	      file="$(dirname)/../config/pose_head_client.yaml"
-              subst_value="true"/>
+    <param name="pointing_frame"	value="$(arg pointing_frame)"/>
+    <param name="min_duration"		value="$(arg min_duration)"/>
+    <param name="max_velocity"		value="$(arg max_velocity)"/>
+    <param name="target_frame"		value="$(arg target_frame)"/>
+    <param name="target_pose"		value="$(arg target_pose)"/>
   </node>
 
 </launch>

@@ -20,15 +20,13 @@ from aist_controllers.msg import PoseHeadAction, PoseHeadGoal
 #  class PoseHeadClient                                              #
 ######################################################################
 class PoseHeadClient(object):
-    def __init__(self, server="pose_head_tracker"):
+    def __init__(self, server="/pose_head_tracker"):
         super(PoseHeadClient, self).__init__()
 
-        ns = '~' + server.strip('/')
-
-        self.pointing_frame = rospy.get_param(ns + '/pointing_frame',
+        self.pointing_frame = rospy.get_param('~pointing_frame',
                                               'a_bot_outside_camera_color_optical_frame')
-        self.min_duration   = rospy.get_param(ns + '/min_duration', 0.05)
-        self.max_velocity   = rospy.get_param(ns + '/max_velocity', 0.7)
+        self.min_duration   = rospy.get_param('~min_duration', 0.05)
+        self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
         self._pose_head     = SimpleActionClient(server + '/pose_head',
                                                  PoseHeadAction)
 
@@ -87,6 +85,7 @@ class PoseHeadClient(object):
 
         rospy.loginfo('(PoseHeadClient) send goal[target_frame=%s,pointing_frame=%s]',
                       goal.target.header.frame_id, goal.pointing_frame)
+
     def cancel_goal(self):
         self._pose_head.cancel_goal()
 

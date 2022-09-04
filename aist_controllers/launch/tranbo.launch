@@ -3,20 +3,16 @@
 
   <arg name="sim"		default="false"/>
   <arg name="camera_name"	default="phoxi"/>
+  <arg name="group_controller"	default="false"/>
   <arg name="manager"		default="camera_manager"/>
   <arg name="publish_rate"	default="100"/>
-
-  <!-- Launch MoveIt! planner -->
-  <include file="$(find toyota1_bringup)/launch/calibration_move_group.launch">
-    <arg name="vis"		value="$(arg sim)"/>
-  </include>
 
   <!-- Launch cameras -->
   <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
     <arg name="sim"		 value="$(arg sim)"/>
-    <arg name="phoxi_config"	 value="$(find toyota1_routines
+    <arg name="phoxi_config"	 value="$(find toyota1_nagara
 					)/config/motioncam_camera.yaml"/>
-    <arg name="realsense_config" value="$(find toyota1_routines
+    <arg name="realsense_config" value="$(find toyota1_nagara
 					)/config/realsense.yaml"/>
     <arg name="manager"		 value="$(arg manager)"/>
   </include>
@@ -27,7 +23,9 @@
     <remap if="$(eval camera_name == 'phoxi')"
   	   from="/camera_info"	to="$(arg camera_name)/camera_info"/>
     <remap if="$(eval camera_name == 'phoxi')"
-  	   from="/pointcloud"	to="$(arg camera_name)/pointcloud"/>
+  	   from="/image"	to="$(arg camera_name)/texture"/>
+    <remap if="$(eval camera_name == 'phoxi')"
+  	   from="/depth"	to="$(arg camera_name)/depth_map"/>
     <remap unless="$(eval camera_name == 'phoxi')"
   	   from="/camera_info"	to="$(arg camera_name)/color/camera_info"/>
     <remap unless="$(eval camera_name == 'phoxi')"
@@ -35,18 +33,38 @@
     <remap unless="$(eval camera_name == 'phoxi')"
   	   from="/depth"	to="$(arg camera_name
   				    )/aligned_depth_to_color/image_raw"/>
-    <rosparam file="$(dirname)/../config/$(arg camera_name).yaml"/>
+    <rosparam file="$(find aist_handeye_calibration
+  		    )/config/toyota1/$(arg camera_name).yaml"/>
   </node>
 
   <!-- Spawn pose_head_controller -->
-  <arg  name="controller_name"	value="arm_controller"/>
-  <node name="arm_pose_head_tracker"
-        pkg="aist_controllers" type="pose_head_tracker"
-        output="screen" respawn="false">
-    <param name="publish_rate"	value="$(arg publish_rate)"/>
-    <param name="base_link"	value="arm_base_link"/>
-    <param name="controller"	value="/$(arg controller_name)"/>
-    <remap from="/state"	to="/$(arg controller_name)/state"/>
-  </node>
+  <group unless="(arg group_controller)">
+    <arg  name="controller_name"	value="arm_controller"/>
+    <node name="pose_head_tracker"
+          pkg="aist_controllers" type="pose_head_tracker"
+          output="screen" respawn="false">
+      <param name="publish_rate"	value="$(arg publish_rate)"/>
+      <param name="base_link"		value="arm_base_link"/>
+      <param name="controller"		value="/$(arg controller_name)"/>
+      <remap from="/state"		to="/$(arg controller_name)/state"/>
+    </node>
+  </group>
+
+  <group if="(arg group_controller)">
+    <arg  name="controller_name"	value="arm_joint_group_controller"/>
+
+    <node name="controller_stopper" pkg="controller_manager" type="unspawner"
+	  args="arm_controller"/>
+    <node name="controller_spawner" pkg="controller_manager" type="spawner"
+	  args="$(arg controller_name)"/>
+
+    <node name="arm_pose_head_tracker"
+          pkg="aist_controllers" type="pose_group_tracker"
+          output="screen" respawn="false">
+      <param name="publish_rate"	value="$(arg publish_rate)"/>
+      <param name="base_link"		value="arm_base_link"/>
+      <param name="controller"		value="/$(arg controller_name)"/>
+    </node>
+  </group>
 
 </launch>

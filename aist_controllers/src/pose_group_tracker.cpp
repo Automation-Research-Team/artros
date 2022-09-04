@@ -1,18 +1,18 @@
 /*
- *  \file	pose_head_tracker.cpp
+ *  \file	pose_head_group_tracker.cpp
  *  \brief	ROS tracker of aist_controllers::PoseHeadAction type
  */
-#include <aist_controllers/joint_trajectory_tracker.h>
+#include <aist_controllers/joint_group_tracker.h>
 #include <aist_controllers/PoseHeadAction.h>
 #include <kdl/solveri.hpp>
 
 namespace aist_controllers
 {
 /************************************************************************
-*  class JointTrajectoryTracker<PoseHeadAction>::Tracker		*
+*  class JointGroupTracker<PoseHeadAction>::Tracker		*
 ************************************************************************/
 template <> bool
-JointTrajectoryTracker<aist_controllers::PoseHeadAction>
+JointGroupTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
   // Convert target pose to base_link.
@@ -28,42 +28,21 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     tf::poseMsgToKDL(transformed_pose.pose, target);
 
   // Get current joint positions.
-    auto&		point = _command.points[0];
     KDL::JntArray	current_pos(njoints());
-    jointsToKDL(point.positions, current_pos);
+    jointsToKDL(_command.data, current_pos);
 
   // Compute target joint positions.
     KDL::JntArray	target_pos(njoints());
     const auto		error = _pos_iksolver->CartToJnt(current_pos,
 							 target, target_pos);
     if (error < 0)
-	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
+	ROS_ERROR_STREAM("(JointGroupTracker) IkSolver failed["
 			 << solver_error_message(error) << ']');
     clamp(target_pos);
     ROS_DEBUG_STREAM("target_pos  = " << target_pos);
 
-  // Set desired positions of trajectory command.
-    jointsFromKDL(target_pos, point.positions);
-
-  // Set desired time of the pointing_frame reaching at the target.
-    point.time_from_start = std::max(goal->min_duration, ros::Duration(0.01));
-
-  // Correct time_from_start in order to enforce maximum joint velocity.
-    if (goal->max_velocity > 0)
-    {
-      // Compute the largest required rotation among all the joints
-	double	rot_max = 0;
-	for (size_t i = 0; i < current_pos.rows(); ++i)
-	{
-	    const auto	rot = std::abs(current_pos(i) - target_pos(i));
-	    if (rot > rot_max)
-		rot_max = rot;
-	}
-
-    	ros::Duration	required_duration(rot_max / goal->max_velocity);
-    	if (required_duration > point.time_from_start)
-    	    point.time_from_start = required_duration;
-    }
+  // Set desired positions of joint group command.
+    jointsFromKDL(target_pos, _command.data);
 
     return false;
 }
@@ -76,10 +55,10 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 int
 main(int argc, char* argv[])
 {
-    ros::init(argc, argv, "pose_head_tracker");
+    ros::init(argc, argv, "pose_group_tracker");
 
-    aist_controllers::JointTrajectoryTracker<aist_controllers::PoseHeadAction>
-	tracker("pose_head");
+    aist_controllers::JointGroupTracker<aist_controllers::PoseHeadAction>
+	tracker("pose_group");
     ros::spin();
 
     return 0;

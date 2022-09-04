@@ -37,7 +37,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     tf::pointMsgToKDL(transformed_point.point, target);
 
   // Get current joint positions.
-    auto&		point = _trajectory.points[0];
+    auto&		point = _command.points[0];
     KDL::JntArray	current_pos(njoints());
     jointsToKDL(point.positions, current_pos);
 

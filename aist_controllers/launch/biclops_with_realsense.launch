@@ -37,7 +37,7 @@
   </include>
 
   <!-- Spawn point_head_controller -->
-  <node name="$(arg prefix)point_head_tracker"
+  <node name="point_head_tracker"
         pkg="aist_controllers" type="point_head_tracker"
         output="screen" respawn="false">
     <param name="publish_rate"	value="$(arg publish_rate)"/>

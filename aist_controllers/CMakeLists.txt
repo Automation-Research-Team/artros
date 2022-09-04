@@ -83,8 +83,24 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  pose_group_tracker
+  src/pose_group_tracker.cpp
+)
+
+target_link_libraries(
+  pose_group_tracker
+  ${Boost_LIBRARIES} ${orocos_kdl_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  pose_group_tracker
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
-  TARGETS point_head_tracker pose_head_tracker
+  TARGETS point_head_tracker pose_head_tracker pose_group_tracker
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

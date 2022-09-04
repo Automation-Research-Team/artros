@@ -1,17 +1,23 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"	default="biclops_"/>
-  <arg name="server"	default="$(arg prefix)point_head_tracker"/>
+  <arg name="prefix"		default="biclops_"/>
+  <arg name="pointing_frame"	default="$(arg prefix
+					 )/camera_color_optical_frame"/>
+  <arg name="min_duration"	default="0.05"/>
+  <arg name="max_velocity"	default="0.7"/>
+  <arg name="target_frame"	default="marker_frame"/>
+  <arg name="target_point"	default="[0, 0, 0]"/>
 
   <!-- Spawn controller -->
   <node name="point_head_client"
         pkg="aist_controllers" type="point_head_client.py"
         output="screen" respawn="false">
-    <param name="server"	value="$(arg server)"/>
-    <rosparam param="$(arg server)"
-	      file="$(dirname)/../config/point_head_client.yaml"
-              subst_value="true"/>
+    <param name="pointing_frame"	value="$(arg pointing_frame)"/>
+    <param name="min_duration"		value="$(arg min_duration)"/>
+    <param name="max_velocity"		value="$(arg max_velocity)"/>
+    <param name="target_frame"		value="$(arg target_frame)"/>
+    <param name="target_point"		value="$(arg target_point)"/>
   </node>
 
 </launch>
