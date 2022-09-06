@@ -96,6 +96,16 @@ class HMIRoutines(AISTBaseRoutines):
         self.go_to_named_pose(self.current_robot_name, 'home')
 
     def search(self, bin_id, max_slant=pi/4):
+        """
+        Search graspability points from the specified bin.
+
+        @type  bin_id:    str
+        @param bin_id:    ID specifying the bin
+        @type  max_slant: float
+        @param max_slant: maximum angle between normal of the graspability
+                          point and the gravity direction
+        @return:          True if succeeded
+        """
         bin_props  = self._bin_props[bin_id]
         part_props = self._part_props[bin_props['part_id']]
         self.graspability_send_goal(part_props['robot_name'],
@@ -111,6 +121,14 @@ class HMIRoutines(AISTBaseRoutines):
         return self.graspability_wait_for_result(orientation, max_slant)
 
     def sweep_bin(self, bin_id):
+        """
+        Search graspability points from the specified bin and sweep the one
+        with the highest score.
+
+        @type  bin_id: str
+        @param bin_id: ID specifying the bin
+        @return:       True if sweep succeeded
+        """
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
@@ -167,7 +185,7 @@ class HMIRoutines(AISTBaseRoutines):
             if self._is_close_to_fail_poses(pose):
                 continue
 
-            result = self.pick(robot_name, pose, part_id)
+            result = self.pick(robot_name, pose, part_id)       # Pick!
 
             if result == PickOrPlaceResult.SUCCESS:
                 result = self.place_at_frame(robot_name,
@@ -180,7 +198,7 @@ class HMIRoutines(AISTBaseRoutines):
             elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 raise RuntimeError('Failed to depart from pick/place pose')
             elif result == PickOrPlaceResult.GRASP_FAILURE:
-
+                # Request help to the VR side and sweep
                 rospy.logwarn('(hmi_demo) Pick failed. Request help!')
                 message = 'Picking failed! Please specify sweep direction.'
                 while self._request_help_and_sweep(robot_name, pose, part_id,
@@ -191,6 +209,14 @@ class HMIRoutines(AISTBaseRoutines):
         return False
 
     def request_help_bin(self, bin_id):
+        """
+        Search graspability points from the specified bin and request
+        finger direction for computing direction to sweep the one with the
+        highest score. Computed sweep direction is then visualized.
+
+        @type  bin_id: str
+        @param bin_id: ID specifying the bin
+        """
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
@@ -220,6 +246,20 @@ class HMIRoutines(AISTBaseRoutines):
 
     # Request help stuffs
     def _request_help(self, robot_name, pose, part_id, message):
+        """
+        Request finger direction for the specified graspability point
+        and receive response.
+
+        @type  robot_name: str
+        @param robot_name: name of the robot
+        @type  pose:       geometry_msgs.msg.PoseStamped
+        @param pose:       pose of the graspability point to be sweeped
+        @type  part_id:    str
+        @param part_id:    ID for specifying part
+        @type  message:    str
+        @param message:    message to be displayed to the operator of VR side
+        @return:           response with finger direction from VR side
+        """
         req = request_help()
         req.robot_name = robot_name
         req.item_id    = part_id
@@ -232,11 +272,26 @@ class HMIRoutines(AISTBaseRoutines):
         return self._request_help_srv.get_result().response
 
     def _request_help_and_sweep(self, robot_name, pose, part_id, message):
+        """
+        Request finger direction for the specified graspability point
+        and perform sweeping the point in the direction computed from
+        the received response.
+
+        @type  robot_name: str
+        @param robot_name: name of the robot
+        @type  pose:       geometry_msgs.msg.PoseStamped
+        @param pose:       pose of the graspability point to be sweeped
+        @type  part_id:    str
+        @param part_id:    ID for specifying part
+        @type  message:    str
+        @param message:    message to be displayed to the operator of VR side
+        @return:           True if needed to send request again
+        """
         res = self._request_help(robot_name, pose, part_id, message)
 
         if res.pointing_state == pointing.SWEEP_RES:
             rospy.loginfo('(hmi_demo) Sweep direction given.')
-            sweep_dir = self._compute_sweep_dir(pose, res)
+            sweep_dir = self._compute_sweep_dir(pose, res)  # Compute direction
             self._publish_marker('sweep', pose.header, pose.pose.position,
                                  Vector3(*sweep_dir))
             result = self.sweep(robot_name, pose, sweep_dir, part_id)
@@ -277,13 +332,24 @@ class HMIRoutines(AISTBaseRoutines):
         # print res.finger_pos, res.finger_dir
 
     # Marker stuffs
-    def _delete_marker(self):
+    def _delete_markers(self):
+        """
+        Delete all markers published by _marker_pub.
+        """
         marker        = Marker()
         marker.action = Marker.DELETEALL
         marker.ns     = "pointing"
         self._marker_pub.publish(marker)
 
     def _publish_marker(self, marker_type, header, pos, dir, lifetime=15):
+        """
+        Publish arrow marker with specified start point and direction.
+
+        @type  pos: geometry_msgs.msg.Point
+        @param pos: start point of the arrow marker
+        @type  dir: geometry_msgs.msg.Vector3
+        @param dir: direction of the arrow marker
+        """
         marker_prop = HMIRoutines._marker_props[marker_type]
         marker              = Marker()
         marker.header       = header
@@ -299,7 +365,6 @@ class HMIRoutines(AISTBaseRoutines):
         marker.points.append(Point(pos.x + marker_prop.length*dir.x,
                                    pos.y + marker_prop.length*dir.y,
                                    pos.z + marker_prop.length*dir.z))
-
         self._marker_pub.publish(marker)
 
     # Misc stuffs
