@@ -38,7 +38,7 @@
   </node>
 
   <!-- Spawn pose_head_controller -->
-  <group unless="(arg group_controller)">
+  <group unless="$(arg group_controller)">
     <arg  name="controller_name"	value="arm_controller"/>
     <node name="pose_head_tracker"
           pkg="aist_controllers" type="pose_head_tracker"
@@ -50,7 +50,7 @@
     </node>
   </group>
 
-  <group if="(arg group_controller)">
+  <group if="$(arg group_controller)">
     <arg  name="controller_name"	value="arm_joint_group_controller"/>
 
     <node name="controller_stopper" pkg="controller_manager" type="unspawner"
@@ -58,7 +58,7 @@
     <node name="controller_spawner" pkg="controller_manager" type="spawner"
 	  args="$(arg controller_name)"/>
 
-    <node name="arm_pose_head_tracker"
+    <node name="pose_head_tracker"
           pkg="aist_controllers" type="pose_group_tracker"
           output="screen" respawn="false">
       <param name="publish_rate"	value="$(arg publish_rate)"/>
