@@ -55,10 +55,10 @@ JointGroupTracker<aist_controllers::PoseHeadAction>
 int
 main(int argc, char* argv[])
 {
-    ros::init(argc, argv, "pose_group_tracker");
+    ros::init(argc, argv, "pose_head_tracker");
 
     aist_controllers::JointGroupTracker<aist_controllers::PoseHeadAction>
-	tracker("pose_group");
+	tracker("pose_head");
     ros::spin();
 
     return 0;
