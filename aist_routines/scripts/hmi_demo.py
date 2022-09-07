@@ -62,7 +62,7 @@ class HMIRoutines(AISTBaseRoutines):
                                          "id, length, scale, color")
     _marker_props = {
         "finger" :
-        MarkerProps(0, 0.1,  (0.004, 0.010, 0.015), (1.0, 0.0, 1.0, 0.8)),
+        MarkerProps(0, 1.0,  (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8)),
         "sweep"  :
         MarkerProps(1, 0.03, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8)),
         }
@@ -236,6 +236,8 @@ class HMIRoutines(AISTBaseRoutines):
         # Send request and receive response.
         res = self._request_help(robot_name, pose, part_id, message)
         if res.pointing_state == pointing.SWEEP_RES:
+            self._publish_marker('finger',
+                                 res.header, res.finger_pos, res.finger_dir)
             sweep_dir = self._compute_sweep_dir(pose, res)
             self._publish_marker('sweep', pose.header, pose.pose.position,
                                  Vector3(*sweep_dir))
@@ -291,6 +293,8 @@ class HMIRoutines(AISTBaseRoutines):
 
         if res.pointing_state == pointing.SWEEP_RES:
             rospy.loginfo('(hmi_demo) Sweep direction given.')
+            self._publish_marker('finger',
+                                 res.header, res.finger_pos, res.finger_dir)
             sweep_dir = self._compute_sweep_dir(pose, res)  # Compute direction
             self._publish_marker('sweep', pose.header, pose.pose.position,
                                  Vector3(*sweep_dir))
@@ -328,7 +332,7 @@ class HMIRoutines(AISTBaseRoutines):
         res = feedback.response
         self._publish_marker('finger',
                              res.header, res.finger_pos, res.finger_dir)
-        print('*** feedback=%s' % str(res))
+        # print('*** feedback=%s' % str(res))
         # print res.finger_pos, res.finger_dir
 
     # Marker stuffs
