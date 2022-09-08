@@ -32,5 +32,6 @@
   <depend>orocos_kdl</depend>
   <depend>kdl_parser</depend>
   <depend>trac_ik_lib</depend>
+  <depend>nlopt</depend>
 
 </package>

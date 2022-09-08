@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   kdl_parser
   trac_ik_lib
+  nlopt
 )
 
 find_package(orocos_kdl REQUIRED)
