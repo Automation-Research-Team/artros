@@ -6,7 +6,6 @@
 #define AIST_CONTROLLERS_JOINT_GROUP_TRACKER_H
 
 #include <ros/ros.h>
-#include <boost/scoped_ptr.hpp>
 #include <cmath>
 
 #include <actionlib/server/simple_action_server.h>
@@ -16,10 +15,10 @@
 #include <kdl/chainjnttojacsolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolvervel_wdls.hpp>
-#include <kdl/chainiksolverpos_lma.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
 #include <kdl_parser/kdl_parser.hpp>
+#include <trac_ik/trac_ik.hpp>
 
 #include <tf_conversions/tf_kdl.h>
 #include <tf/transform_datatypes.h>
@@ -27,8 +26,8 @@
 
 #include <urdf/model.h>
 
-#include <trajectory_msgs/JointTrajectory.h>
-#include <control_msgs/JointTrajectoryControllerState.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <sensor_msgs/JointState.h>
 
 namespace aist_controllers
 {
@@ -39,7 +38,7 @@ template <class ACTION>
 class JointGroupTracker
 {
   private:
-    using state_cp	= control_msgs::JointTrajectoryControllerStateConstPtr;
+    using state_cp	= sensor_msgs::JointStateConstPtr;
     using positions_t	= std_msgs::Float64MultiArray;
     using server_t	= actionlib::SimpleActionServer<ACTION>;
     using goal_cp	= boost::shared_ptr<const typename server_t::Goal>;
@@ -52,8 +51,10 @@ class JointGroupTracker
 				const std::string& base_link)		;
 
 	size_t		njoints()				const	;
+	const std::string&
+			joint_name(size_t n)			const	;
 	const positions_t&
-			positions()				const	;
+			command()				const	;
 	const feedback_t&
 			feedback()				const	;
 
@@ -77,7 +78,7 @@ class JointGroupTracker
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
-	positions_t					_positions;
+	positions_t					_command;
 	feedback_t					_feedback;
 
 	KDL::Tree					_tree;
@@ -85,10 +86,10 @@ class JointGroupTracker
 	KDL::JntArray					_jnt_pos_min;
 	KDL::JntArray					_jnt_pos_max;
 
-	boost::scoped_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
-	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pos_fksolver;
-	boost::scoped_ptr<KDL::ChainIkSolverVel>	_vel_iksolver;
-	boost::scoped_ptr<KDL::ChainIkSolverPos>	_pos_iksolver;
+	std::unique_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
+	std::unique_ptr<KDL::ChainFkSolverPos>		_pos_fksolver;
+	std::unique_ptr<KDL::ChainIkSolverVel>		_vel_iksolver;
+	std::unique_ptr<TRAC_IK::TRAC_IK>		_pos_iksolver;
     };
 
   public:
@@ -115,11 +116,11 @@ template <class ACTION>
 JointGroupTracker<ACTION>
     ::JointGroupTracker(const std::string& action_ns)
     :_nh("~"),
-     _state_sub(_nh.subscribe("/state", 10,
+     _state_sub(_nh.subscribe("/joint_states", 10,
 			      &JointGroupTracker::state_cb, this)),
      _command_pub(_nh.advertise<positions_t>(
 		      _nh.param<std::string>("controller",
-					     "/pos_joint_traj_controller")
+					     "/pos_joint_group_controller")
 		      + "/command", 2)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
@@ -131,9 +132,9 @@ JointGroupTracker<ACTION>
 {
   // Initialize action server
     _tracker_srv.registerGoalCallback(
-    	boost::bind(&JointGroupTracker::goal_cb, this));
+    	std::bind(&JointGroupTracker::goal_cb, this));
     _tracker_srv.registerPreemptCallback(
-    	boost::bind(&JointGroupTracker::preempt_cb, this));
+    	std::bind(&JointGroupTracker::preempt_cb, this));
     _tracker_srv.start();
 }
 
@@ -159,11 +160,6 @@ JointGroupTracker<ACTION>::goal_cb()
 template <class ACTION> void
 JointGroupTracker<ACTION>::preempt_cb()
 {
-  // Stops the controller.
-    trajectory_msgs::JointTrajectory	empty;
-    empty.joint_names = _tracker.positions().joint_names;
-    _command_pub.publish(empty);
-
     _tracker_srv.setPreempted();
     ROS_INFO_STREAM("(JointGroupTracker) Goal cancelled");
 }
@@ -183,7 +179,7 @@ JointGroupTracker<ACTION>::state_cb(const state_cp& state)
 	const auto	success = _tracker.update(_current_goal);
 
 	_tracker_srv.publishFeedback(_tracker.feedback());
-	_command_pub.publish(_tracker.positions());
+	_command_pub.publish(_tracker.command());
 
 	if (success)
 	{
@@ -207,7 +203,7 @@ JointGroupTracker<ACTION>::Tracker
 			      ::Tracker(const std::string& robot_desc_string,
 					const std::string& base_link)
     :_base_link(base_link), _pointing_frame(),
-     _urdf(), _listener(), _positions(), _feedback(), _tree(), _chain(),
+     _urdf(), _listener(), _command(), _feedback(), _tree(), _chain(),
      _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
@@ -228,11 +224,17 @@ JointGroupTracker<ACTION>::Tracker::njoints() const
     return _chain.getNrOfJoints();
 }
 
+template <class ACTION> const std::string&
+JointGroupTracker<ACTION>::Tracker::joint_name(size_t n) const
+{
+    return _chain.getSegment(n).getJoint().getName();
+}
+
 template <class ACTION>
 const typename JointGroupTracker<ACTION>::positions_t&
-JointGroupTracker<ACTION>::Tracker::positions() const
+JointGroupTracker<ACTION>::Tracker::command() const
 {
-    return _positions;
+    return _command;
 }
 
 template <class ACTION>
@@ -244,7 +246,7 @@ JointGroupTracker<ACTION>::Tracker::feedback() const
 
 template <class ACTION> void
 JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
-					      const std::string& pointing_frame)
+					 const std::string& pointing_frame)
 {
     if (!state)
 	throw std::runtime_error("No controller state available");
@@ -257,29 +259,23 @@ JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
 	throw std::runtime_error("Couldn't create chain from "
 				 + _base_link + " to " + pointing_frame);
 
-  // Check number of joints between controller state and URDF chain.
-    if (state->joint_names.size() != njoints())
-	throw std::runtime_error("Number of joints mismatch: controller["
-				 + std::to_string(state->joint_names.size())
-				 + "] != urdf chain["
-				 + std::to_string(njoints())
-				 + ']');
-
   // Update pointing frame.
     _pointing_frame = pointing_frame;
 
-  // Prepare trajectory command.
-    _positions.header.stamp	= ros::Time(0);
-    _positions.header.frame_id	= state->header.frame_id;
-    _positions.joint_names	= state->joint_names;
-    _positions.points.resize(1);
+  // Prepare positions command.
+    _command.layout.dim.resize(1);
+    _command.layout.dim[0].label  = "joint_pos";
+    _command.layout.dim[0].size   = njoints();
+    _command.layout.dim[0].stride = njoints();
+    _command.layout.data_offset   = 0;
+    _command.data.resize(njoints());
 
   // Set joint limits.
     _jnt_pos_min.resize(njoints());
     _jnt_pos_max.resize(njoints());
     for (size_t i = 0; i < njoints(); ++i)
     {
-	const auto&	joint_name = _positions.joint_names[i];
+	const auto&	joint_name = this->joint_name(i);
 
 	_jnt_pos_min(i)	= _urdf.joints_[joint_name]->limits->lower;
 	_jnt_pos_max(i)	= _urdf.joints_[joint_name]->limits->upper;
@@ -291,7 +287,8 @@ JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
     _pos_fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
-    _pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
+    _pos_iksolver.reset(new TRAC_IK::TRAC_IK(_chain,
+					     _jnt_pos_min, _jnt_pos_max));
 
   // Get current joint positions and velocities.
     read(state);
@@ -300,7 +297,21 @@ JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
 template <class ACTION> void
 JointGroupTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _positions.points[0] = state->actual;
+    for (size_t i = 0; i < njoints(); ++i)
+    {
+	const auto&	joint_name = this->joint_name(i);
+	size_t		j = 0;
+
+	for (; j < state->name.size(); ++j)
+	    if (state->name[j] == joint_name)
+	    {
+		_command.data[i] = state->position[j];
+		break;
+	    }
+	if (j == state->name.size())
+	    throw std::runtime_error("Joint[" + joint_name
+				     + "] not found in input joint state");
+    }
 }
 
 template <class ACTION> std::string
@@ -308,27 +319,13 @@ JointGroupTracker<ACTION>::Tracker::solver_error_message(int error)
 {
     switch (error)
     {
-      case KDL::SolverI::E_DEGRADED:
-	return "E_DEGRATED";
-      case KDL::SolverI::E_NO_CONVERGE:
-	return "E_NO_CONVERGE";
-      case KDL::SolverI::E_UNDEFINED:
-	return "E_UNDEFINED";
-      case KDL::SolverI::E_NOT_UP_TO_DATE:
-	return "E_NOT_UP_TO_DATE";
-      case KDL::SolverI::E_SIZE_MISMATCH:
-	return "E_SIZE_MISMATCH";
-      case KDL::SolverI::E_MAX_ITERATIONS_EXCEEDED:
-	return "E_MAX_ITERATIONS_EXCEEDED";
-      case KDL::SolverI::E_OUT_OF_RANGE:
-	return "E_OUT_OF_RANGE";
-      case KDL::SolverI::E_NOT_IMPLEMENTED:
-	return "E_NOT_IMPLEMENTED";
-      case KDL::SolverI::E_SVD_FAILED:
-	return "E_SVD_FAILED";
+      case -1:
+	return "Not properly initialized with valid chain or limits";
+      case -3:
+	return "No solutions";
     }
 
-    return "E_NOERROR";
+    return "Select the best from " + std::to_string(error) + " solution(s)";
 }
 
 template <class ACTION> void

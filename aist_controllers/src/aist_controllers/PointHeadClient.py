@@ -23,14 +23,12 @@ class PointHeadClient(object):
     def __init__(self, server='point_head_tracker'):
         super(PointHeadClient, self).__init__()
 
-        ns = '~' + server.strip('/')
-
-        self.pointing_axis  = rospy.get_param(ns + '/pointing_axis',
+        self.pointing_axis  = rospy.get_param('~pointing_axis',
                                               [0, 0, 1])
-        self.pointing_frame = rospy.get_param(ns + '/pointing_frame',
+        self.pointing_frame = rospy.get_param('~pointing_frame',
                                               'biclops_camera_color_optical_frame')
-        self.min_duration   = rospy.get_param(ns + '/min_duration', 0.05)
-        self.max_velocity   = rospy.get_param(ns + '/max_velocity', 0.7)
+        self.min_duration   = rospy.get_param('~min_duration', 0.05)
+        self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
         self._point_head    = SimpleActionClient(server + '/point_head',
                                                  PointHeadAction)
 

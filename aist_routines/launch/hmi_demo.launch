@@ -17,11 +17,6 @@
     <rosparam file="$(find aist_routines)/config/hmi_demo.yaml"/>
   </node>
 
-  <!-- Start rosbridge server -->
-  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
-    <arg name="port"	value="$(arg port)"/>
-  </include>
-
   <!-- Start live camera -->
   <node name="live_camera"
   	pkg="usb_cam" type="usb_cam_node" output="screen">

@@ -6,7 +6,6 @@
 #define AIST_CONTROLLERS_JOINT_TRAJECTORY_TRACKER_H
 
 #include <ros/ros.h>
-#include <boost/scoped_ptr.hpp>
 #include <cmath>
 
 #include <actionlib/server/simple_action_server.h>
@@ -16,10 +15,10 @@
 #include <kdl/chainjnttojacsolver.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <kdl/chainiksolvervel_wdls.hpp>
-#include <kdl/chainiksolverpos_lma.hpp>
 #include <kdl/frames_io.hpp>
 #include <kdl/kinfam_io.hpp>
 #include <kdl_parser/kdl_parser.hpp>
+#include <trac_ik/trac_ik.hpp>
 
 #include <tf_conversions/tf_kdl.h>
 #include <tf/transform_datatypes.h>
@@ -53,7 +52,7 @@ class JointTrajectoryTracker
 
 	size_t		njoints()				const	;
 	const trajectory_t&
-			trajectory()				const	;
+			command()				const	;
 	const feedback_t&
 			feedback()				const	;
 
@@ -77,7 +76,7 @@ class JointTrajectoryTracker
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
-	trajectory_t					_trajectory;
+	trajectory_t					_command;
 	feedback_t					_feedback;
 
 	KDL::Tree					_tree;
@@ -85,10 +84,10 @@ class JointTrajectoryTracker
 	KDL::JntArray					_jnt_pos_min;
 	KDL::JntArray					_jnt_pos_max;
 
-	boost::scoped_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
-	boost::scoped_ptr<KDL::ChainFkSolverPos>	_pos_fksolver;
-	boost::scoped_ptr<KDL::ChainIkSolverVel>	_vel_iksolver;
-	boost::scoped_ptr<KDL::ChainIkSolverPos>	_pos_iksolver;
+	std::unique_ptr<KDL::ChainJntToJacSolver>	_jac_solver;
+	std::unique_ptr<KDL::ChainFkSolverPos>		_pos_fksolver;
+	std::unique_ptr<KDL::ChainIkSolverVel>		_vel_iksolver;
+	std::unique_ptr<TRAC_IK::TRAC_IK>		_pos_iksolver;
     };
 
   public:
@@ -131,9 +130,9 @@ JointTrajectoryTracker<ACTION>
 {
   // Initialize action server
     _tracker_srv.registerGoalCallback(
-    	boost::bind(&JointTrajectoryTracker::goal_cb, this));
+    	std::bind(&JointTrajectoryTracker::goal_cb, this));
     _tracker_srv.registerPreemptCallback(
-    	boost::bind(&JointTrajectoryTracker::preempt_cb, this));
+    	std::bind(&JointTrajectoryTracker::preempt_cb, this));
     _tracker_srv.start();
 }
 
@@ -160,8 +159,8 @@ template <class ACTION> void
 JointTrajectoryTracker<ACTION>::preempt_cb()
 {
   // Stops the controller.
-    trajectory_msgs::JointTrajectory	empty;
-    empty.joint_names = _tracker.trajectory().joint_names;
+    trajectory_t	empty;
+    empty.joint_names = _tracker.command().joint_names;
     _command_pub.publish(empty);
 
     _tracker_srv.setPreempted();
@@ -183,7 +182,7 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 	const auto	success = _tracker.update(_current_goal);
 
 	_tracker_srv.publishFeedback(_tracker.feedback());
-	_command_pub.publish(_tracker.trajectory());
+	_command_pub.publish(_tracker.command());
 
 	if (success)
 	{
@@ -207,7 +206,7 @@ JointTrajectoryTracker<ACTION>::Tracker
 			      ::Tracker(const std::string& robot_desc_string,
 					const std::string& base_link)
     :_base_link(base_link), _pointing_frame(),
-     _urdf(), _listener(), _trajectory(), _feedback(), _tree(), _chain(),
+     _urdf(), _listener(), _command(), _feedback(), _tree(), _chain(),
      _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
@@ -230,9 +229,9 @@ JointTrajectoryTracker<ACTION>::Tracker::njoints() const
 
 template <class ACTION>
 const typename JointTrajectoryTracker<ACTION>::trajectory_t&
-JointTrajectoryTracker<ACTION>::Tracker::trajectory() const
+JointTrajectoryTracker<ACTION>::Tracker::command() const
 {
-    return _trajectory;
+    return _command;
 }
 
 template <class ACTION>
@@ -269,17 +268,17 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
     _pointing_frame = pointing_frame;
 
   // Prepare trajectory command.
-    _trajectory.header.stamp	= ros::Time(0);
-    _trajectory.header.frame_id	= state->header.frame_id;
-    _trajectory.joint_names	= state->joint_names;
-    _trajectory.points.resize(1);
+    _command.header.stamp	= ros::Time(0);
+    _command.header.frame_id	= state->header.frame_id;
+    _command.joint_names	= state->joint_names;
+    _command.points.resize(1);
 
   // Set joint limits.
     _jnt_pos_min.resize(njoints());
     _jnt_pos_max.resize(njoints());
     for (size_t i = 0; i < njoints(); ++i)
     {
-	const auto&	joint_name = _trajectory.joint_names[i];
+	const auto&	joint_name = _command.joint_names[i];
 
 	_jnt_pos_min(i)	= _urdf.joints_[joint_name]->limits->lower;
 	_jnt_pos_max(i)	= _urdf.joints_[joint_name]->limits->upper;
@@ -291,7 +290,8 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
     _jac_solver.reset(new KDL::ChainJntToJacSolver(_chain));
     _pos_fksolver.reset(new KDL::ChainFkSolverPos_recursive(_chain));
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
-    _pos_iksolver.reset(new KDL::ChainIkSolverPos_LMA(_chain));
+    _pos_iksolver.reset(new TRAC_IK::TRAC_IK(_chain,
+					     _jnt_pos_min, _jnt_pos_max));
 
   // Get current joint positions and velocities.
     read(state);
@@ -300,7 +300,7 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _trajectory.points[0] = state->actual;
+    _command.points[0] = state->actual;
 }
 
 template <class ACTION> std::string
@@ -308,27 +308,13 @@ JointTrajectoryTracker<ACTION>::Tracker::solver_error_message(int error)
 {
     switch (error)
     {
-      case KDL::SolverI::E_DEGRADED:
-	return "E_DEGRATED";
-      case KDL::SolverI::E_NO_CONVERGE:
-	return "E_NO_CONVERGE";
-      case KDL::SolverI::E_UNDEFINED:
-	return "E_UNDEFINED";
-      case KDL::SolverI::E_NOT_UP_TO_DATE:
-	return "E_NOT_UP_TO_DATE";
-      case KDL::SolverI::E_SIZE_MISMATCH:
-	return "E_SIZE_MISMATCH";
-      case KDL::SolverI::E_MAX_ITERATIONS_EXCEEDED:
-	return "E_MAX_ITERATIONS_EXCEEDED";
-      case KDL::SolverI::E_OUT_OF_RANGE:
-	return "E_OUT_OF_RANGE";
-      case KDL::SolverI::E_NOT_IMPLEMENTED:
-	return "E_NOT_IMPLEMENTED";
-      case KDL::SolverI::E_SVD_FAILED:
-	return "E_SVD_FAILED";
+      case -1:
+	return "Not properly initialized with valid chain or limits";
+      case -3:
+	return "No solutions";
     }
 
-    return "E_NOERROR";
+    return "Select the best from " + std::to_string(error) + " solution(s)";
 }
 
 template <class ACTION> void

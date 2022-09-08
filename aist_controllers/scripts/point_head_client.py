@@ -46,7 +46,7 @@ class InteractivePointHeadClient(PointHeadClient):
         super(InteractivePointHeadClient, self).__init__(server)
 
         self._target_frame = rospy.get_param('~target_frame', 'marker_frame')
-        self._target_frame = rospy.get_param('~target_point', [0, 0, 0])
+        self._target_point = rospy.get_param('~target_point', [0, 0, 0])
         thread = threading.Thread(target=self._interactive)
         thread.start()
 
