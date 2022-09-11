@@ -15,17 +15,23 @@ template <> bool
 JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
+  // Get current pose of pointing frame.
+    const auto	now = ros::Time::now();
+    _listener.waitForTransform(_base_link, goal->pointing_frame,
+			       now, ros::Duration(1.0));
+    tf::StampedTransform	current_pose;
+    _listener.lookupTransform(_base_link, goal->pointing_frame,
+			      now, current_pose);
+
   // Convert target pose to base_link.
     auto	original_pose = goal->target;
-    original_pose.header.stamp = ros::Time::now();
-    _listener.waitForTransform(_base_link,
-			       original_pose.header.frame_id,
-			       original_pose.header.stamp,
-			       ros::Duration(1.0));
+    original_pose.header.stamp = now;
+    _listener.waitForTransform(_base_link, original_pose.header.frame_id,
+			       original_pose.header.stamp, ros::Duration(1.0));
     geometry_msgs::PoseStamped	transformed_pose;
     _listener.transformPose(_base_link, original_pose, transformed_pose);
-    KDL::Frame	target;
-    tf::poseMsgToKDL(transformed_pose.pose, target);
+    tf::Stamped<tf::Pose>	target_pose;
+    tf::poseStampedMsgToTF(transformed_pose, target_pose);
 
   // Get current joint positions.
     auto&		point = _command.points[0];
@@ -34,11 +40,24 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 
   // Compute target joint positions.
     KDL::JntArray	target_pos(njoints());
-    const auto		error = _pos_iksolver->CartToJnt(current_pos,
-							 target, target_pos);
-    if (error < 0)
-	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
-			 << solver_error_message(error) << ']');
+    for (;;)
+    {
+	KDL::Frame	target;
+	tf::poseTFToKDL(target_pose, target);
+
+	const auto	error = _pos_iksolver->CartToJnt(current_pos, target,
+							 target_pos);
+	if (error >= 0)
+	    break;
+
+      // If no solutions found, update target pose to the middle of current
+      // and target poses.
+	target_pose.setOrigin(0.5*(current_pose.getOrigin() +
+				   target_pose.getOrigin()));
+	target_pose.setRotation(current_pose.getRotation().slerp(
+				    target_pose.getRotation(), 0.5));
+    }
+
     clamp(target_pos);
     ROS_DEBUG_STREAM("target_pos  = " << target_pos);
 
