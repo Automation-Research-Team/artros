@@ -48,7 +48,8 @@ class JointTrajectoryTracker
     {
       public:
 			Tracker(const std::string& robot_desc_string,
-				const std::string& base_link)		;
+				const std::string& base_link,
+				double publish_rate)			;
 
 	size_t		njoints()				const	;
 	const trajectory_t&
@@ -73,12 +74,13 @@ class JointTrajectoryTracker
       private:
 	std::string					_base_link;
 	std::string					_pointing_frame;
+	const double					_publish_rate;
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
 	trajectory_t					_command;
 	feedback_t					_feedback;
-
+	
 	KDL::Tree					_tree;
 	KDL::Chain					_chain;
 	KDL::JntArray					_jnt_pos_min;
@@ -100,9 +102,10 @@ class JointTrajectoryTracker
 
   private:
     ros::NodeHandle		_nh;
+    const std::string		_controller;
     ros::Subscriber		_state_sub;
     const ros::Publisher	_command_pub;
-
+    
     Tracker			_tracker;
 
     state_cp			_last_state;
@@ -114,17 +117,17 @@ template <class ACTION>
 JointTrajectoryTracker<ACTION>
     ::JointTrajectoryTracker(const std::string& action_ns)
     :_nh("~"),
-     _state_sub(_nh.subscribe("/state", 10,
+     _controller(_nh.param<std::string>("controller",
+					"/pos_joint_traj_controller")),
+     _state_sub(_nh.subscribe(_controller + "/state", 10,
 			      &JointTrajectoryTracker::state_cb, this)),
-     _command_pub(_nh.advertise<trajectory_t>(
-		      _nh.param<std::string>("controller",
-					     "/pos_joint_traj_controller")
-		      + "/command", 2)),
+     _command_pub(_nh.advertise<trajectory_t>(_controller + "/command", 2)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
 					 "/robot_description"),
 		  std::string()),
-	      _nh.param<std::string>("base_link", "base_link")),
+	      _nh.param<std::string>("base_link", "base_link"),
+	      _nh.param<double>(_controller + "/state_publish_rate", 50)),
      _tracker_srv(_nh, action_ns, false),
      _current_goal(nullptr)
 {
@@ -204,10 +207,11 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 template <class ACTION>
 JointTrajectoryTracker<ACTION>::Tracker
 			      ::Tracker(const std::string& robot_desc_string,
-					const std::string& base_link)
-    :_base_link(base_link), _pointing_frame(),
-     _urdf(), _listener(), _command(), _feedback(), _tree(), _chain(),
-     _jnt_pos_min(), _jnt_pos_max(),
+					const std::string& base_link,
+					double publish_rate)
+    :_base_link(base_link), _pointing_frame(), _publish_rate(publish_rate),
+     _urdf(), _listener(), _command(), _feedback(),
+     _tree(), _chain(), _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
   // Load URDF model.
