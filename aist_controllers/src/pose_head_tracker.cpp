@@ -58,14 +58,11 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 				    target_pose.getRotation(), 0.5));
     }
 
-    clamp(target_pos);
-    ROS_DEBUG_STREAM("target_pos  = " << target_pos);
+  //clamp(target_pos);
+    ROS_DEBUG_STREAM("target_pos = " << target_pos);
 
-  // Set desired positions of trajectory command.
-    jointsFromKDL(target_pos, point.positions);
-
-  // Set desired time of the pointing_frame reaching at the target.
-    point.time_from_start = std::max(goal->min_duration, ros::Duration(0.01));
+  // Duration of the time step
+    const auto	dt = std::max(_duration, goal->min_duration);
 
   // Correct time_from_start in order to enforce maximum joint velocity.
     if (goal->max_velocity > 0)
@@ -79,10 +76,19 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 		rot_max = rot;
 	}
 
-    	ros::Duration	required_duration(rot_max / goal->max_velocity);
-    	if (required_duration > point.time_from_start)
-    	    point.time_from_start = required_duration;
+	const auto	dp_max = goal->max_velocity * dt.toSec();
+	const auto	k = dp_max / std::max(dp_max, rot_max);
+
+	for (size_t i = 0; i < current_pos.rows(); ++i)
+	    target_pos(i) = current_pos(i)
+			  + k * (target_pos(i) - current_pos(i));
     }
+
+  // Set desired positions of trajectory command.
+    jointsFromKDL(target_pos, point.positions);
+
+  // Set desired time at which the pointing_frame reaching the target.
+    point.time_from_start = dt;
 
     return false;
 }

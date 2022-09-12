@@ -48,7 +48,8 @@ class JointGroupTracker
     {
       public:
 			Tracker(const std::string& robot_desc_string,
-				const std::string& base_link)		;
+				const std::string& base_link,
+				double publish_rate)			;
 
 	size_t		njoints()				const	;
 	const std::string&
@@ -75,6 +76,7 @@ class JointGroupTracker
       private:
 	std::string					_base_link;
 	std::string					_pointing_frame;
+	ros::Duration					_duration;
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
@@ -102,6 +104,7 @@ class JointGroupTracker
 
   private:
     ros::NodeHandle		_nh;
+    const std::string		_controller;
     ros::Subscriber		_state_sub;
     const ros::Publisher	_command_pub;
 
@@ -116,17 +119,17 @@ template <class ACTION>
 JointGroupTracker<ACTION>
     ::JointGroupTracker(const std::string& action_ns)
     :_nh("~"),
+     _controller(_nh.param<std::string>("controller",
+					"/pos_joint_traj_controller")),
      _state_sub(_nh.subscribe("/joint_states", 10,
 			      &JointGroupTracker::state_cb, this)),
-     _command_pub(_nh.advertise<positions_t>(
-		      _nh.param<std::string>("controller",
-					     "/pos_joint_group_controller")
-		      + "/command", 2)),
+     _command_pub(_nh.advertise<positions_t>(_controller + "/command", 2)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
 					 "/robot_description"),
 		  std::string()),
-	      _nh.param<std::string>("base_link", "base_link")),
+	      _nh.param<std::string>("base_link", "base_link"),
+	      _nh.param<double>(_controller + "/state_publish_rate", 50)),
      _tracker_srv(_nh, action_ns, false),
      _current_goal(nullptr)
 {
@@ -196,13 +199,14 @@ JointGroupTracker<ACTION>::state_cb(const state_cp& state)
 }
 
 /************************************************************************
-*  class JointGroupTracker<ACTION>::Tracker			*
+*  class JointGroupTracker<ACTION>::Tracker				*
 ************************************************************************/
 template <class ACTION>
 JointGroupTracker<ACTION>::Tracker
-			      ::Tracker(const std::string& robot_desc_string,
-					const std::string& base_link)
-    :_base_link(base_link), _pointing_frame(),
+			 ::Tracker(const std::string& robot_desc_string,
+				   const std::string& base_link,
+				   double publish_rate)
+    :_base_link(base_link), _pointing_frame(), _duration(1.0/publish_rate),
      _urdf(), _listener(), _command(), _feedback(), _tree(), _chain(),
      _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()

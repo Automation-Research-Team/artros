@@ -74,13 +74,13 @@ class JointTrajectoryTracker
       private:
 	std::string					_base_link;
 	std::string					_pointing_frame;
-	const double					_publish_rate;
+	const ros::Duration				_duration;
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
 	trajectory_t					_command;
 	feedback_t					_feedback;
-	
+
 	KDL::Tree					_tree;
 	KDL::Chain					_chain;
 	KDL::JntArray					_jnt_pos_min;
@@ -105,7 +105,7 @@ class JointTrajectoryTracker
     const std::string		_controller;
     ros::Subscriber		_state_sub;
     const ros::Publisher	_command_pub;
-    
+
     Tracker			_tracker;
 
     state_cp			_last_state;
@@ -209,7 +209,7 @@ JointTrajectoryTracker<ACTION>::Tracker
 			      ::Tracker(const std::string& robot_desc_string,
 					const std::string& base_link,
 					double publish_rate)
-    :_base_link(base_link), _pointing_frame(), _publish_rate(publish_rate),
+    :_base_link(base_link), _pointing_frame(), _duration(1.0/publish_rate),
      _urdf(), _listener(), _command(), _feedback(),
      _tree(), _chain(), _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
