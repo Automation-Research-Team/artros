@@ -62,8 +62,8 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ROS_DEBUG_STREAM("target_pos = " << target_pos);
 
   // Duration of the time step
-    const auto	dt = std::max(_duration, goal->min_duration);
-
+    auto	dt = std::max(goal->min_duration, _duration);
+    
   // Correct time_from_start in order to enforce maximum joint velocity.
     if (goal->max_velocity > 0)
     {
@@ -75,13 +75,18 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	    if (rot > rot_max)
 		rot_max = rot;
 	}
-
+#if 1
 	const auto	dp_max = goal->max_velocity * dt.toSec();
 	const auto	k = dp_max / std::max(dp_max, rot_max);
 
 	for (size_t i = 0; i < current_pos.rows(); ++i)
 	    target_pos(i) = current_pos(i)
 			  + k * (target_pos(i) - current_pos(i));
+#else
+	const ros::Duration required_duration(rot_max / goal->max_velocity);
+	if (dt < required_duration)
+	    dt = required_duration;
+#endif	
     }
 
   // Set desired positions of trajectory command.
