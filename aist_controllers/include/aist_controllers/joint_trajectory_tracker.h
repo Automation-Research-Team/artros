@@ -32,6 +32,17 @@
 namespace aist_controllers
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+static std::ostream&
+operator <<(std::ostream& out, const std::vector<double>& v)
+{
+    for (const auto& val : v)
+	out << ' ' << val * 180.0/M_PI;
+    return out;
+}
+    
+/************************************************************************
 *  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/
 template <class ACTION>
@@ -119,9 +130,9 @@ JointTrajectoryTracker<ACTION>
     :_nh("~"),
      _controller(_nh.param<std::string>("controller",
 					"/pos_joint_traj_controller")),
-     _state_sub(_nh.subscribe(_controller + "/state", 10,
+     _state_sub(_nh.subscribe(_controller + "/state", 100,
 			      &JointTrajectoryTracker::state_cb, this)),
-     _command_pub(_nh.advertise<trajectory_t>(_controller + "/command", 2)),
+     _command_pub(_nh.advertise<trajectory_t>(_controller + "/command", 10)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
 					 "/robot_description"),
@@ -187,6 +198,9 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 	_tracker_srv.publishFeedback(_tracker.feedback());
 	_command_pub.publish(_tracker.command());
 
+	ROS_DEBUG_STREAM("(JointTrajectoryTracker) published command["
+			 << _tracker.command().points[0].positions << '[');
+	
 	if (success)
 	{
 	    _tracker_srv.setSucceeded();
