@@ -51,6 +51,7 @@ class JointTrajectoryTracker
   private:
     using state_cp	= control_msgs::JointTrajectoryControllerStateConstPtr;
     using trajectory_t	= trajectory_msgs::JointTrajectory;
+    using error_t	= trajectory_msgs::JointTrajectoryPoint;
     using server_t	= actionlib::SimpleActionServer<ACTION>;
     using goal_cp	= boost::shared_ptr<const typename server_t::Goal>;
     using feedback_t	= typename server_t::Feedback;
@@ -90,6 +91,7 @@ class JointTrajectoryTracker
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
 	trajectory_t					_command;
+	error_t						_error;
 	feedback_t					_feedback;
 
 	KDL::Tree					_tree;
@@ -319,6 +321,7 @@ template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
     _command.points[0] = state->actual;
+    _error	       = state->error;
 }
 
 template <class ACTION> std::string
