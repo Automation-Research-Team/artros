@@ -75,7 +75,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	    if (rot > rot_max)
 		rot_max = rot;
 	}
-#if 1
+#if 0
 	const auto	dp_max = goal->max_velocity * dt.toSec();
 	const auto	k = dp_max / std::max(dp_max, rot_max);
 
@@ -86,6 +86,9 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	const ros::Duration required_duration(rot_max / goal->max_velocity);
 	if (dt < required_duration)
 	    dt = required_duration;
+
+	for (auto&& velocity : point.velocities)
+	    velocity = 0;
 #endif	
     }
 
