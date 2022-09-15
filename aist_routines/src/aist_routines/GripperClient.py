@@ -412,6 +412,9 @@ class MagswitchGripper(GripperClient):
     def calibration(self, calibration_select):
         return self._send_command(0, 0, 1, calibration_select)
 
+    def move(self, position, timeout=0):
+        return self._send_command(position, timeout)
+
     def pregrasp(self, timeout=0):
         return self._send_command(self.parameters['grasp_position'], timeout)
 
