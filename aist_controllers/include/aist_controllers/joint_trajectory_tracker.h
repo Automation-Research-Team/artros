@@ -29,6 +29,10 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <control_msgs/JointTrajectoryControllerState.h>
 
+#if !defined(NDEBUG)
+#  include "TU/Profiler.h"
+#endif
+
 namespace aist_controllers
 {
 /************************************************************************
@@ -41,7 +45,7 @@ operator <<(std::ostream& out, const std::vector<double>& v)
 	out << ' ' << val * 180.0/M_PI;
     return out;
 }
-    
+
 /************************************************************************
 *  class JointTrajectoryTracker<ACTION>					*
 ************************************************************************/
@@ -90,6 +94,7 @@ class JointTrajectoryTracker
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
+	ros::Time					_stamp;
 	trajectory_t					_command;
 	error_t						_error;
 	feedback_t					_feedback;
@@ -107,6 +112,8 @@ class JointTrajectoryTracker
 
   public:
 		JointTrajectoryTracker(const std::string& action_ns)	;
+
+    void	run()							;
 
   private:
     void	goal_cb()						;
@@ -153,6 +160,14 @@ JointTrajectoryTracker<ACTION>
 }
 
 template <class ACTION> void
+JointTrajectoryTracker<ACTION>::run()
+{
+    ros::AsyncSpinner	spinner(1);
+    spinner.start();
+    ros::waitForShutdown();
+}
+
+template <class ACTION> void
 JointTrajectoryTracker<ACTION>::goal_cb()
 {
     _current_goal = _tracker_srv.acceptNewGoal();
@@ -193,16 +208,26 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 
     try
     {
+#if !defined(NDEBUG)
+	TU::Profiler<>	profiler(2);
+	profiler.start(0);
+#endif
 	_tracker.read(state);
 
+#if !defined(NDEBUG)
+	profiler.start(1);
+#endif
 	const auto	success = _tracker.update(_current_goal);
 
 	_tracker_srv.publishFeedback(_tracker.feedback());
 	_command_pub.publish(_tracker.command());
-
+#if !defined(NDEBUG)
+	profiler.nextFrame();
+	profiler.print(std::cerr);
+#endif
 	ROS_DEBUG_STREAM("(JointTrajectoryTracker) published command["
 			 << _tracker.command().points[0].positions << '[');
-	
+
 	if (success)
 	{
 	    _tracker_srv.setSucceeded();
@@ -226,7 +251,7 @@ JointTrajectoryTracker<ACTION>::Tracker
 					const std::string& base_link,
 					double publish_rate)
     :_base_link(base_link), _pointing_frame(), _duration(1.0/publish_rate),
-     _urdf(), _listener(), _command(), _feedback(),
+     _urdf(), _listener(), _stamp(), _command(), _feedback(),
      _tree(), _chain(), _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
@@ -320,8 +345,9 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _command.points[0] = state->actual;
-    _error	       = state->error;
+    _stamp		= state->header.stamp;
+    _command.points[0]	= state->actual;
+    _error		= state->error;
 }
 
 template <class ACTION> std::string

@@ -16,16 +16,16 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
   // Get current pose of pointing frame.
-    const auto	now = ros::Time::now();
+  //const auto	now = ros::Time::now();
     _listener.waitForTransform(_base_link, goal->pointing_frame,
-			       now, ros::Duration(1.0));
+			       _stamp, ros::Duration(1.0));
     tf::StampedTransform	current_pose;
     _listener.lookupTransform(_base_link, goal->pointing_frame,
-			      now, current_pose);
+			      _stamp, current_pose);
 
   // Convert target pose to base_link.
     auto	original_pose = goal->target;
-    original_pose.header.stamp = now;
+    original_pose.header.stamp = _stamp;
     _listener.waitForTransform(_base_link, original_pose.header.frame_id,
 			       original_pose.header.stamp, ros::Duration(1.0));
     geometry_msgs::PoseStamped	transformed_pose;
@@ -63,7 +63,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 
   // Duration of the time step
     auto	dt = std::max(goal->min_duration, _duration);
-    
+
   // Correct time_from_start in order to enforce maximum joint velocity.
     if (goal->max_velocity > 0)
     {
@@ -89,7 +89,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 
 	for (auto&& velocity : point.velocities)
 	    velocity = 0;
-#endif	
+#endif
     }
 
   // Set desired positions of trajectory command.
@@ -113,7 +113,7 @@ main(int argc, char* argv[])
 
     aist_controllers::JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	tracker("pose_head");
-    ros::spin();
+    tracker.run();
 
     return 0;
 }
