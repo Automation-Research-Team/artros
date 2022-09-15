@@ -59,8 +59,7 @@ class JointGroupTracker
 	const feedback_t&
 			feedback()				const	;
 
-	void		init(const state_cp& state,
-			     const std::string& pointing_frame)		;
+	void		init(const std::string& pointing_frame)		;
 	void		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
 
@@ -80,6 +79,9 @@ class JointGroupTracker
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
+	ros::Time					_stamp;
+	std::vector<double>				_positions;
+	std::vector<double>				_velocities;
 	positions_t					_command;
 	feedback_t					_feedback;
 
@@ -97,6 +99,8 @@ class JointGroupTracker
   public:
 		JointGroupTracker(const std::string& action_ns)	;
 
+    void	run()							;
+
   private:
     void	goal_cb()						;
     void	preempt_cb()						;
@@ -110,7 +114,6 @@ class JointGroupTracker
 
     Tracker			_tracker;
 
-    state_cp			_last_state;
     server_t			_tracker_srv;
     goal_cp			_current_goal;
 };
@@ -142,6 +145,12 @@ JointGroupTracker<ACTION>
 }
 
 template <class ACTION> void
+JointGroupTracker<ACTION>::run()
+{
+    ros::spin();
+}
+
+template <class ACTION> void
 JointGroupTracker<ACTION>::goal_cb()
 {
     _current_goal = _tracker_srv.acceptNewGoal();
@@ -150,7 +159,7 @@ JointGroupTracker<ACTION>::goal_cb()
 
     try
     {
-	_tracker.init(_last_state, _current_goal->pointing_frame);
+	_tracker.init(_current_goal->pointing_frame);
     }
     catch (const std::exception& err)
     {
@@ -170,15 +179,13 @@ JointGroupTracker<ACTION>::preempt_cb()
 template <class ACTION> void
 JointGroupTracker<ACTION>::state_cb(const state_cp& state)
 {
-    _last_state = state;
+    _tracker.read(state);
 
     if (!_tracker_srv.isActive())
 	return;
 
     try
     {
-	_tracker.read(state);
-
 	const auto	success = _tracker.update(_current_goal);
 
 	_tracker_srv.publishFeedback(_tracker.feedback());
@@ -207,8 +214,8 @@ JointGroupTracker<ACTION>::Tracker
 				   const std::string& base_link,
 				   double publish_rate)
     :_base_link(base_link), _pointing_frame(), _duration(1.0/publish_rate),
-     _urdf(), _listener(), _command(), _feedback(), _tree(), _chain(),
-     _jnt_pos_min(), _jnt_pos_max(),
+     _urdf(), _listener(), _stamp(), _command(), _feedback(),
+     _tree(), _chain(), _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
   // Load URDF model.
@@ -249,12 +256,8 @@ JointGroupTracker<ACTION>::Tracker::feedback() const
 }
 
 template <class ACTION> void
-JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
-					 const std::string& pointing_frame)
+JointGroupTracker<ACTION>::Tracker::init(const std::string& pointing_frame)
 {
-    if (!state)
-	throw std::runtime_error("No controller state available");
-
     if (pointing_frame == _pointing_frame)
 	return;
 
@@ -265,6 +268,10 @@ JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
 
   // Update pointing frame.
     _pointing_frame = pointing_frame;
+
+  // Prepare input positions and velocities.
+    _positions.resize(njoints());
+    _velocities.resize(njoints());
 
   // Prepare positions command.
     _command.layout.dim.resize(1);
@@ -293,14 +300,13 @@ JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
     _pos_iksolver.reset(new TRAC_IK::TRAC_IK(_chain,
 					     _jnt_pos_min, _jnt_pos_max));
-
-  // Get current joint positions and velocities.
-    read(state);
 }
 
 template <class ACTION> void
 JointGroupTracker<ACTION>::Tracker::read(const state_cp& state)
 {
+    _stamp = state->header.stamp;
+
     for (size_t i = 0; i < njoints(); ++i)
     {
 	const auto&	joint_name = this->joint_name(i);
@@ -309,7 +315,8 @@ JointGroupTracker<ACTION>::Tracker::read(const state_cp& state)
 	for (; j < state->name.size(); ++j)
 	    if (state->name[j] == joint_name)
 	    {
-		_command.data[i] = state->position[j];
+		_positions[i]  = state->position[j];
+		_velocities[i] = state->velocity[j];
 		break;
 	    }
 	if (j == state->name.size())

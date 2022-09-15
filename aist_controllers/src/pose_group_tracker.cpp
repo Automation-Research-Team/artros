@@ -9,23 +9,22 @@
 namespace aist_controllers
 {
 /************************************************************************
-*  class JointGroupTracker<PoseHeadAction>::Tracker		*
+*  class JointGroupTracker<PoseHeadAction>::Tracker			*
 ************************************************************************/
 template <> bool
 JointGroupTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
   // Get current pose of pointing frame.
-    const auto	now = ros::Time::now();
     _listener.waitForTransform(_base_link, goal->pointing_frame,
-			       now, ros::Duration(1.0));
+			       _stamp, ros::Duration(1.0));
     tf::StampedTransform	current_pose;
     _listener.lookupTransform(_base_link, goal->pointing_frame,
-			      now, current_pose);
+			      _stamp, current_pose);
 
   // Convert target pose to base_link.
     auto	original_pose = goal->target;
-    original_pose.header.stamp = now;
+    original_pose.header.stamp = _stamp;
     _listener.waitForTransform(_base_link, original_pose.header.frame_id,
 			       original_pose.header.stamp, ros::Duration(1.0));
     geometry_msgs::PoseStamped	transformed_pose;
@@ -35,7 +34,7 @@ JointGroupTracker<aist_controllers::PoseHeadAction>
 
   // Get current joint positions.
     KDL::JntArray	current_pos(njoints());
-    jointsToKDL(_command.data, current_pos);
+    jointsToKDL(_positions, current_pos);
 
   // Compute target joint positions.
     KDL::JntArray	target_pos(njoints());
@@ -101,7 +100,7 @@ main(int argc, char* argv[])
 
     aist_controllers::JointGroupTracker<aist_controllers::PoseHeadAction>
 	tracker("pose_head");
-    ros::spin();
+    tracker.run();
 
     return 0;
 }

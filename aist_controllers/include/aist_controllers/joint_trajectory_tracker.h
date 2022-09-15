@@ -73,8 +73,7 @@ class JointTrajectoryTracker
 	const feedback_t&
 			feedback()				const	;
 
-	void		init(const state_cp& state,
-			     const std::string& pointing_frame)		;
+	void		init(const std::string& pointing_frame)		;
 	void		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
 
@@ -94,9 +93,8 @@ class JointTrajectoryTracker
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
-	ros::Time					_stamp;
+	state_cp					_state;
 	trajectory_t					_command;
-	error_t						_error;
 	feedback_t					_feedback;
 
 	KDL::Tree					_tree;
@@ -128,7 +126,6 @@ class JointTrajectoryTracker
 
     Tracker			_tracker;
 
-    state_cp			_last_state;
     server_t			_tracker_srv;
     goal_cp			_current_goal;
 };
@@ -162,9 +159,7 @@ JointTrajectoryTracker<ACTION>
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::run()
 {
-    ros::AsyncSpinner	spinner(1);
-    spinner.start();
-    ros::waitForShutdown();
+    ros::spin();
 }
 
 template <class ACTION> void
@@ -176,7 +171,7 @@ JointTrajectoryTracker<ACTION>::goal_cb()
 
     try
     {
-	_tracker.init(_last_state, _current_goal->pointing_frame);
+	_tracker.init(_current_goal->pointing_frame);
     }
     catch (const std::exception& err)
     {
@@ -201,7 +196,7 @@ JointTrajectoryTracker<ACTION>::preempt_cb()
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 {
-    _last_state = state;
+    _tracker.read(state);
 
     if (!_tracker_srv.isActive())
 	return;
@@ -209,13 +204,8 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
     try
     {
 #if !defined(NDEBUG)
-	TU::Profiler<>	profiler(2);
+	TU::Profiler<>	profiler(1);
 	profiler.start(0);
-#endif
-	_tracker.read(state);
-
-#if !defined(NDEBUG)
-	profiler.start(1);
 #endif
 	const auto	success = _tracker.update(_current_goal);
 
@@ -236,9 +226,10 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
     }
     catch (const std::exception& err)
     {
-	ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
-      //ROS_ERROR_STREAM("(JointTrajectoryTracker) Goal aborted");
-      //_tracker_srv.setAborted();
+      //ROS_ERROR_STREAM("(JointTrajectoryTracker) " << err.what());
+	ROS_ERROR_STREAM("(JointTrajectoryTracker) Goal aborted["
+			 << err.what() << ']');
+	_tracker_srv.setAborted();
     }
 }
 
@@ -251,7 +242,7 @@ JointTrajectoryTracker<ACTION>::Tracker
 					const std::string& base_link,
 					double publish_rate)
     :_base_link(base_link), _pointing_frame(), _duration(1.0/publish_rate),
-     _urdf(), _listener(), _stamp(), _command(), _feedback(),
+     _urdf(), _listener(), _state(), _command(), _feedback(),
      _tree(), _chain(), _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
@@ -287,10 +278,9 @@ JointTrajectoryTracker<ACTION>::Tracker::feedback() const
 }
 
 template <class ACTION> void
-JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
-					      const std::string& pointing_frame)
+JointTrajectoryTracker<ACTION>::Tracker::init(const std::string& pointing_frame)
 {
-    if (!state)
+    if (!_state)
 	throw std::runtime_error("No controller state available");
 
     if (pointing_frame == _pointing_frame)
@@ -302,9 +292,9 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
 				 + _base_link + " to " + pointing_frame);
 
   // Check number of joints between controller state and URDF chain.
-    if (state->joint_names.size() != njoints())
+    if (_state->joint_names.size() != njoints())
 	throw std::runtime_error("Number of joints mismatch: controller["
-				 + std::to_string(state->joint_names.size())
+				 + std::to_string(_state->joint_names.size())
 				 + "] != urdf chain["
 				 + std::to_string(njoints())
 				 + ']');
@@ -313,9 +303,9 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
     _pointing_frame = pointing_frame;
 
   // Prepare trajectory command.
-    _command.header.stamp	= ros::Time(0);
-    _command.header.frame_id	= state->header.frame_id;
-    _command.joint_names	= state->joint_names;
+    _command.header.stamp    = ros::Time(0);
+    _command.header.frame_id = _state->header.frame_id;
+    _command.joint_names     = _state->joint_names;
     _command.points.resize(1);
 
   // Set joint limits.
@@ -337,17 +327,12 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const state_cp& state,
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
     _pos_iksolver.reset(new TRAC_IK::TRAC_IK(_chain,
 					     _jnt_pos_min, _jnt_pos_max));
-
-  // Get current joint positions and velocities.
-    read(state);
 }
 
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _stamp		= state->header.stamp;
-    _command.points[0]	= state->actual;
-    _error		= state->error;
+    _state = state;
 }
 
 template <class ACTION> std::string

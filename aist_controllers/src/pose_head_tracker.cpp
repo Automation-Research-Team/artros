@@ -18,14 +18,14 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
   // Get current pose of pointing frame.
   //const auto	now = ros::Time::now();
     _listener.waitForTransform(_base_link, goal->pointing_frame,
-			       _stamp, ros::Duration(1.0));
+			       _state->header.stamp, ros::Duration(1.0));
     tf::StampedTransform	current_pose;
     _listener.lookupTransform(_base_link, goal->pointing_frame,
-			      _stamp, current_pose);
+			      _state->header.stamp, current_pose);
 
   // Convert target pose to base_link.
     auto	original_pose = goal->target;
-    original_pose.header.stamp = _stamp;
+    original_pose.header.stamp = _state->header.stamp;
     _listener.waitForTransform(_base_link, original_pose.header.frame_id,
 			       original_pose.header.stamp, ros::Duration(1.0));
     geometry_msgs::PoseStamped	transformed_pose;
@@ -34,9 +34,8 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     tf::poseStampedMsgToTF(transformed_pose, target_pose);
 
   // Get current joint positions.
-    auto&		point = _command.points[0];
     KDL::JntArray	current_pos(njoints());
-    jointsToKDL(point.positions, current_pos);
+    jointsToKDL(_state->actual.positions, current_pos);
 
   // Compute target joint positions.
     KDL::JntArray	target_pos(njoints());
@@ -65,6 +64,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     auto	dt = std::max(goal->min_duration, _duration);
 
   // Correct time_from_start in order to enforce maximum joint velocity.
+    auto&	point = _command.points[0];
     if (goal->max_velocity > 0)
     {
       // Compute the largest required rotation among all the joints
