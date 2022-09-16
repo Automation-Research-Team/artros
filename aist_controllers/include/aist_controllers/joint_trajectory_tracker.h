@@ -307,7 +307,9 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const std::string& pointing_frame)
     _command.header.frame_id = _state->header.frame_id;
     _command.joint_names     = _state->joint_names;
     _command.points.resize(1);
-
+    _command.points[0].positions.resize(njoints());
+  //_command.points[0].velocities.resize(njoints());
+    
   // Set joint limits.
     _jnt_pos_min.resize(njoints());
     _jnt_pos_max.resize(njoints());

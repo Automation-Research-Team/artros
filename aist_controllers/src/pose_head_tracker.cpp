@@ -16,7 +16,6 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
   // Get current pose of pointing frame.
-  //const auto	now = ros::Time::now();
     _listener.waitForTransform(_base_link, goal->pointing_frame,
 			       _state->header.stamp, ros::Duration(1.0));
     tf::StampedTransform	current_pose;

@@ -60,7 +60,7 @@ class JointGroupTracker
 			feedback()				const	;
 
 	void		init(const std::string& pointing_frame)		;
-	void		read(const state_cp& state)			;
+	bool		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
 
       private:
@@ -179,7 +179,8 @@ JointGroupTracker<ACTION>::preempt_cb()
 template <class ACTION> void
 JointGroupTracker<ACTION>::state_cb(const state_cp& state)
 {
-    _tracker.read(state);
+    if (!_tracker.read(state))
+	return;
 
     if (!_tracker_srv.isActive())
 	return;
@@ -302,27 +303,28 @@ JointGroupTracker<ACTION>::Tracker::init(const std::string& pointing_frame)
 					     _jnt_pos_min, _jnt_pos_max));
 }
 
-template <class ACTION> void
+template <class ACTION> bool
 JointGroupTracker<ACTION>::Tracker::read(const state_cp& state)
 {
-    _stamp = state->header.stamp;
-
     for (size_t i = 0; i < njoints(); ++i)
     {
-	const auto&	joint_name = this->joint_name(i);
+	const auto&	name = joint_name(i);
 	size_t		j = 0;
 
 	for (; j < state->name.size(); ++j)
-	    if (state->name[j] == joint_name)
+	    if (state->name[j] == name)
 	    {
 		_positions[i]  = state->position[j];
 		_velocities[i] = state->velocity[j];
 		break;
 	    }
 	if (j == state->name.size())
-	    throw std::runtime_error("Joint[" + joint_name
-				     + "] not found in input joint state");
+	    return false;
     }
+
+    _stamp = state->header.stamp;
+
+    return true;
 }
 
 template <class ACTION> std::string
