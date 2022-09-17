@@ -250,7 +250,7 @@ class SuctionGripper(GripperClient):
     def __init__(self, name, action_ns, state_ns='', eject=False):
         from aist_suction_controller.msg import (SuctionControlAction,
                                                  SuctionControlGoal)
-        from import std_msgs.msg         import Bool
+        from std_msgs.msg                import Bool
 
         super(SuctionGripper, self).__init__(
             *SuctionGripper._initargs(name, action_ns, state_ns, eject))
