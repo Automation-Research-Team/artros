@@ -123,7 +123,7 @@ JointGroupTracker<ACTION>
     ::JointGroupTracker(const std::string& action_ns)
     :_nh("~"),
      _controller(_nh.param<std::string>("controller",
-					"/pos_joint_traj_controller")),
+					"/pos_joint_group_controller")),
      _state_sub(_nh.subscribe("/joint_states", 10,
 			      &JointGroupTracker::state_cb, this)),
      _command_pub(_nh.advertise<positions_t>(_controller + "/command", 2)),
