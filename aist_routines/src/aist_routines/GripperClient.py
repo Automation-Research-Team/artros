@@ -34,9 +34,8 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-import actionlib
+from actionlib          import SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
-from control_msgs       import msg as cmsg
 from numpy              import clip
 
 ######################################################################
@@ -129,10 +128,12 @@ class VoidGripper(GripperClient):
 class GenericGripper(GripperClient):
     def __init__(self, name, action_ns, base_link, tip_link,
                  min_position=0.0, max_position=0.1, max_effort=5.0):
+        from control_msgs.msg   import (GripperCommand, GripperCommandAction,
+                                        GripperCommandGoal)
+
         super(GenericGripper, self).__init__(name, 'two_finger',
                                              base_link, tip_link)
-        self._client = actionlib.SimpleActionClient(action_ns,
-                                                    cmsg.GripperCommandAction)
+        self._client = SimpleActionClient(action_ns, GripperCommandAction)
         self.parameters = {'grasp_position':   min_position,
                            'release_position': max_position,
                            'max_effort':       max_effort}
@@ -159,8 +160,8 @@ class GenericGripper(GripperClient):
         return self.move(self.parameters['release_position'], 0, timeout)
 
     def move(self, position, max_effort=0, timeout=0):
-        self._client.send_goal(cmsg.GripperCommandGoal(
-                                   cmsg.GripperCommand(position, max_effort)))
+        self._client.send_goal(GripperCommandGoal(GripperCommand(position,
+                                                                 max_effort)))
         return self.wait(timeout)
 
     def wait(self, timeout=0):
@@ -247,19 +248,17 @@ class PrecisionGripper(GenericGripper):
 ######################################################################
 class SuctionGripper(GripperClient):
     def __init__(self, name, action_ns, state_ns='', eject=False):
-        import aist_suction_controller.msg
-        import std_msgs.msg
+        from aist_suction_controller.msg import (SuctionControlAction,
+                                                 SuctionControlGoal)
+        from import std_msgs.msg         import Bool
 
         super(SuctionGripper, self).__init__(
             *SuctionGripper._initargs(name, action_ns, state_ns, eject))
-        self._client    = actionlib.SimpleActionClient(
-                              action_ns,
-                              aist_suction_controller.msg.SuctionControlAction)
-        self._sub       = rospy.Subscriber(state_ns, std_msgs.msg.Bool,
-                                           self._state_callback)
+        self._client    = SimpleActionClient(action_ns, SuctionControlAction)
+        self._sub       = rospy.Subscriber(state_ns, Bool, self._state_cb)
         self._suctioned = False
         self._eject     = eject  # blow when releasing
-        self._goal      = aist_suction_controller.msg.SuctionControlGoal()
+        self._goal      = SuctionControlGoal()
         self._goal.tool_name       = 'suction_tool'
         self._goal.turn_suction_on = False
         self._goal.eject           = False
@@ -312,7 +311,7 @@ class SuctionGripper(GripperClient):
         result = self._client.get_result()
         return result.success
 
-    def _state_callback(self, msg):
+    def _state_cb(self, msg):
         self._suctioned = msg.data
 
 ######################################################################
@@ -320,16 +319,14 @@ class SuctionGripper(GripperClient):
 ######################################################################
 class Lecp6Gripper(GripperClient):
     def __init__(self, prefix='a_bot_gripper_', open_no=1, close_no=2):
-        import tranbo_control.msg
+        from tranbo_control.msg import Lecp6CommandAction, Lecp6CommandGoal
 
         super(Lecp6Gripper, self).__init__(*Lecp6Gripper._initargs(prefix))
-        self._client = actionlib.SimpleActionClient(
-                           '/arm_driver/lecp6_driver/lecp6',
-                           tranbo_control.msg.Lecp6CommandAction)
-        self._goal = tranbo_control.msg.Lecp6CommandGoal()
-
-        self.parameters = {'release_stepdata': open_no,
-                           'grasp_stepdata':   close_no}
+        self._client     = SimpleActionClient('/arm_driver/lecp6_driver/lecp6',
+                                          Lecp6CommandAction)
+        self._goal       = Lecp6CommandGoal()
+        self._parameters = {'release_stepdata': open_no,
+                            'grasp_stepdata':   close_no}
 
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
@@ -366,8 +363,8 @@ class Lecp6Gripper(GripperClient):
 
     def _send_command(self, close, timeout):
         self._goal.command.stepdata_no \
-            = self.parameters['grasp_stepdata' if close else
-                              'release_stepdata']
+            = self._parameters['grasp_stepdata' if close else
+                               'release_stepdata']
         self._client.send_goal(self._goal)
         return self.wait(timeout)
 
@@ -377,19 +374,20 @@ class Lecp6Gripper(GripperClient):
 class MagswitchGripper(GripperClient):
     def __init__(self, prefix='a_bot_magnet_',
                  sensitivity=0, grasp_position=30, confirm_position=100):
-        import tranbo_control.msg
+        from tranbo_control.msg import (MagswitchCommandAction,
+                                        MagswitchCommandGoal)
 
         super(MagswitchGripper, self).__init__(
             *MagswitchGripper._initargs(prefix))
-        self._client = actionlib.SimpleActionClient(
-                              '/arm_driver/magswitch_driver/magswitch',
-                              tranbo_control.msg.MagswitchCommandAction)
-        self._goal   = tranbo_control.msg.MagswitchCommandGoal()
+        self._client           = SimpleActionClient(
+                                     '/arm_driver/magswitch_driver/magswitch',
+                                     MagswitchCommandAction)
+        self._goal             = MagswitchCommandGoal()
         self._calibration_step = 0
 
-        self.parameters = {'sensitivity':      sensitivity,
-                           'grasp_position':   grasp_position,
-                           'confirm_position': confirm_position}
+        self._parameters = {'sensitivity':      sensitivity,
+                            'grasp_position':   grasp_position,
+                            'confirm_position': confirm_position}
 
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
@@ -416,14 +414,14 @@ class MagswitchGripper(GripperClient):
         return self._send_command(position, timeout)
 
     def pregrasp(self, timeout=0):
-        return self._send_command(self.parameters['grasp_position'], timeout)
+        return self._send_command(self._parameters['grasp_position'], timeout)
 
     def grasp(self, timeout=0):
         return True
-        # return self._send_command(self.parameters['grasp_position'], timeout)
+        #return self._send_command(self._parameters['grasp_position'], timeout)
 
     def postgrasp(self, timeout=0):
-        return self._send_command(self.parameters['confirm_position'], timeout)
+        return self._send_command(self._parameters['confirm_position'], timeout)
 
     def release(self, timeout=0):
         return self._send_command(0, timeout)
@@ -452,7 +450,7 @@ class MagswitchGripper(GripperClient):
         self._goal.command.calibration_trigger = calibration_trigger
         self._goal.command.calibration_select  = calibration_select
         self._goal.command.sensitivity \
-            = clip(self.parameters['sensitivity'], -30, 30)
+            = clip(self._parameters['sensitivity'], -30, 30)
         self._goal.command.position = clip(position, 0, 100)
         self._client.send_goal(self._goal)
         return self.wait(timeout)
