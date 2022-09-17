@@ -43,7 +43,7 @@ aist_controllers
 ### Published topic
  - **~controller/command**:
    - type=[trajectory_msgs::JointTrajectory](http://docs.ros.org/en/api/trajectory_msgs/html/msg/JointTrajectory.html)
-   - point cloudを平面領域にセグメンテーションしたラベル画像
+
 
 ## `pose_group_tracker`
 ### Parameters
@@ -87,4 +87,4 @@ aist_controllers
 ### Published topic
  - **~controller/command**:
    - type=[std_msgs::Float64MultiArray](http://docs.ros.org/en/api/std_msgs/html/msg/Float64MultiArray.html)
-   - point cloudを平面領域にセグメンテーションしたラベル画像
+   
