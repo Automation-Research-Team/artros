@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   kdl_parser
   trac_ik_lib
+  moveit_servo
 )
 
 find_package(orocos_kdl REQUIRED)
@@ -99,8 +100,24 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  pose_head_servo
+  src/pose_head_servo.cpp
+)
+
+target_link_libraries(
+  pose_head_servo
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  pose_head_servo
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
-  TARGETS point_head_tracker pose_head_tracker pose_group_tracker
+  TARGETS point_head_tracker pose_head_tracker pose_group_tracker pose_head_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
