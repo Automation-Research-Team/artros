@@ -123,6 +123,9 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     	    point.time_from_start = required_duration;
     }
 
+  // Set current time to trajectory command.
+    _command.header.stamp = ros::Time::now();
+
     return false;
 }
 

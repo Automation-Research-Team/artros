@@ -91,12 +91,15 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 #endif
     }
 
-  // Set desired positions of trajectory command.
+  // Set desired position to trajectory command.
     jointsFromKDL(target_pos, point.positions);
 
   // Set desired time at which the pointing_frame reaching the target.
     point.time_from_start = dt;
-
+    
+  // Set current time to trajectory command.
+    _command.header.stamp = ros::Time::now();
+    
     return false;
 }
 
