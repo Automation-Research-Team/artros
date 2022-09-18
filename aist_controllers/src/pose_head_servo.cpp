@@ -45,37 +45,122 @@
 #include <moveit_servo/make_shared_from_pool.h>
 #include <thread>
 
-static const std::string LOGNAME = "cpp_interface_example";
+#include <aist_controllers/PoseHeadAction.h>
 
-// Class for monitoring status of moveit_servo
+namespace aist_controllers
+{
+static const std::string LOGNAME = "pose_head_servo";
+
+/************************************************************************
+*  class StatusMonitor							*
+************************************************************************/
+//! Class for monitoring status of moveit_servo
 class StatusMonitor
 {
+  private:
+    using StatusCode	= moveit_servo::StatusCode;
+    
   public:
     StatusMonitor(ros::NodeHandle& nh, const std::string& topic)
+	:_status_sub(nh.subscribe(topic, 1, &StatusMonitor::status_cb, this)),
+	 _status(StatusCode::INVALID)
     {
-	sub_ = nh.subscribe(topic, 1, &StatusMonitor::statusCB, this);
     }
 
   private:
     void
-    statusCB(const std_msgs::Int8ConstPtr& msg)
+    status_cb(const std_msgs::Int8ConstPtr& msg)
     {
-	moveit_servo::StatusCode
-	    latest_status = static_cast<moveit_servo::StatusCode>(msg->data);
-	if (latest_status != status_)
+	const auto	latest_status = static_cast<StatusCode>(msg->data);
+	if (latest_status != _status)
 	{
-	    status_ = latest_status;
-	    const auto& status_str
-			    = moveit_servo::SERVO_STATUS_CODE_MAP.at(status_);
-	    ROS_INFO_STREAM_NAMED(LOGNAME, "Servo status: " << status_str);
+	    _status = latest_status;
+
+	    ROS_INFO_STREAM_NAMED(LOGNAME, "Servo status: "
+				  << moveit_servo::SERVO_STATUS_CODE_MAP.at(
+				      _status));
 	}
     }
 
   private:
-    moveit_servo::StatusCode	status_ = moveit_servo::StatusCode::INVALID;
-    ros::Subscriber		sub_;
+    ros::Subscriber		_status_sub;
+    moveit_servo::StatusCode	_status;
 };
 
+/************************************************************************
+*  class PoseHeadServo							*
+************************************************************************/
+class PoseHeadServo
+{
+  public:
+    using planning_scene_monitor_t
+		= planning_scene_monitor::PlanningSceneMonitor;
+    using planning_scene_monitor_p
+		= planning_scene_monitor::PlanningSceneMonitorPtr;
+    
+  public:
+    PoseHeadServo()							;
+
+    void	run()							;
+
+  private:
+    static planning_scene_monitor_p
+		create_planning_scene_monitor(
+		    const std::string& robot_description)		;
+    
+  private:
+    ros::NodeHandle		_nh;
+    planning_scene_monitor_p	_planning_scene_monitor;
+    moveit_servo::PoseTracking	_tracker;
+    ros::Publisher		_target_pose_pub;
+    StatusMonitor		_status_monitor;
+};
+
+PoseHeadServo::PoseHeadServo()
+    :_nh("~"),
+     _planning_scene_monitor(create_planning_scene_monitor(
+				 "robot_description")),
+     _tracker(_nh, _planning_scene_monitor),
+     _target_pose_pub(_nh.advertise<geometry_msgs::PoseStamped>("target_pose",
+								1, true)),
+     _status_monitor(_nh, "status")
+{
+}
+
+void
+PoseHeadServo::run()
+{
+    ros::AsyncSpinner	spinner(8);
+    spinner.start();
+}
+    
+PoseHeadServo::planning_scene_monitor_p
+PoseHeadServo::create_planning_scene_monitor(
+		  const std::string& robot_description)
+{
+    using	namespace planning_scene_monitor;
+
+    const auto	monitor = std::make_shared<planning_scene_monitor_t>(
+				robot_description);
+    if (!monitor->getPlanningScene())
+    {
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
+	exit(EXIT_FAILURE);
+    }
+
+    monitor->startSceneMonitor();
+    monitor->startWorldGeometryMonitor(
+	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+	false /* skip octomap monitor */);
+    monitor->startStateMonitor();
+
+    return monitor;
+}
+    
+    
+}	// namespace aist_controllers
+	
 /**
  * Instantiate the pose tracking interface.
  * Send a pose slightly different from the starting pose
@@ -84,25 +169,28 @@ class StatusMonitor
 int
 main(int argc, char** argv)
 {
-    ros::init(argc, argv, LOGNAME);
+    ros::init(argc, argv, aist_controllers::LOGNAME);
     ros::NodeHandle	nh("~");
     ros::AsyncSpinner	spinner(8);
     spinner.start();
 
   // Load the planning scene monitor
-    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
+    using	namespace planning_scene_monitor;
+    
+    PlanningSceneMonitorPtr planning_scene_monitor;
     planning_scene_monitor
-	= std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+	= std::make_shared<PlanningSceneMonitor>("robot_description");
     if (!planning_scene_monitor->getPlanningScene())
     {
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
+	ROS_ERROR_STREAM_NAMED(aist_controllers::LOGNAME,
+			       "Error in setting up the PlanningSceneMonitor.");
 	exit(EXIT_FAILURE);
     }
 
     planning_scene_monitor->startSceneMonitor();
     planning_scene_monitor->startWorldGeometryMonitor(
-	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
 	false /* skip octomap monitor */);
     planning_scene_monitor->startStateMonitor();
 
@@ -115,10 +203,10 @@ main(int argc, char** argv)
 						 true /* latch */);
 
   // Subscribe to servo status (and log it when it changes)
-    StatusMonitor	status_monitor(nh, "status");
+    aist_controllers::StatusMonitor	status_monitor(nh, "status");
 
-    Eigen::Vector3d	lin_tol{ 0.01, 0.01, 0.01 };
-    double		rot_tol = 0.1;
+    Eigen::Vector3d			lin_tol{ 0.01, 0.01, 0.01 };
+    double				rot_tol = 0.1;
 
   // Get the current EE transform
     geometry_msgs::TransformStamped	current_ee_tf;
