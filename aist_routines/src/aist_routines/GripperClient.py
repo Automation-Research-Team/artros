@@ -103,6 +103,9 @@ class GripperClient(object):
     def release(self, timeout=0):
         return True
 
+    def move(self, position):
+        return True
+
     def wait(self):
         return True
 

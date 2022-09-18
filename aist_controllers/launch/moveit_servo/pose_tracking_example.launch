@@ -1,11 +1,12 @@
 <launch>
   <!-- Launch an example that sends commands via C++ API. -->
 
+  <arg name="config_file"	default="c_bot_trajectory_controller_config"/>
+
   <node name="servo_server"
-	pkg="moveit_servo" type="pose_tracking_example" output="screen" >
-    <!-- <param name="parameter_ns" type="string" value="servo_server" /> -->
-    <rosparam file="$(dirname)/../../config/ur_simulated_config.yaml" />
-    <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml" />
+	pkg="moveit_servo" type="pose_tracking_example" output="screen">
+    <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"/>
+    <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
   </node>
 
 </launch>
