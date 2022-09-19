@@ -5,8 +5,8 @@
 
   <node name="servo_server"
 	pkg="moveit_servo" type="pose_tracking_example" output="screen">
-    <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"/>
-    <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
+    <rosparam file="$(find aist_controllers)/config/$(arg config_file).yaml"/>
+    <rosparam file="$(find aist_controllers)/config/pose_tracking_settings.yaml"/>
   </node>
 
 </launch>

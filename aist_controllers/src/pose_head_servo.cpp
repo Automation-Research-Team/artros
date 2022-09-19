@@ -1,41 +1,7 @@
-/*******************************************************************************
- *      Title     : pose_tracking_example.cpp
- *      Project   : moveit_servo
- *      Created   : 09/04/2020
- *      Author    : Adam Pettinger
- *
- * BSD 3-Clause License
- *
- * Copyright (c) 2019, Los Alamos National Security, LLC
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
- * * Neither the name of the copyright holder nor the names of its
- *   contributors may be used to endorse or promote products derived from
- *   this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************/
-
+/*
+ *  \file	pose_head_servo.cpp
+ *  \brief	ROS tracker of aist_controllers::PoseHeadAction type
+ */
 #include <std_msgs/Int8.h>
 #include <geometry_msgs/TransformStamped.h>
 
@@ -59,7 +25,7 @@ class StatusMonitor
 {
   private:
     using StatusCode	= moveit_servo::StatusCode;
-    
+
   public:
     StatusMonitor(ros::NodeHandle& nh, const std::string& topic)
 	:_status_sub(nh.subscribe(topic, 1, &StatusMonitor::status_cb, this)),
@@ -97,7 +63,7 @@ class PoseHeadServo
 		= planning_scene_monitor::PlanningSceneMonitor;
     using planning_scene_monitor_p
 		= planning_scene_monitor::PlanningSceneMonitorPtr;
-    
+
   public:
     PoseHeadServo()							;
 
@@ -107,7 +73,7 @@ class PoseHeadServo
     static planning_scene_monitor_p
 		create_planning_scene_monitor(
 		    const std::string& robot_description)		;
-    
+
   private:
     ros::NodeHandle		_nh;
     planning_scene_monitor_p	_planning_scene_monitor;
@@ -133,7 +99,7 @@ PoseHeadServo::run()
     ros::AsyncSpinner	spinner(8);
     spinner.start();
 }
-    
+
 PoseHeadServo::planning_scene_monitor_p
 PoseHeadServo::create_planning_scene_monitor(
 		  const std::string& robot_description)
@@ -157,10 +123,10 @@ PoseHeadServo::create_planning_scene_monitor(
 
     return monitor;
 }
-    
-    
+
+
 }	// namespace aist_controllers
-	
+
 /**
  * Instantiate the pose tracking interface.
  * Send a pose slightly different from the starting pose
@@ -176,7 +142,7 @@ main(int argc, char** argv)
 
   // Load the planning scene monitor
     using	namespace planning_scene_monitor;
-    
+
     PlanningSceneMonitorPtr planning_scene_monitor;
     planning_scene_monitor
 	= std::make_shared<PlanningSceneMonitor>("robot_description");
