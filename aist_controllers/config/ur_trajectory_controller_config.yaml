@@ -1,7 +1,7 @@
 ###############################################
 # Modify all parameters related to servoing here
 ###############################################
-use_gazebo: true
+use_gazebo: $(arg sim)
 
 ## Properties of incoming commands
 command_in_type: "speed_units"
@@ -25,9 +25,9 @@ publish_joint_velocities:    false
 publish_joint_accelerations: false
 
 ## MoveIt properties
-move_group_name:           c_bot
+move_group_name:           $(arg robot_name)
 planning_frame:            workspace_center
-ee_frame_name:             c_bot_gripper_tip_link
+ee_frame_name:             $(arg robot_name)_gripper_tip_link
 robot_link_command_frame:  workspace_center
 
 ## Stopping behaviour
@@ -44,7 +44,7 @@ cartesian_command_in_topic: delta_twist_cmds
 joint_command_in_topic:     delta_joint_cmds
 joint_topic:                joint_states
 status_topic:               status
-command_out_topic:          /c_bot/scaled_pos_joint_traj_controller/command
+command_out_topic:          /$(arg robot_name)/scaled_pos_joint_traj_controller/command
 
 ## Collision checking for the entire robot body
 check_collisions:     true
