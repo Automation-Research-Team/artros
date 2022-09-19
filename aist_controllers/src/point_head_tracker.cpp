@@ -26,7 +26,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 
   // Convert target point to base_link.
     auto	original_point = goal->target;
-    original_point.header.stamp = ros::Time::now();
+    original_point.header.stamp = _state->header.stamp;
     _listener.waitForTransform(_base_link,
 			       original_point.header.frame_id,
 			       original_point.header.stamp,
@@ -37,9 +37,8 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     tf::pointMsgToKDL(transformed_point.point, target);
 
   // Get current joint positions.
-    auto&		point = _command.points[0];
     KDL::JntArray	current_pos(njoints());
-    jointsToKDL(point.positions, current_pos);
+    jointsToKDL(_state->actual.positions, current_pos);
 
   // Initialize target positions with current positions.
     KDL::JntArray	target_pos(current_pos);
@@ -101,6 +100,7 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
 		     << err_p << " radians");
 
   // Set desired positions of trajectory command.
+    auto&	point = _command.points[0];
     jointsFromKDL(target_pos, point.positions);
 
   // Set desired time of the pointing_frame reaching at the target.
@@ -122,6 +122,9 @@ JointTrajectoryTracker<control_msgs::PointHeadAction>
     	if (required_duration > point.time_from_start)
     	    point.time_from_start = required_duration;
     }
+
+  // Set current time to trajectory command.
+    _command.header.stamp = ros::Time::now();
 
     return false;
 }

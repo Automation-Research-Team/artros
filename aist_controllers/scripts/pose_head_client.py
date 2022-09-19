@@ -56,6 +56,7 @@ class InteractivePoseHeadClient(PoseHeadClient):
             try:
                 key = raw_input('>> ')
                 if key == 'q':
+                    self.cancel_goal()
                     break
                 elif key == 'c':
                     self.cancel_goal()

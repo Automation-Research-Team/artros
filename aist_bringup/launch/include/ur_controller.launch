@@ -16,26 +16,31 @@
 
   <!-- The controller_spawner must be launched in the root namespace
        because gazebo publishes joint states in that. -->
-  <node if="$(arg sim)"
-	name="$(arg prefix)controller_spawner"
-	pkg="controller_manager" type="spawner"	respawn="false" output="screen"
-	args="$(arg namespace)/scaled_pos_joint_traj_controller"/>
+  <group if="$(arg sim)">
+    <node name="$(arg prefix)controller_spawner"
+	  pkg="controller_manager" type="spawner"
+	  respawn="false" output="screen"
+	  args="$(arg namespace)/scaled_pos_joint_traj_controller"/>
+    <node name="$(arg prefix)stopped_spawner"
+	  pkg="controller_manager" type="spawner"
+	  respawn="false" output="screen"
+    	  args="--stopped $(arg namespace)/joint_group_pos_controller"/>
+  </group>
 
   <group unless="$(arg sim)" ns="$(arg namespace)">
-    <arg name="controllers" value="joint_state_controller
-				   scaled_pos_joint_traj_controller
-				   speed_scaling_state_controller
-				   force_torque_sensor_controller
-				   robot_status_controller"/>
     <node name="controller_spawner" pkg="controller_manager" type="spawner"
 	  respawn="false" output="screen"
-	  args="$(arg controllers)"/>
+	  args="scaled_pos_joint_traj_controller
+		joint_state_controller
+		speed_scaling_state_controller
+		force_torque_sensor_controller
+		robot_status_controller"/>
 
     <!-- Load other controllers -->
-    <arg name="stopped_controllers" default="joint_group_vel_controller"/>
     <node name="stopped_spawner" pkg="controller_manager" type="spawner"
     	  respawn="false" output="screen"
-    	  args="--stopped $(arg stopped_controllers)" />
+    	  args="--stopped
+		joint_group_pos_controller joint_group_vel_controller"/>
 
     <node name="controller_stopper"
 	  pkg="controller_stopper" type="node" respawn="false" output="screen">

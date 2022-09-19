@@ -15,40 +15,55 @@ template <> bool
 JointTrajectoryTracker<aist_controllers::PoseHeadAction>
     ::Tracker::update(const goal_cp& goal)
 {
+  // Get current pose of pointing frame.
+    _listener.waitForTransform(_base_link, goal->pointing_frame,
+			       _state->header.stamp, ros::Duration(1.0));
+    tf::StampedTransform	current_pose;
+    _listener.lookupTransform(_base_link, goal->pointing_frame,
+			      _state->header.stamp, current_pose);
+
   // Convert target pose to base_link.
     auto	original_pose = goal->target;
-    original_pose.header.stamp = ros::Time::now();
-    _listener.waitForTransform(_base_link,
-			       original_pose.header.frame_id,
-			       original_pose.header.stamp,
-			       ros::Duration(1.0));
+    original_pose.header.stamp = _state->header.stamp;
+    _listener.waitForTransform(_base_link, original_pose.header.frame_id,
+			       original_pose.header.stamp, ros::Duration(1.0));
     geometry_msgs::PoseStamped	transformed_pose;
     _listener.transformPose(_base_link, original_pose, transformed_pose);
-    KDL::Frame	target;
-    tf::poseMsgToKDL(transformed_pose.pose, target);
+    tf::Stamped<tf::Pose>	target_pose;
+    tf::poseStampedMsgToTF(transformed_pose, target_pose);
 
   // Get current joint positions.
-    auto&		point = _command.points[0];
     KDL::JntArray	current_pos(njoints());
-    jointsToKDL(point.positions, current_pos);
+    jointsToKDL(_state->actual.positions, current_pos);
 
   // Compute target joint positions.
     KDL::JntArray	target_pos(njoints());
-    const auto		error = _pos_iksolver->CartToJnt(current_pos,
-							 target, target_pos);
-    if (error < 0)
-	ROS_ERROR_STREAM("(JointTrajectoryTracker) IkSolver failed["
-			 << solver_error_message(error) << ']');
-    clamp(target_pos);
-    ROS_DEBUG_STREAM("target_pos  = " << target_pos);
+    for (;;)
+    {
+	KDL::Frame	target;
+	tf::poseTFToKDL(target_pose, target);
 
-  // Set desired positions of trajectory command.
-    jointsFromKDL(target_pos, point.positions);
+	const auto	error = _pos_iksolver->CartToJnt(current_pos, target,
+							 target_pos);
+	if (error >= 0)
+	    break;
 
-  // Set desired time of the pointing_frame reaching at the target.
-    point.time_from_start = std::max(goal->min_duration, ros::Duration(0.01));
+      // If no solutions found, update target pose to the middle of current
+      // and target poses.
+	target_pose.setOrigin(0.5*(current_pose.getOrigin() +
+				   target_pose.getOrigin()));
+	target_pose.setRotation(current_pose.getRotation().slerp(
+				    target_pose.getRotation(), 0.5));
+    }
+
+  //clamp(target_pos);
+    ROS_DEBUG_STREAM("target_pos = " << target_pos);
+
+  // Duration of the time step
+    auto	dt = std::max(goal->min_duration, _duration);
 
   // Correct time_from_start in order to enforce maximum joint velocity.
+    auto&	point = _command.points[0];
     if (goal->max_velocity > 0)
     {
       // Compute the largest required rotation among all the joints
@@ -59,12 +74,32 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	    if (rot > rot_max)
 		rot_max = rot;
 	}
+#if 0
+	const auto	dp_max = goal->max_velocity * dt.toSec();
+	const auto	k = dp_max / std::max(dp_max, rot_max);
 
-    	ros::Duration	required_duration(rot_max / goal->max_velocity);
-    	if (required_duration > point.time_from_start)
-    	    point.time_from_start = required_duration;
+	for (size_t i = 0; i < current_pos.rows(); ++i)
+	    target_pos(i) = current_pos(i)
+			  + k * (target_pos(i) - current_pos(i));
+#else
+	const ros::Duration required_duration(rot_max / goal->max_velocity);
+	if (dt < required_duration)
+	    dt = required_duration;
+
+	for (auto&& velocity : point.velocities)
+	    velocity = 0;
+#endif
     }
 
+  // Set desired position to trajectory command.
+    jointsFromKDL(target_pos, point.positions);
+
+  // Set desired time at which the pointing_frame reaching the target.
+    point.time_from_start = dt;
+    
+  // Set current time to trajectory command.
+    _command.header.stamp = ros::Time::now();
+    
     return false;
 }
 
@@ -80,7 +115,7 @@ main(int argc, char* argv[])
 
     aist_controllers::JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 	tracker("pose_head");
-    ros::spin();
+    tracker.run();
 
     return 0;
 }

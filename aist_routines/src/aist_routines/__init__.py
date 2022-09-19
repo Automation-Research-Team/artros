@@ -308,6 +308,9 @@ class AISTBaseRoutines(object):
     def release(self, robot_name):
         return self.gripper(robot_name).release()
 
+    def set_gripper_position(self, robot_name, position):
+        return self.gripper(robot_name).move(position)
+
     # Camera stuffs
     def camera(self, camera_name):
         return self._cameras[camera_name]

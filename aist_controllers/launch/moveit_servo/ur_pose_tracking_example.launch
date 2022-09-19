@@ -1,0 +1,22 @@
+<launch>
+  <!-- Launch an example that sends commands via C++ API. -->
+
+  <arg name="robot_name" default="a_bot"/>
+  <arg name="cmd"	 default="traj"/>	<!-- "traj", "pos" or "vel" -->
+  <arg name="sim"	 default="false"/>
+
+  <arg if="$(eval cmd == 'traj')"
+       name="config_file"	value="ur_trajectory_controller_config"/>
+  <arg unless="$(eval cmd == 'traj')"
+       name="config_file"       value="ur_group_controller_config"/>
+  <arg name="pub_pos"		value="$(eval cmd == 'pos')"/>
+  <arg name="pub_vel"		value="$(eval cmd == 'vel')"/>
+
+  <node name="servo_server"
+	pkg="moveit_servo" type="pose_tracking_example" output="screen">
+    <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"
+	      subst_value="true"/>
+    <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
+  </node>
+
+</launch>

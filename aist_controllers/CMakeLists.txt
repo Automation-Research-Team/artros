@@ -5,7 +5,7 @@ project(aist_controllers)
 set(CMAKE_CXX_STANDARD		17)
 set(CMAKE_CXX_STANDARD_REQUIRED	ON)
 set(CMAKE_CXX_EXTENSIONS	OFF)
-set(CMAKE_CXX_FLAGS_RELEASE	"-Wall -O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS		"-Wall -O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG	"-g")
 set(CMAKE_CXX_BUILD_TYPE	Release)
 
@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   kdl_parser
   trac_ik_lib
   nlopt
+  moveit_servo
 )
 
 find_package(orocos_kdl REQUIRED)
@@ -100,8 +101,24 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  pose_head_servo
+  src/pose_head_servo.cpp
+)
+
+target_link_libraries(
+  pose_head_servo
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  pose_head_servo
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
-  TARGETS point_head_tracker pose_head_tracker pose_group_tracker
+  TARGETS point_head_tracker pose_head_tracker pose_group_tracker pose_head_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

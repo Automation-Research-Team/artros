@@ -48,7 +48,8 @@ class JointGroupTracker
     {
       public:
 			Tracker(const std::string& robot_desc_string,
-				const std::string& base_link)		;
+				const std::string& base_link,
+				double publish_rate)			;
 
 	size_t		njoints()				const	;
 	const std::string&
@@ -58,9 +59,8 @@ class JointGroupTracker
 	const feedback_t&
 			feedback()				const	;
 
-	void		init(const state_cp& state,
-			     const std::string& pointing_frame)		;
-	void		read(const state_cp& state)			;
+	void		init(const std::string& pointing_frame)		;
+	bool		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
 
       private:
@@ -75,9 +75,13 @@ class JointGroupTracker
       private:
 	std::string					_base_link;
 	std::string					_pointing_frame;
+	ros::Duration					_duration;
 
 	urdf::Model					_urdf;
 	tf::TransformListener				_listener;
+	ros::Time					_stamp;
+	std::vector<double>				_positions;
+	std::vector<double>				_velocities;
 	positions_t					_command;
 	feedback_t					_feedback;
 
@@ -95,6 +99,8 @@ class JointGroupTracker
   public:
 		JointGroupTracker(const std::string& action_ns)	;
 
+    void	run()							;
+
   private:
     void	goal_cb()						;
     void	preempt_cb()						;
@@ -102,12 +108,12 @@ class JointGroupTracker
 
   private:
     ros::NodeHandle		_nh;
+    const std::string		_controller;
     ros::Subscriber		_state_sub;
     const ros::Publisher	_command_pub;
 
     Tracker			_tracker;
 
-    state_cp			_last_state;
     server_t			_tracker_srv;
     goal_cp			_current_goal;
 };
@@ -116,17 +122,17 @@ template <class ACTION>
 JointGroupTracker<ACTION>
     ::JointGroupTracker(const std::string& action_ns)
     :_nh("~"),
+     _controller(_nh.param<std::string>("controller",
+					"/pos_joint_group_controller")),
      _state_sub(_nh.subscribe("/joint_states", 10,
 			      &JointGroupTracker::state_cb, this)),
-     _command_pub(_nh.advertise<positions_t>(
-		      _nh.param<std::string>("controller",
-					     "/pos_joint_group_controller")
-		      + "/command", 2)),
+     _command_pub(_nh.advertise<positions_t>(_controller + "/command", 2)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
 					 "/robot_description"),
 		  std::string()),
-	      _nh.param<std::string>("base_link", "base_link")),
+	      _nh.param<std::string>("base_link", "base_link"),
+	      _nh.param<double>(_controller + "/state_publish_rate", 50)),
      _tracker_srv(_nh, action_ns, false),
      _current_goal(nullptr)
 {
@@ -139,6 +145,12 @@ JointGroupTracker<ACTION>
 }
 
 template <class ACTION> void
+JointGroupTracker<ACTION>::run()
+{
+    ros::spin();
+}
+
+template <class ACTION> void
 JointGroupTracker<ACTION>::goal_cb()
 {
     _current_goal = _tracker_srv.acceptNewGoal();
@@ -147,7 +159,7 @@ JointGroupTracker<ACTION>::goal_cb()
 
     try
     {
-	_tracker.init(_last_state, _current_goal->pointing_frame);
+	_tracker.init(_current_goal->pointing_frame);
     }
     catch (const std::exception& err)
     {
@@ -167,15 +179,14 @@ JointGroupTracker<ACTION>::preempt_cb()
 template <class ACTION> void
 JointGroupTracker<ACTION>::state_cb(const state_cp& state)
 {
-    _last_state = state;
+    if (!_tracker.read(state))
+	return;
 
     if (!_tracker_srv.isActive())
 	return;
 
     try
     {
-	_tracker.read(state);
-
 	const auto	success = _tracker.update(_current_goal);
 
 	_tracker_srv.publishFeedback(_tracker.feedback());
@@ -196,15 +207,16 @@ JointGroupTracker<ACTION>::state_cb(const state_cp& state)
 }
 
 /************************************************************************
-*  class JointGroupTracker<ACTION>::Tracker			*
+*  class JointGroupTracker<ACTION>::Tracker				*
 ************************************************************************/
 template <class ACTION>
 JointGroupTracker<ACTION>::Tracker
-			      ::Tracker(const std::string& robot_desc_string,
-					const std::string& base_link)
-    :_base_link(base_link), _pointing_frame(),
-     _urdf(), _listener(), _command(), _feedback(), _tree(), _chain(),
-     _jnt_pos_min(), _jnt_pos_max(),
+			 ::Tracker(const std::string& robot_desc_string,
+				   const std::string& base_link,
+				   double publish_rate)
+    :_base_link(base_link), _pointing_frame(), _duration(1.0/publish_rate),
+     _urdf(), _listener(), _stamp(), _command(), _feedback(),
+     _tree(), _chain(), _jnt_pos_min(), _jnt_pos_max(),
      _jac_solver(), _pos_fksolver(), _vel_iksolver(), _pos_iksolver()
 {
   // Load URDF model.
@@ -245,12 +257,8 @@ JointGroupTracker<ACTION>::Tracker::feedback() const
 }
 
 template <class ACTION> void
-JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
-					 const std::string& pointing_frame)
+JointGroupTracker<ACTION>::Tracker::init(const std::string& pointing_frame)
 {
-    if (!state)
-	throw std::runtime_error("No controller state available");
-
     if (pointing_frame == _pointing_frame)
 	return;
 
@@ -261,6 +269,10 @@ JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
 
   // Update pointing frame.
     _pointing_frame = pointing_frame;
+
+  // Prepare input positions and velocities.
+    _positions.resize(njoints());
+    _velocities.resize(njoints());
 
   // Prepare positions command.
     _command.layout.dim.resize(1);
@@ -289,29 +301,30 @@ JointGroupTracker<ACTION>::Tracker::init(const state_cp& state,
     _vel_iksolver.reset(new KDL::ChainIkSolverVel_wdls(_chain));
     _pos_iksolver.reset(new TRAC_IK::TRAC_IK(_chain,
 					     _jnt_pos_min, _jnt_pos_max));
-
-  // Get current joint positions and velocities.
-    read(state);
 }
 
-template <class ACTION> void
+template <class ACTION> bool
 JointGroupTracker<ACTION>::Tracker::read(const state_cp& state)
 {
     for (size_t i = 0; i < njoints(); ++i)
     {
-	const auto&	joint_name = this->joint_name(i);
+	const auto&	name = joint_name(i);
 	size_t		j = 0;
 
 	for (; j < state->name.size(); ++j)
-	    if (state->name[j] == joint_name)
+	    if (state->name[j] == name)
 	    {
-		_command.data[i] = state->position[j];
+		_positions[i]  = state->position[j];
+		_velocities[i] = state->velocity[j];
 		break;
 	    }
 	if (j == state->name.size())
-	    throw std::runtime_error("Joint[" + joint_name
-				     + "] not found in input joint state");
+	    return false;
     }
+
+    _stamp = state->header.stamp;
+
+    return true;
 }
 
 template <class ACTION> std::string
