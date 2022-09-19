@@ -2,7 +2,6 @@
   <!-- Launch an example that sends commands via C++ API. -->
 
   <arg name="robot_name" default="a_bot"/>
-  <arg name="group"	 default="false"/>
   <arg name="cmd"	 default="traj"/>	<!-- "traj", "pos" or "vel" -->
   <arg name="sim"	 default="false"/>
 

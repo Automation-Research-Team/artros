@@ -1,0 +1,14 @@
+<launch>
+  <!-- Launch an example that sends commands via C++ API. -->
+
+  <arg name="sim"		default="true"/>
+  <arg name="config_file"	default="tranbo_trajectory_controller_config"/>
+
+  <node name="pose_head_servo"
+	pkg="aist_controllers" type="pose_head_servo" output="screen">
+    <rosparam file="$(dirname)/../config/$(arg config_file).yaml"
+	      subst_value="true"/>
+    <rosparam file="$(dirname)/../config/pose_tracking_settings.yaml"/>
+  </node>
+
+</launch>
