@@ -302,14 +302,15 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const std::string& pointing_frame)
   // Update pointing frame.
     _pointing_frame = pointing_frame;
 
-  // Prepare trajectory command.
+  // Prepare trajectory command. Zero timestamp value means that
+  // the trajectory command will be executed immediately by the controller.
     _command.header.stamp    = ros::Time(0);
     _command.header.frame_id = _state->header.frame_id;
     _command.joint_names     = _state->joint_names;
     _command.points.resize(1);
     _command.points[0].positions.resize(njoints());
   //_command.points[0].velocities.resize(njoints());
-    
+
   // Set joint limits.
     _jnt_pos_min.resize(njoints());
     _jnt_pos_max.resize(njoints());
