@@ -72,9 +72,8 @@ class PoseTrackingServo
     static planning_scene_monitor_p
 		create_planning_scene_monitor(
 		    const std::string& robot_description)		;
-    void	set_active_cb(std_srvs::SetBool::Request&  req,
+    bool	set_active_cb(std_srvs::SetBool::Request&  req,
 			      std_srvs::SetBool::Response& res)		;
-    void	preempt_cb()						;
 
   private:
     ros::NodeHandle		_nh;
@@ -144,29 +143,52 @@ PoseTrackingServo::create_planning_scene_monitor(
     return monitor;
 }
 
-void
+bool
 PoseTrackingServo::set_active_cb(std_srvs::SetBool::Request&  req,
 				 std_srvs::SetBool::Response& res)
 {
     if (req.data)
     {
-	_move_to_pose_thread = std::thread([this]
-					   {
-					       this->_tracker.moveToPose(
-						   this->_lin_tol,
-						   this->_rot_tol, 0.1);
-					   });
+	if (!_move_to_pose_thread.joinable())
+	{
+	    _tracker.resetTargetPose();
+	    _move_to_pose_thread = std::thread([this]
+					       {
+						   this->_tracker.moveToPose(
+						       this->_lin_tol,
+						       this->_rot_tol, 0.1);
+					       });
 
-	ROS_INFO_STREAM_NAMED(LOGNAME,
-			      "(PoseTrackingServo) tracker activated");
+	    res.success = true;
+	    res.message = "tracking servo activated";
+	    ROS_INFO_STREAM_NAMED(LOGNAME, res.message);
+	}
+	else
+	{
+	    res.success = true;
+	    res.message = "tracking servo already activated";
+	    ROS_WARN_STREAM_NAMED(LOGNAME, res.message);
+	}
     }
     else
     {
 	if (_move_to_pose_thread.joinable())
+	{
 	    _move_to_pose_thread.join();
-	ROS_INFO_STREAM_NAMED(LOGNAME,
-			      "(PoseTrackingServo) tracker deactivated");
+
+	    res.success = true;
+	    res.message = "tracking servo deactivated";
+	    ROS_INFO_STREAM_NAMED(LOGNAME, res.message);
+	}
+	else
+	{
+	    res.success = true;
+	    res.message = "tracking servo already deactivated";
+	    ROS_WARN_STREAM_NAMED(LOGNAME, res.message);
+	}
     }
+
+    return true;
 }
 
 }	// namespace aist_controllers
