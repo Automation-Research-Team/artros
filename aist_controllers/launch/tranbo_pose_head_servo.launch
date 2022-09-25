@@ -11,8 +11,8 @@
   <arg name="pub_pos"		value="true"/>
   <arg name="pub_vel"		value="false"/>
 
-  <node name="pose_tracking_servo"
-	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
+  <node name="pose_head_servo"
+	pkg="aist_controllers" type="pose_head_servo" output="screen">
     <rosparam file="$(dirname)/../config/$(arg config_file).yaml"
 	      subst_value="true"/>
     <rosparam file="$(dirname)/../config/pose_tracking_settings.yaml"/>

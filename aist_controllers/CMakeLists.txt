@@ -116,8 +116,25 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  pose_head_servo
+  src/pose_head_servo.cpp
+)
+
+target_link_libraries(
+  pose_head_servo
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  pose_head_servo
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
-  TARGETS point_head_tracker pose_head_tracker pose_group_tracker pose_tracking_servo
+  TARGETS point_head_tracker pose_head_tracker pose_group_tracker
+  pose_tracking_servo pose_head_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
