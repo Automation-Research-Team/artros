@@ -1,15 +1,46 @@
 <launch>
   <!-- Launch an example that sends commands via C++ API. -->
 
-  <arg name="group"	 default="false"/>
-  <arg name="sim"	 default="false"/>
+  <arg name="camera_name"	default="phoxi"/>
+  <arg name="group_controller"	default="false"/>
+  <arg name="manager"		default="camera_manager"/>
+  <arg name="publish_rate"	default="100"/>
+  <arg name="sim"		default="false"/>
 
-  <arg if="$(arg group)"
+  <arg if="$(arg group_controller)"
        name="config_file"       value="tranbo_group_controller_config"/>
-  <arg unless="$(arg group)"
+  <arg unless="$(arg group_controller)"
        name="config_file"	value="tranbo_trajectory_controller_config"/>
-  <arg name="pub_pos"		value="true"/>
-  <arg name="pub_vel"		value="false"/>
+
+  <!-- Launch cameras -->
+  <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
+    <arg name="sim"		 value="$(arg sim)"/>
+    <arg name="phoxi_config"	 value="$(find toyota1_nagara
+					)/config/motioncam_camera.yaml"/>
+    <arg name="realsense_config" value="$(find toyota1_nagara
+					)/config/realsense.yaml"/>
+    <arg name="manager"		 value="$(arg manager)"/>
+  </include>
+
+  <!-- Start ArUco -->
+  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
+        args="load aist_aruco_ros/aruco_detector camera_manager">
+    <remap if="$(eval camera_name == 'phoxi')"
+  	   from="/camera_info"	to="$(arg camera_name)/camera_info"/>
+    <remap if="$(eval camera_name == 'phoxi')"
+  	   from="/image"	to="$(arg camera_name)/texture"/>
+    <remap if="$(eval camera_name == 'phoxi')"
+  	   from="/depth"	to="$(arg camera_name)/depth_map"/>
+    <remap unless="$(eval camera_name == 'phoxi')"
+  	   from="/camera_info"	to="$(arg camera_name)/color/camera_info"/>
+    <remap unless="$(eval camera_name == 'phoxi')"
+  	   from="/image"	to="$(arg camera_name)/color/image_raw"/>
+    <remap unless="$(eval camera_name == 'phoxi')"
+  	   from="/depth"	to="$(arg camera_name
+  				    )/aligned_depth_to_color/image_raw"/>
+    <rosparam file="$(find aist_handeye_calibration
+  		    )/config/toyota1/$(arg camera_name).yaml"/>
+  </node>
 
   <node name="pose_tracking_servo"
 	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
