@@ -132,6 +132,22 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  pose_tracking_example
+  src/moveit_servo/pose_tracking_example.cpp
+)
+
+target_link_libraries(
+  pose_tracking_example
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  pose_tracking_example
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
   TARGETS point_head_tracker pose_head_tracker pose_group_tracker
   pose_tracking_servo pose_head_servo

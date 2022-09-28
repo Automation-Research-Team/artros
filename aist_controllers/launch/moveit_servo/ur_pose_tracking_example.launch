@@ -13,7 +13,7 @@
   <arg name="pub_vel"		value="$(eval cmd == 'vel')"/>
 
   <node name="servo_server"
-	pkg="moveit_servo" type="pose_tracking_example" output="screen">
+	pkg="aist_controllers" type="pose_tracking_example" output="screen">
     <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"
 	      subst_value="true"/>
     <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
