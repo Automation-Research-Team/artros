@@ -67,7 +67,7 @@ class PoseHeadClient(object):
     def max_velocity(self, max_velocity):
         self._max_velocity = max_velocity
 
-    def send_goal(self, target_frame, target_pose=[0, 0, 0.3, 180, 0, 0],
+    def send_goal(self, target_frame, target_pose=[0, 0, 0.3, 0, 90, 0],
                   feedback_cb=None):
         goal = PoseHeadGoal()
         goal.target.header.stamp    = rospy.Time.now()

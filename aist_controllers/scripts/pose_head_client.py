@@ -37,6 +37,7 @@
 #
 import rospy, threading
 from aist_controllers.PoseHeadClient import PoseHeadClient
+from controller_manager_msgs.srv     import SwitchController
 
 ######################################################################
 #  class InteractivePoseHeadClient                                   #
@@ -47,7 +48,11 @@ class InteractivePoseHeadClient(PoseHeadClient):
 
         self._target_frame = rospy.get_param('~target_frame', 'marker_frame')
         self._target_pose  = rospy.get_param('~target_pose',
-                                             [0, 0, 0.3, 180, 0, 0])
+                                             [0, 0, 0.3, 0, 90, 0])
+        self._switch_client \
+            = rospy.ServiceProxy('/controller_manager/switch_controller',
+                                 SwitchController)
+
         thread = threading.Thread(target=self._interactive)
         thread.start()
 

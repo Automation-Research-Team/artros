@@ -12,11 +12,11 @@ scale:
   rotational: 0.3
   joint:      0.01
 
-low_pass_filter_coeff: 2.
+low_pass_filter_coeff: 4.
 
 ## Properties of outgoing commands
-publish_period:   0.008
-low_latency_mode: false
+publish_period:   0.02
+low_latency_mode: true
 
 command_out_type: trajectory_msgs/JointTrajectory
 
