@@ -164,7 +164,7 @@ main(int argc, char** argv)
     target_pose.pose.orientation = current_ee_tf.transform.rotation;
 
   // Modify it a little bit
-  //target_pose.pose.position.x += 0.01;
+    target_pose.pose.position.x += 0.01;
 
   // resetTargetPose() can be used to clear the target pose and wait for a new one, e.g. when moving between multiple
   // waypoints
@@ -183,20 +183,37 @@ main(int argc, char** argv)
 				    { tracker.moveToPose(lin_tol, rot_tol, 0.1 /* target pose timeout */); });
 
     ros::Rate	loop_rate(50);
-    for (size_t i = 0; i < 100; ++i)
+    for (int n = 0; n < 2; ++n)
     {
-      // Modify the pose target a little bit each cycle
-      // This is a dynamic pose target
-      //target_pose.pose.position.z += 0.0004;
-	target_pose.header.stamp = ros::Time::now();
-      //target_pose_pub.publish(target_pose);
-	std::cerr << "target_pose: " << target_pose.header.frame_id
-		  << "@[" << target_pose.pose << ']'
-		  << std::endl;
+	for (size_t i = 0; i < 100; ++i)
+	{
+	  // Modify the pose target a little bit each cycle
+	  // This is a dynamic pose target
+	    target_pose.pose.position.z += 0.0004;
+	    target_pose.header.stamp = ros::Time::now();
+	    target_pose_pub.publish(target_pose);
+	    std::cerr << "target_pose: " << target_pose.header.frame_id
+		      << "@[" << target_pose.pose << ']'
+		      << std::endl;
 
-	loop_rate.sleep();
+	    loop_rate.sleep();
+	}
+
+	for (size_t i = 0; i < 100; ++i)
+	{
+	  // Modify the pose target a little bit each cycle
+	  // This is a dynamic pose target
+	    target_pose.pose.position.z -= 0.0004;
+	    target_pose.header.stamp = ros::Time::now();
+	    target_pose_pub.publish(target_pose);
+	    std::cerr << "target_pose: " << target_pose.header.frame_id
+		      << "@[" << target_pose.pose << ']'
+		      << std::endl;
+
+	    loop_rate.sleep();
+	}
     }
-
+    
   // Make sure the tracker is stopped and clean up
     tracker.stopMotion();
     move_to_pose_thread.join();

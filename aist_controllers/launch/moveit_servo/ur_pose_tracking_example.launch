@@ -12,6 +12,8 @@
   <arg name="pub_pos"		value="$(eval cmd == 'pos')"/>
   <arg name="pub_vel"		value="$(eval cmd == 'vel')"/>
 
+  <!-- <node name="servo_server" -->
+  <!-- 	pkg="aist_controllers" type="pose_tracking_example" output="screen"> -->
   <node name="servo_server"
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
     <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"
