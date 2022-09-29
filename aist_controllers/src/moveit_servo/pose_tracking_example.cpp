@@ -47,6 +47,33 @@
 
 static const std::string LOGNAME = "cpp_interface_example";
 
+/************************************************************************
+*  static functions							*
+************************************************************************/
+std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
+{
+    return out << pose.position.x << ' '
+	       << pose.position.y << ' '
+	       << pose.position.z << ';'
+	       << pose.orientation.x << ','
+	       << pose.orientation.y << ','
+	       << pose.orientation.z << ','
+	       << pose.orientation.w ;
+}
+
+std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Transform& transform)
+{
+    return out << transform.translation.x << ' '
+	       << transform.translation.y << ' '
+	       << transform.translation.z << ';'
+	       << transform.rotation.x << ','
+	       << transform.rotation.y << ','
+	       << transform.rotation.z << ','
+	       << transform.rotation.w ;
+}
+
 // Class for monitoring status of moveit_servo
 class StatusMonitor
 {
@@ -123,6 +150,10 @@ main(int argc, char** argv)
   // Get the current EE transform
     geometry_msgs::TransformStamped	current_ee_tf;
     tracker.getCommandFrameTransform(current_ee_tf);
+    std::cerr << "current_ee_tf: " << current_ee_tf.header.frame_id
+	      << " <== " << current_ee_tf.child_frame_id
+	      << '[' << current_ee_tf.transform << ']'
+	      << std::endl;
 
   // Convert it to a Pose
     geometry_msgs::PoseStamped	target_pose;
@@ -133,7 +164,7 @@ main(int argc, char** argv)
     target_pose.pose.orientation = current_ee_tf.transform.rotation;
 
   // Modify it a little bit
-    target_pose.pose.position.x += 0.1;
+  //target_pose.pose.position.x += 0.01;
 
   // resetTargetPose() can be used to clear the target pose and wait for a new one, e.g. when moving between multiple
   // waypoints
@@ -142,19 +173,26 @@ main(int argc, char** argv)
   // Publish target pose
     target_pose.header.stamp = ros::Time::now();
     target_pose_pub.publish(target_pose);
+    std::cerr << "target_pose: " << target_pose.header.frame_id
+	      << "@[" << target_pose.pose << ']'
+	      << std::endl
+	      << "--------" << std::endl;
 
   // Run the pose tracking in a new thread
     std::thread	move_to_pose_thread([&tracker, &lin_tol, &rot_tol]
 				    { tracker.moveToPose(lin_tol, rot_tol, 0.1 /* target pose timeout */); });
 
     ros::Rate	loop_rate(50);
-    for (size_t i = 0; i < 500; ++i)
+    for (size_t i = 0; i < 100; ++i)
     {
       // Modify the pose target a little bit each cycle
       // This is a dynamic pose target
-	target_pose.pose.position.z += 0.0004;
+      //target_pose.pose.position.z += 0.0004;
 	target_pose.header.stamp = ros::Time::now();
-	target_pose_pub.publish(target_pose);
+      //target_pose_pub.publish(target_pose);
+	std::cerr << "target_pose: " << target_pose.header.frame_id
+		  << "@[" << target_pose.pose << ']'
+		  << std::endl;
 
 	loop_rate.sleep();
     }
