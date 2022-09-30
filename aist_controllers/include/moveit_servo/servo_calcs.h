@@ -122,8 +122,7 @@ class ServoCalcs
     bool cartesianServoCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Do servoing calculations for direct commands to a joint. */
-    bool jointServoCalcs(const control_msgs::JointJog& cmd,
-			 trajectory_msgs::JointTrajectory& joint_trajectory);
+    bool jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
     void updateJoints();
@@ -138,8 +137,7 @@ class ServoCalcs
    */
     Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
 
-    bool addJointIncrements(sensor_msgs::JointState& output,
-			    const Eigen::VectorXd& increments) const;
+    bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
 
   /** \brief Suddenly halt for a joint limit or other critical issue.
    * Is handled differently for position vs. velocity control.
@@ -150,7 +148,7 @@ class ServoCalcs
     void enforceVelLimits(Eigen::ArrayXd& delta_theta);
 
   /** \brief Avoid overshooting joint limits */
-    bool enforcePositionLimits(sensor_msgs::JointState& joint_state);
+    bool enforcePositionLimits();
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
@@ -164,7 +162,8 @@ class ServoCalcs
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    */
-    void applyVelocityScaling(Eigen::ArrayXd& delta_theta, double singularity_scale);
+    void applyVelocityScaling(Eigen::ArrayXd& delta_theta,
+			      double singularity_scale);
 
   /** \brief Compose the outgoing JointTrajectory message */
     void composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
@@ -177,7 +176,8 @@ class ServoCalcs
     void resetLowPassFilters(const sensor_msgs::JointState& joint_state);
 
   /** \brief Convert an incremental position command to joint velocity message */
-  void calculateJointVelocities(sensor_msgs::JointState& joint_state, const Eigen::ArrayXd& delta_theta);
+    void calculateJointVelocities(sensor_msgs::JointState& joint_state,
+				  const Eigen::ArrayXd& delta_theta);
 
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
    * This happens for joint commands and Cartesian commands.
@@ -187,7 +187,8 @@ class ServoCalcs
   /** \brief Gazebo simulations have very strict message timestamp requirements.
    * Satisfy Gazebo by stuffing multiple messages into one.
    */
-    void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory, int count) const;
+    void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory,
+					     int count) const;
 
   /**
    * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
@@ -208,7 +209,8 @@ class ServoCalcs
     void collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
 
   /**
-   * Allow drift in certain dimensions. For example, may allow the wrist to rotate freely.
+   * Allow drift in certain dimensions. For example, may allow the wrist
+   * to rotate freely.
    * This can help avoid singularities.
    *
    * @param request the service request
@@ -258,11 +260,11 @@ class ServoCalcs
 
     moveit::core::RobotStatePtr current_state_;
 
-  // incoming_joint_state_ is the incoming message.
-  // It may contain passive joints or other joints we don't care about.
+  // incoming_joint_state_ is the incoming message. It may contain passive
+  // joints or other joints we don't care about.
   // (mutex protected below)
-  // internal_joint_state_ is used in servo calculations.
-  // It shouldn't be relied on to be accurate.
+  // internal_joint_state_ is used in servo calculations. It shouldn't be
+  // relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_
   // except it only contains the joints the servo node acts on.
     sensor_msgs::JointState internal_joint_state_, original_joint_state_;
@@ -304,15 +306,11 @@ class ServoCalcs
 
     uint num_joints_;
 
-  // True -> allow drift in this dimension.
-  // In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6> drift_dimensions_ = { { false, false, false,
-						false, false, false } };
+  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
+    std::array<bool, 6> drift_dimensions_ = { { false, false, false, false, false, false } };
 
-  // The dimesions to control.
-  // In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6> control_dimensions_ = { { true, true, true,
-						  true, true, true } };
+  // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
+    std::array<bool, 6> control_dimensions_ = { { true, true, true, true, true, true } };
 
   // input_mutex_ is used to protect the state below it
     mutable std::mutex input_mutex_;

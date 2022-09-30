@@ -1,9 +1,4 @@
 /*******************************************************************************
- *      Title     : low_pass_filter.h
- *      Project   : moveit_servo
- *      Created   : 1/11/2019
- *      Author    : Andy Zelenak
- *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -36,35 +31,57 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#pragma once
-
-#include <cstddef>
-
-namespace moveit_servo
-{
-/**
- * Class LowPassFilter - Filter a signal to soften jerks.
- * This is a first-order Butterworth low-pass filter.
- *
- * TODO: Use ROS filters package (http://wiki.ros.org/filters, https://github.com/ros/filters)
+/*      Title     : servo_server.cpp
+ *      Project   : moveit_servo
+ *      Created   : 12/31/2018
+ *      Author    : Andy Zelenak
  */
-class LowPassFilter
-{
-  public:
-  // Larger filter_coeff-> more smoothing of servo commands, but more lag.
-  // Rough plot, with cutoff frequency on the y-axis:
-  // https://www.wolframalpha.com/input/?i=plot+arccot(c)
-    explicit LowPassFilter(double low_pass_filter_coeff);
-    double	filter(double new_measurement);
-    void	reset(double data);
 
-  private:
-    static constexpr std::size_t FILTER_LENGTH = 2;
-    
-    double		previous_measurements_[FILTER_LENGTH];
-    double		previous_filtered_measurement_;
-  // Scale and feedback term are calculated from supplied filter coefficient
-    const double	scale_term_;
-    const double	feedback_term_;
-};
-}  // namespace moveit_servo
+#include <moveit_servo/servo.h>
+
+namespace
+{
+constexpr char LOGNAME[] = "servo_server";
+constexpr char ROS_THREADS = 8;
+
+}  // namespace
+
+int
+main(int argc, char** argv)
+{
+    ros::init(argc, argv, LOGNAME);
+    ros::AsyncSpinner spinner(ROS_THREADS);
+    spinner.start();
+
+    ros::NodeHandle nh("~");
+
+  // Load the planning scene monitor
+    auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+    if (!planning_scene_monitor->getPlanningScene())
+    {
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
+	exit(EXIT_FAILURE);
+    }
+
+  // Start the planning scene monitor
+    planning_scene_monitor->startSceneMonitor();
+    planning_scene_monitor->startWorldGeometryMonitor(
+	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+	false /* skip octomap monitor */);
+    planning_scene_monitor->startStateMonitor();
+
+  // Create the servo server
+    moveit_servo::Servo servo(nh, planning_scene_monitor);
+
+  // Start the servo server (runs in the ros spinner)
+    servo.start();
+
+  // Wait for ros to shutdown
+    ros::waitForShutdown();
+
+  // Stop the servo server
+    servo.setPaused(true);
+
+    return 0;
+}

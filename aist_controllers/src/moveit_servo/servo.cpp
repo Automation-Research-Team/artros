@@ -52,15 +52,15 @@ constexpr double ROBOT_STATE_WAIT_TIME = 10.0;  // seconds
 }  // namespace
 
 Servo::Servo(ros::NodeHandle& nh,
-	     const planning_scene_monitor::PlanningSceneMonitorPtr&
-		planning_scene_monitor)
-    : nh_(nh), planning_scene_monitor_(planning_scene_monitor)
+	     const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+  :nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
   // Read ROS parameters, typically from YAML file
     if (!readParameters())
 	exit(EXIT_FAILURE);
 
-  // Async spinner is needed to receive messages to wait for the robot state to be complete
+  // Async spinner is needed to receive messages to wait for the robot state
+  // to be complete
     ros::AsyncSpinner spinner(1);
     spinner.start();
 
@@ -72,16 +72,15 @@ Servo::Servo(ros::NodeHandle& nh,
     planning_scene_monitor->getStateMonitor()->enableCopyDynamics(true);
 
     if (!planning_scene_monitor_->getStateMonitor()
-				->waitForCompleteState(
-				    parameters_.move_group_name,
-				    ROBOT_STATE_WAIT_TIME))
+	->waitForCompleteState(parameters_.move_group_name,
+			       ROBOT_STATE_WAIT_TIME))
     {
 	ROS_FATAL_NAMED(LOGNAME, "Timeout waiting for current state");
 	exit(EXIT_FAILURE);
     }
 
-    servo_calcs_       = std::make_unique<ServoCalcs>(
-				nh_, parameters_, planning_scene_monitor_);
+    servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_,
+						planning_scene_monitor_);
 
     collision_checker_ = std::make_unique<CollisionCheck>(
 				nh_, parameters_, planning_scene_monitor_);
@@ -93,21 +92,22 @@ Servo::readParameters()
 {
     std::size_t error = 0;
 
-  // Optional parameter sub-namespace specified in the launch file. All other parameters will be read from this namespace.
-    std::string	parameter_ns;
+  // Optional parameter sub-namespace specified in the launch file.
+  // All other parameters will be read from this namespace.
+    std::string parameter_ns;
     ros::param::get("~parameter_ns", parameter_ns);
 
-  // If parameters have been loaded into sub-namespace within the node namespace, append the parameter namespace
+  // If parameters have been loaded into sub-namespace
+  // within the node namespace, append the parameter namespace
   // to load the parameters correctly.
-    ros::NodeHandle	nh = (parameter_ns.empty() ?
-			      nh_ : ros::NodeHandle(nh_, parameter_ns));
+    ros::NodeHandle nh = (parameter_ns.empty() ?
+			  nh_ : ros::NodeHandle(nh_, parameter_ns));
 
     error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_period",
 				      parameters_.publish_period);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "collision_check_rate",
 				      parameters_.collision_check_rate);
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "num_outgoing_halt_msgs_to_publish",
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "num_outgoing_halt_msgs_to_publish",
 				      parameters_.num_outgoing_halt_msgs_to_publish);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "scale/linear",
 				      parameters_.linear_scale);
@@ -121,8 +121,7 @@ Servo::readParameters()
 				      parameters_.joint_topic);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "command_in_type",
 				      parameters_.command_in_type);
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "cartesian_command_in_topic",
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "cartesian_command_in_topic",
 				      parameters_.cartesian_command_in_topic);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_command_in_topic",
 				      parameters_.joint_command_in_topic);
@@ -130,9 +129,9 @@ Servo::readParameters()
 				      parameters_.robot_link_command_frame);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "incoming_command_timeout",
 				      parameters_.incoming_command_timeout);
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "lower_singularity_threshold",
-				      parameters_.lower_singularity_threshold);
+    error +=
+	!rosparam_shortcuts::get(LOGNAME, nh, "lower_singularity_threshold",
+				 parameters_.lower_singularity_threshold);
     error += !rosparam_shortcuts::get(LOGNAME, nh,
 				      "hard_stop_singularity_threshold",
 				      parameters_.hard_stop_singularity_threshold);
@@ -154,29 +153,26 @@ Servo::readParameters()
 				      parameters_.publish_joint_positions);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_velocities",
 				      parameters_.publish_joint_velocities);
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "publish_joint_accelerations",
-				      parameters_.publish_joint_accelerations);
+    error +=
+	!rosparam_shortcuts::get(LOGNAME, nh, "publish_joint_accelerations",
+				 parameters_.publish_joint_accelerations);
 
   // Parameters for collision checking
     error += !rosparam_shortcuts::get(LOGNAME, nh, "check_collisions",
 				      parameters_.check_collisions);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "collision_check_type",
 				      parameters_.collision_check_type);
-    bool have_self_collision_proximity_threshold
-	     = rosparam_shortcuts::get(LOGNAME, nh,
-				       "self_collision_proximity_threshold",
-				       parameters_.self_collision_proximity_threshold);
-    bool have_scene_collision_proximity_threshold
-	     = rosparam_shortcuts::get(LOGNAME, nh,
-				       "scene_collision_proximity_threshold",
-				       parameters_.scene_collision_proximity_threshold);
+    bool have_self_collision_proximity_threshold = rosparam_shortcuts::get(
+	LOGNAME, nh, "self_collision_proximity_threshold",
+	parameters_.self_collision_proximity_threshold);
+    bool have_scene_collision_proximity_threshold = rosparam_shortcuts::get(
+	LOGNAME, nh, "scene_collision_proximity_threshold",
+	parameters_.scene_collision_proximity_threshold);
 
     double collision_proximity_threshold;
-  // 'collision_proximity_threshold' parameter was removed,
-  // replaced with separate self- and scene-collision proximity thresholds
-  // TODO(JStech): remove this deprecation warning in ROS Noetic;
-  // simplify error case handling
+  // 'collision_proximity_threshold' parameter was removed, replaced with separate self- and scene-collision proximity
+  // thresholds
+  // TODO(JStech): remove this deprecation warning in ROS Noetic; simplify error case handling
     if (nh.hasParam("collision_proximity_threshold") &&
 	rosparam_shortcuts::get(LOGNAME, nh, "collision_proximity_threshold",
 				collision_proximity_threshold))
@@ -199,16 +195,15 @@ Servo::readParameters()
     }
     error += !have_self_collision_proximity_threshold;
     error += !have_scene_collision_proximity_threshold;
-    error += !rosparam_shortcuts::get(
-		LOGNAME, nh, "collision_distance_safety_factor",
-		parameters_.collision_distance_safety_factor);
-    error += !rosparam_shortcuts::get(
-		LOGNAME, nh, "min_allowable_collision_distance",
-		parameters_.min_allowable_collision_distance);
+    error += !rosparam_shortcuts::get(LOGNAME, nh,
+				      "collision_distance_safety_factor",
+				      parameters_.collision_distance_safety_factor);
+    error += !rosparam_shortcuts::get(LOGNAME, nh,
+				      "min_allowable_collision_distance",
+				      parameters_.min_allowable_collision_distance);
 
   // This parameter name was changed recently.
-  // Try retrieving from the correct name. If it fails,
-  // then try the deprecated name.
+  // Try retrieving from the correct name. If it fails, then try the deprecated name.
   // TODO(andyz): remove this deprecation warning in ROS Noetic
     if (!rosparam_shortcuts::get(LOGNAME, nh, "status_topic",
 				 parameters_.status_topic))
@@ -221,8 +216,7 @@ Servo::readParameters()
 
     if (nh.hasParam("low_latency_mode"))
     {
-	error += !rosparam_shortcuts::get(LOGNAME, nh, "low_latency_mode",
-					  parameters_.low_latency_mode);
+	error += !rosparam_shortcuts::get(LOGNAME, nh, "low_latency_mode", parameters_.low_latency_mode);
     }
     else
     {
@@ -254,8 +248,7 @@ Servo::readParameters()
 		       "Check yaml file.");
 	return false;
     }
-    if ((parameters_.hard_stop_singularity_threshold < 0.) ||
-	(parameters_.lower_singularity_threshold < 0.))
+    if ((parameters_.hard_stop_singularity_threshold < 0.) || (parameters_.lower_singularity_threshold < 0.))
     {
 	ROS_WARN_NAMED(LOGNAME, "Parameters 'hard_stop_singularity_threshold' "
 		       "and 'lower_singularity_threshold' should be "
@@ -388,7 +381,7 @@ Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
 bool
 Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
 {
-    return servo_calcs_->getCommandFrameTransform(transform);
+    return servo_calcs_->getEEFrameTransform(transform);
 }
 
 bool

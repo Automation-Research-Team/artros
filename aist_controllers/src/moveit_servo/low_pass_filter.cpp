@@ -56,8 +56,7 @@ LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
    scale_term_(1. / (1. + low_pass_filter_coeff)),
    feedback_term_(1. - low_pass_filter_coeff)
 {
-  // guarantee this doesn't change because the logic below depends
-  // on this length implicity
+  // guarantee this doesn't change because the logic below depends on this length implicity
     static_assert(LowPassFilter::FILTER_LENGTH == 2,
 		  "moveit_servo::LowPassFilter::FILTER_LENGTH should be 2");
 
@@ -101,7 +100,8 @@ LowPassFilter::filter(double new_measurement)
     double new_filtered_measurement = scale_term_
 				    * (previous_measurements_[1] +
 				       previous_measurements_[0] -
-				       feedback_term_ * previous_filtered_measurement_);
+				       feedback_term_ *
+				       previous_filtered_measurement_);
 
   // Store the new filtered measurement
     previous_filtered_measurement_ = new_filtered_measurement;

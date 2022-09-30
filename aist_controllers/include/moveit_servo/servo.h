@@ -46,6 +46,9 @@
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/servo_calcs.h>
 
+// testing
+#include <gtest/gtest.h>
+
 namespace moveit_servo
 {
 /**
@@ -91,11 +94,10 @@ class Servo
   /** \brief Change the controlled link. Often, this is the end effector
    * This must be a link on the robot since MoveIt tracks the transform (not tf)
    */
-    void
-    changeRobotLinkCommandFrame(const std::string& new_command_frame)
-    {
-	servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
-    }
+    void changeRobotLinkCommandFrame(const std::string& new_command_frame)
+	 {
+	     servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
+	 }
 
   // Give test access to private/protected methods
     friend class ServoFixture;
@@ -104,16 +106,16 @@ class Servo
     bool readParameters();
 
   private:
-    ros::NodeHandle			nh_;
+    ros::NodeHandle					nh_;
 
   // Pointer to the collision environment
-    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+    planning_scene_monitor::PlanningSceneMonitorPtr	planning_scene_monitor_;
 
   // Store the parameters that were read from ROS server
-    ServoParameters			parameters_;
+    ServoParameters					parameters_;
 
-    std::unique_ptr<ServoCalcs>		servo_calcs_;
-    std::unique_ptr<CollisionCheck>	collision_checker_;
+    std::unique_ptr<ServoCalcs>				servo_calcs_;
+    std::unique_ptr<CollisionCheck>			collision_checker_;
 };
 
 // ServoPtr using alias
