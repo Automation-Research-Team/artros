@@ -43,6 +43,32 @@ constexpr double ROS_STARTUP_WAIT = 10;    // sec
 
 namespace moveit_servo
 {
+std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
+{
+    return out << pose.position.x << ' '
+	       << pose.position.y << ' '
+	       << pose.position.z << ';'
+	       << pose.orientation.x << ' '
+	       << pose.orientation.y << ' '
+	       << pose.orientation.z << ' '
+	       << pose.orientation.w;
+}
+
+std::ostream&
+operator <<(std::ostream& out, const Eigen::Isometry3d& transform)
+{
+    const Eigen::Quaterniond	q(transform.rotation());
+    
+    return out << transform.translation()(0) << ' '
+	       << transform.translation()(1) << ' '
+	       << transform.translation()(2) << ';'
+	       << q.x() << ' '
+	       << q.y() << ' '
+	       << q.z() << ' '
+	       << q.w();
+}
+    
 PoseTracking::PoseTracking(const ros::NodeHandle& nh,
                            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
     :nh_(nh),
@@ -278,7 +304,7 @@ PoseTracking::satisfiesPoseTolerance(
 		   - command_frame_transform_.translation()(1);
     double z_error = target_pose_.pose.position.z
 		   - command_frame_transform_.translation()(2);
-
+    
   // If uninitialized, likely haven't received the target pose yet.
     if (!angular_error_)
 	return false;
@@ -334,6 +360,11 @@ PoseTracking::calculateTwistCommand()
     geometry_msgs::Twist& twist = msg->twist;
     Eigen::Quaterniond q_desired;
 
+    std::cerr << "*** target_pose:             " << target_pose_.pose
+	      << std::endl;
+    std::cerr << "*** command_frame_transform: " << command_frame_transform_
+	      << std::endl;
+    
   // Scope mutex locking only to operations which require access
   // to target pose.
     {

@@ -189,7 +189,7 @@ main(int argc, char** argv)
 	{
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
-	    target_pose.pose.position.z += 0.0004;
+	  //target_pose.pose.position.z += 0.0004;
 	    target_pose.header.stamp = ros::Time::now();
 	  //target_pose_pub.publish(target_pose);
 	    std::cerr << "target_pose: " << target_pose.header.frame_id
@@ -203,7 +203,7 @@ main(int argc, char** argv)
 	{
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
-	    target_pose.pose.position.z -= 0.0004;
+	  //target_pose.pose.position.z -= 0.0004;
 	    target_pose.header.stamp = ros::Time::now();
 	  //target_pose_pub.publish(target_pose);
 	    std::cerr << "target_pose: " << target_pose.header.frame_id
