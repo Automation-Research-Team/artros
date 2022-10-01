@@ -1243,7 +1243,9 @@ ServoCalcs::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
 	return false;
     }
 
-    transform = convertIsometryToTransform(tf_moveit_to_ee_frame_, parameters_.planning_frame, parameters_.ee_frame_name);
+    transform = convertIsometryToTransform(tf_moveit_to_ee_frame_,
+					   parameters_.planning_frame,
+					   parameters_.ee_frame_name);
     return true;
 }
 

@@ -59,7 +59,7 @@ std::ostream&
 operator <<(std::ostream& out, const Eigen::Isometry3d& transform)
 {
     const Eigen::Quaterniond	q(transform.rotation());
-    
+
     return out << transform.translation()(0) << ' '
 	       << transform.translation()(1) << ' '
 	       << transform.translation()(2) << ';'
@@ -68,7 +68,7 @@ operator <<(std::ostream& out, const Eigen::Isometry3d& transform)
 	       << q.z() << ' '
 	       << q.w();
 }
-    
+
 PoseTracking::PoseTracking(const ros::NodeHandle& nh,
                            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
     :nh_(nh),
@@ -105,9 +105,10 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 	    servo_->getParameters().cartesian_command_in_topic, 1);
 }
 
-PoseTrackingStatusCode PoseTracking::moveToPose(
-    const Eigen::Vector3d& positional_tolerance,
-    const double angular_tolerance, const double target_pose_timeout)
+PoseTrackingStatusCode
+PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
+			 const double angular_tolerance,
+			 const double target_pose_timeout)
 {
   // Reset stop requested flag before starting motions
     stop_requested_ = false;
@@ -153,7 +154,8 @@ PoseTrackingStatusCode PoseTracking::moveToPose(
 	if (!haveRecentEndEffectorPose(target_pose_timeout))
 	{
 	    ROS_ERROR_STREAM_NAMED(
-		LOGNAME, "The end effector pose was not updated in time. Aborting.");
+		LOGNAME,
+		"The end effector pose was not updated in time. Aborting.");
 	    doPostMotionReset();
 	    return PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE;
 	}
@@ -304,7 +306,7 @@ PoseTracking::satisfiesPoseTolerance(
 		   - command_frame_transform_.translation()(1);
     double z_error = target_pose_.pose.position.z
 		   - command_frame_transform_.translation()(2);
-    
+
   // If uninitialized, likely haven't received the target pose yet.
     if (!angular_error_)
 	return false;
@@ -364,7 +366,7 @@ PoseTracking::calculateTwistCommand()
 	      << std::endl;
     std::cerr << "*** command_frame_transform: " << command_frame_transform_
 	      << std::endl;
-    
+
   // Scope mutex locking only to operations which require access
   // to target pose.
     {
