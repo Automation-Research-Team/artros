@@ -69,6 +69,17 @@ operator <<(std::ostream& out, const Eigen::Isometry3d& transform)
 	       << q.w();
 }
 
+std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
+{
+    return out << twist.linear.x << ' '
+	       << twist.linear.y << ' '
+	       << twist.linear.z << ';'
+	       << twist.angular.x << ' '
+	       << twist.angular.y << ' '
+	       << twist.angular.z;
+}
+
 PoseTracking::PoseTracking(const ros::NodeHandle& nh,
                            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
     :nh_(nh),
@@ -121,9 +132,9 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
 	    !haveRecentEndEffectorPose(target_pose_timeout)) &&
 	   ((ros::Time::now() - start_time).toSec() < target_pose_timeout))
     {
-	if (servo_->getCommandFrameTransform(command_frame_transform_))
+	if (servo_->getEEFrameTransform(ee_frame_transform_))
 	{
-	    command_frame_transform_stamp_ = ros::Time::now();
+	    ee_frame_transform_stamp_ = ros::Time::now();
 	}
 	ros::Duration(0.001).sleep();
     }
@@ -144,9 +155,9 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
 	   !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
     {
       // Attempt to update robot pose
-	if (servo_->getCommandFrameTransform(command_frame_transform_))
+	if (servo_->getEEFrameTransform(ee_frame_transform_))
 	{
-	    command_frame_transform_stamp_ = ros::Time::now();
+	    ee_frame_transform_stamp_ = ros::Time::now();
 	}
 
       // Check that end-effector pose (command frame transform)
@@ -290,7 +301,7 @@ PoseTracking::haveRecentTargetPose(const double timespan)
 bool
 PoseTracking::haveRecentEndEffectorPose(const double timespan)
 {
-  return ((ros::Time::now() - command_frame_transform_stamp_).toSec() <
+  return ((ros::Time::now() - ee_frame_transform_stamp_).toSec() <
 	  timespan);
 }
 
@@ -301,16 +312,16 @@ PoseTracking::satisfiesPoseTolerance(
 {
     std::lock_guard<std::mutex> lock(target_pose_mtx_);
     double x_error = target_pose_.pose.position.x
-		   - command_frame_transform_.translation()(0);
+		   - ee_frame_transform_.translation()(0);
     double y_error = target_pose_.pose.position.y
-		   - command_frame_transform_.translation()(1);
+		   - ee_frame_transform_.translation()(1);
     double z_error = target_pose_.pose.position.z
-		   - command_frame_transform_.translation()(2);
-
+		   - ee_frame_transform_.translation()(2);
+    
   // If uninitialized, likely haven't received the target pose yet.
     if (!angular_error_)
 	return false;
-
+	
     return ((std::abs(x_error) < positional_tolerance(0)) &&
 	    (std::abs(y_error) < positional_tolerance(1)) &&
 	    (std::abs(z_error) < positional_tolerance(2)) &&
@@ -362,9 +373,9 @@ PoseTracking::calculateTwistCommand()
     geometry_msgs::Twist& twist = msg->twist;
     Eigen::Quaterniond q_desired;
 
-    std::cerr << "*** target_pose:             " << target_pose_.pose
+    std::cerr << "*** target_pose:        " << target_pose_.pose
 	      << std::endl;
-    std::cerr << "*** command_frame_transform: " << command_frame_transform_
+    std::cerr << "*** ee_frame_transform: " << ee_frame_transform_
 	      << std::endl;
 
   // Scope mutex locking only to operations which require access
@@ -374,17 +385,31 @@ PoseTracking::calculateTwistCommand()
 	msg->header.frame_id = target_pose_.header.frame_id;
 
       // Position
+      /*
 	twist.linear.x = cartesian_position_pids_[0].computeCommand(
 				target_pose_.pose.position.x -
-				command_frame_transform_.translation()(0),
+				ee_frame_transform_.translation()(0),
 				loop_rate_.expectedCycleTime());
 	twist.linear.y = cartesian_position_pids_[1].computeCommand(
 				target_pose_.pose.position.y -
-				command_frame_transform_.translation()(1),
+				ee_frame_transform_.translation()(1),
 				loop_rate_.expectedCycleTime());
 	twist.linear.z = cartesian_position_pids_[2].computeCommand(
 				target_pose_.pose.position.z -
-				command_frame_transform_.translation()(2),
+				ee_frame_transform_.translation()(2),
+				loop_rate_.expectedCycleTime());
+      */
+	twist.linear.x = cartesian_position_pids_[0].computeCommand(
+				ee_frame_transform_.translation()(0) -
+				target_pose_.pose.position.x,
+				loop_rate_.expectedCycleTime());
+	twist.linear.y = cartesian_position_pids_[1].computeCommand(
+				ee_frame_transform_.translation()(1) -
+				target_pose_.pose.position.y,
+				loop_rate_.expectedCycleTime());
+	twist.linear.z = cartesian_position_pids_[2].computeCommand(
+				ee_frame_transform_.translation()(2) -
+				target_pose_.pose.position.z,
 				loop_rate_.expectedCycleTime());
 
       // Orientation algorithm:
@@ -398,8 +423,9 @@ PoseTracking::calculateTwistCommand()
 				       target_pose_.pose.orientation.z);
     }
 
-    Eigen::Quaterniond q_current(command_frame_transform_.rotation());
-    Eigen::Quaterniond q_error = q_desired * q_current.inverse();
+    Eigen::Quaterniond q_current(ee_frame_transform_.rotation());
+  //Eigen::Quaterniond q_error = q_desired * q_current.inverse();
+    Eigen::Quaterniond q_error = q_current * q_desired.inverse();
 
   // Convert axis-angle to angular velocity
     Eigen::AngleAxisd axis_angle(q_error);
@@ -512,8 +538,8 @@ PoseTracking::resetTargetPose()
 }
 
 bool
-PoseTracking::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
+PoseTracking::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
 {
-    return servo_->getCommandFrameTransform(transform);
+    return servo_->getEEFrameTransform(transform);
 }
 }  // namespace moveit_servo

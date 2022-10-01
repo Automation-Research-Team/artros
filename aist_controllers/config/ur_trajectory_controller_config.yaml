@@ -31,7 +31,7 @@ ee_frame_name:             $(arg robot_name)_gripper_tip_link
 robot_link_command_frame:  workspace_center
 
 ## Stopping behaviour
-incoming_command_timeout:          0.1
+incoming_command_timeout:          1.0
 num_outgoing_halt_msgs_to_publish: 4
 
 ## Configure handling of singularities and joint limits

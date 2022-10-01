@@ -144,12 +144,12 @@ main(int argc, char** argv)
   // Subscribe to servo status (and log it when it changes)
     StatusMonitor	status_monitor(nh, "status");
 
-    Eigen::Vector3d	lin_tol{ 0.01, 0.01, 0.01 };
-    double		rot_tol = 0.1;
+    Eigen::Vector3d	lin_tol{ 0.001, 0.001, 0.001 };
+    double		rot_tol = 0.01;
 
   // Get the current EE transform
     geometry_msgs::TransformStamped	current_ee_tf;
-    tracker.getCommandFrameTransform(current_ee_tf);
+    tracker.getEEFrameTransform(current_ee_tf);
     std::cerr << "current_ee_tf: " << current_ee_tf.header.frame_id
 	      << " <== " << current_ee_tf.child_frame_id
 	      << '[' << current_ee_tf.transform << ']'
@@ -164,7 +164,7 @@ main(int argc, char** argv)
     target_pose.pose.orientation = current_ee_tf.transform.rotation;
 
   // Modify it a little bit
-  //target_pose.pose.position.x += 0.01;
+    target_pose.pose.position.x += 0.01;
 
   // resetTargetPose() can be used to clear the target pose and wait for a new one, e.g. when moving between multiple
   // waypoints
@@ -183,37 +183,37 @@ main(int argc, char** argv)
 				    { tracker.moveToPose(lin_tol, rot_tol, 0.1 /* target pose timeout */); });
 
     ros::Rate	loop_rate(50);
-    for (int n = 0; n < 100; ++n)
+    for (int n = 0; n < 50; ++n)
     {
-	for (size_t i = 0; i < 100; ++i)
+	for (size_t i = 0; i < 10; ++i)
 	{
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
-	  //target_pose.pose.position.z += 0.0004;
+	    target_pose.pose.position.z += 0.0004;
 	    target_pose.header.stamp = ros::Time::now();
-	  //target_pose_pub.publish(target_pose);
-	    std::cerr << "target_pose: " << target_pose.header.frame_id
-		      << "@[" << target_pose.pose << ']'
-		      << std::endl;
+	    target_pose_pub.publish(target_pose);
+	    // std::cerr << "target_pose: " << target_pose.header.frame_id
+	    // 	      << "@[" << target_pose.pose << ']'
+	    // 	      << std::endl;
 
 	    loop_rate.sleep();
 	}
 
-	for (size_t i = 0; i < 100; ++i)
+	for (size_t i = 0; i < 10; ++i)
 	{
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
-	  //target_pose.pose.position.z -= 0.0004;
+	    target_pose.pose.position.z -= 0.0004;
 	    target_pose.header.stamp = ros::Time::now();
-	  //target_pose_pub.publish(target_pose);
-	    std::cerr << "target_pose: " << target_pose.header.frame_id
-		      << "@[" << target_pose.pose << ']'
-		      << std::endl;
+	    target_pose_pub.publish(target_pose);
+	    // std::cerr << "target_pose: " << target_pose.header.frame_id
+	    // 	      << "@[" << target_pose.pose << ']'
+	    // 	      << std::endl;
 
 	    loop_rate.sleep();
 	}
     }
-    
+
   // Make sure the tracker is stopped and clean up
     tracker.stopMotion();
     move_to_pose_thread.join();

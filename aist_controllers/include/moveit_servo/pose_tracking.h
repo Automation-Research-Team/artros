@@ -121,7 +121,7 @@ class PoseTracking
    * @param transform the transform that will be calculated
    * @return true if a valid transform was available
    */
-    bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
+    bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
   /** \brief Re-initialize the target pose to an empty message. Can be used to reset motion between waypoints. */
     void resetTargetPose();
@@ -182,8 +182,8 @@ class PoseTracking
     PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, angular_pid_config_;
 
   // Transforms w.r.t. planning_frame_
-    Eigen::Isometry3d			command_frame_transform_;
-    ros::Time				command_frame_transform_stamp_;
+    Eigen::Isometry3d			ee_frame_transform_;
+    ros::Time				ee_frame_transform_stamp_;
     geometry_msgs::PoseStamped		target_pose_;
     mutable std::mutex			target_pose_mtx_;
 
