@@ -151,8 +151,9 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
   // - Target pose becomes outdated
   // - Command frame transform becomes outdated
   // - Another thread requested a stop
-    while (ros::ok() &&
-	   !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
+    // while (ros::ok() &&
+    // 	   !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
+    while (ros::ok())
     {
       // Attempt to update robot pose
 	if (servo_->getEEFrameTransform(ee_frame_transform_))
@@ -424,8 +425,8 @@ PoseTracking::calculateTwistCommand()
     }
 
     Eigen::Quaterniond q_current(ee_frame_transform_.rotation());
-  //Eigen::Quaterniond q_error = q_desired * q_current.inverse();
-    Eigen::Quaterniond q_error = q_current * q_desired.inverse();
+    Eigen::Quaterniond q_error = q_desired * q_current.inverse();
+  //Eigen::Quaterniond q_error = q_current * q_desired.inverse();
 
   // Convert axis-angle to angular velocity
     Eigen::AngleAxisd axis_angle(q_error);
