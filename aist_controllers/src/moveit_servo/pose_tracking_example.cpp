@@ -164,7 +164,9 @@ main(int argc, char** argv)
     target_pose.pose.orientation = current_ee_tf.transform.rotation;
 
   // Modify it a little bit
-    target_pose.pose.position.x += 0.05;
+    target_pose.pose.position.x -= 0.05;
+    target_pose.pose.position.y -= 0.05;
+    target_pose.pose.position.z -= 0.05;
 
   // resetTargetPose() can be used to clear the target pose and wait for a new one, e.g. when moving between multiple
   // waypoints
@@ -183,8 +185,10 @@ main(int argc, char** argv)
 				    { tracker.moveToPose(lin_tol, rot_tol, 0.1 /* target pose timeout */); });
 
     ros::Rate	loop_rate(50);
-    for (int n = 0; n < 50; ++n)
+    for (int n = 0; n < 10; ++n)
     {
+	double	x_error, y_error, z_error, orientation_error;
+	
 	for (size_t i = 0; i < 10; ++i)
 	{
 	  // Modify the pose target a little bit each cycle
@@ -195,7 +199,10 @@ main(int argc, char** argv)
 	    // std::cerr << "target_pose: " << target_pose.header.frame_id
 	    // 	      << "@[" << target_pose.pose << ']'
 	    // 	      << std::endl;
-
+	    tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
+	    std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
+		      << z_error << ';' << orientation_error << std::endl;
+	    
 	    loop_rate.sleep();
 	}
 
@@ -209,7 +216,11 @@ main(int argc, char** argv)
 	    // std::cerr << "target_pose: " << target_pose.header.frame_id
 	    // 	      << "@[" << target_pose.pose << ']'
 	    // 	      << std::endl;
+	    tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
 
+	    std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
+		      << z_error << ';' << orientation_error << std::endl;
+	    
 	    loop_rate.sleep();
 	}
     }

@@ -374,10 +374,10 @@ PoseTracking::calculateTwistCommand()
     geometry_msgs::Twist& twist = msg->twist;
     Eigen::Quaterniond q_desired;
 
-    std::cerr << "*** target_pose:        " << target_pose_.pose
-	      << std::endl;
-    std::cerr << "*** ee_frame_transform: " << ee_frame_transform_
-	      << std::endl;
+    // std::cerr << "*** target_pose:        " << target_pose_.pose
+    // 	      << std::endl;
+    // std::cerr << "*** ee_frame_transform: " << ee_frame_transform_
+    // 	      << std::endl;
 
   // Scope mutex locking only to operations which require access
   // to target pose.
@@ -440,6 +440,8 @@ PoseTracking::calculateTwistCommand()
     twist.angular.y = ang_vel_magnitude * axis_angle.axis()[1];
     twist.angular.z = ang_vel_magnitude * axis_angle.axis()[2];
 
+    std::cerr << "twist cmd: " << twist << std::endl;
+    
     msg->header.stamp = ros::Time::now();
 
     return msg;
