@@ -44,6 +44,7 @@
 #include <moveit_servo/status_codes.h>
 #include <moveit_servo/make_shared_from_pool.h>
 #include <thread>
+#include <tf/transform_datatypes.h>
 
 static const std::string LOGNAME = "cpp_interface_example";
 
@@ -102,6 +103,35 @@ class StatusMonitor
     moveit_servo::StatusCode	status_ = moveit_servo::StatusCode::INVALID;
     ros::Subscriber		sub_;
 };
+
+geometry_msgs::Vector3
+getRPY(const geometry_msgs::Quaternion& q)
+{
+    geometry_msgs::Vector3	rpy;
+    tf::Matrix3x3(tf::Quaternion(q.x, q.y, q.z, q.w)).getRPY(rpy.x,
+							     rpy.y, rpy.z);
+    return rpy;
+}
+
+geometry_msgs::Quaternion
+getQuaternion(const geometry_msgs::Vector3& rpy)
+{
+    tf::Quaternion	q;
+    q.setRPY(rpy.x, rpy.y, rpy.z);
+    geometry_msgs::Quaternion	qq;
+    qq.x = q.x();
+    qq.y = q.y();
+    qq.z = q.z();
+    qq.w = q.w();
+
+    return qq;
+}
+
+double
+rad(double deg)
+{
+    return M_PI/180.0 * deg;
+}
 
 /**
  * Instantiate the pose tracking interface.
@@ -164,9 +194,13 @@ main(int argc, char** argv)
     target_pose.pose.orientation = current_ee_tf.transform.rotation;
 
   // Modify it a little bit
-    target_pose.pose.position.x -= 0.05;
-    target_pose.pose.position.y -= 0.05;
-    target_pose.pose.position.z -= 0.05;
+    target_pose.pose.position.x += 0.05;
+    // target_pose.pose.position.y += 0.05;
+    // target_pose.pose.position.z += 0.05;
+
+    auto	rpy = getRPY(target_pose.pose.orientation);
+  //rpy.z += rad(30);
+  //target_pose.pose.orientation = getQuaternion(rpy);
 
   // resetTargetPose() can be used to clear the target pose and wait for a new one, e.g. when moving between multiple
   // waypoints
@@ -185,7 +219,7 @@ main(int argc, char** argv)
 				    { tracker.moveToPose(lin_tol, rot_tol, 0.1 /* target pose timeout */); });
 
     ros::Rate	loop_rate(50);
-    for (int n = 0; n < 10; ++n)
+    for (int n = 0; n < 100; ++n)
     {
 	double	x_error, y_error, z_error, orientation_error;
 	

@@ -43,6 +43,8 @@ constexpr double ROS_STARTUP_WAIT = 10;    // sec
 
 namespace moveit_servo
 {
+namespace 
+{
 std::ostream&
 operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
 {
@@ -79,7 +81,8 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 	       << twist.angular.y << ' '
 	       << twist.angular.z;
 }
-
+}
+    
 PoseTracking::PoseTracking(const ros::NodeHandle& nh,
                            const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
     :nh_(nh),
@@ -374,11 +377,6 @@ PoseTracking::calculateTwistCommand()
     geometry_msgs::Twist& twist = msg->twist;
     Eigen::Quaterniond q_desired;
 
-    // std::cerr << "*** target_pose:        " << target_pose_.pose
-    // 	      << std::endl;
-    // std::cerr << "*** ee_frame_transform: " << ee_frame_transform_
-    // 	      << std::endl;
-
   // Scope mutex locking only to operations which require access
   // to target pose.
     {
@@ -386,7 +384,6 @@ PoseTracking::calculateTwistCommand()
 	msg->header.frame_id = target_pose_.header.frame_id;
 
       // Position
-      /*
 	twist.linear.x = cartesian_position_pids_[0].computeCommand(
 				target_pose_.pose.position.x -
 				ee_frame_transform_.translation()(0),
@@ -398,19 +395,6 @@ PoseTracking::calculateTwistCommand()
 	twist.linear.z = cartesian_position_pids_[2].computeCommand(
 				target_pose_.pose.position.z -
 				ee_frame_transform_.translation()(2),
-				loop_rate_.expectedCycleTime());
-      */
-	twist.linear.x = cartesian_position_pids_[0].computeCommand(
-				ee_frame_transform_.translation()(0) -
-				target_pose_.pose.position.x,
-				loop_rate_.expectedCycleTime());
-	twist.linear.y = cartesian_position_pids_[1].computeCommand(
-				ee_frame_transform_.translation()(1) -
-				target_pose_.pose.position.y,
-				loop_rate_.expectedCycleTime());
-	twist.linear.z = cartesian_position_pids_[2].computeCommand(
-				ee_frame_transform_.translation()(2) -
-				target_pose_.pose.position.z,
 				loop_rate_.expectedCycleTime());
 
       // Orientation algorithm:
@@ -426,7 +410,6 @@ PoseTracking::calculateTwistCommand()
 
     Eigen::Quaterniond q_current(ee_frame_transform_.rotation());
     Eigen::Quaterniond q_error = q_desired * q_current.inverse();
-  //Eigen::Quaterniond q_error = q_current * q_desired.inverse();
 
   // Convert axis-angle to angular velocity
     Eigen::AngleAxisd axis_angle(q_error);
@@ -440,8 +423,6 @@ PoseTracking::calculateTwistCommand()
     twist.angular.y = ang_vel_magnitude * axis_angle.axis()[1];
     twist.angular.z = ang_vel_magnitude * axis_angle.axis()[2];
 
-    std::cerr << "twist cmd: " << twist << std::endl;
-    
     msg->header.stamp = ros::Time::now();
 
     return msg;

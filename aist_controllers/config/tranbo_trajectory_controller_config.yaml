@@ -15,7 +15,7 @@ scale:
 low_pass_filter_coeff: 4.
 
 ## Properties of outgoing commands
-publish_period:   0.02
+publish_period:   0.002
 low_latency_mode: true
 
 command_out_type: trajectory_msgs/JointTrajectory

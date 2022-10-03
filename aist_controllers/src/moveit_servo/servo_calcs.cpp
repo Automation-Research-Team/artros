@@ -52,6 +52,43 @@ namespace moveit_servo
 {
 namespace
 {
+std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
+{
+    return out << pose.position.x << ' '
+	       << pose.position.y << ' '
+	       << pose.position.z << ';'
+	       << pose.orientation.x << ' '
+	       << pose.orientation.y << ' '
+	       << pose.orientation.z << ' '
+	       << pose.orientation.w;
+}
+
+std::ostream&
+operator <<(std::ostream& out, const Eigen::Isometry3d& transform)
+{
+    const Eigen::Quaterniond	q(transform.rotation());
+
+    return out << transform.translation()(0) << ' '
+	       << transform.translation()(1) << ' '
+	       << transform.translation()(2) << ';'
+	       << q.x() << ' '
+	       << q.y() << ' '
+	       << q.z() << ' '
+	       << q.w();
+}
+
+std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
+{
+    return out << twist.linear.x << ' '
+	       << twist.linear.y << ' '
+	       << twist.linear.z << ';'
+	       << twist.angular.x << ' '
+	       << twist.angular.y << ' '
+	       << twist.angular.z;
+}
+
 // Helper function for detecting zeroed message
 bool
 isNonZero(const geometry_msgs::TwistStamped& msg)
@@ -619,7 +656,7 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
     Eigen::MatrixXd matrix_s = svd.singularValues().asDiagonal();
     Eigen::MatrixXd pseudo_inverse = svd.matrixV() * matrix_s.inverse()
 				   * svd.matrixU().transpose();
-
+    
     delta_theta_ = pseudo_inverse * delta_x;
 
     enforceVelLimits(delta_theta_);
@@ -679,7 +716,7 @@ ServoCalcs::convertDeltasToOutgoingCmd(
 
     composeJointTrajMessage(internal_joint_state_, joint_trajectory);
 
-    if (!enforcePositionLimits())
+    if (!enforcePositionLimits(internal_joint_state_))
     {
 	suddenHalt(joint_trajectory);
 	status_ = StatusCode::JOINT_BOUND;
@@ -921,7 +958,7 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 }
 
 bool
-ServoCalcs::enforcePositionLimits()
+ServoCalcs::enforcePositionLimits(sensor_msgs::JointState& joint_state)
 {
     bool halting = false;
 
@@ -941,18 +978,26 @@ ServoCalcs::enforcePositionLimits()
 	if (!current_state_->satisfiesPositionBounds(
 		joint, -parameters_.joint_limit_margin))
 	{
-	    const std::vector<moveit_msgs::JointLimits>
+	    const std::vector<moveit_msgs::JointLimits>&
 		limits = joint->getVariableBoundsMsg();
 
 	  // Joint limits are not defined for some joints. Skip them.
 	    if (!limits.empty())
 	    {
-		if ((current_state_->getJointVelocities(joint)[0] < 0 &&
-		     (joint_angle < (limits[0].min_position +
-				     parameters_.joint_limit_margin))) ||
-		    (current_state_->getJointVelocities(joint)[0] > 0 &&
-		     (joint_angle > (limits[0].max_position -
-				     parameters_.joint_limit_margin))))
+	      // Check if pending velocity command is moving in the right
+	      // direction
+		auto joint_itr = std::find(joint_state.name.begin(),
+					   joint_state.name.end(),
+					   joint->getName());
+		auto joint_idx = std::distance(joint_state.name.begin(),
+					       joint_itr);
+
+		if ((joint_state.velocity.at(joint_idx) < 0 &&
+		     joint_angle < (limits[0].min_position +
+				    parameters_.joint_limit_margin)) ||
+		    (joint_state.velocity.at(joint_idx) > 0 &&
+		     joint_angle > (limits[0].max_position -
+				    parameters_.joint_limit_margin)))
 		{
 		    ROS_WARN_STREAM_THROTTLE_NAMED(
 			ROS_LOG_THROTTLE_PERIOD, LOGNAME,
