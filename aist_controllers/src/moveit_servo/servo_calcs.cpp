@@ -649,16 +649,18 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 	}
     }
 
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd =
-	Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian,
-					  Eigen::ComputeThinU |
-					  Eigen::ComputeThinV);
-    Eigen::MatrixXd matrix_s = svd.singularValues().asDiagonal();
+    Eigen::JacobiSVD<Eigen::MatrixXd>
+	svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian,
+						Eigen::ComputeThinU |
+						Eigen::ComputeThinV);
+    Eigen::MatrixXd matrix_s	   = svd.singularValues().asDiagonal();
     Eigen::MatrixXd pseudo_inverse = svd.matrixV() * matrix_s.inverse()
 				   * svd.matrixU().transpose();
     
     delta_theta_ = pseudo_inverse * delta_x;
 
+  //std::cerr << "--- delta_x: " << delta_x << std::endl;
+    
     enforceVelLimits(delta_theta_);
 
   // If close to a collision or a singularity, decelerate

@@ -3,16 +3,12 @@
 
   <arg name="sim"	default="false"/>
   <arg name="group"	default="false"/>
-  <arg name="scene"	default="calibration"/>
   
   <arg unless="$(arg group)"
        name="config_file"	value="tranbo_trajectory_controller_config"/>
   <arg if="$(arg group)"
        name="config_file"	value="tranbo_group_controller_config"/>
-  <arg name="moveit_config"	value="$(eval find(arg('scene')
-  						   + '_moveit_config'))"/>
 
-  <!-- Launch MoveIt! planner in the case of simulation -->
   <node name="servo_server"
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
     <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"

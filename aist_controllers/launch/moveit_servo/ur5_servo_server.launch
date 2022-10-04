@@ -1,0 +1,8 @@
+<launch>
+
+  <node name="servo_server"
+	pkg="moveit_servo" type="servo_server" output="screen" >
+    <rosparam file="$(find aist_controllers)/config/ur5.yaml" />
+  </node>
+
+</launch>

@@ -195,8 +195,8 @@ main(int argc, char** argv)
 
   // Modify it a little bit
     target_pose.pose.position.x += 0.05;
-    // target_pose.pose.position.y += 0.05;
-    // target_pose.pose.position.z += 0.05;
+  //target_pose.pose.position.y += 0.05;
+  //target_pose.pose.position.z += 0.03;
 
     auto	rpy = getRPY(target_pose.pose.orientation);
   //rpy.z += rad(30);
