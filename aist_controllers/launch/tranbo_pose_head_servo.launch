@@ -8,18 +8,6 @@
   <arg name="manager"		default=""/>
   <arg name="publish_rate"	default="100"/>
 
-  <!-- Launch MoveIt! planner in the case of simulation -->
-  <include if="$(arg sim)"
-	   file="$(find aist_bringup)/launch/include/move_group.launch">
-    <arg name="robot_description_file"
-  	 value="$(find toyota1_description
-  		)/scenes/urdf/toyota1_base_scene.urdf.xacro
-  		scene:=$(arg scene) move_base:=False"/>
-    <arg name="moveit_config"	value="$(eval find(arg('scene')
-  						   + '_moveit_config'))"/>
-    <arg name="vis"		value="true"/>
-  </include>
-
   <!-- Launch cameras -->
   <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
     <arg name="sim"		 value="$(arg sim)"/>
