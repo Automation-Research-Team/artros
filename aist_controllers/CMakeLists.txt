@@ -158,9 +158,29 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  servo_server
+  src/moveit_servo/collision_check.cpp
+  src/moveit_servo/low_pass_filter.cpp
+  src/moveit_servo/servo.cpp
+  src/moveit_servo/servo_calcs.cpp
+  src/moveit_servo/servo_server.cpp
+)
+
+target_link_libraries(
+  servo_server
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  servo_server
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
   TARGETS point_head_tracker pose_head_tracker pose_group_tracker
-  pose_tracking_servo pose_head_servo
+  pose_tracking_servo pose_head_servo servo_server
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

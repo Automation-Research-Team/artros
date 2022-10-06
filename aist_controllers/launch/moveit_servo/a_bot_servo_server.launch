@@ -4,7 +4,7 @@
   <arg name="robot_name"	default="a_bot"/>
 
   <node name="servo_server"
-	pkg="moveit_servo" type="servo_server" output="screen" >
+	pkg="aist_controllers" type="servo_server" output="screen" >
     <rosparam file="$(find aist_controllers
 		    )/config/ur_trajectory_controller_config.yaml"
 	      subst_value="true"/>
