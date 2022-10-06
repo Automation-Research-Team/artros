@@ -26,9 +26,9 @@ publish_joint_accelerations: false
 
 ## MoveIt properties
 move_group_name:           $(arg robot_name)
-planning_frame:            $(arg robot_name)_base
-ee_frame_name:             $(arg robot_name)_flange
-robot_link_command_frame:  $(arg robot_name)_base
+planning_frame:            $(arg robot_name)_base_link
+ee_frame_name:             $(arg robot_name)_tool0
+robot_link_command_frame:  $(arg robot_name)_base_link
 
 ## Stopping behaviour
 incoming_command_timeout:          1.0
@@ -44,7 +44,7 @@ cartesian_command_in_topic: delta_twist_cmds
 joint_command_in_topic:     delta_joint_cmds
 joint_topic:                joint_states
 status_topic:               status
-command_out_topic:          /$(arg robot_name)/scaled_pos_joint_traj_controller/command
+command_out_topic:          /pos_joint_traj_controller/command
 
 ## Collision checking for the entire robot body
 check_collisions:     true
