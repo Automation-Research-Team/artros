@@ -1,13 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"		default="a_bot_"/>
-  <arg name="pointing_frame"	default="$(arg prefix
-					 )outside_camera_optical_frame"/>
+  <arg name="pointing_frame"	default="realsense_color_optical_frame"/>
   <arg name="min_duration"	default="0.05"/>
   <arg name="max_velocity"	default="0.7"/>
   <arg name="target_frame"	default="marker_frame"/>
   <arg name="target_pose"	default="[0, 0, 0.3, 180, 0, 0]"/>
+  <arg name="server"		default="pose_head_servo"/>
 
   <!-- Spawn controller -->
   <node name="pose_head_client"
@@ -17,6 +16,7 @@
     <param name="min_duration"		value="$(arg min_duration)"/>
     <param name="max_velocity"		value="$(arg max_velocity)"/>
     <param name="target_frame"		value="$(arg target_frame)"/>
+    <param name="server"		value="$(arg server)"/>
     <rosparam param="target_pose"
 	      subst_value="true">$(arg target_pose)</rosparam>
   </node>
