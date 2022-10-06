@@ -19,6 +19,21 @@ namespace aist_controllers
 static const std::string LOGNAME = "pose_head_servo";
 
 /************************************************************************
+*  static functions							*
+************************************************************************/
+std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
+{
+    return out << pose.position.x << ' '
+	       << pose.position.y << ' '
+	       << pose.position.z << ';'
+	       << pose.orientation.x << ','
+	       << pose.orientation.y << ','
+	       << pose.orientation.z << ','
+	       << pose.orientation.w ;
+}
+
+/************************************************************************
 *  class PoseHeadServo							*
 ************************************************************************/
 class PoseHeadServo
@@ -157,7 +172,9 @@ PoseHeadServo::create_planning_scene_monitor(
 void
 PoseHeadServo::execute_cb(const PoseHeadGoalConstPtr& goal)
 {
-    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseHeadServo) goal ACCEPTED");
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseHeadServo) goal ACCEPTED["
+			  << goal->target.header.frame_id << '@'
+			  << goal->target.pose << ']');
 
     _tracker.resetTargetPose();
     _move_to_pose_thread = std::thread([this]

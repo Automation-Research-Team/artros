@@ -3,7 +3,7 @@
     This is a format for representing semantic information about the robot structure.
     A URDF file must exist for this robot as well, where the joints and the links that are referenced are defined
 -->
-<robot name="aist_base_scene">
+<robot name="a_bot__base_scene">
     <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
     <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
     <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
@@ -66,9 +66,12 @@
         <joint name="a_bot_gripper_right_inner_knuckle_joint" value="0" />
         <joint name="a_bot_gripper_right_outer_knuckle_joint" value="0" />
     </group_state>
+    <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
+    <end_effector name="a_bot_gripper" parent_link="a_bot_ftsensor_flange_link" group="a_bot_gripper" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="a_bot_base_link_inertia" link2="a_bot_shoulder_link" reason="Adjacent" />
     <disable_collisions link1="a_bot_base_link_inertia" link2="workbox" reason="Adjacent" />
+    <disable_collisions link1="a_bot_base_link_inertia" link2="workspace_ar_marker" reason="Adjacent" />
     <disable_collisions link1="a_bot_camera_mount" link2="a_bot_ftsensor_base_link" reason="Never" />
     <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_coupling_base_link" reason="Adjacent" />
     <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_left_inner_finger" reason="Never" />
@@ -241,7 +244,9 @@
     <disable_collisions link1="a_bot_outside_camera_link" link2="a_bot_wrist_3_link" reason="Never" />
     <disable_collisions link1="a_bot_shoulder_link" link2="a_bot_upper_arm_link" reason="Adjacent" />
     <disable_collisions link1="a_bot_shoulder_link" link2="workbox" reason="Never" />
+    <disable_collisions link1="a_bot_shoulder_link" link2="workspace_ar_marker" reason="Never" />
     <disable_collisions link1="a_bot_wrist_1_link" link2="a_bot_wrist_2_link" reason="Adjacent" />
     <disable_collisions link1="a_bot_wrist_1_link" link2="a_bot_wrist_3_link" reason="Never" />
     <disable_collisions link1="a_bot_wrist_2_link" link2="a_bot_wrist_3_link" reason="Adjacent" />
+    <disable_collisions link1="workbox" link2="workspace_ar_marker" reason="Adjacent" />
 </robot>

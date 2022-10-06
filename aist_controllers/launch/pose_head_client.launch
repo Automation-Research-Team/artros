@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="pointing_frame"	default="realsense_color_optical_frame"/>
+  <arg name="prefix"		default="a_bot_"/>
+  <arg name="pointing_frame"	default="$(arg prefix
+					 )outside_camera_optical_frame"/>
   <arg name="min_duration"	default="0.05"/>
   <arg name="max_velocity"	default="0.7"/>
   <arg name="target_frame"	default="marker_frame"/>
-  <arg name="target_pose"	default="[0, 0, 0.3, 180, 0, 0]"/>
-  <arg name="server"		default="pose_head_servo"/>
+  <arg name="target_pose"	default="[0, 0, 0.3, 0, 90, 0]"/>
+  <arg name="server"		default="pose_head_tracker"/>
 
   <!-- Spawn controller -->
   <node name="pose_head_client"
