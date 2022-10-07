@@ -1,0 +1,12 @@
+<launch>
+
+  <arg name="sim"		default="true"/>
+
+  <node name="servo_server"
+	pkg="aist_controllers" type="servo_server" output="screen" >
+    <rosparam file="$(find aist_controllers
+		    )/config/tranbo_trajectory_controller_config.yaml"
+	      subst_value="true"/>
+  </node>
+
+</launch>
