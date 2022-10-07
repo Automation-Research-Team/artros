@@ -44,7 +44,7 @@ cartesian_command_in_topic: delta_twist_cmds
 joint_command_in_topic:     delta_joint_cmds
 joint_topic:                joint_states
 status_topic:               status
-command_out_topic:          /scaled_pos_joint_traj_controller/command
+command_out_topic:          /$(arg robot_name)/scaled_pos_joint_traj_controller/command
 
 ## Collision checking for the entire robot body
 check_collisions:     true

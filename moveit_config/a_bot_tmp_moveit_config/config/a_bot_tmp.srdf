@@ -13,26 +13,10 @@
         <chain base_link="a_bot_base_link" tip_link="a_bot_tool0" />
     </group>
     <group name="a_bot_gripper">
-        <chain base_link="a_bot_gripper_base_link" tip_link="a_bot_gripper_tip_link" />
+        <joint name="a_bot_gripper_finger_joint" />
     </group>
     <!--GROUP STATES: Purpose: Define a named state for a particular group, in terms of joint values. This is useful to define states like 'folded arms'-->
     <group_state name="home" group="a_bot">
-        <joint name="a_bot_elbow_joint" value="0" />
-        <joint name="a_bot_shoulder_lift_joint" value="0" />
-        <joint name="a_bot_shoulder_pan_joint" value="0" />
-        <joint name="a_bot_wrist_1_joint" value="0" />
-        <joint name="a_bot_wrist_2_joint" value="0" />
-        <joint name="a_bot_wrist_3_joint" value="0" />
-    </group_state>
-    <group_state name="up" group="a_bot">
-        <joint name="a_bot_elbow_joint" value="0" />
-        <joint name="a_bot_shoulder_lift_joint" value="-1.5707" />
-        <joint name="a_bot_shoulder_pan_joint" value="0" />
-        <joint name="a_bot_wrist_1_joint" value="-1.5707" />
-        <joint name="a_bot_wrist_2_joint" value="0" />
-        <joint name="a_bot_wrist_3_joint" value="0" />
-    </group_state>
-    <group_state name="ready" group="a_bot">
         <joint name="a_bot_elbow_joint" value="1.4" />
         <joint name="a_bot_shoulder_lift_joint" value="-2.1" />
         <joint name="a_bot_shoulder_pan_joint" value="1.5708" />
@@ -47,6 +31,12 @@
         <joint name="a_bot_wrist_1_joint" value="-0.85" />
         <joint name="a_bot_wrist_2_joint" value="-1.57" />
         <joint name="a_bot_wrist_3_joint" value="0" />
+    </group_state>
+    <group_state name="release" group="a_bot_gripper">
+        <joint name="a_bot_gripper_finger_joint" value="0" />
+    </group_state>
+    <group_state name="grasp" group="a_bot_gripper">
+        <joint name="a_bot_gripper_finger_joint" value="0.81" />
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="a_bot_gripper" parent_link="a_bot_ftsensor_flange_link" group="a_bot_gripper" />

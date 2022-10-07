@@ -1,79 +1,117 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!--Robot description parameters -->
-  <arg name="joint_limit_params"
-       default="$(find ur_description)/config/ur5/joint_limits.yaml"/>
-  <arg name="kinematics_params"
-       default="$(find ur_description)/config/ur5/default_kinematics.yaml"/>
-  <arg name="physical_params"
-       default="$(find ur_description)/config/ur5/physical_parameters.yaml"/>
-  <arg name="visual_params"
-       default="$(find ur_description)/config/ur5/visual_parameters.yaml"/>
-  <arg name="transmission_hw_interface"
-       default="hardware_interface/PositionJointInterface"/>
-  <arg name="safety_limits"	default="false"/>
-  <arg name="safety_pos_margin"	default="0.15"/>
-  <arg name="safety_k_position"	default="20"/>
+  <arg name="sim"			default="false"/>
+  <arg name="scene"			default=""/>
+  <arg name="joint_state_frequency"	default="50"/>
+  <arg name="robot_state_frequency"	default="50"/>
+  <arg name="moveit_config"		default="$(find a_bot_tmp_moveit_config)"/>
+  <arg name="rviz_config"		default=""/>
 
-  <arg name="robot_description_file"
-       value="$(find aist_description
-	      )/scenes/urdf/a_bot_base_scene.urdf.xacro"/>
-  
-  <param name="robot_description"
-	 command="$(find xacro)/xacro '$(arg robot_description_file)'
-		  joint_limit_params:=$(arg joint_limit_params)
-		  kinematics_params:=$(arg kinematics_params)
-		  physical_params:=$(arg physical_params)
-		  visual_params:=$(arg visual_params)
-		  transmission_hw_interface:=$(arg transmission_hw_interface)
-		  safety_limits:=$(arg safety_limits)
-		  safety_pos_margin:=$(arg safety_pos_margin)
-		  safety_k_position:=$(arg safety_k_position)"/>
+  <!-- Setup "aist" configuration -->
+  <arg name="config"		value="a_bot"/>
+  <arg name="gazebo_init_args"	value="-J a_bot_shoulder_pan_joint 1.5708
+  				       -J a_bot_shoulder_lift_joint -2.1
+  				       -J a_bot_elbow_joint 1.4
+  				       -J a_bot_wrist_1_joint -0.85
+  				       -J a_bot_wrist_2_joint -1.5708
+  				       -J a_bot_wrist_3_joint 0.0"/>
+  <arg name="prefixes"		value="a_bot_, a_bot_gripper_"/>
+  <arg name="devices"		value="ur5, robotiq_85"/>
+  <arg name="controllers"	value="ur, cmodel"/>
+  <arg name="drivers"		value="ur, cmodel"/>
+  <arg name="driver_args"	value="163.220.51.110, 50005, 50006, 50007, 0;
+				       urcap, 163.220.51.110" />
 
-  <!-- Robot state publisher -->
-  <arg name="tf_prefix" default=""/>
-  <arg name="tf_pub_rate" default="125"/>
-  <node name="robot_state_publisher"
-	pkg="robot_state_publisher" type="robot_state_publisher">
-    <param name="publish_frequency" type="double" value="$(arg tf_pub_rate)" />
-    <param name="tf_prefix"			  value="$(arg tf_prefix)" />
-  </node>
-
-  <!-- Start Gazebo and load the empty world if requested to do so -->
-  <arg name="paused"	default="false"/>
-  <arg name="gui"	default="true"/>
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name"	value="worlds/empty.world"/>
-    <arg name="paused"		value="$(arg paused)"/>
-    <arg name="gui"		value="$(arg gui)"/>
+  <!-- Bringup robots -->
+  <include file="$(dirname)/include/connect_robots.launch">
+    <arg name="robot_description_file"
+	 value="$(find aist_description
+		)/scenes/urdf/$(arg config)_base_scene.urdf.xacro
+		scene:=$(arg scene)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="joint_state_frequency"	value="$(arg joint_state_frequency)"/>
+    <arg name="gazebo_init_args"	value="$(arg gazebo_init_args)"/>
+    <arg name="prefixes"		value="$(arg prefixes)"/>
+    <arg name="devices"			value="$(arg devices)"/>
+    <arg name="controllers"		value="$(arg controllers)"/>
+    <arg name="drivers"			value="$(arg drivers)"/>
+    <arg name="driver_args"		value="$(arg driver_args)"/>
   </include>
 
-  <!-- Spawn the model loaded earlier in the simulation just started -->
-  <arg name="spawn_z" default="0.1"/>
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model"
-	args="-urdf
-	      -param robot_description
-	      -model robot
-	      -z $(arg spawn_z)"
-	output="screen" respawn="false" />
+  <!-- Start MoveIt! -->
+  <include file="$(dirname)/include/move_group.launch">
+    <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
+    <arg name="moveit_config"		value="$(arg moveit_config)"/>
+    <arg name="rviz_config"		value="$(arg rviz_config)"/>
+  </include>
 
-  <!-- Load and start the controllers listed in the 'controllers' arg. -->
-  <arg name="controller_config_file"
-       default="$(find aist_controllers)/config/a_bot_controllers.yaml"/>
-  <arg name="controllers"
-       default="joint_state_controller scaled_pos_joint_traj_controller"/>
-  <rosparam file="$(arg controller_config_file)"/>
-  <node name="ros_control_controller_spawner"
-	pkg="controller_manager" type="spawner"
-	args="$(arg controllers)" output="screen" respawn="false" />
+  <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
+  <arg name="camera_names"		default="a_bot_inside_camera,
+						 a_bot_outside_camera"/>
+  <arg name="serial_nos"		default="636203005853, 636203005303"/>
+  <arg name="enable_pointcloud"		default="false"/>
+  <arg name="camera_width"		default="640"/>
+  <arg name="camera_height"		default="480"/>
+  <arg name="fps"			default="30"/>
+  <arg name="manager"			default="camera_manager"/>
+  <arg name="manager_threads"		default="4"/>
 
-  <!-- Load other controllers, but do not start them -->
-  <arg name="stopped_controllers"
-       default="joint_group_pos_controller"/>
-  <node name="ros_control_stopped_spawner"
-	pkg="controller_manager" type="spawner"
-	args="--stopped $(arg stopped_controllers)"
-	output="screen" respawn="false" />
+  <node name="$(arg manager)"
+	pkg ="nodelet" type="nodelet" args="manager" output="screen">
+    <param name="num_worker_threads"	value="$(arg manager_threads)"/>
+  </node>
+
+  <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
+    <arg name="camera_names"		value="$(arg camera_names)"/>
+    <arg name="serial_nos"		value="$(arg serial_nos)"/>
+    <arg name="publish_tf"		value="false"/>
+    <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
+    <arg name="camera_width"		value="$(arg camera_width)"/>
+    <arg name="camera_height"		value="$(arg camera_height)"/>
+    <arg name="fps"			value="$(arg fps)"/>
+    <arg name="manager"			value="$(arg manager)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+  </include>
+
+  <!-- Launch calibration publisher and other hardware drivers -->
+  <group unless="$(arg sim)">
+
+    <!-- Load and publish hand-eye calibration -->
+    <include file="$(find aist_handeye_calibration
+    		   )/launch/publish_calibration.launch">
+      <arg name="config"	value="aist" />
+      <arg name="camera_name"	value="a_bot_inside_camera" />
+    </include>
+    <include file="$(find aist_handeye_calibration
+    		   )/launch/publish_calibration.launch">
+      <arg name="config"	value="aist" />
+      <arg name="camera_name"	value="a_bot_outside_camera" />
+    </include>
+
+    <!-- Drivers for the force sensors -->
+    <include ns="a_bot_ftsensor"
+    	     file="$(find aist_ftsensor)/launch/ft300.launch">
+      <arg name="calib_file"		value="a_bot_ftsensor"/>
+      <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
+      <arg name="hostname"		value="a_bot"/>
+    </include>
+
+  </group>
+
+  <group if="$(arg sim)">
+
+    <node name="inside_transform_publisher"
+          pkg="tf" type="static_transform_publisher"
+          args="0 0 0 0 0 0
+		a_bot_inside_camera_color_optical_frame
+		calibrated_a_bot_inside_camera_color_optical_frame 10"/>
+    <node name="outsidestatic_transform_publisher"
+          pkg="tf" type="static_transform_publisher"
+          args="0 0 0 0 0 0
+		a_bot_outside_camera_color_optical_frame
+		calibrated_a_bot_outside_camera_color_optical_frame 10"/>
+
+  </group>
 
 </launch>

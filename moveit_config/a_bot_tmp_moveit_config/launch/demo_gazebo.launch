@@ -25,7 +25,7 @@
   <arg name="gazebo_gui" default="true"/>
   <arg name="paused" default="false"/>
   <!-- By default, use the urdf location provided from the package -->
-  <arg name="urdf_path" default="$(find aist_description)/scenes/urdf/a_bot_tmp_scene.urdf.xacro"/>
+  <arg name="urdf_path" default="$(find aist_description)/scenes/urdf/a_bot_base_scene.urdf.xacro"/>
 
   <!-- launch the gazebo simulator and spawn the robot -->
   <include file="$(find a_bot_tmp_moveit_config)/launch/gazebo.launch" >
