@@ -2,13 +2,14 @@
 
   <!-- <include file="$(find ur_gazebo)/launch/ur5_bringup.launch"/> -->
 
-  <include file="$(find a_bot_moveit_config
+  <include file="$(find a_bot_tmp_moveit_config
 		 )/launch/move_group.launch">
     <!-- <arg name="sim"	value="true"/> -->
   </include>
 
-  <include file="$(find a_bot_moveit_config)/launch/moveit_rviz.launch">
-    <arg name="config"	value="true"/>
+  <include file="$(find a_bot_tmp_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="rviz_config"	value="$(find a_bot_tmp_moveit_config
+				       )/launch/moveit.rviz"/>
   </include>
 
   <node name="rqt_controller_manager"

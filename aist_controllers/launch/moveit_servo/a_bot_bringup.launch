@@ -62,7 +62,7 @@
   <arg name="controller_config_file"
        default="$(find aist_controllers)/config/a_bot_controllers.yaml"/>
   <arg name="controllers"
-       default="joint_state_controller pos_joint_traj_controller"/>
+       default="joint_state_controller scaled_pos_joint_traj_controller"/>
   <rosparam file="$(arg controller_config_file)"/>
   <node name="ros_control_controller_spawner"
 	pkg="controller_manager" type="spawner"
@@ -75,52 +75,5 @@
 	pkg="controller_manager" type="spawner"
 	args="--stopped $(arg stopped_controllers)"
 	output="screen" respawn="false" />
-
-
-
-  <!-- <arg name="sim"			default="false"/> -->
-  <!-- <arg name="scene"			default=""/> -->
-  <!-- <arg name="joint_state_frequency"	default="50"/> -->
-  <!-- <arg name="robot_state_frequency"	default="50"/> -->
-  <!-- <arg name="moveit_config"		default="$(find a_bot_moveit_config)"/> -->
-  <!-- <arg name="rviz_config"		default=""/> -->
-
-  <!-- <!-\- Setup "aist" configuration -\-> -->
-  <!-- <arg name="config"		value="a_bot"/> -->
-  <!-- <arg name="gazebo_init_args"	value="-J a_bot_shoulder_pan_joint 1.5708 -->
-  <!-- 				       -J a_bot_shoulder_lift_joint -2.1 -->
-  <!-- 				       -J a_bot_elbow_joint 1.4 -->
-  <!-- 				       -J a_bot_wrist_1_joint -0.85 -->
-  <!-- 				       -J a_bot_wrist_2_joint -1.5708 -->
-  <!-- 				       -J a_bot_wrist_3_joint 0.0"/> -->
-  <!-- <arg name="prefixes"		value="a_bot_, a_bot_gripper_"/> -->
-  <!-- <arg name="devices"		value="ur5, robotiq_85"/> -->
-  <!-- <arg name="controllers"	value="ur, cmodel"/> -->
-  <!-- <arg name="drivers"		value="ur, cmodel"/> -->
-  <!-- <arg name="driver_args"	value="163.220.51.110, 50005, 50006, 50007, 0; -->
-  <!-- 				       urcap, 163.220.51.110" /> -->
-
-  <!-- <!-\- Bringup robots -\-> -->
-  <!-- <include file="$(find aist_bringup)/launch/include/connect_robots.launch"> -->
-  <!--   <arg name="robot_description_file" -->
-  <!-- 	 value="$(find aist_description -->
-  <!-- 		)/scenes/urdf/$(arg config)_base_scene.urdf.xacro -->
-  <!-- 		scene:=$(arg scene)"/> -->
-  <!--   <arg name="sim"			value="$(arg sim)"/> -->
-  <!--   <arg name="joint_state_frequency"	value="$(arg joint_state_frequency)"/> -->
-  <!--   <arg name="gazebo_init_args"	value="$(arg gazebo_init_args)"/> -->
-  <!--   <arg name="prefixes"		value="$(arg prefixes)"/> -->
-  <!--   <arg name="devices"			value="$(arg devices)"/> -->
-  <!--   <arg name="controllers"		value="$(arg controllers)"/> -->
-  <!--   <arg name="drivers"			value="$(arg drivers)"/> -->
-  <!--   <arg name="driver_args"		value="$(arg driver_args)"/> -->
-  <!-- </include> -->
-
-  <!-- <!-\- Start MoveIt! -\-> -->
-  <!-- <include file="$(find aist_bringup)/launch/include/move_group.launch"> -->
-  <!--   <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/> -->
-  <!--   <arg name="moveit_config"		value="$(arg moveit_config)"/> -->
-  <!--   <arg name="rviz_config"		value="$(arg rviz_config)"/> -->
-  <!-- </include> -->
 
 </launch>
