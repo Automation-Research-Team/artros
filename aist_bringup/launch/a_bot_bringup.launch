@@ -5,7 +5,7 @@
   <arg name="scene"			default=""/>
   <arg name="joint_state_frequency"	default="50"/>
   <arg name="robot_state_frequency"	default="50"/>
-  <arg name="moveit_config"		default="$(find a_bot_tmp_moveit_config)"/>
+  <arg name="moveit_config"		default="$(find a_bot_moveit_config)"/>
   <arg name="rviz_config"		default=""/>
 
   <!-- Setup "aist" configuration -->
