@@ -18,7 +18,7 @@ low_pass_filter_coeff: 4.
 publish_period:   0.002
 low_latency_mode: true
 
-command_out_type: trajectory_msgs/JointTrajectory
+command_out_type: $(arg command_out_type)
 
 publish_joint_positions:     true
 publish_joint_velocities:    false
@@ -44,7 +44,7 @@ cartesian_command_in_topic: delta_twist_cmds
 joint_command_in_topic:     delta_joint_cmds
 joint_topic:                joint_states
 status_topic:               status
-command_out_topic:          /arm_controller/command
+command_out_topic:          /$(arg controller)/command
 
 ## Collision checking for the entire robot body
 check_collisions:     true

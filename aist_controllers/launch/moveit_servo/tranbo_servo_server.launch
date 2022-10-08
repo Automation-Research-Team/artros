@@ -4,9 +4,14 @@
   <arg name="traj"	default="true"/>
 
   <arg if="$(arg traj)"
-       name="config_file"	value="tranbo_trajectory_controller_config"/>
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
   <arg unless="$(arg traj)"
-       name="config_file"       value="tranbo_group_controller_config"/>
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
+
+  <arg if="$(arg traj)"
+       name="controller"	value="arm_controller"/>
+  <arg unless="$(arg traj)"
+       name="controller"	value="arm_joint_group_controller"/>
 
   <node unless="$(arg traj)"
 	name="rqt_controller_manager"
@@ -14,7 +19,7 @@
 
   <node name="servo_server"
 	pkg="aist_controllers" type="servo_server" output="screen" >
-    <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"
+    <rosparam file="$(dirname)/../../config/tranbo_servo_server.yaml"
 	      subst_value="true"/>
   </node>
 
