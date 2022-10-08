@@ -1,0 +1,23 @@
+<launch>
+
+  <arg name="robot_name" default="a_bot"/>
+  <arg name="cmd"	 default="traj"/>	<!-- "traj", "pos" or "vel" -->
+  <arg name="sim"	 default="true"/>
+
+  <arg if="$(eval cmd == 'traj')"
+       name="config_file"	value="ur_trajectory_controller_config"/>
+  <arg unless="$(eval cmd == 'traj')"
+       name="config_file"       value="ur_group_controller_config"/>
+  <arg name="pub_pos"		value="$(eval cmd == 'pos')"/>
+  <arg name="pub_vel"		value="$(eval cmd == 'vel')"/>
+
+  <node name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <node name="servo_server"
+	pkg="aist_controllers" type="servo_server" output="screen" >
+    <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"
+	      subst_value="true"/>
+  </node>
+
+</launch>

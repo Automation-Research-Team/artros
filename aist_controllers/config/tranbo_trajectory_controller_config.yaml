@@ -26,7 +26,7 @@ publish_joint_accelerations: false
 
 ## MoveIt properties
 move_group_name:           arm
-planning_frame:            base_link
+planning_frame:            arm_base_link
 ee_frame_name:             magnet_tip_link
 robot_link_command_frame:  base_link
 

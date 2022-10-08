@@ -15,7 +15,7 @@ scale:
 low_pass_filter_coeff: 2.
 
 ## Properties of outgoing commands
-publish_period:   0.008
+publish_period:   0.002
 low_latency_mode: false
 
 command_out_type: std_msgs/Float64MultiArray
@@ -26,7 +26,7 @@ publish_joint_accelerations: false
 
 ## MoveIt properties
 move_group_name:           arm
-planning_frame:            base_link
+planning_frame:            arm_base_link
 ee_frame_name:             magnet_tip_link
 robot_link_command_frame:  base_link
 

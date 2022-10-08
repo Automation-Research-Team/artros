@@ -27,7 +27,7 @@ publish_joint_accelerations: false
 ## MoveIt properties
 move_group_name:           $(arg robot_name)
 planning_frame:            $(arg robot_name)_base_link
-ee_frame_name:             $(arg robot_name)_tool0
+ee_frame_name:             $(arg robot_name)_flange
 robot_link_command_frame:  $(arg robot_name)_base_link
 
 ## Stopping behaviour
