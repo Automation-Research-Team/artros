@@ -1,17 +1,26 @@
 <launch>
   <!-- Launch an example that sends commands via C++ API. -->
 
-  <arg name="sim"	default="false"/>
-  <arg name="group"	default="false"/>
+  <arg name="sim"	default="true"/>
+  <arg name="traj"	default="true"/>
   
-  <arg unless="$(arg group)"
-       name="config_file"	value="tranbo_trajectory_controller_config"/>
-  <arg if="$(arg group)"
-       name="config_file"	value="tranbo_group_controller_config"/>
+  <arg if="$(arg traj)"
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
+  <arg unless="$(arg traj)"
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
 
-  <node name="servo_server"
+  <arg if="$(arg traj)"
+       name="controller"	value="arm_controller"/>
+  <arg unless="$(arg traj)"
+       name="controller"	value="arm_joint_group_controller"/>
+
+  <node unless="$(arg traj)"
+	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <node name="pose_tracking_exmaplse"
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
-    <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"
+    <rosparam file="$(dirname)/../../config/tranbo_servo_server.yaml"
 	      subst_value="true"/>
     <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
   </node>

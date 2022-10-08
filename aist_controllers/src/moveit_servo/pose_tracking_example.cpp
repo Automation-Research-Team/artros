@@ -223,37 +223,30 @@ main(int argc, char** argv)
     {
 	double	x_error, y_error, z_error, orientation_error;
 	
-	for (size_t i = 0; i < 10; ++i)
+	for (size_t i = 0; i < 100; ++i)
 	{
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
-	    // target_pose.pose.position.z += 0.0004;
+	    target_pose.pose.position.y += 0.001;
 	    target_pose.header.stamp = ros::Time::now();
 	    target_pose_pub.publish(target_pose);
-	    // std::cerr << "target_pose: " << target_pose.header.frame_id
-	    // 	      << "@[" << target_pose.pose << ']'
-	    // 	      << std::endl;
 	    tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
-	    std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
-		      << z_error << ';' << orientation_error << std::endl;
+	    // std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
+	    // 	      << z_error << ';' << orientation_error << std::endl;
 	    
 	    loop_rate.sleep();
 	}
 
-	for (size_t i = 0; i < 10; ++i)
+	for (size_t i = 0; i < 100; ++i)
 	{
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
-	    // target_pose.pose.position.z -= 0.0004;
+	    target_pose.pose.position.y -= 0.001;
 	    target_pose.header.stamp = ros::Time::now();
 	    target_pose_pub.publish(target_pose);
-	    // std::cerr << "target_pose: " << target_pose.header.frame_id
-	    // 	      << "@[" << target_pose.pose << ']'
-	    // 	      << std::endl;
 	    tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
-
-	    std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
-		      << z_error << ';' << orientation_error << std::endl;
+	    // std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
+	    // 	      << z_error << ';' << orientation_error << std::endl;
 	    
 	    loop_rate.sleep();
 	}
