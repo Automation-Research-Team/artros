@@ -94,13 +94,13 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 {
     readROSParams();
 
-    robot_model_ = planning_scene_monitor_->getRobotModel();
+    robot_model_       = planning_scene_monitor_->getRobotModel();
     joint_model_group_ = robot_model_->getJointModelGroup(move_group_name_);
 
   // Initialize PID controllers
-    initializePID(x_pid_config_, cartesian_position_pids_);
-    initializePID(y_pid_config_, cartesian_position_pids_);
-    initializePID(z_pid_config_, cartesian_position_pids_);
+    initializePID(x_pid_config_,       cartesian_position_pids_);
+    initializePID(y_pid_config_,       cartesian_position_pids_);
+    initializePID(z_pid_config_,       cartesian_position_pids_);
     initializePID(angular_pid_config_, cartesian_orientation_pids_);
 
   // Use the C++ interface that Servo provides
@@ -149,7 +149,8 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
 	return PoseTrackingStatusCode::NO_RECENT_TARGET_POSE;
     }
 
-  // Continue sending PID controller output to Servo until one of the following conditions is met:
+  // Continue sending PID controller output to Servo
+  // until one of the following conditions is met:
   // - Goal tolerance is satisfied
   // - Target pose becomes outdated
   // - Command frame transform becomes outdated
@@ -214,7 +215,8 @@ PoseTracking::readROSParams()
 
   // Wait for ROS parameters to load
     ros::Time begin = ros::Time::now();
-    while (ros::ok() && !nh.hasParam("planning_frame") && ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
+    while (ros::ok() && !nh.hasParam("planning_frame") &&
+	   ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
     {
 	ROS_WARN_STREAM_NAMED(LOGNAME, "Waiting for parameter: "
 			      << "planning_frame");
@@ -227,7 +229,8 @@ PoseTracking::readROSParams()
 				      "planning_frame", planning_frame_);
     error += !rosparam_shortcuts::get(LOGNAME, nh,
 				      "move_group_name", move_group_name_);
-    if (!planning_scene_monitor_->getRobotModel()->hasJointModelGroup(move_group_name_))
+    if (!planning_scene_monitor_->getRobotModel()
+				->hasJointModelGroup(move_group_name_))
     {
 	++error;
 	ROS_ERROR_STREAM_NAMED(
@@ -240,14 +243,14 @@ PoseTracking::readROSParams()
 				      "publish_period", publish_period);
     loop_rate_ = ros::Rate(1 / publish_period);
 
-    x_pid_config_.dt = publish_period;
-    y_pid_config_.dt = publish_period;
-    z_pid_config_.dt = publish_period;
+    x_pid_config_.dt	   = publish_period;
+    y_pid_config_.dt	   = publish_period;
+    z_pid_config_.dt	   = publish_period;
     angular_pid_config_.dt = publish_period;
 
     double windup_limit;
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "windup_limit", windup_limit);
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "windup_limit",
+				      windup_limit);
     x_pid_config_.windup_limit = windup_limit;
     y_pid_config_.windup_limit = windup_limit;
     z_pid_config_.windup_limit = windup_limit;
@@ -449,7 +452,7 @@ PoseTracking::doPostMotionReset()
 {
     stopMotion();
     stop_requested_ = false;
-    angular_error_ = boost::none;
+    angular_error_  = boost::none;
 
   // Reset error integrals and previous errors of PID controllers
     cartesian_position_pids_[0].reset();
@@ -490,9 +493,9 @@ PoseTracking::updatePIDConfig(const double x_proportional_gain,
 
     cartesian_position_pids_.clear();
     cartesian_orientation_pids_.clear();
-    initializePID(x_pid_config_, cartesian_position_pids_);
-    initializePID(y_pid_config_, cartesian_position_pids_);
-    initializePID(z_pid_config_, cartesian_position_pids_);
+    initializePID(x_pid_config_,       cartesian_position_pids_);
+    initializePID(y_pid_config_,       cartesian_position_pids_);
+    initializePID(z_pid_config_,       cartesian_position_pids_);
     initializePID(angular_pid_config_, cartesian_orientation_pids_);
 
     doPostMotionReset();

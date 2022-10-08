@@ -22,7 +22,10 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   kdl_parser
   trac_ik_lib
-  moveit_servo
+  moveit_msgs
+  moveit_ros_planning_interface
+  rosparam_shortcuts
+  control_toolbox
 )
 
 find_package(orocos_kdl REQUIRED)
@@ -51,6 +54,10 @@ catkin_package(
     message_runtime
     trajectory_msgs
     control_msgs
+    moveit_msgs
+    moveit_ros_planning_interface
+    rosparam_shortcuts
+    control_toolbox
 )
 
 add_executable(
@@ -103,6 +110,11 @@ add_dependencies(
 add_executable(
   pose_tracking_servo
   src/pose_tracking_servo.cpp
+  src/moveit_servo/collision_check.cpp
+  src/moveit_servo/low_pass_filter.cpp
+  src/moveit_servo/pose_tracking.cpp
+  src/moveit_servo/servo.cpp
+  src/moveit_servo/servo_calcs.cpp
 )
 
 target_link_libraries(
