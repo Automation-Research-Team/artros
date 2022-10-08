@@ -8,7 +8,8 @@
   <arg unless="$(arg traj)"
        name="config_file"       value="tranbo_group_controller_config"/>
 
-  <node name="rqt_controller_manager"
+  <node unless="$(arg traj)"
+	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
   <node name="servo_server"

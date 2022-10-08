@@ -11,7 +11,8 @@
   <arg name="pub_pos"		value="$(eval cmd == 'pos')"/>
   <arg name="pub_vel"		value="$(eval cmd == 'vel')"/>
 
-  <node name="rqt_controller_manager"
+  <node unless="$(eval cmd == 'traj')"
+	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
   <node name="servo_server"
