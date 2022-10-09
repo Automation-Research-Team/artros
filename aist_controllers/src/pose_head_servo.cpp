@@ -184,12 +184,13 @@ PoseHeadServo::execute_cb(const PoseHeadGoalConstPtr& goal)
 					       this->_rot_tol, 0.1);
 				       });
 
-    for (ros::Rate rate(_nh.param<double>("rate", 50.0));
-	 !_tracker_srv.isPreemptRequested() && ros::ok(); rate.sleep())
+    for (ros::Rate rate(1 / _tracker.servo_->getParameters().publish_period);
+	 !_tracker_srv.isPreemptRequested() && ros::ok(); )
     {
 	geometry_msgs::PoseStamped	target_pose = goal->target;
 	target_pose.header.stamp = ros::Time::now();
 	_target_pose_pub.publish(target_pose);
+	rate.sleep();
     }
 
     _tracker.stopMotion();

@@ -18,7 +18,7 @@
 	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
-  <node name="pose_tracking_exmaplse"
+  <node name="pose_tracking_example"
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
     <rosparam file="$(dirname)/../../config/tranbo_servo_server.yaml"
 	      subst_value="true"/>

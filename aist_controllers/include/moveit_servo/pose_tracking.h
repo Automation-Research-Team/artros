@@ -176,6 +176,7 @@ class PoseTracking
   // ROS interface to Servo
     ros::Publisher			twist_stamped_pub_;
 
+    
     std::vector<control_toolbox::Pid>	cartesian_position_pids_;
     std::vector<control_toolbox::Pid>	cartesian_orientation_pids_;
   // Cartesian PID configs
@@ -186,6 +187,9 @@ class PoseTracking
     ros::Time				ee_frame_transform_stamp_;
     geometry_msgs::PoseStamped		target_pose_;
     mutable std::mutex			target_pose_mtx_;
+
+  // For debugging
+    ros::Publisher			ee_pose_pub_;
 
   // Subscribe to target pose
     ros::Subscriber			target_pose_sub_;

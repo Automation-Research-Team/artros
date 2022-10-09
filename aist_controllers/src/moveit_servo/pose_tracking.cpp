@@ -117,6 +117,8 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
     twist_stamped_pub_ =
 	nh_.advertise<geometry_msgs::TwistStamped>(
 	    servo_->getParameters().cartesian_command_in_topic, 1);
+
+    ee_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("ee_pose", 1);
 }
 
 PoseTrackingStatusCode
@@ -187,7 +189,13 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
       // Compute servo command from PID controller output and send it
       // to the Servo object, for execution
 	twist_stamped_pub_.publish(calculateTwistCommand());
-
+	
+      // For debugging
+	ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					    ee_frame_transform_,
+					    ee_frame_transform_stamp_,
+					    target_pose_.header.frame_id)));
+	
 	if (!loop_rate_.sleep())
 	{
 	    ROS_WARN_STREAM_THROTTLE_NAMED(1, LOGNAME,
