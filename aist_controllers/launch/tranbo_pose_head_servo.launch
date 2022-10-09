@@ -4,7 +4,7 @@
   <arg name="sim"		default="false"/>
   <arg name="scene"		default="calibration"/>
   <arg name="camera_name"	default="realsense"/>
-  <arg name="group_controller"	default="false"/>
+  <arg name="traj"		default="true"/>
   <arg name="manager"		default=""/>
   <arg name="publish_rate"	default="100"/>
 
@@ -40,16 +40,25 @@
   		    )/config/toyota1/$(arg camera_name).yaml"/>
   </node>
 
-  <arg if="$(arg group_controller)"
-       name="config_file"       value="tranbo_group_controller_config"/>
-  <arg unless="$(arg group_controller)"
-       name="config_file"	value="tranbo_trajectory_controller_config"/>
+  <arg if="$(arg traj)"
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
+  <arg unless="$(arg traj)"
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
+
+  <arg if="$(arg traj)"
+       name="controller"	value="arm_controller"/>
+  <arg unless="$(arg traj)"
+       name="controller"	value="arm_joint_group_controller"/>
+
+  <node unless="$(arg traj)"
+	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
   <node name="pose_head_servo"
 	pkg="aist_controllers" type="pose_head_servo" output="screen">
-    <rosparam file="$(dirname)/../config/$(arg config_file).yaml"
+    <rosparam file="$(dirname)/../config/tranbo_servo_server.yaml"
 	      subst_value="true"/>
-    <rosparam file="$(dirname)/../config/pose_tracking_settings.yaml"/>
+    <rosparam file="$(dirname)/../config/tranbo_pose_tracking.yaml"/>
   </node>
 
 </launch>

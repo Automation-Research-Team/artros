@@ -31,7 +31,7 @@
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
     <rosparam file="$(dirname)/../../config/ur_servo_server.yaml"
 	      subst_value="true"/>
-    <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
+    <rosparam file="$(dirname)/../../config/ur_pose_tracking.yaml"/>
   </node>
 
 </launch>

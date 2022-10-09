@@ -22,7 +22,7 @@
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
     <rosparam file="$(dirname)/../../config/tranbo_servo_server.yaml"
 	      subst_value="true"/>
-    <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
+    <rosparam file="$(dirname)/../../config/tranbo_pose_tracking.yaml"/>
   </node>
 
 </launch>

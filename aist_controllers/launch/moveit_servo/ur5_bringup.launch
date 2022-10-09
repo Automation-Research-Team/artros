@@ -72,4 +72,21 @@
 	args="--stopped $(arg stopped_controllers)"
 	output="screen" respawn="false" />
 
+  <!-- Start moveit planner -->
+  <remap from="/scaled_pos_joint_traj_controller/follow_joint_trajectory"
+	 to="/pos_joint_traj_controller/follow_joint_trajectory"/>
+  <include file="$(find ur5_moveit_config)/launch/move_group.launch">
+    <arg name="load_robot_description"	value="false"/>
+  </include>
+
+  <!-- Start controller manager -->
+  <node name="rqt_controller_manager"
+	pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+  
+  <!-- Start Rviz -->
+  <include file="$(find ur5_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="rviz_config"	value="$(find aist_controllers
+				       )/launch/moveit_servo/ur5.rviz"/>
+  </include>
+
 </launch>
