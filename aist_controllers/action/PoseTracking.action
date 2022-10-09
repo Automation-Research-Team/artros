@@ -1,0 +1,10 @@
+# Goal
+geometry_msgs/PoseStamped target
+float64[3]                lin_tol
+float64                   rot_tol
+---
+# Result
+---
+# Feedback
+float64 pointing_position_error
+float64 pointing_angle_error

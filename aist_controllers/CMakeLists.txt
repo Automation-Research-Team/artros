@@ -38,7 +38,11 @@ include_directories(
   ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
 )
 
-add_action_files(FILES PoseHead.action)
+add_action_files(
+  FILES
+    PoseHead.action
+    PoseTracking.action
+)
 
 generate_messages(
   DEPENDENCIES
@@ -129,27 +133,6 @@ add_dependencies(
 )
 
 add_executable(
-  pose_head_servo
-  src/pose_head_servo.cpp
-  src/moveit_servo/collision_check.cpp
-  src/moveit_servo/low_pass_filter.cpp
-  src/moveit_servo/pose_tracking.cpp
-  src/moveit_servo/servo.cpp
-  src/moveit_servo/servo_calcs.cpp
-)
-
-target_link_libraries(
-  pose_head_servo
-  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
-)
-
-add_dependencies(
-  pose_head_servo
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${catkin_EXPORTED_TARGETS}
-)
-
-add_executable(
   pose_tracking_example
   src/moveit_servo/pose_tracking_example.cpp
   src/moveit_servo/collision_check.cpp
@@ -192,7 +175,7 @@ add_dependencies(
 
 install(
   TARGETS point_head_tracker pose_head_tracker pose_group_tracker
-  pose_tracking_servo pose_head_servo servo_server
+  pose_tracking_servo servo_server
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

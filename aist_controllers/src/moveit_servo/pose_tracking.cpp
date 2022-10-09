@@ -157,9 +157,8 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
   // - Target pose becomes outdated
   // - Command frame transform becomes outdated
   // - Another thread requested a stop
-    // while (ros::ok() &&
-    // 	   !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
-    while (ros::ok())
+    while (ros::ok() &&
+    	   !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
     {
       // Attempt to update robot pose
 	if (servo_->getEEFrameTransform(ee_frame_transform_))
@@ -316,8 +315,7 @@ PoseTracking::haveRecentTargetPose(const double timespan)
 bool
 PoseTracking::haveRecentEndEffectorPose(const double timespan)
 {
-  return ((ros::Time::now() - ee_frame_transform_stamp_).toSec() <
-	  timespan);
+  return ((ros::Time::now() - ee_frame_transform_stamp_).toSec() < timespan);
 }
 
 bool
@@ -332,11 +330,19 @@ PoseTracking::satisfiesPoseTolerance(
 		   - ee_frame_transform_.translation()(1);
     double z_error = target_pose_.pose.position.z
 		   - ee_frame_transform_.translation()(2);
-    
+
   // If uninitialized, likely haven't received the target pose yet.
     if (!angular_error_)
 	return false;
 	
+    // std::cerr << "Error: (" << x_error << ' ' << y_error << ' ' << z_error
+    // 	      << ';' << *angular_error_
+    // 	      << "), Tol: (" << positional_tolerance(0)
+    // 	      << ' '  << positional_tolerance(1)
+    // 	      << ' '  << positional_tolerance(2)
+    // 	      << ';'  << angular_tolerance
+    // 	      << ')' << std::endl;
+    
     return ((std::abs(x_error) < positional_tolerance(0)) &&
 	    (std::abs(y_error) < positional_tolerance(1)) &&
 	    (std::abs(z_error) < positional_tolerance(2)) &&
