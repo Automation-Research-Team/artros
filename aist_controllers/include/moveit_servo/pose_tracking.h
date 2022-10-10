@@ -165,11 +165,12 @@ class PoseTracking
   private:
     ros::NodeHandle			nh_;
 
-    planning_scene_monitor::PlanningSceneMonitorPtr	planning_scene_monitor_;
-    robot_model::RobotModelConstPtr			robot_model_;
-    const moveit::core::JointModelGroup*		joint_model_group_;
+    planning_scene_monitor::PlanningSceneMonitorPtr
+					planning_scene_monitor_;
+    robot_model::RobotModelConstPtr	robot_model_;
+    const moveit::core::JointModelGroup* joint_model_group_;
   // Joint group used for controlling the motions
-    std::string						move_group_name_;
+    std::string				move_group_name_;
 
     ros::Rate loop_rate_;
 
@@ -180,7 +181,8 @@ class PoseTracking
     std::vector<control_toolbox::Pid>	cartesian_position_pids_;
     std::vector<control_toolbox::Pid>	cartesian_orientation_pids_;
   // Cartesian PID configs
-    PIDConfig x_pid_config_, y_pid_config_, z_pid_config_, angular_pid_config_;
+    PIDConfig				x_pid_config_, y_pid_config_,
+					z_pid_config_, angular_pid_config_;
 
   // Transforms w.r.t. planning_frame_
     Eigen::Isometry3d			ee_frame_transform_;

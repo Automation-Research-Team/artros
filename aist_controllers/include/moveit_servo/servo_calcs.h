@@ -229,36 +229,38 @@ class ServoCalcs
 			  std_srvs::Empty::Response& res);
 
   private:
-    ros::NodeHandle nh_;
+    ros::NodeHandle		nh_;
 
   // Parameters from yaml
-    ServoParameters& parameters_;
+    ServoParameters&		parameters_;
 
   // Pointer to the collision environment
-    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor_;
+    planning_scene_monitor::PlanningSceneMonitorPtr
+				planning_scene_monitor_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
-    int zero_velocity_count_ = 0;
+    int				zero_velocity_count_ = 0;
 
   // Flag for staying inactive while there are no incoming commands
-    bool wait_for_servo_commands_ = true;
+    bool			wait_for_servo_commands_ = true;
 
   // Flag saying if the filters were updated during the timer callback
-    bool updated_filters_ = false;
+    bool			updated_filters_ = false;
 
   // Nonzero status flags
-    bool have_nonzero_twist_stamped_ = false;
-    bool have_nonzero_joint_command_ = false;
-    bool have_nonzero_command_ = false;
+    bool			have_nonzero_twist_stamped_ = false;
+    bool			have_nonzero_joint_command_ = false;
+    bool			have_nonzero_command_ = false;
 
   // Incoming command messages
-    geometry_msgs::TwistStamped twist_stamped_cmd_;
-    control_msgs::JointJog joint_servo_cmd_;
+    geometry_msgs::TwistStamped	twist_stamped_cmd_;
+    control_msgs::JointJog	joint_servo_cmd_;
 
-    const moveit::core::JointModelGroup* joint_model_group_;
+    const moveit::core::JointModelGroup*
+				joint_model_group_;
 
-    moveit::core::RobotStatePtr current_state_;
+    moveit::core::RobotStatePtr	current_state_;
 
   // incoming_joint_state_ is the incoming message. It may contain passive
   // joints or other joints we don't care about.
@@ -267,64 +269,66 @@ class ServoCalcs
   // relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_
   // except it only contains the joints the servo node acts on.
-    sensor_msgs::JointState internal_joint_state_, original_joint_state_;
-    std::map<std::string, std::size_t> joint_state_name_map_;
+    sensor_msgs::JointState		internal_joint_state_,
+					original_joint_state_;
+    std::map<std::string, std::size_t>	joint_state_name_map_;
 
-    std::vector<LowPassFilter> position_filters_;
+    std::vector<LowPassFilter>		position_filters_;
 
-    trajectory_msgs::JointTrajectoryConstPtr last_sent_command_;
+    trajectory_msgs::JointTrajectoryConstPtr
+					last_sent_command_;
 
   // ROS
-    ros::Subscriber joint_state_sub_;
-    ros::Subscriber twist_stamped_sub_;
-    ros::Subscriber joint_cmd_sub_;
-    ros::Subscriber collision_velocity_scale_sub_;
-    ros::Publisher status_pub_;
-    ros::Publisher worst_case_stop_time_pub_;
-    ros::Publisher outgoing_cmd_pub_;
-    ros::ServiceServer drift_dimensions_server_;
-    ros::ServiceServer control_dimensions_server_;
-    ros::ServiceServer reset_servo_status_;
+    ros::Subscriber	joint_state_sub_;
+    ros::Subscriber	twist_stamped_sub_;
+    ros::Subscriber	joint_cmd_sub_;
+    ros::Subscriber	collision_velocity_scale_sub_;
+    ros::Publisher	status_pub_;
+    ros::Publisher	worst_case_stop_time_pub_;
+    ros::Publisher	outgoing_cmd_pub_;
+    ros::ServiceServer	drift_dimensions_server_;
+    ros::ServiceServer	control_dimensions_server_;
+    ros::ServiceServer	reset_servo_status_;
 
   // Main tracking / result publisher loop
-    std::thread thread_;
-    bool stop_requested_;
+    std::thread		thread_;
+    bool		stop_requested_;
 
   // Status
-    StatusCode status_ = StatusCode::NO_WARNING;
-    std::atomic<bool> paused_;
-    bool twist_command_is_stale_ = false;
-    bool joint_command_is_stale_ = false;
-    bool ok_to_publish_ = false;
-    double collision_velocity_scale_ = 1.0;
+    StatusCode		status_ = StatusCode::NO_WARNING;
+    std::atomic<bool>	paused_;
+    bool		twist_command_is_stale_ = false;
+    bool		joint_command_is_stale_ = false;
+    bool		ok_to_publish_ = false;
+    double		collision_velocity_scale_ = 1.0;
 
   // Use ArrayXd type to enable more coefficient-wise operations
-    Eigen::ArrayXd delta_theta_;
-    Eigen::ArrayXd prev_joint_velocity_;
+    Eigen::ArrayXd	delta_theta_;
+    Eigen::ArrayXd	prev_joint_velocity_;
 
-    const int gazebo_redundant_message_count_ = 30;
+    const int		gazebo_redundant_message_count_ = 30;
 
-    uint num_joints_;
+    uint		num_joints_;
 
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6> drift_dimensions_ = { { false, false, false, false, false, false } };
+    std::array<bool, 6>	drift_dimensions_ = { { false, false, false, false, false, false } };
 
   // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6> control_dimensions_ = { { true, true, true, true, true, true } };
+    std::array<bool, 6>	control_dimensions_ = { { true, true, true, true, true, true } };
 
   // input_mutex_ is used to protect the state below it
-    mutable std::mutex input_mutex_;
-    Eigen::Isometry3d tf_moveit_to_robot_cmd_frame_;
-    Eigen::Isometry3d tf_moveit_to_ee_frame_;
-    geometry_msgs::TwistStampedConstPtr latest_twist_stamped_;
-    control_msgs::JointJogConstPtr latest_joint_cmd_;
-    ros::Time latest_twist_command_stamp_ = ros::Time(0.);
-    ros::Time latest_joint_command_stamp_ = ros::Time(0.);
-    bool latest_nonzero_twist_stamped_ = false;
-    bool latest_nonzero_joint_cmd_ = false;
+    mutable std::mutex			input_mutex_;
+    Eigen::Isometry3d			tf_moveit_to_robot_cmd_frame_;
+    Eigen::Isometry3d			tf_moveit_to_ee_frame_;
+    geometry_msgs::TwistStampedConstPtr	latest_twist_stamped_;
+    control_msgs::JointJogConstPtr	latest_joint_cmd_;
+    ros::Time				latest_twist_command_stamp_ = ros::Time(0.);
+    ros::Time				latest_joint_command_stamp_ = ros::Time(0.);
+    bool				latest_nonzero_twist_stamped_ = false;
+    bool				latest_nonzero_joint_cmd_ = false;
 
   // input condition variable used for low latency mode
-    std::condition_variable input_cv_;
-    bool new_input_cmd_ = false;
+    std::condition_variable		input_cv_;
+    bool				new_input_cmd_ = false;
 };
 }  // namespace moveit_servo

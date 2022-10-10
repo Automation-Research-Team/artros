@@ -48,7 +48,7 @@ class PoseTrackingServo
     using tracking_status_t = moveit_servo::PoseTrackingStatusCode;
 
   public:
-		PoseTrackingServo(const std::string& action_ns)		;
+		PoseTrackingServo()					;
 		~PoseTrackingServo()					;
 
     void	run()							;
@@ -74,13 +74,13 @@ class PoseTrackingServo
     std::thread			_move_to_pose_thread;
 };
 
-PoseTrackingServo::PoseTrackingServo(const std::string& action_ns)
+PoseTrackingServo::PoseTrackingServo()
     :_nh("~"),
      _planning_scene_monitor(create_planning_scene_monitor(
 				 "robot_description")),
      _tracker(_nh, _planning_scene_monitor),
      _servo_status(servo_status_t::INVALID),
-     _tracker_srv(_nh, action_ns,
+     _tracker_srv(_nh, "pose_tracking",
 		  boost::bind(&PoseTrackingServo::execute_cb, this, _1),
 		  false),
      _servo_status_sub(_nh.subscribe(
@@ -144,9 +144,9 @@ PoseTrackingServo::create_planning_scene_monitor(
 void
 PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 {
-    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
-			  << goal->target.header.frame_id << '@'
-			  << goal->target.pose << ']');
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED[("
+			  << goal->target.pose << ")@"
+			  << goal->target.header.frame_id << ']');
 
     _tracker.resetTargetPose();
     std_srvs::Empty	empty;
@@ -197,8 +197,13 @@ PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 
 	    _tracker_srv.setAborted();
 	    ROS_ERROR_STREAM_NAMED(
-		LOGNAME, "(PoseTrackingServo) goal ABORTED[Servo error]");
+		LOGNAME, "(PoseTrackingServo) goal ABORTED["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(_servo_status)
+		<< ']');
 	    return;
+
+	  default:
+	    break;
 	}
     }
 
@@ -265,7 +270,7 @@ main(int argc, char* argv[])
 {
     ros::init(argc, argv, aist_controllers::LOGNAME);
 
-    aist_controllers::PoseTrackingServo	servo("pose_tracking");
+    aist_controllers::PoseTrackingServo	servo;
     servo.run();
 
     return 0;

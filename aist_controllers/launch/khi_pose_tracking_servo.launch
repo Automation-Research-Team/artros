@@ -6,7 +6,6 @@
   <arg name="camera_name"	default="realsense"/>
   <arg name="traj"		default="true"/>
   <arg name="manager"		default=""/>
-  <arg name="publish_rate"	default="100"/>
 
   <!-- Launch cameras -->
   <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
