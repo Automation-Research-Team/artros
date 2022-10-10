@@ -3,7 +3,7 @@
 #################################
 
 # Maximum value of error integral for all PID controllers
-windup_limit: 0.05
+windup_limit: 5.0
 
 # PID gains
 x_proportional_gain: 10.0
