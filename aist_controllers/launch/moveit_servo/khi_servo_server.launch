@@ -19,7 +19,7 @@
 
   <node name="servo_server"
 	pkg="aist_controllers" type="servo_server" output="screen" >
-    <rosparam file="$(dirname)/../../config/tranbo_servo_server.yaml"
+    <rosparam file="$(dirname)/../../config/khi_servo_server.yaml"
 	      subst_value="true"/>
   </node>
 

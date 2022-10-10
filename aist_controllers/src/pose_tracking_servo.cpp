@@ -24,8 +24,8 @@ static const std::string LOGNAME = "pose_tracking_servo";
 std::ostream&
 operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
 {
-    return out << pose.position.x << ' '
-	       << pose.position.y << ' '
+    return out << pose.position.x << ','
+	       << pose.position.y << ','
 	       << pose.position.z << ';'
 	       << pose.orientation.x << ','
 	       << pose.orientation.y << ','
@@ -44,39 +44,8 @@ class PoseTrackingServo
     using planning_scene_monitor_p
 		= planning_scene_monitor::PlanningSceneMonitorPtr;
     using server_t = actionlib::SimpleActionServer<PoseTrackingAction>;
-
-    class StatusMonitor
-    {
-      private:
-	using StatusCode = moveit_servo::StatusCode;
-
-      public:
-	StatusMonitor(ros::NodeHandle& nh, const std::string& topic)
-	    :_status_sub(nh.subscribe(topic, 1, &StatusMonitor::status_cb,
-				      this)),
-	     _status(StatusCode::INVALID)
-	{
-	}
-
-      private:
-	void
-	status_cb(const std_msgs::Int8ConstPtr& msg)
-	{
-	    const auto	latest_status = static_cast<StatusCode>(msg->data);
-	    if (latest_status != _status)
-	    {
-		_status = latest_status;
-
-		ROS_INFO_STREAM_NAMED(
-		    LOGNAME, "(PoseTrackingServo) Servo status: "
-		    << moveit_servo::SERVO_STATUS_CODE_MAP.at(_status));
-	    }
-	}
-
-      private:
-	ros::Subscriber			_status_sub;
-	moveit_servo::StatusCode	_status;
-    };
+    using servo_status_t    = moveit_servo::StatusCode;
+    using tracking_status_t = moveit_servo::PoseTrackingStatusCode;
 
   public:
 		PoseTrackingServo(const std::string& action_ns)		;
@@ -88,15 +57,18 @@ class PoseTrackingServo
     static planning_scene_monitor_p
 		create_planning_scene_monitor(
 		    const std::string& robot_description)		;
-    void	execute_cb(const PoseTrackingGoalConstPtr& goal)		;
+    void	execute_cb(const PoseTrackingGoalConstPtr& goal)	;
+    void	servo_status_cb(const std_msgs::Int8ConstPtr& msg)	;
 
   private:
     ros::NodeHandle		_nh;
     planning_scene_monitor_p	_planning_scene_monitor;
     moveit_servo::PoseTracking	_tracker;
-    StatusMonitor		_status_monitor;
+    servo_status_t		_servo_status;
 
     server_t			_tracker_srv;
+    ros::Subscriber		_servo_status_sub;
+    ros::ServiceClient		_reset_servo_status;
     const ros::Publisher	_target_pose_pub;
 
     std::thread			_move_to_pose_thread;
@@ -107,10 +79,15 @@ PoseTrackingServo::PoseTrackingServo(const std::string& action_ns)
      _planning_scene_monitor(create_planning_scene_monitor(
 				 "robot_description")),
      _tracker(_nh, _planning_scene_monitor),
-     _status_monitor(_nh, "status"),
+     _servo_status(servo_status_t::INVALID),
      _tracker_srv(_nh, action_ns,
 		  boost::bind(&PoseTrackingServo::execute_cb, this, _1),
 		  false),
+     _servo_status_sub(_nh.subscribe(
+			   _tracker.servo_->getParameters().status_topic, 1,
+			   &PoseTrackingServo::servo_status_cb, this)),
+     _reset_servo_status(_nh.serviceClient<std_srvs::Empty>(
+			     "reset_servo_status")),
      _target_pose_pub(_nh.advertise<geometry_msgs::PoseStamped>("target_pose",
 								1, true)),
      _move_to_pose_thread()
@@ -167,16 +144,16 @@ PoseTrackingServo::create_planning_scene_monitor(
 void
 PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 {
-    using	status_t = moveit_servo::PoseTrackingStatusCode;
-    
     ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
 			  << goal->target.header.frame_id << '@'
 			  << goal->target.pose << ']');
 
     _tracker.resetTargetPose();
-    
-    status_t	tracking_status = status_t::INVALID;
-    
+    std_srvs::Empty	empty;
+    _reset_servo_status.call(empty);
+    tracking_status_t	tracking_status = tracking_status_t::INVALID;
+    _tracker.servo_->start();
+
     _move_to_pose_thread = std::thread(
 				[this,
 				 lin_tol=goal->lin_tol, rot_tol=goal->rot_tol,
@@ -190,8 +167,13 @@ PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 				});
 
     for (ros::Rate rate(1 / _tracker.servo_->getParameters().publish_period);
-	 ros::ok() && tracking_status == status_t::INVALID; rate.sleep())
+	 ros::ok() && tracking_status == tracking_status_t::INVALID;
+	 rate.sleep())
     {
+	geometry_msgs::PoseStamped	target_pose = goal->target;
+	target_pose.header.stamp = ros::Time::now();
+	_target_pose_pub.publish(target_pose);
+	
 	if (_tracker_srv.isPreemptRequested())
 	{
 	    _tracker.stopMotion();
@@ -204,35 +186,74 @@ PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 	    return;
 	}
 	
-	geometry_msgs::PoseStamped	target_pose = goal->target;
-	target_pose.header.stamp = ros::Time::now();
-	_target_pose_pub.publish(target_pose);
+	switch (_servo_status)
+	{
+	  case servo_status_t::HALT_FOR_SINGULARITY:
+	  case servo_status_t::HALT_FOR_COLLISION:
+	  case servo_status_t::JOINT_BOUND:
+	    _tracker.stopMotion();
+	    if (_move_to_pose_thread.joinable())
+		_move_to_pose_thread.join();
+
+	    _tracker_srv.setAborted();
+	    ROS_ERROR_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) goal ABORTED[Servo error]");
+	    return;
+	}
     }
 
     if (_move_to_pose_thread.joinable())
 	_move_to_pose_thread.join();
-    
-    switch (tracking_status)
+
+    if (tracking_status == tracking_status_t::SUCCESS)
     {
-      case status_t::SUCCESS:
 	_tracker_srv.setSucceeded();
 	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal SUCCEEDED");
-	break;
-      case status_t::NO_RECENT_TARGET_POSE:
+    }
+    else
+    {
 	_tracker_srv.setAborted();
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED[no recent target pose]");
-	break;
-      case status_t::NO_RECENT_END_EFFECTOR_POSE:
-	_tracker_srv.setAborted();
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED[no recent end effector pose]");
-	break;
-      default:
-	_tracker_srv.setAborted();
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED[unknown error]");
-	break;
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
+			       << moveit_servo::POSE_TRACKING_STATUS_CODE_MAP
+			              .at(tracking_status)
+			       << ']');
     }
 }
 
+void
+PoseTrackingServo::servo_status_cb(const std_msgs::Int8ConstPtr& msg)
+{
+    const auto	latest_servo_status = static_cast<servo_status_t>(msg->data);
+    if (latest_servo_status != _servo_status)
+    {
+	_servo_status = latest_servo_status;
+
+	switch (_servo_status)
+	{
+	  case servo_status_t::DECELERATE_FOR_SINGULARITY:
+	  case servo_status_t::DECELERATE_FOR_COLLISION:
+	    ROS_WARN_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) Servo status["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(_servo_status)
+		<< ']');
+	    break;
+	  case servo_status_t::HALT_FOR_SINGULARITY:
+	  case servo_status_t::HALT_FOR_COLLISION:
+	  case servo_status_t::JOINT_BOUND:
+	    ROS_ERROR_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) Servo status["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(_servo_status)
+		<< ']');
+	    break;
+	  default:
+	    ROS_INFO_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) Servo status["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(_servo_status)
+		<< ']');
+	    break;
+	}
+    }
+}
 
 }	// namespace aist_controllers
 

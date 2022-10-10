@@ -20,9 +20,9 @@
 
   <node name="pose_tracking_example"
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
-    <rosparam file="$(dirname)/../../config/tranbo_servo_server.yaml"
+    <rosparam file="$(dirname)/../../config/khi_servo_server.yaml"
 	      subst_value="true"/>
-    <rosparam file="$(dirname)/../../config/tranbo_pose_tracking.yaml"/>
+    <rosparam file="$(dirname)/../../config/khi_pose_tracking.yaml"/>
   </node>
 
 </launch>
