@@ -1,0 +1,60 @@
+###############################################
+# Modify all parameters related to servoing here
+###############################################
+use_gazebo: $(arg sim)
+
+## Properties of incoming commands
+command_in_type: "speed_units"
+
+# Scale parameters are only used if command_in_type=="unitless"
+scale:
+  linear:     0.6
+  rotational: 0.3
+  joint:      0.01
+
+low_pass_filter_coeff: 4.
+
+## Properties of outgoing commands
+publish_period:   0.002
+low_latency_mode: true
+
+command_out_type: $(arg command_out_type)
+
+publish_joint_positions:     true
+publish_joint_velocities:    false
+publish_joint_accelerations: false
+
+## MoveIt properties
+move_group_name:           arm
+planning_frame:            arm_base_link
+ee_frame_name:             magnet_tip_link
+robot_link_command_frame:  base_link
+
+## Stopping behaviour
+incoming_command_timeout:          0.1
+num_outgoing_halt_msgs_to_publish: 4
+
+## Configure handling of singularities and joint limits
+lower_singularity_threshold:     17
+hard_stop_singularity_threshold: 30
+joint_limit_margin:              0.1
+
+## Topic names
+cartesian_command_in_topic: delta_twist_cmds
+joint_command_in_topic:     delta_joint_cmds
+joint_topic:                joint_states
+status_topic:               status
+command_out_topic:          /$(arg controller)/command
+
+## Collision checking for the entire robot body
+check_collisions:     true
+collision_check_rate: 50
+collision_check_type: threshold_distance
+
+# Parameters for "threshold_distance"-type collision checking
+self_collision_proximity_threshold: 0.01
+scene_collision_proximity_threshold: 0.05
+
+# Parameters for "stop_distance"-type collision checking
+collision_distance_safety_factor: 1000
+min_allowable_collision_distance: 0.01
