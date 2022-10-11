@@ -8,14 +8,14 @@
   <arg name="manager"		default=""/>
 
   <!-- Launch cameras -->
-  <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
-    <arg name="sim"		 value="$(arg sim)"/>
-    <arg name="phoxi_config"	 value="$(find toyota1_nagara
-					)/config/motioncam_camera.yaml"/>
-    <arg name="realsense_config" value="$(find toyota1_nagara
-					)/config/realsense.yaml"/>
-    <arg name="manager"		 value="$(arg manager)"/>
-  </include>
+  <!-- <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch"> -->
+  <!--   <arg name="sim"		 value="$(arg sim)"/> -->
+  <!--   <arg name="phoxi_config"	 value="$(find toyota1_nagara -->
+  <!-- 					)/config/motioncam_camera.yaml"/> -->
+  <!--   <arg name="realsense_config" value="$(find toyota1_nagara -->
+  <!-- 					)/config/realsense.yaml"/> -->
+  <!--   <arg name="manager"		 value="$(arg manager)"/> -->
+  <!-- </include> -->
 
   <!-- Start ArUco -->
   <!-- <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen" -->

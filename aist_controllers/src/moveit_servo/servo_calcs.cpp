@@ -181,9 +181,14 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   // Publish freshly-calculated joints to the robot.
   // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
     if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
+    {
 	outgoing_cmd_pub_
 	    = nh_.advertise<trajectory_msgs::JointTrajectory>(
 		parameters_.command_out_topic, ROS_QUEUE_SIZE);
+	outgoing_cmd_debug_pub_
+	    = nh_.advertise<trajectory_msgs::JointTrajectory>(
+		parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE);
+    }
     else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
 	outgoing_cmd_pub_
 	    = nh_.advertise<std_msgs::Float64MultiArray>(
@@ -507,6 +512,10 @@ ServoCalcs::calculateSingleIteration()
 	  // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
 	    joint_trajectory->header.stamp = ros::Time(0);
 	    outgoing_cmd_pub_.publish(joint_trajectory);
+
+	    auto	joint_trajectory_debug = *joint_trajectory;
+	    joint_trajectory_debug.header.stamp = ros::Time::now();
+	    outgoing_cmd_debug_pub_.publish(joint_trajectory_debug);
 	}
 	else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
 	{
@@ -656,11 +665,11 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
     Eigen::MatrixXd matrix_s	   = svd.singularValues().asDiagonal();
     Eigen::MatrixXd pseudo_inverse = svd.matrixV() * matrix_s.inverse()
 				   * svd.matrixU().transpose();
-    
+
     delta_theta_ = pseudo_inverse * delta_x;
 
   //std::cerr << "--- delta_x: " << delta_x << std::endl;
-    
+
     enforceVelLimits(delta_theta_);
 
   // If close to a collision or a singularity, decelerate
