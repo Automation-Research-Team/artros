@@ -286,6 +286,7 @@ class ServoCalcs
     ros::Publisher	status_pub_;
     ros::Publisher	worst_case_stop_time_pub_;
     ros::Publisher	outgoing_cmd_pub_;
+    ros::Publisher	outgoing_cmd_debug_pub_;
     ros::ServiceServer	drift_dimensions_server_;
     ros::ServiceServer	control_dimensions_server_;
     ros::ServiceServer	reset_servo_status_;

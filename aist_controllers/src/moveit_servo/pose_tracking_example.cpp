@@ -209,8 +209,8 @@ main(int argc, char** argv)
   // Publish target pose
     target_pose.header.stamp = ros::Time::now();
     target_pose_pub.publish(target_pose);
-    std::cerr << "target_pose: " << target_pose.header.frame_id
-	      << "@[" << target_pose.pose << ']'
+    std::cerr << "target_pose: [" << target_pose.pose << "]@"
+	      << target_pose.header.frame_id
 	      << std::endl
 	      << "--------" << std::endl;
 
@@ -222,32 +222,36 @@ main(int argc, char** argv)
     for (int n = 0; n < 100; ++n)
     {
 	double	x_error, y_error, z_error, orientation_error;
-	
-	for (size_t i = 0; i < 100; ++i)
+
+	for (size_t i = 0; i < 10; ++i)
 	{
+	    std::cerr << "forward:  n=" << n << ", i=" << i << std::endl;
+
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
 	    target_pose.pose.position.y += 0.001;
 	    target_pose.header.stamp = ros::Time::now();
 	    target_pose_pub.publish(target_pose);
-	    tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
-	    // std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
-	    // 	      << z_error << ';' << orientation_error << std::endl;
-	    
+	  //tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
+	  // std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
+	  // 	      << z_error << ';' << orientation_error << std::endl;
+
 	    loop_rate.sleep();
 	}
 
 	for (size_t i = 0; i < 100; ++i)
 	{
+	    std::cerr << "backward: n=" << n << ", i=" << i << std::endl;
+
 	  // Modify the pose target a little bit each cycle
 	  // This is a dynamic pose target
 	    target_pose.pose.position.y -= 0.001;
 	    target_pose.header.stamp = ros::Time::now();
 	    target_pose_pub.publish(target_pose);
-	    tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
-	    // std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
-	    // 	      << z_error << ';' << orientation_error << std::endl;
-	    
+	  //tracker.getPIDErrors(x_error, y_error, z_error, orientation_error);
+	  // std::cerr << "PID errors=(" << x_error << ' ' << y_error << ' '
+	  // 	      << z_error << ';' << orientation_error << std::endl;
+
 	    loop_rate.sleep();
 	}
     }

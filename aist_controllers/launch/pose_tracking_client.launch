@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="target_frame"	default="marker_frame"/>
+  <arg name="target_pose"	default="[0.1, 0.05, 0.2, -90, 90, 0]"/>
+
+  <!-- Spawn controller -->
+  <node name="pose_tracking_client"
+        pkg="aist_controllers" type="pose_tracking_client.py"
+        output="screen" respawn="false">
+    <param name="target_frame"	value="$(arg target_frame)"/>
+    <rosparam param="target_pose"
+	      subst_value="true">$(arg target_pose)</rosparam>
+  </node>
+
+</launch>
