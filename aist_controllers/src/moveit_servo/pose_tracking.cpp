@@ -111,14 +111,19 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
   // Connect to Servo ROS interfaces
     target_pose_sub_ =
 	nh_.subscribe<geometry_msgs::PoseStamped>(
-	    "target_pose", 1, &PoseTracking::targetPoseCallback, this);
+	    "target_pose", 1, &PoseTracking::targetPoseCallback, this,
+	    ros::TransportHints().reliable().tcpNoDelay(true));
 
   // Publish outgoing twist commands to the Servo object
     twist_stamped_pub_ =
 	nh_.advertise<geometry_msgs::TwistStamped>(
 	    servo_->getParameters().cartesian_command_in_topic, 1);
 
-    ee_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("ee_pose", 1);
+  // For debugging
+    target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(
+				"target_pose_debug", 1);
+    ee_pose_pub_     = nh_.advertise<geometry_msgs::PoseStamped>(
+				"ee_pose_debug", 1);
 }
 
 PoseTrackingStatusCode
@@ -190,6 +195,7 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
 	twist_stamped_pub_.publish(calculateTwistCommand());
 	
       // For debugging
+	target_pose_pub_.publish(target_pose_);
 	ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
 					    ee_frame_transform_,
 					    ee_frame_transform_stamp_,

@@ -5,7 +5,7 @@
   <arg name="scene"		default="calibration"/>
   <arg name="camera_name"	default="realsense"/>
   <arg name="traj"		default="true"/>
-  <arg name="manager"		default=""/>
+  <arg name="manager"		default="camera_manager"/>
 
   <!-- Launch cameras -->
   <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
@@ -19,7 +19,7 @@
 
   <!-- Start ArUco -->
   <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
-        args="standalone aist_aruco_ros/aruco_detector">
+        args="load aist_aruco_ros/aruco_detector $(arg manager)">
     <remap if="$(eval camera_name == 'phoxi')"
   	   from="/camera_info"	to="$(arg camera_name)/camera_info"/>
     <remap if="$(eval camera_name == 'phoxi')"

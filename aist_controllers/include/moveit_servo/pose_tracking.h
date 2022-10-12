@@ -191,6 +191,7 @@ class PoseTracking
     mutable std::mutex			target_pose_mtx_;
 
   // For debugging
+    ros::Publisher			target_pose_pub_;
     ros::Publisher			ee_pose_pub_;
 
   // Subscribe to target pose

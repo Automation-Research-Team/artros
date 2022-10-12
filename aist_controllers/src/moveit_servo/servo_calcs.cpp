@@ -147,10 +147,12 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   // Subscribe to command topics
     twist_stamped_sub_ =
 	nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
-		      &ServoCalcs::twistStampedCB, this);
-    joint_cmd_sub_ = nh_.subscribe(parameters_.joint_command_in_topic,
-				   ROS_QUEUE_SIZE,
-				   &ServoCalcs::jointCmdCB, this);
+		      &ServoCalcs::twistStampedCB, this,
+		      ros::TransportHints().reliable().tcpNoDelay(true));
+    joint_cmd_sub_ = nh_.subscribe(
+			parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
+			&ServoCalcs::jointCmdCB, this,
+			ros::TransportHints().reliable().tcpNoDelay(true));
 
   // ROS Server for allowing drift in some dimensions
     drift_dimensions_server_ = nh_.advertiseService(
@@ -668,8 +670,6 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 
     delta_theta_ = pseudo_inverse * delta_x;
 
-  //std::cerr << "--- delta_x: " << delta_x << std::endl;
-
     enforceVelLimits(delta_theta_);
 
   // If close to a collision or a singularity, decelerate
@@ -940,17 +940,17 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 {
   // Convert to joint angle velocities for checking and applying joint
   // specific velocity limits.
-    Eigen::ArrayXd velocity = delta_theta / parameters_.publish_period;
+    Eigen::ArrayXd	velocity = delta_theta / parameters_.publish_period;
 
-    std::size_t joint_delta_index{ 0 };
-    double velocity_scaling_factor{ 1.0 };
+    std::size_t		joint_delta_index{ 0 };
+    double		velocity_scaling_factor{ 1.0 };
     for (const moveit::core::JointModel* joint
 	     : joint_model_group_->getActiveJointModels())
     {
-	const auto& bounds = joint->getVariableBounds(joint->getName());
+	const auto&	bounds = joint->getVariableBounds(joint->getName());
 	if (bounds.velocity_bounded_ && velocity(joint_delta_index) != 0.0)
 	{
-	    const double unbounded_velocity = velocity(joint_delta_index);
+	    const auto	unbounded_velocity = velocity(joint_delta_index);
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
 	    const auto bounded_velocity
