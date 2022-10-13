@@ -40,10 +40,10 @@ class PoseTrackingServo
 {
   private:
     using planning_scene_monitor_t
-		= planning_scene_monitor::PlanningSceneMonitor;
+			= planning_scene_monitor::PlanningSceneMonitor;
     using planning_scene_monitor_p
-		= planning_scene_monitor::PlanningSceneMonitorPtr;
-    using server_t = actionlib::SimpleActionServer<PoseTrackingAction>;
+			= planning_scene_monitor::PlanningSceneMonitorPtr;
+    using server_t	= actionlib::SimpleActionServer<PoseTrackingAction>;
     using servo_status_t    = moveit_servo::StatusCode;
     using tracking_status_t = moveit_servo::PoseTrackingStatusCode;
 
