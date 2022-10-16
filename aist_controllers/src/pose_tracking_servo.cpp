@@ -145,8 +145,8 @@ void
 PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 {
     ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED[("
-			  << goal->target.pose << ")@"
-			  << goal->target.header.frame_id << ']');
+			  << goal->target_pose.pose << ")@"
+			  << goal->target_pose.header.frame_id << ']');
 
     _tracker.resetTargetPose();
     std_srvs::Empty	empty;
@@ -170,10 +170,10 @@ PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 	 ros::ok() && tracking_status == tracking_status_t::INVALID;
 	 rate.sleep())
     {
-	geometry_msgs::PoseStamped	target_pose = goal->target;
+	geometry_msgs::PoseStamped	target_pose = goal->target_pose;
 	target_pose.header.stamp = ros::Time::now();
 	_target_pose_pub.publish(target_pose);
-	
+
 	if (_tracker_srv.isPreemptRequested())
 	{
 	    _tracker.stopMotion();
@@ -185,7 +185,7 @@ PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 				  "(PoseTrackingServo) goal CANCELED");
 	    return;
 	}
-	
+
 	switch (_servo_status)
 	{
 	  case servo_status_t::HALT_FOR_SINGULARITY:

@@ -1,5 +1,5 @@
 # Goal
-geometry_msgs/PoseStamped target
+geometry_msgs/PoseStamped target_pose
 float64[3]                lin_tol
 float64                   rot_tol
 ---

@@ -10,9 +10,6 @@
 # otherwise, arising from, out of or in connection with the software or
 # the use or other dealings in the software.
 import rospy
-from math                 import radians, degrees
-from tf                   import transformations as tfs
-from geometry_msgs.msg    import PoseStamped, Pose, Point, Quaternion
 from actionlib            import SimpleActionClient
 from aist_controllers.msg import PoseTrackingAction, PoseTrackingGoal
 
@@ -38,26 +35,14 @@ class PoseTrackingClient(object):
     def is_connected(self):
         return self._pose_tracking is not None
 
-    def send_pose_goal(self, pose,
-                       lin_tol=(0, 0, 0), rot_tol=0, feedback_cb=None):
-        goal = PoseTrackingGoal()
-        goal.target  = pose
-        goal.lin_tol = lin_tol
-        goal.rot_tol = rot_tol
-
-        self._pose_tracking.send_goal(goal, feedback_cb=feedback_cb)
-
-        rospy.loginfo('(PoseTrackingClient) send goal[target_frame=%s]',
-                      goal.target.header.frame_id)
-
-    def send_goal(self, target_frame, target_pose=[0, 0, 0.01, 90, 90, 0],
+    def send_goal(self, target_pose,
                   lin_tol=(0, 0, 0), rot_tol=0, feedback_cb=None):
-        pose = PoseStamped()
-        pose.header.frame_id = target_frame
-        pose.pose            = Pose(Point(*target_pose[0:3]),
-                                    Quaternion(*tfs.quaternion_from_euler(
-                                        *map(radians, target_pose[3:6]))))
-        self.send_pose_goal(pose, lin_tol, rot_tol, feedback_cb)
+        self._pose_tracking.send_goal(PoseTrackingGoal(target_pose=target_pose,
+                                                       lin_tol=lin_tol,
+                                                       rot_tol=rot_tol),
+                                      feedback_cb=feedback_cb)
+        rospy.loginfo('(PoseTrackingClient) send goal[target_frame=%s]',
+                      target_pose.header.frame_id)
 
     def cancel_goal(self):
         self._pose_tracking.cancel_goal()
