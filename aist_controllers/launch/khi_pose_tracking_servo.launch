@@ -2,7 +2,6 @@
   <!-- Launch an example that sends commands via C++ API. -->
 
   <arg name="sim"		default="false"/>
-  <arg name="scene"		default="calibration"/>
   <arg name="camera_name"	default="realsense"/>
   <arg name="traj"		default="true"/>
   <arg name="manager"		default="camera_manager"/>
