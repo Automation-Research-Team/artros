@@ -66,7 +66,7 @@ class PoseHeadClient(object):
     def max_velocity(self, max_velocity):
         self._max_velocity = max_velocity
 
-    def send_pose_goal(self, pose, feedback_cb=None):
+    def send_goal(self, pose, feedback_cb=None):
         goal = PoseHeadGoal()
         goal.target = pose
         goal.target.header.stamp = rospy.Time.now()
@@ -78,15 +78,6 @@ class PoseHeadClient(object):
 
         rospy.loginfo('(PoseHeadClient) send goal[target_frame=%s,pointing_frame=%s]',
                       goal.target.header.frame_id, goal.pointing_frame)
-
-    def send_goal(self, target_frame, target_pose=[0, 0, 0.3, 180, 0, 0],
-                  feedback_cb=None):
-        pose = PoseStamped()
-        pose.header.frame_id = target_frame
-        pose.pose            = Pose(Point(*target_pose[0:3]),
-                                    Quaternion(*tfs.quaternion_from_euler(
-                                        *map(radians, target_pose[3:6]))))
-        self.send_pose_goal(pose, feedback_cb)
 
     def cancel_goal(self):
         self._pose_head.cancel_goal()

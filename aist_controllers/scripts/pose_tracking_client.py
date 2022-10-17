@@ -81,7 +81,6 @@ class InteractivePoseTrackingClient(PoseTrackingClient):
 
 
 if __name__ == '__main__':
-
     rospy.init_node('pose_tracking_client', anonymous=True)
 
     server = rospy.get_param('~server', 'pose_tracking_servo')
