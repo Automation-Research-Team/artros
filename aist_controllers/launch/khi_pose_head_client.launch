@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="pointing_frame"	default="phoxi_sensor"/>
-  <arg name="min_duration"	default="0.02"/>
-  <arg name="max_velocity"	default="0.3"/>
+  <arg name="pointing_frame"	default="magnet_tip_link"/>
+  <arg name="min_duration"	default="0.01"/>
+  <arg name="max_velocity"	default="0.4"/>
   <arg name="target_frame"	default="marker_frame"/>
-  <arg name="target_pose"	default="[0, 0, 0.6, 180, 0, 0]"/>
+  <arg name="target_pose"	default="[0.1, 0.05, 0.2, -90, 90, 0]"/>
   <arg name="server"		default="pose_head_tracker"/>
-  <arg name="vis"		default="true"/>
+  <arg name="vis"		default="false"/>
 
   <!-- Spawn tracker client -->
   <node name="pose_head_client"

@@ -25,7 +25,8 @@ class PoseHeadClient(object):
 
         self._pointing_frame = rospy.get_param('~pointing_frame',
                                                'a_bot_outside_camera_color_optical_frame')
-        self._min_duration   = rospy.get_param('~min_duration', 0.05)
+        self._min_duration   = rospy.Duration(rospy.get_param('~min_duration',
+                                                              0.05))
         self._max_velocity   = rospy.get_param('~max_velocity', 0.7)
         self._pose_head      = SimpleActionClient(server + '/pose_head',
                                                   PoseHeadAction)
@@ -67,14 +68,17 @@ class PoseHeadClient(object):
         self._max_velocity = max_velocity
 
     def send_goal(self, pose, feedback_cb=None):
+        print("OK0")
         goal = PoseHeadGoal()
-        goal.target = pose
+        goal.target              = pose
         goal.target.header.stamp = rospy.Time.now()
         goal.pointing_frame      = self._pointing_frame
         goal.min_duration        = self._min_duration
         goal.max_velocity        = self._max_velocity
+        print(goal)
 
         self._pose_head.send_goal(goal, feedback_cb=feedback_cb)
+        print("OK2")
 
         rospy.loginfo('(PoseHeadClient) send goal[target_frame=%s,pointing_frame=%s]',
                       goal.target.header.frame_id, goal.pointing_frame)
