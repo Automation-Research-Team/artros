@@ -6,9 +6,9 @@
 windup_limit: 5.0
 
 # PID gains
-x_proportional_gain: 50.0 #200.0
-y_proportional_gain: 50.0 #200.0
-z_proportional_gain: 50.0 #200.0
+x_proportional_gain: 250.0 #200.0
+y_proportional_gain: 250.0 #200.0
+z_proportional_gain: 250.0 #200.0
 x_integral_gain: 1.0 #10.0
 y_integral_gain: 1.0 #10.0
 z_integral_gain: 1.0 #10.0
@@ -16,6 +16,6 @@ x_derivative_gain: 10.0 #5.0
 y_derivative_gain: 10.0 #5.0
 z_derivative_gain: 10.0 #5.0
 
-angular_proportional_gain: 25.0 #100.0
+angular_proportional_gain: 100.0 #100.0
 angular_integral_gain: 1.0 #5.0
 angular_derivative_gain: 1.0 #2.5
