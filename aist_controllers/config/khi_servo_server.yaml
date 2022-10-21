@@ -12,7 +12,7 @@ scale:
   rotational: 0.3
   joint:      0.01
 
-low_pass_filter_coeff: 10.
+low_pass_filter_coeff: 40.
 
 ## Properties of outgoing commands
 publish_period:   0.002
