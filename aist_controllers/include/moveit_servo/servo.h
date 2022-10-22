@@ -57,7 +57,7 @@ namespace moveit_servo
 class Servo
 {
   public:
-    Servo(ros::NodeHandle& nh,
+    Servo(const ros::NodeHandle& nh,
 	  const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
     ~Servo();

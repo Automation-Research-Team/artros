@@ -51,9 +51,9 @@ namespace
 constexpr double ROBOT_STATE_WAIT_TIME = 10.0;  // seconds
 }  // namespace
 
-Servo::Servo(ros::NodeHandle& nh,
+Servo::Servo(const ros::NodeHandle& nh,
 	     const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-  :nh_(nh), planning_scene_monitor_(planning_scene_monitor)
+    :nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
   // Read ROS parameters, typically from YAML file
     if (!readParameters())
@@ -115,8 +115,14 @@ Servo::readParameters()
 				      parameters_.rotational_scale);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "scale/joint",
 				      parameters_.joint_scale);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_coeff",
-				      parameters_.low_pass_filter_coeff);
+
+  //error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_coeff",
+  // 				      parameters_.low_pass_filter_coeff);
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_half_order",
+				      parameters_.low_pass_filter_half_order);
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_cutoff",
+				      parameters_.low_pass_filter_cutoff);
+
     error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_topic",
 				      parameters_.joint_topic);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "command_in_type",
@@ -255,12 +261,28 @@ Servo::readParameters()
 		       "greater than zero. Check yaml file.");
 	return false;
     }
-    if (parameters_.low_pass_filter_coeff < 0.)
+
+  //if (parameters_.low_pass_filter_coeff < 0.)
+  //{
+  // 	ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_coeff' should be "
+  // 		       "greater than zero. Check yaml file.");
+  // 	return false;
+  //}
+    if (parameters_.low_pass_filter_half_order <  1)
     {
-	ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_coeff' should be "
-		       "greater than zero. Check yaml file.");
+	ROS_WARN_NAMED(LOGNAME,
+		       "Parameter 'low_pass_filter_half_order' should be "
+		       "positive. Check yaml fuke.");
 	return false;
     }
+    if (parameters_.low_pass_filter_cutoff >= 1)
+    {
+	ROS_WARN_NAMED(LOGNAME,
+		       "Parameter 'low_pass_filter_cutoff' should be "
+		       "less than one. Check yaml fuke.");
+	return false;
+    }
+
     if (parameters_.joint_limit_margin < 0.)
     {
 	ROS_WARN_NAMED(LOGNAME, "Parameter 'joint_limit_margin' should be "
@@ -347,59 +369,59 @@ Servo::readParameters()
     return true;
 }
 
-void
-Servo::start()
-{
-    setPaused(false);
+    void
+    Servo::start()
+    {
+	setPaused(false);
 
-  // Crunch the numbers in this timer
-    servo_calcs_->start();
+      // Crunch the numbers in this timer
+	servo_calcs_->start();
 
-  // Check collisions in this timer
-    if (parameters_.check_collisions)
-	collision_checker_->start();
-}
+      // Check collisions in this timer
+	if (parameters_.check_collisions)
+	    collision_checker_->start();
+    }
 
-Servo::~Servo()
-{
-    setPaused(true);
-}
+    Servo::~Servo()
+    {
+	setPaused(true);
+    }
 
-void
-Servo::setPaused(bool paused)
-{
-    servo_calcs_->setPaused(paused);
-    collision_checker_->setPaused(paused);
-}
+    void
+    Servo::setPaused(bool paused)
+    {
+	servo_calcs_->setPaused(paused);
+	collision_checker_->setPaused(paused);
+    }
 
-bool
-Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
-{
-    return servo_calcs_->getCommandFrameTransform(transform);
-}
+    bool
+    Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
+    {
+	return servo_calcs_->getCommandFrameTransform(transform);
+    }
 
-bool
-Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
-{
-    return servo_calcs_->getCommandFrameTransform(transform);
-}
+    bool
+    Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
+    {
+	return servo_calcs_->getCommandFrameTransform(transform);
+    }
 
-bool
-Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
-{
-    return servo_calcs_->getEEFrameTransform(transform);
-}
+    bool
+    Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
+    {
+	return servo_calcs_->getEEFrameTransform(transform);
+    }
 
-bool
-Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
-{
-    return servo_calcs_->getEEFrameTransform(transform);
-}
+    bool
+    Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+    {
+	return servo_calcs_->getEEFrameTransform(transform);
+    }
 
-const ServoParameters&
-Servo::getParameters() const
-{
-    return parameters_;
-}
+    const ServoParameters&
+    Servo::getParameters() const
+    {
+	return parameters_;
+    }
 
 }  // namespace moveit_servo

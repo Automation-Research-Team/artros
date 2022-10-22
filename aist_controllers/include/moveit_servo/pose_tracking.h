@@ -46,6 +46,7 @@
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
+#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -137,6 +138,12 @@ class PoseTracking
     void initializePID(const PIDConfig& pid_config,
 		       std::vector<control_toolbox::Pid>& pid_vector);
 
+  /** \brief Set parameter value to the specified field of position PID controllers for all directions */
+    void updatePositionPIDs(double PIDConfig::* field, double value);
+    
+  /** \brief Set parameter value to the specified field of orientation PID controller */
+    void updateOrientationPID(double PIDConfig::* field, double value);
+    
   /** \brief Return true if a target pose has been received within timeout [seconds] */
     bool haveRecentTargetPose(const double timeout);
 
@@ -177,7 +184,6 @@ class PoseTracking
   // ROS interface to Servo
     ros::Publisher			twist_stamped_pub_;
 
-    
     std::vector<control_toolbox::Pid>	cartesian_position_pids_;
     std::vector<control_toolbox::Pid>	cartesian_orientation_pids_;
   // Cartesian PID configs
@@ -207,6 +213,9 @@ class PoseTracking
     std::atomic<bool>			stop_requested_;
 
     boost::optional<double>		angular_error_;
+
+  // Dynamic reconfigure server
+    ddynamic_reconfigure::DDynamicReconfigure	ddr_;
 };
 
 // using alias

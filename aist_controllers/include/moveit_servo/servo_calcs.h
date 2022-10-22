@@ -58,11 +58,13 @@
 #include <std_srvs/Empty.h>
 #include <tf2_eigen/tf2_eigen.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 
 // moveit_servo
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/status_codes.h>
-#include <moveit_servo/low_pass_filter.h>
+//#include <moveit_servo/low_pass_filter.h>
+#include <moveit_servo/butterworth_lpf.h>
 
 namespace moveit_servo
 {
@@ -175,6 +177,9 @@ class ServoCalcs
   /** \brief Set the filters to the specified values */
     void resetLowPassFilters(const sensor_msgs::JointState& joint_state);
 
+  /** \brief Change order and/or cutoff of filters */
+    void initializeLowPassFilters(int half_order, double cutoff);
+
   /** \brief Convert an incremental position command to joint velocity message */
     void calculateJointVelocities(sensor_msgs::JointState& joint_state,
 				  const Eigen::ArrayXd& delta_theta);
@@ -273,23 +278,24 @@ class ServoCalcs
 					original_joint_state_;
     std::map<std::string, std::size_t>	joint_state_name_map_;
 
-    std::vector<LowPassFilter>		position_filters_;
+  //std::vector<LowPassFilter>			position_filters_;
+    std::vector<ButterworthLPF<double> >	position_filters_;
 
-    trajectory_msgs::JointTrajectoryConstPtr
-					last_sent_command_;
+    trajectory_msgs::JointTrajectoryConstPtr	last_sent_command_;
 
   // ROS
-    ros::Subscriber	joint_state_sub_;
-    ros::Subscriber	twist_stamped_sub_;
-    ros::Subscriber	joint_cmd_sub_;
-    ros::Subscriber	collision_velocity_scale_sub_;
-    ros::Publisher	status_pub_;
-    ros::Publisher	worst_case_stop_time_pub_;
-    ros::Publisher	outgoing_cmd_pub_;
-    ros::Publisher	outgoing_cmd_debug_pub_;
-    ros::ServiceServer	drift_dimensions_server_;
-    ros::ServiceServer	control_dimensions_server_;
-    ros::ServiceServer	reset_servo_status_;
+    ros::Subscriber				joint_state_sub_;
+    ros::Subscriber				twist_stamped_sub_;
+    ros::Subscriber				joint_cmd_sub_;
+    ros::Subscriber				collision_velocity_scale_sub_;
+    ros::Publisher				status_pub_;
+    ros::Publisher				worst_case_stop_time_pub_;
+    ros::Publisher				outgoing_cmd_pub_;
+    ros::Publisher				outgoing_cmd_debug_pub_;
+    ros::ServiceServer				drift_dimensions_server_;
+    ros::ServiceServer				control_dimensions_server_;
+    ros::ServiceServer				reset_servo_status_;
+    ddynamic_reconfigure::DDynamicReconfigure	ddr_;
 
   // Main tracking / result publisher loop
     std::thread		thread_;

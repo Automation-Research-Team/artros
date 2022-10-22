@@ -62,7 +62,9 @@ struct ServoParameters
   double joint_scale;
   double lower_singularity_threshold;
   double hard_stop_singularity_threshold;
-  double low_pass_filter_coeff;
+  //double low_pass_filter_coeff;
+  int    low_pass_filter_half_order;
+  double low_pass_filter_cutoff;
   double publish_period;
   double incoming_command_timeout;
   double joint_limit_margin;

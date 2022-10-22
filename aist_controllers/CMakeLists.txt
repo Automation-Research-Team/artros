@@ -10,22 +10,24 @@ set(CMAKE_CXX_FLAGS_DEBUG	"-g")
 set(CMAKE_CXX_BUILD_TYPE	Release)
 
 # Load catkin and all dependencies required for this package
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  genmsg
-  message_generation
-  tf
-  tf_conversions
-  trajectory_msgs
-  control_msgs
-  actionlib
-  kdl_parser
-  trac_ik_lib
-  moveit_msgs
-  moveit_ros_planning_interface
-  rosparam_shortcuts
-  control_toolbox
+find_package(catkin REQUIRED
+  COMPONENTS
+    roscpp
+    rospy
+    genmsg
+    message_generation
+    tf
+    tf_conversions
+    ddynamic_reconfigure
+    trajectory_msgs
+    control_msgs
+    actionlib
+    kdl_parser
+    trac_ik_lib
+    moveit_msgs
+    moveit_ros_planning_interface
+    rosparam_shortcuts
+    control_toolbox
 )
 
 find_package(orocos_kdl REQUIRED)

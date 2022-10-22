@@ -61,17 +61,17 @@ class PoseTrackingServo
     void	servo_status_cb(const std_msgs::Int8ConstPtr& msg)	;
 
   private:
-    ros::NodeHandle		_nh;
-    planning_scene_monitor_p	_planning_scene_monitor;
-    moveit_servo::PoseTracking	_tracker;
-    servo_status_t		_servo_status;
+    ros::NodeHandle				_nh;
+    planning_scene_monitor_p			_planning_scene_monitor;
+    moveit_servo::PoseTracking			_tracker;
+    servo_status_t				_servo_status;
 
-    server_t			_tracker_srv;
-    ros::Subscriber		_servo_status_sub;
-    ros::ServiceClient		_reset_servo_status;
-    const ros::Publisher	_target_pose_pub;
+    server_t					_tracker_srv;
+    ros::Subscriber				_servo_status_sub;
+    ros::ServiceClient				_reset_servo_status;
+    const ros::Publisher			_target_pose_pub;
 
-    std::thread			_move_to_pose_thread;
+    std::thread					_move_to_pose_thread;
 };
 
 PoseTrackingServo::PoseTrackingServo()

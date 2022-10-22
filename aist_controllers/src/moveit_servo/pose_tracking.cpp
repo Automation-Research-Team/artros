@@ -90,7 +90,8 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
      loop_rate_(DEFAULT_LOOP_RATE),
      transform_listener_(transform_buffer_),
      stop_requested_(false),
-     angular_error_(boost::none)
+     angular_error_(boost::none),
+     ddr_(ros::NodeHandle(nh_, "pose_tracking"))
 {
     readROSParams();
 
@@ -124,6 +125,88 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 				"target_pose_debug", 1);
     ee_pose_pub_     = nh_.advertise<geometry_msgs::PoseStamped>(
 				"ee_pose_debug", 1);
+
+  // Setup dynamic reconfigure server
+    ddr_.registerVariable<double>("x_proportional_gain", x_pid_config_.k_p,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_p, _1),
+				  "Proportional gain for translation in x-direction",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("x_integral_gain", x_pid_config_.k_i,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_i, _1),
+				  "Integral gain for translation in x-direction",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("x_derivative_gain", x_pid_config_.k_d,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_d, _1),
+				  "Derivative gain for translation in x-direction",
+				  0.1, 1000.0);
+
+    ddr_.registerVariable<double>("y_proportional_gain", y_pid_config_.k_p,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_p, _1),
+				  "Proportional gain for translation in x-direction",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("y_integral_gain", y_pid_config_.k_i,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_i, _1),
+				  "Integral gain for translation in x-direction",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("y_derivative_gain", y_pid_config_.k_d,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_d, _1),
+				  "Derivative gain for translation in x-direction",
+				  0.1, 1000.0);
+
+    ddr_.registerVariable<double>("z_proportional_gain", z_pid_config_.k_p,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_p, _1),
+				  "Proportional gain for translation in x-direction",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("z_integral_gain", z_pid_config_.k_i,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_i, _1),
+				  "Integral gain for translation in x-direction",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("z_derivative_gain", z_pid_config_.k_d,
+				  boost::bind(&PoseTracking
+					      ::updatePositionPIDs,
+					      this, &PIDConfig::k_d, _1),
+				  "Derivative gain for translation in x-direction",
+				  0.1, 1000.0);
+    
+    ddr_.registerVariable<double>("angular_proportinal_gain",
+				  angular_pid_config_.k_p,
+				  boost::bind(&PoseTracking
+					      ::updateOrientationPID,
+					      this, &PIDConfig::k_p, _1),
+				  "Proportional gain for rotation",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("angular_integral_gain",
+				  angular_pid_config_.k_i,
+				  boost::bind(&PoseTracking
+					      ::updateOrientationPID,
+					      this, &PIDConfig::k_i, _1),
+				  "Integral gain for rotation",
+				  0.1, 1000.0);
+    ddr_.registerVariable<double>("angular_derivative_gain",
+				  angular_pid_config_.k_d,
+				  boost::bind(&PoseTracking
+					      ::updateOrientationPID,
+					      this, &PIDConfig::k_d, _1),
+				  "Derivative gain for rotation",
+				  0.1, 1000.0);
+    
+    ddr_.publishServicesTopics();
 }
 
 PoseTrackingStatusCode
@@ -309,6 +392,32 @@ PoseTracking::initializePID(const PIDConfig& pid_config,
 					      pid_config.windup_limit,
 					      -pid_config.windup_limit,
 					      use_anti_windup));
+}
+
+void
+PoseTracking::updatePositionPIDs(double PIDConfig::* field, double value)
+{
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
+    x_pid_config_.*field = value;
+    y_pid_config_.*field = value;
+    z_pid_config_.*field = value;
+    
+    cartesian_position_pids_.clear();
+    initializePID(x_pid_config_, cartesian_position_pids_);
+    initializePID(y_pid_config_, cartesian_position_pids_);
+    initializePID(z_pid_config_, cartesian_position_pids_);
+}
+
+void
+PoseTracking::updateOrientationPID(double PIDConfig::* field, double value)
+{
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
+    angular_pid_config_.*field = value;
+    
+    cartesian_orientation_pids_.clear();
+    initializePID(angular_pid_config_, cartesian_orientation_pids_);
 }
 
 bool
