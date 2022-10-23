@@ -120,8 +120,8 @@ Servo::readParameters()
   // 				      parameters_.low_pass_filter_coeff);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_half_order",
 				      parameters_.low_pass_filter_half_order);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_cutoff",
-				      parameters_.low_pass_filter_cutoff);
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_cutoff_frequency",
+				      parameters_.low_pass_filter_cutoff_frequency);
 
     error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_topic",
 				      parameters_.joint_topic);
@@ -268,18 +268,16 @@ Servo::readParameters()
   // 		       "greater than zero. Check yaml file.");
   // 	return false;
   //}
-    if (parameters_.low_pass_filter_half_order <  1)
+    if (parameters_.low_pass_filter_half_order <= 0)
     {
-	ROS_WARN_NAMED(LOGNAME,
-		       "Parameter 'low_pass_filter_half_order' should be "
-		       "positive. Check yaml fuke.");
+	ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_half_order' "
+		       "should be positive. Check yaml fuke.");
 	return false;
     }
-    if (parameters_.low_pass_filter_cutoff >= 1)
+    if (parameters_.low_pass_filter_cutoff_frequency <= 0)
     {
-	ROS_WARN_NAMED(LOGNAME,
-		       "Parameter 'low_pass_filter_cutoff' should be "
-		       "less than one. Check yaml fuke.");
+	ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_cutoff_frequency' "
+		       "should be positive. Check yaml fuke.");
 	return false;
     }
 

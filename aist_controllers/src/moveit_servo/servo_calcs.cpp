@@ -215,8 +215,10 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints_; ++i)
     {
-	position_filters_.emplace_back(parameters_.low_pass_filter_half_order,
-				       parameters_.low_pass_filter_cutoff);
+	position_filters_.emplace_back(
+	    parameters_.low_pass_filter_half_order,
+	    parameters_.low_pass_filter_cutoff_frequency *
+	    parameters_.publish_period);
     }
 
   // A matrix of all zeros is used to check whether matrices have been initialized
@@ -226,23 +228,23 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
     tf_moveit_to_robot_cmd_frame_ = empty_matrix;
 
   // Setup dynamic reconfigure server
-    ddr_.registerVariable<int>("lowpass_filter_order",
+    ddr_.registerVariable<int>("lowpass_filter_half_order",
 			       parameters_.low_pass_filter_half_order,
 			       boost::bind(
 				   &ServoCalcs::initializeLowPassFilters,
 				   this, _1,
-				   parameters_.low_pass_filter_cutoff),
-			       "Order of low pass filter(should be even)",
-			       1, 5);
-    ddr_.registerVariable<double>("lowpass_filter_cutoff",
-				  parameters_.low_pass_filter_cutoff,
+				   parameters_.low_pass_filter_cutoff_frequency),
+			       "Half order of low pass filter", 1, 5);
+    ddr_.registerVariable<double>("lowpass_filter_cutoff_frequency",
+				  parameters_.low_pass_filter_cutoff_frequency,
 				  boost::bind(
 				      &ServoCalcs::initializeLowPassFilters,
 				      this,
 				      parameters_.low_pass_filter_half_order,
 				      _1),
-				  "Normalized cutoff frequency", 0.0, 1.0);
-    
+				  "Cutoff frequency of low pass filter",
+				  0.5, 100.0);
+
     ddr_.publishServicesTopics();
 }
 
@@ -813,13 +815,15 @@ ServoCalcs::initializeLowPassFilters(int half_order, double cutoff)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
-    parameters_.low_pass_filter_half_order = half_order;
-    parameters_.low_pass_filter_cutoff	   = cutoff;
-    
+    parameters_.low_pass_filter_half_order	 = half_order;
+    parameters_.low_pass_filter_cutoff_frequency = cutoff;
+
     for (std::size_t i = 0; i < position_filters_.size(); ++i)
     {
-	position_filters_[i].initialize(parameters_.low_pass_filter_half_order,
-					parameters_.low_pass_filter_cutoff);
+	position_filters_[i].initialize(
+	    parameters_.low_pass_filter_half_order,
+	    parameters_.low_pass_filter_cutoff_frequency *
+	    parameters_.publish_period);
     }
 
     updated_filters_ = false;

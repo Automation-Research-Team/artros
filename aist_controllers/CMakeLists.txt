@@ -40,6 +40,11 @@ include_directories(
   ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
 )
 
+add_message_files(
+  FILES
+    Flt.msg
+)
+
 add_action_files(
   FILES
     PoseHead.action
@@ -175,9 +180,25 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  butterworth_lpf_test
+  src/butterworth_lpf_test.cpp
+)
+
+target_link_libraries(
+  butterworth_lpf_test
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  butterworth_lpf_test
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
   TARGETS point_head_tracker pose_head_tracker pose_group_tracker
-  pose_tracking_servo servo_server
+  pose_tracking_servo servo_server butterworth_lpf_test
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

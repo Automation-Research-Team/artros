@@ -14,7 +14,7 @@ scale:
 
 low_pass_filter_coeff: 40.
 low_pass_filter_half_order: 2
-low_pass_filter_cutoff: 0.2
+low_pass_filter_cutoff_frequency: 15
 
 ## Properties of outgoing commands
 publish_period:   0.002
