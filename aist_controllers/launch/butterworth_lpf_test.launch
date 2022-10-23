@@ -15,7 +15,8 @@
   <node name="butterworth_lpf_test"
         pkg="aist_controllers" type="butterworth_lpf_test"
         output="screen" respawn="false">
-    <remap from="/in"	to="/gensig/out"/>
+    <param name="rate"		value="$(arg rate)"/>
+    <remap from="/in"		to="/gensig/out"/>
   </node>
 
   <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"

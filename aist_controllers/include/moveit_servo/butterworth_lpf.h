@@ -20,7 +20,8 @@ class ButterworthLPF
    */
     explicit	ButterworthLPF(size_t half_order, element_type cutoff)
 		{
-		    initialize(half_order, cutoff);
+		    initialize(half_order,
+			       sampling_frequency, cutoff_frequency);
 		}
 
     void	initialize(size_t half_order, element_type cutoff)

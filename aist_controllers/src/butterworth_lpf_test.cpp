@@ -27,6 +27,7 @@ class ButterworthLPFTest
 
   private:
     ros::NodeHandle				_nh;
+    double					_rate;
     ros::Subscriber				_sub;
     const ros::Publisher			_pub;
     ddynamic_reconfigure::DDynamicReconfigure	_ddr;
@@ -37,6 +38,7 @@ class ButterworthLPFTest
 
 ButterworthLPFTest::ButterworthLPFTest()
     :_nh("~"),
+     _rate(_nh.get_param<double>("rate", 1000.0)),
      _sub(_nh.subscribe("/in", 1, &ButterworthLPFTest::flt_cb, this)),
      _pub(_nh.advertise<aist_controllers::Flt>("out", 1)),
      _lpf(2, 0.5)
@@ -45,7 +47,8 @@ ButterworthLPFTest::ButterworthLPFTest()
 			       boost::bind(&filter_t::initialize,
 					   _lpf, _1, _lpf.cutoff()),
 			       "Half order of low pass filter", 1, 5);
-    _ddr.registerVariable<double>("lowpass_filter_cutoff", _lpf.cutoff(),
+    _ddr.registerVariable<double>("lowpass_filter_cutoff_frequency",
+				  _lpf.cutoff(),
 				  boost::bind(&filter_t::initialize,
 					      _lpf, _lpf.half_order(), _1),
 				  "Normalized cutoff frequency", 0.0, 1.0);
