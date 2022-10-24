@@ -811,12 +811,12 @@ ServoCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
 }
 
 void
-ServoCalcs::initializeLowPassFilters(int half_order, double cutoff)
+ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
     parameters_.low_pass_filter_half_order	 = half_order;
-    parameters_.low_pass_filter_cutoff_frequency = cutoff;
+    parameters_.low_pass_filter_cutoff_frequency = cutoff_frequency;
 
     for (std::size_t i = 0; i < position_filters_.size(); ++i)
     {
@@ -826,7 +826,7 @@ ServoCalcs::initializeLowPassFilters(int half_order, double cutoff)
 	    parameters_.publish_period);
     }
 
-    updated_filters_ = false;
+    resetLowPassFilters(original_joint_state_);
 }
 
 void

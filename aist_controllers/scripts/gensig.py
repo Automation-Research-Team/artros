@@ -18,7 +18,7 @@ class GenSig(object):
         self._sub = rospy.Subscriber('/in', Flt, self._flt_cb)
 
     def run(self):
-        f           = rospy.get_param('~frequency', 10)
+        f           = rospy.get_param('~signal_frequency', 2)
         noize_level = rospy.get_param('~noize_level', 0.2)
         rate        = rospy.Rate(rospy.get_param('~rate', 1000.0))
 

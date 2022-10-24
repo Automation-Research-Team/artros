@@ -20,8 +20,7 @@ class ButterworthLPF
    */
     explicit	ButterworthLPF(size_t half_order, element_type cutoff)
 		{
-		    initialize(half_order,
-			       sampling_frequency, cutoff_frequency);
+		    initialize(half_order, cutoff);
 		}
 
     void	initialize(size_t half_order, element_type cutoff)
@@ -75,7 +74,7 @@ class ButterworthLPF
 
     void	reset(const value_type& x)
 		{
-		    _y1[0] = _y2[0] = x / (1 - _d1[0] - _d2[0]);
+		    _y1[0] = _y2[0] = 4*x / (1 - _d1[0] - _d2[0]);
 		}
 
   private:

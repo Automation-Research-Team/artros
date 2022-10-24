@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="frequency"		default="2"/>
+  <arg name="signal_frequency"	default="2"/>
   <arg name="noize_level"	default="0.2"/>
   <arg name="rate"		default="1000"/>
 
   <node name="gensig" pkg="aist_controllers" type="gensig.py"
         output="screen" respawn="false">
-    <param name="frequency"	value="$(arg frequency)"/>
-    <param name="noize_level"	value="$(arg noize_level)"/>
-    <param name="rate"		value="$(arg rate)"/>
+    <param name="signal_frequency"	value="$(arg signal_frequency)"/>
+    <param name="noize_level"		value="$(arg noize_level)"/>
+    <param name="rate"			value="$(arg rate)"/>
   </node>
 
   <node name="butterworth_lpf_test"
