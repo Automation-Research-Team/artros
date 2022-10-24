@@ -179,7 +179,7 @@ class PoseTracking
   // Joint group used for controlling the motions
     std::string				move_group_name_;
 
-    ros::Rate loop_rate_;
+    ros::Rate				loop_rate_;
 
   // ROS interface to Servo
     ros::Publisher			twist_stamped_pub_;

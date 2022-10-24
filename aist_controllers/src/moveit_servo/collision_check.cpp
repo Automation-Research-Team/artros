@@ -50,166 +50,196 @@ constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs insi
 namespace moveit_servo
 {
 // Constructor for the class that handles collision checking
-CollisionCheck::CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoParameters& parameters,
+CollisionCheck::CollisionCheck(ros::NodeHandle& nh,
+			       const moveit_servo::ServoParameters& parameters,
                                const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-  : nh_(nh)
-  , parameters_(parameters)
-  , planning_scene_monitor_(planning_scene_monitor)
-  , self_velocity_scale_coefficient_(-log(0.001) / parameters.self_collision_proximity_threshold)
-  , scene_velocity_scale_coefficient_(-log(0.001) / parameters.scene_collision_proximity_threshold)
-  , period_(1. / parameters_.collision_check_rate)
+    :nh_(nh),
+     parameters_(parameters),
+     planning_scene_monitor_(planning_scene_monitor),
+     self_velocity_scale_coefficient_(-log(0.001) / parameters.self_collision_proximity_threshold),
+     scene_velocity_scale_coefficient_(-log(0.001) / parameters.scene_collision_proximity_threshold),
+     period_(1. / parameters_.collision_check_rate)
 {
   // Init collision request
-  collision_request_.group_name = parameters_.move_group_name;
-  collision_request_.distance = true;  // enable distance-based collision checking
-  collision_request_.contacts = true;  // Record the names of collision pairs
+    collision_request_.group_name = parameters_.move_group_name;
+    collision_request_.distance = true;  // enable distance-based collision checking
+    collision_request_.contacts = true;  // Record the names of collision pairs
 
-  if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
-    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-                                   "Collision check rate is low, increase it in yaml file if CPU allows");
+    if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
+	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+				       "Collision check rate is low, increase it in yaml file if CPU allows");
 
-  collision_check_type_ =
-      (parameters_.collision_check_type == "threshold_distance" ? K_THRESHOLD_DISTANCE : K_STOP_DISTANCE);
-  safety_factor_ = parameters_.collision_distance_safety_factor;
+    collision_check_type_ =
+	(parameters_.collision_check_type == "threshold_distance" ? K_THRESHOLD_DISTANCE : K_STOP_DISTANCE);
+    safety_factor_ = parameters_.collision_distance_safety_factor;
 
   // Internal namespace
-  ros::NodeHandle internal_nh(nh_, "internal");
-  collision_velocity_scale_pub_ = internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale", ROS_QUEUE_SIZE);
-  worst_case_stop_time_sub_ =
-      internal_nh.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE, &CollisionCheck::worstCaseStopTimeCB, this);
+    ros::NodeHandle internal_nh(nh_, "internal");
+    collision_velocity_scale_pub_
+	= internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale",
+						   ROS_QUEUE_SIZE);
+    worst_case_stop_time_sub_ =
+	internal_nh.subscribe("worst_case_stop_time",
+			      ROS_QUEUE_SIZE,
+			      &CollisionCheck::worstCaseStopTimeCB, this);
 
-  current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
-  acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
+    current_state_
+	= planning_scene_monitor_->getStateMonitor()->getCurrentState();
+
+    acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
 }
 
-planning_scene_monitor::LockedPlanningSceneRO CollisionCheck::getLockedPlanningSceneRO() const
+planning_scene_monitor::LockedPlanningSceneRO
+CollisionCheck::getLockedPlanningSceneRO() const
 {
-  return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
+    return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
 }
 
-void CollisionCheck::start()
+void
+CollisionCheck::start()
 {
-  timer_ = nh_.createTimer(period_, &CollisionCheck::run, this);
+    timer_ = nh_.createTimer(period_, &CollisionCheck::run, this);
 }
 
-void CollisionCheck::run(const ros::TimerEvent& timer_event)
+void
+CollisionCheck::run(const ros::TimerEvent& timer_event)
 {
   // Log warning when the last loop duration was longer than the period
-  if (timer_event.profile.last_duration.toSec() > period_.toSec())
-  {
-    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-                                   "last_duration: " << timer_event.profile.last_duration.toSec() << " ("
-                                                     << period_.toSec() << ")");
-  }
+    if (timer_event.profile.last_duration.toSec() > period_.toSec())
+    {
+	ROS_WARN_STREAM_THROTTLE_NAMED(
+	    ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+	    "last_duration: "
+	    << timer_event.profile.last_duration.toSec()
+	    << " ("
+	    << period_.toSec() << ")");
+    }
 
-  if (paused_)
-  {
-    return;
-  }
+    if (paused_)
+    {
+	return;
+    }
 
   // Update to the latest current state
-  current_state_ = planning_scene_monitor_->getStateMonitor()->getCurrentState();
-  current_state_->updateCollisionBodyTransforms();
-  collision_detected_ = false;
+    current_state_
+	= planning_scene_monitor_->getStateMonitor()->getCurrentState();
+    current_state_->updateCollisionBodyTransforms();
+    collision_detected_ = false;
 
   // Do a thread-safe distance-based collision detection
-  {  // Lock PlanningScene
-    auto scene_ro = getLockedPlanningSceneRO();
+    {  // Lock PlanningScene
+	auto scene_ro = getLockedPlanningSceneRO();
 
-    collision_result_.clear();
-    scene_ro->getCollisionWorld()->checkRobotCollision(collision_request_, collision_result_,
-                                                       *scene_ro->getCollisionRobot(), *current_state_, acm_);
+	collision_result_.clear();
+	scene_ro->getCollisionWorld()->checkRobotCollision(
+	    collision_request_, collision_result_,
+	    *scene_ro->getCollisionRobot(), *current_state_, acm_);
 
-    scene_collision_distance_ = collision_result_.distance;
+	scene_collision_distance_ = collision_result_.distance;
+	collision_detected_ |= collision_result_.collision;
+
+	collision_result_.clear();
+      // Self-collisions and scene collisions are checked separately so different thresholds can be used
+	scene_ro->getCollisionRobotUnpadded()->checkSelfCollision(
+	    collision_request_, collision_result_, *current_state_, acm_);
+    }  // Unlock PlanningScene
+
+    self_collision_distance_ = collision_result_.distance;
     collision_detected_ |= collision_result_.collision;
+    collision_result_.print();
 
-    collision_result_.clear();
-    // Self-collisions and scene collisions are checked separately so different thresholds can be used
-    scene_ro->getCollisionRobotUnpadded()->checkSelfCollision(collision_request_, collision_result_, *current_state_,
-                                                              acm_);
-  }  // Unlock PlanningScene
-
-  self_collision_distance_ = collision_result_.distance;
-  collision_detected_ |= collision_result_.collision;
-  collision_result_.print();
-
-  velocity_scale_ = 1;
+    velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately
-  if (collision_detected_)
-  {
-    velocity_scale_ = 0;
-  }
+    if (collision_detected_)
+    {
+	velocity_scale_ = 0;
+    }
   // If threshold distances were specified
-  else if (collision_check_type_ == K_THRESHOLD_DISTANCE)
-  {
-    // If we are far from a collision, velocity_scale should be 1.
-    // If we are very close to a collision, velocity_scale should be ~zero.
-    // When scene_collision_proximity_threshold is breached, start decelerating exponentially.
-    if (scene_collision_distance_ < parameters_.scene_collision_proximity_threshold)
+    else if (collision_check_type_ == K_THRESHOLD_DISTANCE)
     {
-      // velocity_scale = e ^ k * (collision_distance - threshold)
-      // k = - ln(0.001) / collision_proximity_threshold
-      // velocity_scale should equal one when collision_distance is at collision_proximity_threshold.
-      // velocity_scale should equal 0.001 when collision_distance is at zero.
-      velocity_scale_ =
-          std::min(velocity_scale_, exp(scene_velocity_scale_coefficient_ *
-                                        (scene_collision_distance_ - parameters_.scene_collision_proximity_threshold)));
-    }
+      // If we are far from a collision, velocity_scale should be 1.
+      // If we are very close to a collision, velocity_scale should be ~zero.
+      // When scene_collision_proximity_threshold is breached, start decelerating exponentially.
+	if (scene_collision_distance_ <
+	    parameters_.scene_collision_proximity_threshold)
+	{
+	  // velocity_scale = e ^ k * (collision_distance - threshold)
+	  // k = - ln(0.001) / collision_proximity_threshold
+	  // velocity_scale should equal one when collision_distance is at collision_proximity_threshold.
+	  // velocity_scale should equal 0.001 when collision_distance is at zero.
+	    velocity_scale_ =
+		std::min(velocity_scale_,
+			 exp(scene_velocity_scale_coefficient_ *
+			     (scene_collision_distance_ -
+			      parameters_.scene_collision_proximity_threshold)));
+	}
 
-    if (self_collision_distance_ < parameters_.self_collision_proximity_threshold)
-    {
-      velocity_scale_ =
-          std::min(velocity_scale_, exp(self_velocity_scale_coefficient_ *
-                                        (self_collision_distance_ - parameters_.self_collision_proximity_threshold)));
+	if (self_collision_distance_ <
+	    parameters_.self_collision_proximity_threshold)
+	{
+	    velocity_scale_ =
+		std::min(velocity_scale_,
+			 exp(self_velocity_scale_coefficient_ *
+			     (self_collision_distance_ -
+			      parameters_.self_collision_proximity_threshold)));
+	}
     }
-  }
   // Else, we stop based on worst-case stopping distance
-  else
-  {
-    // Retrieve the worst-case time to stop, based on current joint velocities
-
-    // Calculate rate of change of distance to nearest collision
-    current_collision_distance_ = std::min(scene_collision_distance_, self_collision_distance_);
-    derivative_of_collision_distance_ = (current_collision_distance_ - prev_collision_distance_) / period_.toSec();
-
-    if (current_collision_distance_ < parameters_.min_allowable_collision_distance &&
-        derivative_of_collision_distance_ <= 0)
+    else
     {
-      velocity_scale_ = 0;
-    }
-    // Only bother doing calculations if we are moving toward the nearest collision
-    else if (derivative_of_collision_distance_ < -EPSILON)
-    {
-      // At the rate the collision distance is decreasing, how long until we collide?
-      est_time_to_collision_ = fabs(current_collision_distance_ / derivative_of_collision_distance_);
+      // Retrieve the worst-case time to stop, based on current joint velocities
 
-      // halt if we can't stop fast enough (including the safety factor)
-      if (est_time_to_collision_ < (safety_factor_ * worst_case_stop_time_))
-      {
-        velocity_scale_ = 0;
-      }
-    }
+      // Calculate rate of change of distance to nearest collision
+	current_collision_distance_
+	    = std::min(scene_collision_distance_, self_collision_distance_);
+	derivative_of_collision_distance_
+	    = (current_collision_distance_ - prev_collision_distance_)
+	    / period_.toSec();
 
-    // Update for the next iteration
-    prev_collision_distance_ = current_collision_distance_;
-  }
+	if (current_collision_distance_ <
+	    parameters_.min_allowable_collision_distance &&
+	    derivative_of_collision_distance_ <= 0)
+	{
+	    velocity_scale_ = 0;
+	}
+      // Only bother doing calculations if we are moving toward the nearest collision
+	else if (derivative_of_collision_distance_ < -EPSILON)
+	{
+	  // At the rate the collision distance is decreasing, how long until we collide?
+	    est_time_to_collision_
+		= fabs(current_collision_distance_ /
+		       derivative_of_collision_distance_);
+
+	  // halt if we can't stop fast enough (including the safety factor)
+	    if (est_time_to_collision_ <
+		(safety_factor_ * worst_case_stop_time_))
+	    {
+		velocity_scale_ = 0;
+	    }
+	}
+
+      // Update for the next iteration
+	prev_collision_distance_ = current_collision_distance_;
+    }
 
   // publish message
-  {
-    auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
-    msg->data = velocity_scale_;
-    collision_velocity_scale_pub_.publish(msg);
-  }
+    {
+	auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
+	msg->data = velocity_scale_;
+	collision_velocity_scale_pub_.publish(msg);
+    }
 }
 
-void CollisionCheck::worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg)
+void
+CollisionCheck::worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg)
 {
-  worst_case_stop_time_ = msg->data;
+    worst_case_stop_time_ = msg->data;
 }
 
-void CollisionCheck::setPaused(bool paused)
+void
+CollisionCheck::setPaused(bool paused)
 {
-  paused_ = paused;
+    paused_ = paused;
 }
 
 }  // namespace moveit_servo

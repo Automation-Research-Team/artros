@@ -63,8 +63,11 @@
 // moveit_servo
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/status_codes.h>
-//#include <moveit_servo/low_pass_filter.h>
-#include <moveit_servo/butterworth_lpf.h>
+#if defined(BUTTERWORTH)
+#  include <moveit_servo/butterworth_lpf.h>
+#else
+#  include <moveit_servo/low_pass_filter.h>
+#endif
 
 namespace moveit_servo
 {
@@ -178,8 +181,11 @@ class ServoCalcs
     void resetLowPassFilters(const sensor_msgs::JointState& joint_state);
 
   /** \brief Change order and/or cutoff of filters */
+#if defined(BUTTERWORTH)
     void initializeLowPassFilters(int half_order, double cutoff_frequency);
-
+#else
+    void initializeLowPassFilters(double coeff);
+#endif
   /** \brief Convert an incremental position command to joint velocity message */
     void calculateJointVelocities(sensor_msgs::JointState& joint_state,
 				  const Eigen::ArrayXd& delta_theta);
@@ -278,8 +284,11 @@ class ServoCalcs
 					original_joint_state_;
     std::map<std::string, std::size_t>	joint_state_name_map_;
 
-  //std::vector<LowPassFilter>			position_filters_;
+#if defined(BUTTERWORTH)
     std::vector<ButterworthLPF<double> >	position_filters_;
+#else
+    std::vector<LowPassFilter>			position_filters_;
+#endif    
 
     trajectory_msgs::JointTrajectoryConstPtr	last_sent_command_;
 
