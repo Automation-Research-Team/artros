@@ -1032,15 +1032,17 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 		= std::min(std::max(unbounded_velocity, bounds.min_velocity_),
 			   bounds.max_velocity_);
 	    velocity_scaling_factor
-		= std::min(velocity_scaling_factor,
-			   bounded_velocity / unbounded_velocity);
+	    	= std::min(velocity_scaling_factor,
+	    		   bounded_velocity / unbounded_velocity);
 	}
 	++joint_delta_index;
     }
 
   // Convert back to joint angle increments.
+    // std::cerr << "*** velocity_scaling_factor="
+    // 	      << velocity_scaling_factor << std::endl;
     delta_theta = velocity_scaling_factor * velocity
-		* parameters_.publish_period;
+    		* parameters_.publish_period;
 }
 
 bool

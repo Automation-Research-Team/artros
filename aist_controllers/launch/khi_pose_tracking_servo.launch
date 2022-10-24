@@ -47,13 +47,13 @@
        name="controller"	value="arm_joint_group_controller"/>
 
   <node unless="$(arg traj)"
-	name="rqt_controller_manager"
+  	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
   <node name="pose_tracking_servo"
-	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
+  	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
     <rosparam file="$(dirname)/../config/khi_servo_server.yaml"
-	      subst_value="true"/>
+  	      subst_value="true"/>
     <rosparam file="$(dirname)/../config/khi_pose_tracking.yaml"/>
   </node>
 

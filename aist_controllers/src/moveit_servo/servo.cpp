@@ -82,7 +82,6 @@ Servo::Servo(const ros::NodeHandle& nh,
     servo_calcs_ = std::make_unique<ServoCalcs>(nh_, parameters_,
 						planning_scene_monitor_);
 
-    std::cerr << "*** create collision checker" << std::endl;
     collision_checker_ = std::make_unique<CollisionCheck>(
 				nh_, parameters_, planning_scene_monitor_);
 }
