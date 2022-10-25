@@ -250,12 +250,13 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 				  "Cutoff frequency of low pass filter",
 				  0.5, 100.0);
 #else
-    ddr_.registerVariable<int>("lowpass_filter_coeff",
-			       parameters_.low_pass_filter_coeff,
-			       boost::bind(
-				   &ServoCalcs::initializeLowPassFilters,
-				   this, _1),
-			       "Half order of low pass filter", 1, 5);
+    ddr_.registerVariable<double>("lowpass_filter_coeff",
+				  parameters_.low_pass_filter_coeff,
+				  boost::bind(
+				      &ServoCalcs::initializeLowPassFilters,
+				      this, _1),
+				  "Cutoff frequency of low pass filter",
+				  1.0, 100.0);
 #endif
     ddr_.publishServicesTopics();
 }
@@ -573,7 +574,9 @@ ServoCalcs::calculateSingleIteration()
 
   // Update the filters if we haven't yet
     if (!updated_filters_)
+    {
 	resetLowPassFilters(original_joint_state_);
+    }
 }
 // Perform the servoing calculations
 bool
@@ -822,6 +825,7 @@ ServoCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
     updated_filters_ = true;
 }
 
+#if defined(BUTTERWORTH)
 void
 ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 {
@@ -840,6 +844,22 @@ ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 
     resetLowPassFilters(original_joint_state_);
 }
+#else
+void
+ServoCalcs::initializeLowPassFilters(double coeff)
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    parameters_.low_pass_filter_coeff = coeff;
+
+    for (std::size_t i = 0; i < position_filters_.size(); ++i)
+    {
+	position_filters_[i].initialize(parameters_.low_pass_filter_coeff);
+    }
+
+    resetLowPassFilters(original_joint_state_);
+}
+#endif
 
 void
 ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state,
@@ -1012,15 +1032,17 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 		= std::min(std::max(unbounded_velocity, bounds.min_velocity_),
 			   bounds.max_velocity_);
 	    velocity_scaling_factor
-		= std::min(velocity_scaling_factor,
-			   bounded_velocity / unbounded_velocity);
+	    	= std::min(velocity_scaling_factor,
+	    		   bounded_velocity / unbounded_velocity);
 	}
 	++joint_delta_index;
     }
 
   // Convert back to joint angle increments.
+    // std::cerr << "*** velocity_scaling_factor="
+    // 	      << velocity_scaling_factor << std::endl;
     delta_theta = velocity_scaling_factor * velocity
-		* parameters_.publish_period;
+    		* parameters_.publish_period;
 }
 
 bool

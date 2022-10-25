@@ -140,14 +140,14 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for translation",
-				  0.1, 1000.0);
+				  0.0, 1000.0);
     ddr_.registerVariable<double>("linear_derivative_gain",
 				  x_pid_config_.k_d,
 				  boost::bind(&PoseTracking
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for translation",
-				  0.1, 1000.0);
+				  0.0, 1000.0);
 
     ddr_.registerVariable<double>("angular_proportinal_gain",
 				  angular_pid_config_.k_p,
@@ -162,15 +162,14 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for rotation",
-				  0.1, 1000.0);
+				  0.0, 1000.0);
     ddr_.registerVariable<double>("angular_derivative_gain",
 				  angular_pid_config_.k_d,
 				  boost::bind(&PoseTracking
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for rotation",
-				  0.1, 1000.0);
-
+				  0.0, 1000.0);
     ddr_.publishServicesTopics();
 }
 

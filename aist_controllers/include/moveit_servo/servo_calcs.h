@@ -183,8 +183,11 @@ class ServoCalcs
     void resetLowPassFilters(const sensor_msgs::JointState& joint_state);
 
   /** \brief Change order and/or cutoff of filters */
+#if defined(BUTTERWORTH)
     void initializeLowPassFilters(int half_order, double cutoff_frequency);
-
+#else
+    void initializeLowPassFilters(double coeff);
+#endif
   /** \brief Convert an incremental position command to joint velocity message */
     void calculateJointVelocities(sensor_msgs::JointState& joint_state,
 				  const Eigen::ArrayXd& delta_theta);

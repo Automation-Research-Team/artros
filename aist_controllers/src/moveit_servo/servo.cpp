@@ -115,14 +115,15 @@ Servo::readParameters()
 				      parameters_.rotational_scale);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "scale/joint",
 				      parameters_.joint_scale);
-
-  //error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_coeff",
-  // 				      parameters_.low_pass_filter_coeff);
+#if defined(BUTTERWORTH)
     error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_half_order",
 				      parameters_.low_pass_filter_half_order);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_cutoff_frequency",
 				      parameters_.low_pass_filter_cutoff_frequency);
-
+#else
+    error += !rosparam_shortcuts::get(LOGNAME, nh, "low_pass_filter_coeff",
+  				      parameters_.low_pass_filter_coeff);
+#endif
     error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_topic",
 				      parameters_.joint_topic);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "command_in_type",
@@ -262,12 +263,7 @@ Servo::readParameters()
 	return false;
     }
 
-  //if (parameters_.low_pass_filter_coeff < 0.)
-  //{
-  // 	ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_coeff' should be "
-  // 		       "greater than zero. Check yaml file.");
-  // 	return false;
-  //}
+#if defined(BUTTERWORTH)
     if (parameters_.low_pass_filter_half_order <= 0)
     {
 	ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_half_order' "
@@ -280,7 +276,14 @@ Servo::readParameters()
 		       "should be positive. Check yaml fuke.");
 	return false;
     }
-
+#else
+    if (parameters_.low_pass_filter_coeff < 0.)
+    {
+  	ROS_WARN_NAMED(LOGNAME, "Parameter 'low_pass_filter_coeff' should be "
+  		       "greater than zero. Check yaml file.");
+  	return false;
+    }
+#endif
     if (parameters_.joint_limit_margin < 0.)
     {
 	ROS_WARN_NAMED(LOGNAME, "Parameter 'joint_limit_margin' should be "
