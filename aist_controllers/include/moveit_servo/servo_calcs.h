@@ -38,6 +38,8 @@
 
 #pragma once
 
+#define BUTTERWORTH 0
+
 // C++
 #include <condition_variable>
 #include <mutex>
@@ -63,8 +65,11 @@
 // moveit_servo
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/status_codes.h>
-//#include <moveit_servo/low_pass_filter.h>
-#include <moveit_servo/butterworth_lpf.h>
+#if defined(BUTTERWORTH)
+#  include <moveit_servo/butterworth_lpf.h>
+#else
+#  include <moveit_servo/low_pass_filter.h>
+#endif
 
 namespace moveit_servo
 {
@@ -278,8 +283,11 @@ class ServoCalcs
 					original_joint_state_;
     std::map<std::string, std::size_t>	joint_state_name_map_;
 
-  //std::vector<LowPassFilter>			position_filters_;
+#if defined(BUTTERWORTH)
     std::vector<ButterworthLPF<double> >	position_filters_;
+#else
+    std::vector<LowPassFilter>			position_filters_;
+#endif
 
     trajectory_msgs::JointTrajectoryConstPtr	last_sent_command_;
 

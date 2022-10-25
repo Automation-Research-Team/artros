@@ -215,10 +215,14 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints_; ++i)
     {
+#if defined(BUTTERWORTH)
 	position_filters_.emplace_back(
 	    parameters_.low_pass_filter_half_order,
 	    parameters_.low_pass_filter_cutoff_frequency *
 	    parameters_.publish_period);
+#else
+	position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
+#endif
     }
 
   // A matrix of all zeros is used to check whether matrices have been initialized
@@ -228,6 +232,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
     tf_moveit_to_robot_cmd_frame_ = empty_matrix;
 
   // Setup dynamic reconfigure server
+#if defined(BUTTERWORTH)
     ddr_.registerVariable<int>("lowpass_filter_half_order",
 			       parameters_.low_pass_filter_half_order,
 			       boost::bind(
@@ -244,7 +249,14 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 				      _1),
 				  "Cutoff frequency of low pass filter",
 				  0.5, 100.0);
-
+#else
+    ddr_.registerVariable<int>("lowpass_filter_coeff",
+			       parameters_.low_pass_filter_coeff,
+			       boost::bind(
+				   &ServoCalcs::initializeLowPassFilters,
+				   this, _1),
+			       "Half order of low pass filter", 1, 5);
+#endif
     ddr_.publishServicesTopics();
 }
 

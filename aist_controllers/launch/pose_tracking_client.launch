@@ -13,4 +13,29 @@
 	      subst_value="true">$(arg target_pose)</rosparam>
   </node>
 
+  <!-- <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot" -->
+  <!-- 	args="/arm_controller/command_debug/points[0]/positions[0] -->
+  <!-- 	      /arm_controller/command_debug/points[0]/positions[1] -->
+  <!-- 	      /arm_controller/command_debug/points[0]/positions[2] -->
+  <!-- 	      /arm_controller/command_debug/points[0]/positions[3] -->
+  <!-- 	      /arm_controller/command_debug/points[0]/positions[4] -->
+  <!-- 	      /arm_controller/command_debug/points[0]/positions[5] -->
+  <!-- 	      /arm_controller/state/actual/positions[0] -->
+  <!-- 	      /arm_controller/state/actual/positions[1] -->
+  <!-- 	      /arm_controller/state/actual/positions[2] -->
+  <!-- 	      /arm_controller/state/actual/positions[3] -->
+  <!-- 	      /arm_controller/state/actual/positions[4] -->
+  <!-- 	      /arm_controller/state/actual/positions[5]" -->
+  <!--       output="screen" respawn="false"/> -->
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+	args="/pose_tracking_servo/target_pose_debug/pose/position/x
+	      /pose_tracking_servo/target_pose_debug/pose/position/y
+	      /pose_tracking_servo/target_pose_debug/pose/position/z
+	      /pose_tracking_servo/ee_pose_debug/pose/position/x
+	      /pose_tracking_servo/ee_pose_debug/pose/position/y
+	      /pose_tracking_servo/ee_pose_debug/pose/position/z"
+        output="screen" respawn="false"/>
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+
 </launch>
