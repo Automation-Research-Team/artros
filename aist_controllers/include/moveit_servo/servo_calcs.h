@@ -38,8 +38,6 @@
 
 #pragma once
 
-#define BUTTERWORTH 0
-
 // C++
 #include <condition_variable>
 #include <mutex>
@@ -66,7 +64,7 @@
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/status_codes.h>
 #if defined(BUTTERWORTH)
-#  include <moveit_servo/butterworth_lpf.h>
+#  include <aist_utility/butterworth_lpf.h>
 #else
 #  include <moveit_servo/low_pass_filter.h>
 #endif
@@ -287,12 +285,12 @@ class ServoCalcs
     std::map<std::string, std::size_t>	joint_state_name_map_;
 
 #if defined(BUTTERWORTH)
-    std::vector<ButterworthLPF<double> >	position_filters_;
+    std::vector<aist_utility::ButterworthLPF<double> >	position_filters_;
 #else
-    std::vector<LowPassFilter>			position_filters_;
+    std::vector<LowPassFilter>				position_filters_;
 #endif
 
-    trajectory_msgs::JointTrajectoryConstPtr	last_sent_command_;
+    trajectory_msgs::JointTrajectoryConstPtr		last_sent_command_;
 
   // ROS
     ros::Subscriber				joint_state_sub_;

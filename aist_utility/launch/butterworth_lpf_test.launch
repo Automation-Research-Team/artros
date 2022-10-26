@@ -5,7 +5,7 @@
   <arg name="noize_level"	default="0.2"/>
   <arg name="rate"		default="1000"/>
 
-  <node name="gensig" pkg="aist_controllers" type="gensig.py"
+  <node name="gensig" pkg="aist_utility" type="gensig.py"
         output="screen" respawn="false">
     <param name="signal_frequency"	value="$(arg signal_frequency)"/>
     <param name="noize_level"		value="$(arg noize_level)"/>
@@ -13,7 +13,7 @@
   </node>
 
   <node name="butterworth_lpf_test"
-        pkg="aist_controllers" type="butterworth_lpf_test"
+        pkg="aist_utility" type="butterworth_lpf_test"
         output="screen" respawn="false">
     <param name="rate"		value="$(arg rate)"/>
     <remap from="/in"		to="/gensig/out"/>

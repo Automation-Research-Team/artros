@@ -1,13 +1,13 @@
 /*
  *  \file	pose_head_tracker.cpp
- *  \brief	ROS tracker of aist_controllers::PoseHeadAction type
+ *  \brief	ROS tracker of aist_utility::PoseHeadAction type
  */
 #include <ros/ros.h>
-#include <aist_controllers/Flt.h>
-#include <moveit_servo/butterworth_lpf.h>
+#include <aist_utility/Flt.h>
+#include <aist_utility/butterworth_lpf.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 
-namespace aist_controllers
+namespace aist_utility
 {
 /************************************************************************
 *  class ButterworthLPFTest						*
@@ -30,7 +30,7 @@ class ButterworthLPFTest
     ros::Subscriber				_sub;
     const ros::Publisher			_pub;
     ddynamic_reconfigure::DDynamicReconfigure	_ddr;
-    moveit_servo::ButterworthLPF<value_type>	_lpf;
+    aist_utility::ButterworthLPF<value_type>	_lpf;
     mutable value_type				_x;
 };
 
@@ -38,7 +38,7 @@ ButterworthLPFTest::ButterworthLPFTest()
     :_nh("~"),
      _rate(_nh.param<double>("rate", 1000.0)),
      _sub(_nh.subscribe("/in", 1, &ButterworthLPFTest::flt_cb, this)),
-     _pub(_nh.advertise<aist_controllers::Flt>("out", 1)),
+     _pub(_nh.advertise<aist_utility::Flt>("out", 1)),
      _lpf(2, 50.0/_rate),
      _x(0.0)
 {
@@ -75,7 +75,7 @@ ButterworthLPFTest::flt_cb(const FltConstPtr& in) const
     _pub.publish(out);
 }
 
-}	// namepsace aist_controllers
+}	// namepsace aist_utility
 
 /************************************************************************
 *  main function							*
@@ -85,7 +85,7 @@ main(int argc, char* argv[])
 {
     ros::init(argc, argv, "butterworth_lpf_test");
 
-    const aist_controllers::ButterworthLPFTest	butterworth_lpf_test;
+    const aist_utility::ButterworthLPFTest	butterworth_lpf_test;
     ros::spin();
 
     return 0;
