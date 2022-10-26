@@ -34,76 +34,48 @@
 // Author: Toshio Ueshiba
 //
 /*!
- *  \file	geometry_msgs.h
+ *  \file	tf2.h
  *  \author	Toshio Ueshiba
  *  \brief	Utilities
  */
-#ifndef AIST_UTILITY_GEOMETRY_MSGS_H
-#define AIST_UTILITY_GEOMETRY_MSGS_H
+#pragma once
 
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/Transform.h>
-#include <aist_utility/tf.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2/Transform.h>
 
 namespace aist_utility
 {
 inline std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Point& p)
+operator <<(std::ostream& out, const tf2::Vector3& v)
 {
-    return out << '[' << p.x << ',' << p.y << ',' << p.z << ']';
+    return out << '[' << v.x() << ',' << v.y() << ',' << v.z() << ']';
 }
 
 inline std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Vector3& v)
+operator <<(std::ostream& out, const tf2::Quaternion& q)
 {
-    return out << '[' << v.x << ',' << v.y << ',' << v.z << ']';
+    return out << '[' << q.x() << ',' << q.y() << ',' << q.z() << ',' << q.w()
+	       << ']';
 }
 
 inline std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Quaternion& q)
+operator <<(std::ostream& out, const tf2::Matrix3x3& m)
 {
-    tf::Quaternion	qq;
-    tf::quaternionMsgToTF(q, qq);
-
-    return out << qq;
+    return out << '[' << m[0] << "\n " << m[1] << "\n " << m[2] << ']';
 }
 
 inline std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
+operator <<(std::ostream& out, const tf2::Transform& transform)
 {
-    return out << '[' << pose.position << "; " << pose.orientation << ']';
+    return out << '['  << transform.getOrigin()
+	       << "; " << transform.getRotation() << ']';
 }
 
-inline std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Transform& transform)
+template <class T> inline std::ostream&
+operator <<(std::ostream& out, const tf2::Stamped<T>& stamped)
 {
-    return out << '['  << transform.translation
-	       << "; " << transform.rotation << ']';
-}
-
-inline geometry_msgs::Pose
-toPose(const geometry_msgs::Transform& transform)
-{
-    geometry_msgs::Pose	pose;
-    pose.position.x  = transform.translation.x;
-    pose.position.y  = transform.translation.y;
-    pose.position.z  = transform.translation.z;
-    pose.orientation = transform.rotation;
-
-    return pose;
-}
-
-inline geometry_msgs::Transform
-toTransform(const geometry_msgs::Pose& pose)
-{
-    geometry_msgs::Transform	transform;
-    transform.translation.x = pose.position.x;
-    transform.translation.y = pose.position.y;
-    transform.translation.z = pose.position.z;
-    transform.rotation	    = pose.orientation;
-
-    return transform;
+    return out << static_cast<const tf::T&>(stamped)
+	       << '@' << stamped.frame_id_;
 }
 
 }	// namespace aist_utility
-#endif	// !AIST_UTILITY_GEOMETRY_MSGS_H
