@@ -10,9 +10,6 @@
 # otherwise, arising from, out of or in connection with the software or
 # the use or other dealings in the software.
 import rospy
-from math                 import radians, degrees
-from tf                   import transformations as tfs
-from geometry_msgs.msg    import PoseStamped, Pose, Point, Quaternion
 from actionlib            import SimpleActionClient
 from aist_controllers.msg import PoseHeadAction, PoseHeadGoal
 

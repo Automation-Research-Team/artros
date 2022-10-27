@@ -44,8 +44,10 @@ class PoseTrackingClient(object):
         rospy.loginfo('(PoseTrackingClient) send goal[target_frame=%s]',
                       target_pose.header.frame_id)
 
-    def cancel_goal(self):
+    def cancel_goal(self, wait=False):
         self._pose_tracking.cancel_goal()
+        if wait:
+            self._track_box.wait_for_result()
 
     def get_state(self):
         return self._pose_tracking.get_state()

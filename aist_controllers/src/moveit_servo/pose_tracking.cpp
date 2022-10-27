@@ -121,8 +121,6 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 	    servo_->getParameters().cartesian_command_in_topic, 1);
 
   // For debugging
-    target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>(
-				"target_pose_debug", 1);
     ee_pose_pub_     = nh_.advertise<geometry_msgs::PoseStamped>(
 				"ee_pose_debug", 1);
 
@@ -242,7 +240,6 @@ PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
 	twist_stamped_pub_.publish(calculateTwistCommand());
 
       // For debugging
-	target_pose_pub_.publish(target_pose_);
 	ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
 					    ee_frame_transform_,
 					    ee_frame_transform_stamp_,

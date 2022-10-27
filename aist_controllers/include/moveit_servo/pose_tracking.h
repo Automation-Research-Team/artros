@@ -140,10 +140,10 @@ class PoseTracking
 
   /** \brief Set parameter value to the specified field of position PID controllers for all directions */
     void updatePositionPIDs(double PIDConfig::* field, double value);
-    
+
   /** \brief Set parameter value to the specified field of orientation PID controller */
     void updateOrientationPID(double PIDConfig::* field, double value);
-    
+
   /** \brief Return true if a target pose has been received within timeout [seconds] */
     bool haveRecentTargetPose(const double timeout);
 
@@ -197,7 +197,6 @@ class PoseTracking
     mutable std::mutex			target_pose_mtx_;
 
   // For debugging
-    ros::Publisher			target_pose_pub_;
     ros::Publisher			ee_pose_pub_;
 
   // Subscribe to target pose
