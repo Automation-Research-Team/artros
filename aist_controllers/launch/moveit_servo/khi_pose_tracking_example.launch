@@ -1,8 +1,8 @@
 <launch>
-  <!-- Launch an example that sends commands via C++ API. -->
 
   <arg name="sim"	default="true"/>
   <arg name="traj"	default="true"/>
+  <arg name="unitless"	default="false"/>
   
   <arg if="$(arg traj)"
        name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
@@ -17,6 +17,11 @@
   <node unless="$(arg traj)"
 	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <arg if="$(arg unitless)"
+       name="command_in_type"	value="unitless"/>
+  <arg unless="$(arg unitless)"
+       name="command_in_type"	value="speed_units"/>
 
   <node name="pose_tracking_example"
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">

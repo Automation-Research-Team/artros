@@ -4,6 +4,7 @@
   <arg name="sim"		default="false"/>
   <arg name="camera_name"	default="realsense"/>
   <arg name="traj"		default="true"/>
+  <arg name="unitless"		default="false"/>
   <arg name="manager"		default="camera_manager"/>
 
   <!-- Launch cameras -->
@@ -49,6 +50,11 @@
   <node unless="$(arg traj)"
   	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <arg if="$(arg unitless)"
+       name="command_in_type"	value="unitless"/>
+  <arg unless="$(arg unitless)"
+       name="command_in_type"	value="speed_units"/>
 
   <node name="pose_tracking_servo"
   	pkg="aist_controllers" type="pose_tracking_servo" output="screen">

@@ -2,7 +2,8 @@
 
   <arg name="sim"	default="true"/>
   <arg name="traj"	default="true"/>
-
+  <arg name="unitless"	default="false"/>
+  
   <arg if="$(arg traj)"
        name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
   <arg unless="$(arg traj)"
@@ -16,6 +17,11 @@
   <node unless="$(arg traj)"
 	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <arg if="$(arg unitless)"
+       name="command_in_type"	value="unitless"/>
+  <arg unless="$(arg unitless)"
+       name="command_in_type"	value="speed_units"/>
 
   <node name="servo_server"
 	pkg="aist_controllers" type="servo_server" output="screen" >

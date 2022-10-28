@@ -3,14 +3,14 @@
 ###############################################
 use_gazebo: $(arg sim)
 
-## Properties of incoming commands
-command_in_type: "speed_units"
+## Properties of incoming commands: "speed_units" or "unitless"
+command_in_type: $(arg command_in_type)
 
 # Scale parameters are only used if command_in_type=="unitless"
 scale:
-  linear:     0.6
-  rotational: 0.3
-  joint:      0.01
+  linear:     5.0
+  rotational: 3.0
+  joint:      0.1
 
 low_pass_filter_coeff: 40.
 low_pass_filter_half_order: 3
