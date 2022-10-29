@@ -172,7 +172,7 @@ PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 	 ros::ok() && tracking_status == tracking_status_t::INVALID;
 	 rate.sleep())
     {
-	geometry_msgs::PoseStamped	target_pose = goal->target_pose;
+	auto	target_pose = goal->target_pose;
 	target_pose.header.stamp = ros::Time::now();
 	_target_pose_pub.publish(target_pose);
 

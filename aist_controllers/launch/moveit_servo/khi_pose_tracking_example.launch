@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
 
   <arg name="sim"	default="true"/>
@@ -23,6 +24,7 @@
   <arg unless="$(arg unitless)"
        name="command_in_type"	value="speed_units"/>
 
+  <arg name="cartesian_command_in_type"	value="delta_twist_cmds"/>
   <node name="pose_tracking_example"
 	pkg="aist_controllers" type="pose_tracking_example" output="screen">
     <rosparam file="$(dirname)/../../config/khi_servo_server.yaml"

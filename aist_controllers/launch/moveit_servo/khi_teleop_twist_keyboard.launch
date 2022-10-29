@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim"		default="false"/>
+  <arg name="traj"		default="true"/>
+  <arg name="speed"		default="0.5"/>
+  <arg name="turn"		default="1.0"/>
+  <arg name="repeat_rate"	default="50.0"/>
+       
+  <node ns="servo_server" name="teleop_twist_keyboard"
+	pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py"
+	output="screen">
+    <param name="speed"		value="$(arg speed)"/>
+    <param name="turn"		value="$(arg turn)"/>
+    <param name="repeat_rate"	value="$(arg repeat_rate)"/>
+    <param name="stamped"	value="true"/>
+    <param name="frame_id"	value="arm_base_link"/>
+  </node>
+
+  <include file="$(dirname)/khi_servo_server.launch">
+    <arg name="sim"				value="$(arg sim)"/>
+    <arg name="traj"				value="$(arg traj)"/>
+    <arg name="cartesian_command_in_topic"	value="cmd_vel"/>
+    <arg name="unitless"			value="false"/>
+  </include>	
+
+</launch>

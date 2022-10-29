@@ -42,7 +42,7 @@ hard_stop_singularity_threshold: 40
 joint_limit_margin:              0.1
 
 ## Topic names
-cartesian_command_in_topic: delta_twist_cmds
+cartesian_command_in_topic: $(arg cartesian_command_in_topic)
 joint_command_in_topic:     delta_joint_cmds
 joint_topic:                joint_states
 status_topic:               status

@@ -121,8 +121,8 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 	    servo_->getParameters().cartesian_command_in_topic, 1);
 
   // For debugging
-    ee_pose_pub_     = nh_.advertise<geometry_msgs::PoseStamped>(
-				"ee_pose_debug", 1);
+    ee_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("ee_pose_debug",
+							     1);
 
   // Setup dynamic reconfigure server
     ddr_.registerVariable<double>("linear_proportional_gain",
