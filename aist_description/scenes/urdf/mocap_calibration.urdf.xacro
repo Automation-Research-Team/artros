@@ -4,7 +4,7 @@
   <xacro:include filename="$(find aist_description)/objects/urdf/ar_markers.urdf.xacro"/>
 
   <xacro:ar_marker_70_5 prefix="c_bot_"
-  			parent="c_bot_robotiq_85_tip_link"
+  			parent="c_bot_gripper_tip_link"
   			marker_id="26"
   			thickness="0.005">
     <origin xyz="0.0 0.0 0.0185" rpy="0 0 0"/>

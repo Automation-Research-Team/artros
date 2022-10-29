@@ -149,8 +149,10 @@ PoseTrackingServo::execute_cb(const PoseTrackingGoalConstPtr& goal)
 			  << goal->target_pose.header.frame_id << ']');
 
     _tracker.resetTargetPose();
+
     std_srvs::Empty	empty;
     _reset_servo_status.call(empty);
+
     tracking_status_t	tracking_status = tracking_status_t::INVALID;
     _tracker.servo_->start();
 

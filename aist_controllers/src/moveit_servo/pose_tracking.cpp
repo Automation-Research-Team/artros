@@ -275,8 +275,8 @@ PoseTracking::readROSParams()
     while (ros::ok() && !nh.hasParam("planning_frame") &&
 	   ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
     {
-	ROS_WARN_STREAM_NAMED(LOGNAME, "Waiting for parameter: "
-			      << "planning_frame");
+	ROS_WARN_STREAM_NAMED(LOGNAME,
+			      "Waiting for parameter: planning_frame");
 	ros::Duration(0.1).sleep();
     }
 
@@ -446,10 +446,13 @@ PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
 	    tf2::doTransform(target_pose_, target_pose_,
 			     target_to_planning_frame);
 
-	  // Prevent doTransform from copying a stamp of 0,
-	  // which will cause the haveRecentTargetPose check
-	  // to fail servo motions
-	    target_pose_.header.stamp = ros::Time::now();
+	    if (target_pose_.header.stamp == ros::Time(0))
+	    {
+	      // Prevent doTransform from copying a stamp of 0,
+	      // which will cause the haveRecentTargetPose check
+	      // to fail servo motions
+		target_pose_.header.stamp = ros::Time::now();
+	    }
 	}
 	catch (const tf2::TransformException& ex)
 	{
@@ -508,8 +511,7 @@ PoseTracking::calculateTwistCommand()
     Eigen::AngleAxisd axis_angle(q_error);
   // Cache the angular error, for rotation tolerance checking
     angular_error_ = axis_angle.angle();
-    double ang_vel_magnitude =
-	cartesian_orientation_pids_[0].computeCommand(
+    double ang_vel_magnitude = cartesian_orientation_pids_[0].computeCommand(
 					*angular_error_,
 					loop_rate_.expectedCycleTime());
     twist.angular.x = ang_vel_magnitude * axis_angle.axis()[0];
