@@ -45,6 +45,9 @@ namespace moveit_servo
 {
 namespace
 {
+/************************************************************************
+*  static functions							*
+************************************************************************/
 std::ostream&
 operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
 {
@@ -83,15 +86,44 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 }
 }
 
-PoseTracking::PoseTracking(const ros::NodeHandle& nh,
-                           const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-    :nh_(nh),
-     planning_scene_monitor_(planning_scene_monitor),
+/************************************************************************
+*  class PoseTracking							*
+************************************************************************/
+PoseTracking::PoseTracking()
+    :nh_("~"),
+     planning_scene_monitor_(create_planning_scene_monitor(
+				 "robot_description")),
+     robot_model_(nullptr),
+     joint_model_group_(nullptr),
+     move_group_name_(),
      loop_rate_(DEFAULT_LOOP_RATE),
+     twist_stamped_pub_(),
+
+     cartesian_position_pids_(),
+     cartesian_orientation_pids_(),
+     x_pid_config_(),
+     y_pid_config_(),
+     z_pid_config_(),
+
+     ee_frame_transform_(),
+     ee_frame_transform_stamp_(),
+     target_pose_(),
+     target_pose_mtx_(),
+
+     ee_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>("ee_pose_debug",
+							    1)),
+
+     transform_buffer_(),
      transform_listener_(transform_buffer_),
+
+     planning_frame_(),
+
      stop_requested_(false),
      angular_error_(boost::none),
-     ddr_(ros::NodeHandle(nh_, "pose_tracking"))
+     tracker_srv_(nh_, "pose_tracking", false),
+     current_goal_(nullptr),
+     ddr_(ros::NodeHandle(nh_, "pose_tracking")),
+     timer_()
 {
     readROSParams();
 
@@ -120,9 +152,13 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 	nh_.advertise<geometry_msgs::TwistStamped>(
 	    servo_->getParameters().cartesian_command_in_topic, 1);
 
-  // For debugging
-    ee_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("ee_pose_debug",
-							     1);
+  // Setup action server
+    tracker_srv_.registerGoalCallback(boost::bind(&PoseTracking::goalCallback,
+						  this));
+    tracker_srv_.registerPreemptCallback(boost::bind(
+					     &PoseTracking::preemptCallback,
+					     this));
+    tracker_srv_.start();
 
   // Setup dynamic reconfigure server
     ddr_.registerVariable<double>("linear_proportional_gain",
@@ -169,91 +205,38 @@ PoseTracking::PoseTracking(const ros::NodeHandle& nh,
 				  "Derivative gain for rotation",
 				  0.0, 20.0);
     ddr_.publishServicesTopics();
+
+  // Start timer
+    timer_ = nh_.createTimer(loop_rate_.expectedCycleTime(),
+			     &PoseTracking::moveToPoseCallback, this);
 }
 
-PoseTrackingStatusCode
-PoseTracking::moveToPose(const Eigen::Vector3d& positional_tolerance,
-			 const double angular_tolerance,
-			 const double target_pose_timeout)
+planning_scene_monitor::PlanningSceneMonitorPtr
+PoseTracking::create_planning_scene_monitor(
+		const std::string& robot_description)
 {
-  // Reset stop requested flag before starting motions
-    stop_requested_ = false;
+    using	namespace planning_scene_monitor;
 
-  // Wait a bit for a target pose message to arrive.
-  // The target pose may get updated by new messages as the robot moves
-  // (in a callback function).
-    const ros::Time start_time = ros::Time::now();
-    while ((!haveRecentTargetPose(target_pose_timeout) ||
-	    !haveRecentEndEffectorPose(target_pose_timeout)) &&
-	   ((ros::Time::now() - start_time).toSec() < target_pose_timeout))
-    {
-	if (servo_->getEEFrameTransform(ee_frame_transform_))
-	{
-	    ee_frame_transform_stamp_ = ros::Time::now();
-	}
-	ros::Duration(0.001).sleep();
-    }
-
-    if (!haveRecentTargetPose(target_pose_timeout))
+    const auto	monitor = std::make_shared<planning_scene_monitor_t>(
+				robot_description);
+    if (!monitor->getPlanningScene())
     {
 	ROS_ERROR_STREAM_NAMED(
-	    LOGNAME, "The target pose was not updated recently. Aborting.");
-	return PoseTrackingStatusCode::NO_RECENT_TARGET_POSE;
+	    LOGNAME, "(PoseTrackingServo) failed to get PlanningSceneMonitor");
+	exit(EXIT_FAILURE);
     }
 
-  // Continue sending PID controller output to Servo
-  // until one of the following conditions is met:
-  // - Goal tolerance is satisfied
-  // - Target pose becomes outdated
-  // - Command frame transform becomes outdated
-  // - Another thread requested a stop
-    while (ros::ok() &&
-    	   !satisfiesPoseTolerance(positional_tolerance, angular_tolerance))
-    {
-      // Attempt to update robot pose
-	if (servo_->getEEFrameTransform(ee_frame_transform_))
-	{
-	    ee_frame_transform_stamp_ = ros::Time::now();
-	}
+    monitor->startSceneMonitor();
+    monitor->startWorldGeometryMonitor(
+	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+	false /* skip octomap monitor */);
+    monitor->startStateMonitor();
 
-      // Check that end-effector pose (command frame transform)
-      // is recent enough.
-	if (!haveRecentEndEffectorPose(target_pose_timeout))
-	{
-	    ROS_ERROR_STREAM_NAMED(
-		LOGNAME,
-		"The end effector pose was not updated in time. Aborting.");
-	    doPostMotionReset();
-	    return PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE;
-	}
+    ROS_INFO_STREAM_NAMED(LOGNAME,
+			  "(PoseTrackingServo) PlanningSceneMonitor started");
 
-	if (stop_requested_)
-	{
-	    ROS_INFO_STREAM_NAMED(
-		LOGNAME, "Halting servo motion, a stop was requested.");
-	    doPostMotionReset();
-	    return PoseTrackingStatusCode::STOP_REQUESTED;
-	}
-
-      // Compute servo command from PID controller output and send it
-      // to the Servo object, for execution
-	twist_stamped_pub_.publish(calculateTwistCommand());
-
-      // For debugging
-	ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					    ee_frame_transform_,
-					    ee_frame_transform_stamp_,
-					    target_pose_.header.frame_id)));
-
-	if (!loop_rate_.sleep())
-	{
-	    ROS_WARN_STREAM_THROTTLE_NAMED(1, LOGNAME,
-					   "Target control rate was missed");
-	}
-    }
-
-    doPostMotionReset();
-    return PoseTrackingStatusCode::SUCCESS;
+    return monitor;
 }
 
 void
@@ -343,86 +326,100 @@ PoseTracking::readROSParams()
 }
 
 void
-PoseTracking::initializePID(const PIDConfig& pid_config,
-			    std::vector<control_toolbox::Pid>& pid_vector)
+PoseTracking::goalCallback()
 {
-    bool use_anti_windup = true;
-    pid_vector.push_back(control_toolbox::Pid(pid_config.k_p,
-					      pid_config.k_i,
-					      pid_config.k_d,
-					      pid_config.windup_limit,
-					      -pid_config.windup_limit,
-					      use_anti_windup));
+    current_goal_ = tracker_srv_.acceptNewGoal();
+
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTracking) goal ACCEPTED["
+			  << current_goal_->target_offset << ']');
+
+  // Reset stop requested flag before starting motions
+    stop_requested_ = false;
+
+  // Wait a bit for a target pose message to arrive.
+  // The target pose may get updated by new messages as the robot moves
+  // (in a callback function).
+    const double	target_pose_timeout = 0.1;
+    const auto		start_time = ros::Time::now();
+    while ((!haveRecentTargetPose(target_pose_timeout) ||
+	    !haveRecentEndEffectorPose(target_pose_timeout)) &&
+	   ((ros::Time::now() - start_time).toSec() < target_pose_timeout))
+    {
+	if (servo_->getEEFrameTransform(ee_frame_transform_))
+	    ee_frame_transform_stamp_ = ros::Time::now();
+	ros::Duration(0.001).sleep();
+    }
+
+    if (!haveRecentTargetPose(target_pose_timeout))
+    {
+	tracker_srv_.setAborted();
+	ROS_ERROR_STREAM_NAMED(
+	    LOGNAME, "The target pose was not updated recently. Aborting.");
+    }
 }
 
 void
-PoseTracking::updatePositionPIDs(double PIDConfig::* field, double value)
+PoseTracking::preemptCallback()
 {
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
-
-    x_pid_config_.*field = value;
-    y_pid_config_.*field = value;
-    z_pid_config_.*field = value;
-
-    cartesian_position_pids_.clear();
-    initializePID(x_pid_config_, cartesian_position_pids_);
-    initializePID(y_pid_config_, cartesian_position_pids_);
-    initializePID(z_pid_config_, cartesian_position_pids_);
+    doPostMotionReset();
+    tracker_srv_.setPreempted();
+    ROS_INFO_STREAM_NAMED(LOGNAME,
+			  "Halting servo motion, a stop was requested.");
 }
 
 void
-PoseTracking::updateOrientationPID(double PIDConfig::* field, double value)
+PoseTracking::moveToPoseCallback(const ros::TimerEvent&)
 {
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    if (!tracker_srv_.isActive())
+	return;
 
-    angular_pid_config_.*field = value;
+  // Continue sending PID controller output to Servo
+  // until one of the following conditions is met:
+  // - Goal tolerance is satisfied
+  // - Target pose becomes outdated
+  // - Command frame transform becomes outdated
+  // - Another thread requested a stop
+    Eigen::Vector3d&	positional_error;
+    Eigen::AngleAxisd&	angular_error;
+    calculatePoseError(_current_goal->offset, positional_error, angular_error);
 
-    cartesian_orientation_pids_.clear();
-    initializePID(angular_pid_config_, cartesian_orientation_pids_);
-}
+    if (std::abs(positional_error(0))   < _current_goal->positional_tolerance[0] &&
+	std::abs(positional_error(1))   < _current_goal->positional_tolerance[1] &&
+	std::abs(positional_error(2))   < _current_goal->positional_tolerance[2] &&
+	std::abs(angular_error.angle()) < _current_goal->angular_tolerance)
+    {
+	doPostMotionReset();
+	tracker_srv_.setSucceeded();
+	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTracking) goal SUCCEEDED");
 
-bool
-PoseTracking::haveRecentTargetPose(const double timespan)
-{
-  std::lock_guard<std::mutex> lock(target_pose_mtx_);
-  return ((ros::Time::now() - target_pose_.header.stamp).toSec() < timespan);
-}
+	return;
+    }
 
-bool
-PoseTracking::haveRecentEndEffectorPose(const double timespan)
-{
-  return ((ros::Time::now() - ee_frame_transform_stamp_).toSec() < timespan);
-}
+  // Attempt to update robot pose
+    if (servo_->getEEFrameTransform(ee_frame_transform_))
+	ee_frame_transform_stamp_ = ros::Time::now();
 
-bool
-PoseTracking::satisfiesPoseTolerance(
-    const Eigen::Vector3d& positional_tolerance,
-    const double angular_tolerance)
-{
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
-    double x_error = target_pose_.pose.position.x
-		   - ee_frame_transform_.translation()(0);
-    double y_error = target_pose_.pose.position.y
-		   - ee_frame_transform_.translation()(1);
-    double z_error = target_pose_.pose.position.z
-		   - ee_frame_transform_.translation()(2);
+  // Check that end-effector pose (command frame transform) is recent enough.
+    if (!haveRecentEndEffectorPose(target_pose_timeout))
+    {
+	doPostMotionReset();
+	tracker_srv_.setAborted();
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTracking) goal ABORTED["
+			       << "The end effector pose was not updated in time.]");
 
-  // If uninitialized, likely haven't received the target pose yet.
-    if (!angular_error_)
-	return false;
+	return;
+    }
 
-    // std::cerr << "Error: (" << x_error << ' ' << y_error << ' ' << z_error
-    // 	      << ';' << *angular_error_
-    // 	      << "), Tol: (" << positional_tolerance(0)
-    // 	      << ' '  << positional_tolerance(1)
-    // 	      << ' '  << positional_tolerance(2)
-    // 	      << ';'  << angular_tolerance
-    // 	      << ')' << std::endl;
+  // Compute servo command from PID controller output and send it
+  // to the Servo object, for execution
+    twist_stamped_pub_.publish(calculateTwistCommand(
+				   current_goal_->target_offset));
 
-    return ((std::abs(x_error) < positional_tolerance(0)) &&
-	    (std::abs(y_error) < positional_tolerance(1)) &&
-	    (std::abs(z_error) < positional_tolerance(2)) &&
-	    (std::abs(*angular_error_) < angular_tolerance));
+  // For debugging
+    ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					ee_frame_transform_,
+					ee_frame_transform_stamp_,
+					target_pose_.header.frame_id)));
 }
 
 void
@@ -456,71 +453,118 @@ PoseTracking::targetPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
 	}
 	catch (const tf2::TransformException& ex)
 	{
-	    ROS_WARN_STREAM_NAMED(LOGNAME, ex.what());
+	    ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTracking) " << ex.what());
 	    return;
 	}
     }
 }
 
+bool
+PoseTracking::haveRecentTargetPose(double timespan) const
+{
+  std::lock_guard<std::mutex> lock(target_pose_mtx_);
+  return ((ros::Time::now() - target_pose_.header.stamp).toSec() < timespan);
+}
+
+bool
+PoseTracking::haveRecentEndEffectorPose(double timespan) const
+{
+  return ((ros::Time::now() - ee_frame_transform_stamp_).toSec() < timespan);
+}
+
+void
+PoseTracking::calculatePoseError(const geometry_msgs::Pose& offset,
+				 Eigen::Vector3d& positional_error,
+				 Eigen::AngleAxisd& angular_error) const
+{
+    Eigen::Quaterniond	q_desired;
+
+    {
+	std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
+      // Correct _target_pose by offset
+	tf2::Transform	target_transform;
+	tf2::fromMsg(target_pose_.pose, target_transform);
+	tf2::Transform	offset_transform;
+	tf2::fromMsg(offset, offset_transform);
+	target_transform *= offset_transform;
+
+	positional_error(0) = target_transform.getOrigin().x()
+			    - ee_frame_transform_.translation()(0);
+	positional_error(1) = target_transform.getOrigin().x()
+			    - ee_frame_transform_.translation()(1);
+	positional_error(2) = target_transform.getOrigin().x()
+			    - ee_frame_transform_.translation()(2);
+
+	tf2::convert(target_transform.getRotation(), q_desired);
+    }
+
+    angular_error = q_desired
+		  * Eigen::Quaterniond(ee_frame_transform_.rotation())
+			.inverse();
+}
+
+bool
+PoseTracking::satisfiesPoseTolerance(
+    const boost::array<double, 3>& positional_tolerance,
+    double angular_tolerance,
+    const Eigen::Vector3d& positional_error,
+    const Eigen::AngleAxisd& angular_error) const
+{
+    return ((std::abs(positional_error(0))   < positional_tolerance[0]) &&
+	    (std::abs(positional_error(1))   < positional_tolerance[1]) &&
+	    (std::abs(positional_error(2))   < positional_tolerance[2]) &&
+	    (std::abs(angular_error.angle()) < angular_tolerance));
+}
+
 geometry_msgs::TwistStampedConstPtr
-PoseTracking::calculateTwistCommand()
+PoseTracking::calculateTwistCommand(const Eigen::Vector3d& positional_error,
+				    const Eigen::AngleAxisd& angular_error)
 {
   // use the shared pool to create a message more efficiently
     auto msg = moveit::util::make_shared_from_pool<
 		geometry_msgs::TwistStamped>();
-
-  // Get twist components from PID controllers
-    geometry_msgs::Twist& twist = msg->twist;
-    Eigen::Quaterniond q_desired;
-
-  // Scope mutex locking only to operations which require access
-  // to target pose.
     {
 	std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
 	msg->header.frame_id = target_pose_.header.frame_id;
-
-      // Position
-	twist.linear.x = cartesian_position_pids_[0].computeCommand(
-				target_pose_.pose.position.x -
-				ee_frame_transform_.translation()(0),
-				loop_rate_.expectedCycleTime());
-	twist.linear.y = cartesian_position_pids_[1].computeCommand(
-				target_pose_.pose.position.y -
-				ee_frame_transform_.translation()(1),
-				loop_rate_.expectedCycleTime());
-	twist.linear.z = cartesian_position_pids_[2].computeCommand(
-				target_pose_.pose.position.z -
-				ee_frame_transform_.translation()(2),
-				loop_rate_.expectedCycleTime());
-
-      // Orientation algorithm:
-      // - Find the orientation error as a quaternion:
-      //	q_error = q_desired * q_current ^ -1
-      // - Use the angle-axis PID controller to calculate an angular rate
-      // - Convert to angular velocity for the TwistStamped message
-	q_desired = Eigen::Quaterniond(target_pose_.pose.orientation.w,
-				       target_pose_.pose.orientation.x,
-				       target_pose_.pose.orientation.y,
-				       target_pose_.pose.orientation.z);
     }
 
-    Eigen::Quaterniond q_current(ee_frame_transform_.rotation());
-    Eigen::Quaterniond q_error = q_desired * q_current.inverse();
+  // Get twist components from PID controllers
+    auto&	twist = msg->twist;
+    twist.linear.x = cartesian_position_pids_[0]
+		    .computeCommand(positional_error(0));
+    twist.linear.y = cartesian_position_pids_[1]
+		    .computeCommand(positional_error(1));
+    twist.linear.z = cartesian_position_pids_[2]
+		    .computeCommand(positional_error(2));
 
-  // Convert axis-angle to angular velocity
-    Eigen::AngleAxisd axis_angle(q_error);
-  // Cache the angular error, for rotation tolerance checking
-    angular_error_ = axis_angle.angle();
-    double ang_vel_magnitude = cartesian_orientation_pids_[0].computeCommand(
-					*angular_error_,
-					loop_rate_.expectedCycleTime());
-    twist.angular.x = ang_vel_magnitude * axis_angle.axis()[0];
-    twist.angular.y = ang_vel_magnitude * axis_angle.axis()[1];
-    twist.angular.z = ang_vel_magnitude * axis_angle.axis()[2];
+  // Anglular components
+    const auto	ang_vel_magnitude = cartesian_orientation_pids_[0]
+				   .computeCommand(angular_error.angle(),
+						   loop_rate_
+						   .expectedCycleTime());
+    twist.angular.x = ang_vel_magnitude * angular_error.axis()[0];
+    twist.angular.y = ang_vel_magnitude * angular_error.axis()[1];
+    twist.angular.z = ang_vel_magnitude * angular_error.axis()[2];
 
     msg->header.stamp = ros::Time::now();
 
     return msg;
+}
+
+void
+PoseTracking::doPostMotionReset()
+{
+    stopMotion();
+    stop_requested_ = false;
+    angular_error_  = boost::none;
+
+  // Reset error integrals and previous errors of PID controllers
+    cartesian_position_pids_[0].reset();
+    cartesian_position_pids_[1].reset();
+    cartesian_position_pids_[2].reset();
+    cartesian_orientation_pids_[0].reset();
 }
 
 void
@@ -539,33 +583,20 @@ PoseTracking::stopMotion()
     twist_stamped_pub_.publish(msg);
 }
 
+// PID controller stuffs
 void
-PoseTracking::doPostMotionReset()
-{
-    stopMotion();
-    stop_requested_ = false;
-    angular_error_  = boost::none;
-
-  // Reset error integrals and previous errors of PID controllers
-    cartesian_position_pids_[0].reset();
-    cartesian_position_pids_[1].reset();
-    cartesian_position_pids_[2].reset();
-    cartesian_orientation_pids_[0].reset();
-}
-
-void
-PoseTracking::updatePIDConfig(const double x_proportional_gain,
-			      const double x_integral_gain,
-			      const double x_derivative_gain,
-			      const double y_proportional_gain,
-			      const double y_integral_gain,
-			      const double y_derivative_gain,
-			      const double z_proportional_gain,
-			      const double z_integral_gain,
-			      const double z_derivative_gain,
-			      const double angular_proportional_gain,
-			      const double angular_integral_gain,
-			      const double angular_derivative_gain)
+PoseTracking::updatePIDConfig(double x_proportional_gain,
+			      double x_integral_gain,
+			      double x_derivative_gain,
+			      double y_proportional_gain,
+			      double y_integral_gain,
+			      double y_derivative_gain,
+			      double z_proportional_gain,
+			      double z_integral_gain,
+			      double z_derivative_gain,
+			      double angular_proportional_gain,
+			      double angular_integral_gain,
+			      double angular_derivative_gain)
 {
     stopMotion();
 
@@ -594,6 +625,45 @@ PoseTracking::updatePIDConfig(const double x_proportional_gain,
 }
 
 void
+PoseTracking::updatePositionPIDs(double PIDConfig::* field, double value)
+{
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
+    x_pid_config_.*field = value;
+    y_pid_config_.*field = value;
+    z_pid_config_.*field = value;
+
+    cartesian_position_pids_.clear();
+    initializePID(x_pid_config_, cartesian_position_pids_);
+    initializePID(y_pid_config_, cartesian_position_pids_);
+    initializePID(z_pid_config_, cartesian_position_pids_);
+}
+
+void
+PoseTracking::updateOrientationPID(double PIDConfig::* field, double value)
+{
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
+    angular_pid_config_.*field = value;
+
+    cartesian_orientation_pids_.clear();
+    initializePID(angular_pid_config_, cartesian_orientation_pids_);
+}
+
+void
+PoseTracking::initializePID(const PIDConfig& pid_config,
+			    std::vector<control_toolbox::Pid>& pid_vector)
+{
+    bool use_anti_windup = true;
+    pid_vector.push_back(control_toolbox::Pid(pid_config.k_p,
+					      pid_config.k_i,
+					      pid_config.k_d,
+					      pid_config.windup_limit,
+					      -pid_config.windup_limit,
+					      use_anti_windup));
+}
+
+void
 PoseTracking::getPIDErrors(double& x_error, double& y_error,
 			   double& z_error, double& orientation_error)
 {
@@ -611,8 +681,8 @@ PoseTracking::getPIDErrors(double& x_error, double& y_error,
 void
 PoseTracking::resetTargetPose()
 {
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
-    target_pose_ = geometry_msgs::PoseStamped();
+    std::lock_guard<std::mutex>	lock(target_pose_mtx_);
+    target_pose_	      = geometry_msgs::PoseStamped();
     target_pose_.header.stamp = ros::Time(0);
 }
 

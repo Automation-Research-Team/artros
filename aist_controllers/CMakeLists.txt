@@ -19,6 +19,7 @@ find_package(catkin REQUIRED
     message_generation
     tf
     tf_conversions
+    tf2_geometry_msgs
     ddynamic_reconfigure
     trajectory_msgs
     control_msgs
@@ -117,7 +118,6 @@ add_dependencies(
 
 add_executable(
   pose_tracking_servo
-  src/pose_tracking_servo.cpp
   src/moveit_servo/collision_check.cpp
   src/moveit_servo/low_pass_filter.cpp
   src/moveit_servo/pose_tracking.cpp
@@ -132,27 +132,6 @@ target_link_libraries(
 
 add_dependencies(
   pose_tracking_servo
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${catkin_EXPORTED_TARGETS}
-)
-
-add_executable(
-  pose_tracking_example
-  src/moveit_servo/pose_tracking_example.cpp
-  src/moveit_servo/collision_check.cpp
-  src/moveit_servo/low_pass_filter.cpp
-  src/moveit_servo/pose_tracking.cpp
-  src/moveit_servo/servo.cpp
-  src/moveit_servo/servo_calcs.cpp
-)
-
-target_link_libraries(
-  pose_tracking_example
-  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
-)
-
-add_dependencies(
-  pose_tracking_example
   ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )

@@ -61,8 +61,49 @@ class PoseTrackingServo
     void	servo_status_cb(const std_msgs::Int8ConstPtr& msg)	;
 
   private:
-    ros::NodeHandle				_nh;
-    planning_scene_monitor_p			_planning_scene_monitor;
+    ros::NodeHandle			_nh;
+    planning_scene_monitor_p		_planning_scene_monitor;
+    const moveit::core::JointModelGroup* joint_model_group_;
+  // Joint group used for controlling the motions
+    std::string				move_group_name_;
+
+    ros::Rate				loop_rate_;
+
+  // ROS interface to Servo
+    ros::Publisher			twist_stamped_pub_;
+
+    std::vector<control_toolbox::Pid>	cartesian_position_pids_;
+    std::vector<control_toolbox::Pid>	cartesian_orientation_pids_;
+  // Cartesian PID configs
+    PIDConfig				x_pid_config_, y_pid_config_,
+					z_pid_config_, angular_pid_config_;
+
+  // Transforms w.r.t. planning_frame_
+    Eigen::Isometry3d			ee_frame_transform_;
+    ros::Time				ee_frame_transform_stamp_;
+    geometry_msgs::PoseStamped		target_pose_;
+    mutable std::mutex			target_pose_mtx_;
+
+  // For debugging
+    ros::Publisher			ee_pose_pub_;
+
+  // Subscribe to target pose
+    ros::Subscriber			target_pose_sub_;
+
+    tf2_ros::Buffer			transform_buffer_;
+    tf2_ros::TransformListener		transform_listener_;
+
+  // Expected frame name, for error checking and transforms
+    std::string				planning_frame_;
+
+  // Flag that a different thread has requested a stop.
+    std::atomic<bool>			stop_requested_;
+
+    boost::optional<double>		angular_error_;
+
+  // Dynamic reconfigure server
+    ddynamic_reconfigure::DDynamicReconfigure	ddr_;
+
     moveit_servo::PoseTracking			_tracker;
     servo_status_t				_servo_status;
 
