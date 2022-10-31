@@ -118,9 +118,9 @@ add_dependencies(
 
 add_executable(
   pose_tracking_servo
+  src/pose_tracking_servo.cpp
   src/moveit_servo/collision_check.cpp
   src/moveit_servo/low_pass_filter.cpp
-  src/moveit_servo/pose_tracking.cpp
   src/moveit_servo/servo.cpp
   src/moveit_servo/servo_calcs.cpp
 )
