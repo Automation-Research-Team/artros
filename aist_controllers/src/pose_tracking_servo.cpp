@@ -127,7 +127,7 @@ POSE_TRACKING_STATUS_CODE_MAP(
       { PoseTrackingStatusCode::STOP_REQUESTED, "Stop requested" } });
 
 /************************************************************************
-*  class PoseTrackingServo							*
+*  class PoseTrackingServo						*
 ************************************************************************/
 class PoseTrackingServo
 {
@@ -194,7 +194,6 @@ class PoseTrackingServo
     std::unique_ptr<moveit_servo::Servo>	servo_;
 
     std::string					move_group_name_;
-    robot_model::RobotModelConstPtr		robot_model_;
     const moveit::core::JointModelGroup*	joint_model_group_;
 
     ros::Subscriber				target_pose_sub_;
@@ -237,7 +236,6 @@ PoseTrackingServo::PoseTrackingServo()
      servo_(new moveit_servo::Servo(nh_, planning_scene_monitor_)),
 
      move_group_name_(),
-     robot_model_(planning_scene_monitor_->getRobotModel()),
      joint_model_group_(nullptr),
 
      twist_stamped_pub_(),
@@ -266,9 +264,6 @@ PoseTrackingServo::PoseTrackingServo()
      ddr_(ros::NodeHandle(nh_, "pose_tracking"))
 {
     readROSParams();
-
-    robot_model_       = planning_scene_monitor_->getRobotModel();
-    joint_model_group_ = robot_model_->getJointModelGroup(move_group_name_);
 
   // Initialize PID controllers
     initializePID(x_pid_config_,       cartesian_position_pids_);
@@ -394,19 +389,19 @@ PoseTrackingServo::readROSParams()
 {
   // Optional parameter sub-namespace specified in the launch file.
   // All other parameters will be read from this namespace.
-    std::string parameter_ns;
+    std::string	parameter_ns;
     ros::param::get("~parameter_ns", parameter_ns);
 
   // If parameters have been loaded into sub-namespace
   // within the node namespace, append the parameter namespace
   // to load the parameters correctly.
-    ros::NodeHandle nh = (parameter_ns.empty() ?
-			  nh_ : ros::NodeHandle(nh_, parameter_ns));
+    auto	nh = (parameter_ns.empty() ?
+		      nh_ : ros::NodeHandle(nh_, parameter_ns));
 
   // Wait for ROS parameters to load
-    ros::Time begin = ros::Time::now();
+    const auto	begin = ros::Time::now();
     while (ros::ok() && !nh.hasParam("planning_frame") &&
-	   ((ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT))
+	   (ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT)
     {
 	ROS_WARN_STREAM_NAMED(LOGNAME,
 			      "Waiting for parameter: planning_frame");
@@ -428,7 +423,8 @@ PoseTrackingServo::readROSParams()
 	    << move_group_name_);
     }
 
-    double publish_period;
+  // Setup loop_rate_
+    double	publish_period;
     error += !rosparam_shortcuts::get(LOGNAME, nh,
 				      "publish_period", publish_period);
     loop_rate_ = ros::Rate(1 / publish_period);
@@ -438,7 +434,8 @@ PoseTrackingServo::readROSParams()
     z_pid_config_.dt	   = publish_period;
     angular_pid_config_.dt = publish_period;
 
-    double windup_limit;
+  // Setup PID configurations
+    double	windup_limit;
     error += !rosparam_shortcuts::get(LOGNAME, nh, "windup_limit",
 				      windup_limit);
     x_pid_config_.windup_limit = windup_limit;
@@ -487,7 +484,7 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
     {
 	try
 	{
-	    geometry_msgs::TransformStamped
+	    const auto
 		target_to_planning_frame = transform_buffer_.lookupTransform(
 						planning_frame_,
 						target_pose_.header.frame_id,
@@ -506,7 +503,8 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	}
 	catch (const tf2::TransformException& ex)
 	{
-	    ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) " << ex.what());
+	    ROS_WARN_STREAM_NAMED(LOGNAME,
+				  "(PoseTrackingServo) " << ex.what());
 	    return;
 	}
     }
@@ -523,7 +521,7 @@ PoseTrackingServo::goalCB()
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
-    const auto		start_time = ros::Time::now();
+    const auto	start_time = ros::Time::now();
     while ((!haveRecentTargetPose(target_pose_timeout_) ||
 	    !haveRecentEndEffectorPose(target_pose_timeout_)) &&
 	   ((ros::Time::now() - start_time).toSec() < target_pose_timeout_))
