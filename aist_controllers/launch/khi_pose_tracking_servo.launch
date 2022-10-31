@@ -18,8 +18,10 @@
   </include>
 
   <!-- Start ArUco -->
+  <!-- <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen" -->
+  <!--       args="load aist_aruco_ros/aruco_detector $(arg manager)"> -->
   <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
-        args="load aist_aruco_ros/aruco_detector $(arg manager)">
+        args="standalone aist_aruco_ros/aruco_detector">
     <remap if="$(eval camera_name == 'phoxi')"
   	   from="/camera_info"	to="$(arg camera_name)/camera_info"/>
     <remap if="$(eval camera_name == 'phoxi')"
@@ -62,6 +64,7 @@
     <rosparam file="$(dirname)/../config/khi_servo_server.yaml"
   	      subst_value="true"/>
     <rosparam file="$(dirname)/../config/khi_pose_tracking.yaml"/>
+    <remap from="/target_pose"	to="/aruco_detector/pose"/>
   </node>
 
 </launch>

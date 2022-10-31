@@ -35,14 +35,16 @@ class PoseTrackingClient(object):
     def is_connected(self):
         return self._pose_tracking is not None
 
-    def send_goal(self, target_pose,
-                  lin_tol=(0, 0, 0), rot_tol=0, feedback_cb=None):
-        self._pose_tracking.send_goal(PoseTrackingGoal(target_pose=target_pose,
-                                                       lin_tol=lin_tol,
-                                                       rot_tol=rot_tol),
-                                      feedback_cb=feedback_cb)
-        rospy.loginfo('(PoseTrackingClient) send goal[target_frame=%s]',
-                      target_pose.header.frame_id)
+    def send_goal(self, target_offset,
+                  positional_tolerance=(0, 0, 0), angular_tolerance=(0, 0, 0),
+                  feedback_cb=None):
+        self._pose_tracking.send_goal(
+            PoseTrackingGoal(target_offset=target_offset,
+                             positional_tolerance=positional_tolerance,
+                             angular_tolerance=angular_tolerance),
+            feedback_cb=feedback_cb)
+        rospy.loginfo('(PoseTrackingClient) send goal[target_offset=%s]',
+                      str(target_offset))
 
     def cancel_goal(self, wait=False):
         self._pose_tracking.cancel_goal()
