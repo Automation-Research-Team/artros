@@ -273,7 +273,7 @@ PoseTrackingServo::PoseTrackingServo()
 
   // Connect to Servo ROS interfaces
     target_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>(
-			"target_pose", 1,
+			"/target_pose", 1,
 			&PoseTrackingServo::targetPoseCB, this,
 			ros::TransportHints().reliable().tcpNoDelay(true));
 
