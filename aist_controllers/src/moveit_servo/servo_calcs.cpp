@@ -1029,8 +1029,12 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
 	    const auto bounded_velocity
-		= std::min(std::max(unbounded_velocity, bounds.min_velocity_),
-			   bounds.max_velocity_);
+		= std::min(std::max(unbounded_velocity,
+				    8*bounds.min_velocity_),
+			   8*bounds.max_velocity_);
+	    if (bounded_velocity * unbounded_velocity < 0)
+		std::cerr << "*** Opposite sign!" << std::endl;
+	    
 	    velocity_scaling_factor
 	    	= std::min(velocity_scaling_factor,
 	    		   bounded_velocity / unbounded_velocity);

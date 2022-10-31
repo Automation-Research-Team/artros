@@ -3,9 +3,9 @@
 
   <arg name="sim"		default="false"/>
   <arg name="traj"		default="true"/>
-  <arg name="speed"		default="10.0"/>
-  <arg name="turn"		default="10.0"/>
-  <arg name="repeat_rate"	default="50.0"/>
+  <arg name="speed"		default="13.0"/>
+  <arg name="turn"		default="13.0"/>
+  <arg name="repeat_rate"	default="100.0"/>
        
   <node ns="servo_server" name="teleop_twist_keyboard"
 	pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py"

@@ -17,7 +17,7 @@ low_pass_filter_half_order: 3
 low_pass_filter_cutoff_frequency: 7.
 
 ## Properties of outgoing commands
-publish_period:   0.004
+publish_period:   0.002
 low_latency_mode: false
 
 command_out_type: $(arg command_out_type)

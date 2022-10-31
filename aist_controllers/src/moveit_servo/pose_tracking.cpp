@@ -167,21 +167,21 @@ PoseTracking::PoseTracking()
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for translation",
-				  0.1, 20.0);
+				  1.0, 100.0);
     ddr_.registerVariable<double>("linear_integral_gain",
 				  x_pid_config_.k_i,
 				  boost::bind(&PoseTracking
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for translation",
-				  0.0, 20.0);
+				  0.0, 100.0);
     ddr_.registerVariable<double>("linear_derivative_gain",
 				  x_pid_config_.k_d,
 				  boost::bind(&PoseTracking
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for translation",
-				  0.0, 20.0);
+				  0.0, 100.0);
 
     ddr_.registerVariable<double>("angular_proportinal_gain",
 				  angular_pid_config_.k_p,
@@ -189,21 +189,21 @@ PoseTracking::PoseTracking()
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for rotation",
-				  0.1, 20.0);
+				  0.5, 100.0);
     ddr_.registerVariable<double>("angular_integral_gain",
 				  angular_pid_config_.k_i,
 				  boost::bind(&PoseTracking
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for rotation",
-				  0.0, 20.0);
+				  0.0, 100.0);
     ddr_.registerVariable<double>("angular_derivative_gain",
 				  angular_pid_config_.k_d,
 				  boost::bind(&PoseTracking
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for rotation",
-				  0.0, 20.0);
+				  0.0, 100.0);
     ddr_.publishServicesTopics();
 
   // Start timer
