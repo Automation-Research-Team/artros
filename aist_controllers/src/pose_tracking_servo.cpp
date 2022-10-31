@@ -37,6 +37,7 @@
 #include <control_toolbox/pid.h>
 #include <moveit_servo/make_shared_from_pool.h>
 #include <moveit_servo/servo.h>
+#include <moveit_servo/status_codes.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_listener.h>
@@ -99,33 +100,6 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 }
 }
 
-struct PIDConfig
-{
-  // Default values
-    double dt = 0.001;
-    double k_p = 1;
-    double k_i = 0;
-    double k_d = 0;
-    double windup_limit = 0.1;
-};
-
-enum class PoseTrackingStatusCode : int8_t
-{
-    INVALID = -1,
-    SUCCESS = 0,
-    NO_RECENT_TARGET_POSE = 1,
-    NO_RECENT_END_EFFECTOR_POSE = 2,
-    STOP_REQUESTED = 3
-};
-
-const std::unordered_map<PoseTrackingStatusCode, std::string>
-POSE_TRACKING_STATUS_CODE_MAP(
-    { { PoseTrackingStatusCode::INVALID, "Invalid" },
-      { PoseTrackingStatusCode::SUCCESS, "Success" },
-      { PoseTrackingStatusCode::NO_RECENT_TARGET_POSE, "No recent target pose" },
-      { PoseTrackingStatusCode::NO_RECENT_END_EFFECTOR_POSE, "No recent end effector pose" },
-      { PoseTrackingStatusCode::STOP_REQUESTED, "Stop requested" } });
-
 /************************************************************************
 *  class PoseTrackingServo						*
 ************************************************************************/
@@ -138,7 +112,16 @@ class PoseTrackingServo
 			    = planning_scene_monitor::PlanningSceneMonitorPtr;
     using server_t	    = actionlib::SimpleActionServer<PoseTrackingAction>;
     using servo_status_t    = moveit_servo::StatusCode;
-    using tracking_status_t = PoseTrackingStatusCode;
+
+    struct PIDConfig
+    {
+      // Default values
+	double dt  = 0.001;
+	double k_p = 1;
+	double k_i = 0;
+	double k_d = 0;
+	double windup_limit = 0.1;
+    };
 
   public:
 		PoseTrackingServo()					;
@@ -152,6 +135,7 @@ class PoseTrackingServo
 		    const std::string& robot_description)		;
 
     void	readROSParams()						;
+    void	servoStatusCB(const std_msgs::Int8ConstPtr& msg)	;
     void	targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg);
     void	goalCB()						;
     void	preemptCB()						;
@@ -192,15 +176,19 @@ class PoseTrackingServo
 
     planning_scene_monitor_p			planning_scene_monitor_;
     std::unique_ptr<moveit_servo::Servo>	servo_;
+    servo_status_t				servo_status_;
+    mutable std::mutex				servo_status_mtx_;
 
     std::string					move_group_name_;
     const moveit::core::JointModelGroup*	joint_model_group_;
 
+    ros::Subscriber				servo_status_sub_;
     ros::Subscriber				target_pose_sub_;
     ros::Publisher				twist_stamped_pub_;
     ros::Publisher				ee_pose_pub_;
     ros::Timer					timer_;
     ros::Rate					loop_rate_;
+    ros::ServiceClient				reset_servo_status_;
 
     tf2_ros::Buffer				transform_buffer_;
     tf2_ros::TransformListener			transform_listener_;
@@ -234,15 +222,22 @@ PoseTrackingServo::PoseTrackingServo()
      planning_scene_monitor_(create_planning_scene_monitor(
 				 "robot_description")),
      servo_(new moveit_servo::Servo(nh_, planning_scene_monitor_)),
+     servo_status_(servo_status_t::INVALID),
+     servo_status_mtx_(),
 
      move_group_name_(),
      joint_model_group_(nullptr),
 
+     servo_status_sub_(nh_.subscribe(servo_->getParameters().status_topic, 1,
+				     &PoseTrackingServo::servoStatusCB, this)),
+     target_pose_sub_(),
      twist_stamped_pub_(),
      ee_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>("ee_pose_debug",
 							    1)),
      timer_(),
      loop_rate_(DEFAULT_LOOP_RATE),
+     reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
+			     "reset_servo_status")),
 
      transform_buffer_(),
      transform_listener_(transform_buffer_),
@@ -473,6 +468,44 @@ PoseTrackingServo::readROSParams()
 }
 
 void
+PoseTrackingServo::servoStatusCB(const std_msgs::Int8ConstPtr& msg)
+{
+    const auto	latest_servo_status = static_cast<servo_status_t>(msg->data);
+
+    if (latest_servo_status != servo_status_)
+    {
+	std::lock_guard<std::mutex> lock(servo_status_mtx_);
+
+	servo_status_ = latest_servo_status;
+
+	switch (servo_status_)
+	{
+	  case servo_status_t::DECELERATE_FOR_SINGULARITY:
+	  case servo_status_t::DECELERATE_FOR_COLLISION:
+	    ROS_WARN_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) Servo status["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
+		<< ']');
+	    break;
+	  case servo_status_t::HALT_FOR_SINGULARITY:
+	  case servo_status_t::HALT_FOR_COLLISION:
+	  case servo_status_t::JOINT_BOUND:
+	    ROS_ERROR_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) Servo status["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
+		<< ']');
+	    break;
+	  default:
+	    ROS_INFO_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) Servo status["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
+		<< ']');
+	    break;
+	}
+    }
+}
+
+void
 PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 {
     std::lock_guard<std::mutex> lock(target_pose_mtx_);
@@ -518,6 +551,13 @@ PoseTrackingServo::goalCB()
     ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
 			  << current_goal_->target_offset << ']');
 
+    resetTargetPose();
+
+    std_srvs::Empty	empty;
+    reset_servo_status_.call(empty);
+
+    servo_->start();
+
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
@@ -533,6 +573,7 @@ PoseTrackingServo::goalCB()
 
     if (!haveRecentTargetPose(target_pose_timeout_))
     {
+	doPostMotionReset();
 	tracker_srv_.setAborted();
 	ROS_ERROR_STREAM_NAMED(
 	    LOGNAME, "The target pose was not updated recently. Aborting.");
@@ -593,6 +634,27 @@ PoseTrackingServo::timerCB(const ros::TimerEvent&)
 	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal SUCCEEDED");
 
 	return;
+    }
+
+    {
+	std::lock_guard<std::mutex> lock(servo_status_mtx_);
+
+	switch (servo_status_)
+	{
+	  case servo_status_t::HALT_FOR_SINGULARITY:
+	  case servo_status_t::HALT_FOR_COLLISION:
+	  case servo_status_t::JOINT_BOUND:
+	    doPostMotionReset();
+	    tracker_srv_.setAborted();
+	    ROS_ERROR_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) goal ABORTED["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
+		<< ']');
+	    return;
+
+	  default:
+	    break;
+	}
     }
 
   // Compute servo command from PID controller output and send it
