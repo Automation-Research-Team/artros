@@ -104,7 +104,10 @@ class PoseTracking
   public:
   /** \brief Constructor. Loads ROS parameters under the given namespace. */
 		PoseTracking()						;
-
+		~PoseTracking()						;
+    
+    void	run()							;
+    
   private:
     static planning_scene_monitor_p
 		create_planning_scene_monitor(
@@ -113,45 +116,30 @@ class PoseTracking
   /** \brief Load ROS parameters for controller settings. */
     void	readROSParams()						;
 
+  /** \brief Subscribe to the target pose on this topic */
+    void	targetPoseCallback(
+		    const geometry_msgs::PoseStampedConstPtr& msg)	;
+
     void	goalCallback()						;
 
     void	preemptCallback()					;
 
     void	moveToPoseCallback(const ros::TimerEvent&)		;
 
-  /** \brief Subscribe to the target pose on this topic */
-    void	targetPoseCallback(
-		    const geometry_msgs::PoseStampedConstPtr& msg)	;
+    void	calculatePoseError(const geometry_msgs::Pose& offset,
+				   Eigen::Vector3d& positional_error,
+				   Eigen::AngleAxisd& angular_error) const;
+
+  /** \brief Use PID controllers to calculate a full spatial velocity toward a pose */
+    geometry_msgs::TwistStampedConstPtr
+		calculateTwistCommand(const Eigen::Vector3d& positional_error,
+				      const Eigen::AngleAxisd& angular_error);
 
   /** \brief A method for a different thread to stop motion and return early from control loop */
     void	stopMotion();
 
-  /** \brief Re-initialize the target pose to an empty message. Can be used to reset motion between waypoints. */
-    void	resetTargetPose()					;
-
   /** \brief Reset flags and PID controllers after a motion completes */
     void	doPostMotionReset()					;
-
-  /** \brief Return true if a target pose has been received within timeout [seconds] */
-    bool	haveRecentTargetPose(double timeout)		const	;
-
-  /** \brief Return true if an end effector pose has been received within timeout [seconds] */
-    bool	haveRecentEndEffectorPose(double timeout)	const	;
-
-  /** \brief Check if XYZ, roll/pitch/yaw tolerances are satisfied */
-    bool	satisfiesPoseTolerance(
-		    const boost::array<double, 3>& positional_tolerance,
-		    double angular_tolerance)			const	;
-
-  /** \brief Update PID controller target positions & orientations */
-    void	updateControllerSetpoints()				;
-
-  /** \brief Update PID controller states (positions & orientations) */
-    void	updateControllerStateMeasurements()			;
-
-  /** \brief Use PID controllers to calculate a full spatial velocity toward a pose */
-    geometry_msgs::TwistStampedConstPtr
-		calculateTwistCommand(const geometry_msgs::Pose& offset);
 
   /** \brief Change PID parameters. Motion is stopped before the udpate */
     void	updatePIDConfig(double x_proportional_gain,
@@ -184,6 +172,12 @@ class PoseTracking
 			     double& z_error,
 			     double& orientation_error)			;
 
+  /** \brief Re-initialize the target pose to an empty message. Can be used to reset motion between waypoints. */
+    void	resetTargetPose()					;
+
+  /** \brief Return true if a target pose has been received within timeout [seconds] */
+    bool	haveRecentTargetPose(double timeout)		const	;
+
   /**
    * Get the End Effector link transform.
    * The transform from the MoveIt planning frame to EE link
@@ -193,6 +187,9 @@ class PoseTracking
    */
     bool	getEEFrameTransform(
 		    geometry_msgs::TransformStamped& transform)		;
+
+  /** \brief Return true if an end effector pose has been received within timeout [seconds] */
+    bool	haveRecentEndEffectorPose(double timeout)	const	;
 
   public:
   // moveit_servo::Servo instance.
@@ -226,7 +223,8 @@ class PoseTracking
     ros::Time					ee_frame_transform_stamp_;
     geometry_msgs::PoseStamped			target_pose_;
     mutable std::mutex				target_pose_mtx_;
-
+    constexpr static double			target_pose_timeout_ = 0.1;
+    
   // For debugging
     ros::Publisher				ee_pose_pub_;
 
@@ -238,11 +236,6 @@ class PoseTracking
 
   // Expected frame name, for error checking and transforms
     std::string					planning_frame_;
-
-  // Flag that a different thread has requested a stop.
-    std::atomic<bool>				stop_requested_;
-
-    boost::optional<double>			angular_error_;
 
   // Action server stuffs
     server_t					tracker_srv_;
