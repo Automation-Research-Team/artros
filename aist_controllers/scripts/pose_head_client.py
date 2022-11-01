@@ -36,7 +36,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy, threading
+from math                            import radians
+from tf                              import transformations as tfs
+from geometry_msgs.msg               import (PoseStamped,
+                                             Pose, Point, Quaternion)
 from aist_controllers.PoseHeadClient import PoseHeadClient
+from controller_manager_msgs.srv     import SwitchController
 
 ######################################################################
 #  class InteractivePoseHeadClient                                   #
@@ -45,9 +50,18 @@ class InteractivePoseHeadClient(PoseHeadClient):
     def __init__(self, server):
         super(InteractivePoseHeadClient, self).__init__(server)
 
-        self._target_frame = rospy.get_param('~target_frame', 'marker_frame')
-        self._target_pose  = rospy.get_param('~target_pose',
-                                             [0, 0, 0.3, 180, 0, 0])
+        xyzrpy = rospy.get_param('~target_pose', [0, 0, 0.3, 0, 90, 0])
+        target_pose = PoseStamped()
+        target_pose.header.frame_id = rospy.get_param('~target_frame',
+                                                      'marker_frame')
+        target_pose.pose = Pose(Point(*xyzrpy[0:3]),
+                                Quaternion(*tfs.quaternion_from_euler(
+                                    *map(radians, xyzrpy[3:6]))))
+        self._target_pose = target_pose
+        self._switch_client \
+            = rospy.ServiceProxy('/controller_manager/switch_controller',
+                                 SwitchController)
+
         thread = threading.Thread(target=self._interactive)
         thread.start()
 
@@ -61,13 +75,12 @@ class InteractivePoseHeadClient(PoseHeadClient):
                 elif key == 'c':
                     self.cancel_goal()
                 else:
-                    self.send_goal(self._target_frame, self._target_pose)
+                    self.send_goal(self._target_pose)
             except Exception as e:
                 print(e.message)
 
 
 if __name__ == '__main__':
-
     rospy.init_node('pose_head_client', anonymous=True)
 
     server = rospy.get_param('~server', 'pose_head_tracker')

@@ -81,5 +81,29 @@ operator <<(std::ostream& out, const geometry_msgs::Transform& transform)
 	       << "; " << transform.rotation << ']';
 }
 
+inline geometry_msgs::Pose
+toPose(const geometry_msgs::Transform& transform)
+{
+    geometry_msgs::Pose	pose;
+    pose.position.x  = transform.translation.x;
+    pose.position.y  = transform.translation.y;
+    pose.position.z  = transform.translation.z;
+    pose.orientation = transform.rotation;
+
+    return pose;
+}
+
+inline geometry_msgs::Transform
+toTransform(const geometry_msgs::Pose& pose)
+{
+    geometry_msgs::Transform	transform;
+    transform.translation.x = pose.position.x;
+    transform.translation.y = pose.position.y;
+    transform.translation.z = pose.position.z;
+    transform.rotation	    = pose.orientation;
+
+    return transform;
+}
+
 }	// namespace aist_utility
 #endif	// !AIST_UTILITY_GEOMETRY_MSGS_H

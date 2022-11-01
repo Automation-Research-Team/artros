@@ -20,9 +20,12 @@ find_package(
   COMPONENTS
     roscpp
     rospy
+    genmsg
+    message_generation
     sensor_msgs
     geometry_msgs
     tf
+    ddynamic_reconfigure
 )
 
 find_package(OpenCV REQUIRED)
@@ -33,6 +36,16 @@ catkin_python_setup()
 ###########
 ## Build ##
 ###########
+add_message_files(
+  FILES
+    Flt.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+    std_msgs
+)
+
 catkin_package(
   CATKIN_DEPENDS
     roscpp
@@ -84,12 +97,26 @@ target_link_libraries(
 )
 
 add_executable(rotconv
-  src/rotconv/main.cpp
+  src/rotconv.cpp
 )
 
 target_link_libraries(rotconv
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
+)
+
+add_executable(butterworth_lpf_test
+  src/butterworth_lpf_test.cpp
+)
+
+target_link_libraries(butterworth_lpf_test
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+)
+
+add_dependencies(butterworth_lpf_test
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
 )
 
 #############

@@ -21,28 +21,15 @@ aist_controllers
  
 ### Action
  - **~pose_head**:
-   - type=`aist_controllers::PoseHeadAction`
-     ```
-      # Goal
-      geometry_msgs/PoseStamped target
-      string                    pointing_frame
-      duration                  min_duration
-      float64                   max_velocity
-      ---
-      # Result
-      ---
-      # Feedback
-      float64 pointing_position_error
-      float64 pointing_angle_error
-       ```
+   - type=[aist_controllers/PoseHeadAction](action/PoseHead.action)
 
 ### Subscribed topic
  - **~controller/state**:
-   - type=[control_msgs::JointTrajectoryControllerState](http://docs.ros.org/en/api/control_msgs/html/msg/JointTrajectoryControllerState.html)
+   - type=[control_msgs/JointTrajectoryControllerState](http://docs.ros.org/en/api/control_msgs/html/msg/JointTrajectoryControllerState.html)
  
 ### Published topic
  - **~controller/command**:
-   - type=[trajectory_msgs::JointTrajectory](http://docs.ros.org/en/api/trajectory_msgs/html/msg/JointTrajectory.html)
+   - type=[trajectory_msgs/JointTrajectory](http://docs.ros.org/en/api/trajectory_msgs/html/msg/JointTrajectory.html)
 
 
 ## `pose_group_tracker`
@@ -65,26 +52,12 @@ aist_controllers
  
 ### Action
  - **~pose_head**:
-   - type=`aist_controllers::PoseHeadAction`
-     ```
-      # Goal
-      geometry_msgs/PoseStamped target
-      string                    pointing_frame
-      duration                  min_duration
-      float64                   max_velocity
-      ---
-      # Result
-      ---
-      # Feedback
-      float64 pointing_position_error
-      float64 pointing_angle_error
-       ```
-
+   - type=[aist_controllers/PoseHeadAction](action/PoseHead.action)
 ### Subscribed topic
  - **/joint_states**:
-   - type=[sensor_msgs::JointState](http://docs.ros.org/en/api/sensor_msgs/html/msg/JointState.html)
+   - type=[sensor_msgs/JointState](http://docs.ros.org/en/api/sensor_msgs/html/msg/JointState.html)
  
 ### Published topic
  - **~controller/command**:
-   - type=[std_msgs::Float64MultiArray](http://docs.ros.org/en/api/std_msgs/html/msg/Float64MultiArray.html)
+   - type=[std_msgs/Float64MultiArray](http://docs.ros.org/en/api/std_msgs/html/msg/Float64MultiArray.html)
    

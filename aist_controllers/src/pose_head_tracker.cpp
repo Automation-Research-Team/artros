@@ -96,10 +96,7 @@ JointTrajectoryTracker<aist_controllers::PoseHeadAction>
 
   // Set desired time at which the pointing_frame reaching the target.
     point.time_from_start = dt;
-    
-  // Set current time to trajectory command.
-    _command.header.stamp = ros::Time::now();
-    
+
     return false;
 }
 

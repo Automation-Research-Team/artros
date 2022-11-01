@@ -4,13 +4,12 @@
   <arg name="sim"			default="false"/>
   <arg name="camera_name"		default="realsenseD435"/>
   <arg name="check"			default="false"/>
-  <arg name="scene"			default=""/>
   <arg name="use_dual_quaternion"	default="true"/>
 
   <!-- Set camera topic names -->
-  <arg name="camera_info_topic"		value="color/camera_info"/>
-  <arg name="image_topic"		value="color/image_raw"/>
-  <arg name="depth_topic"		value="aligned_depth_to_color/image_raw"/>
+  <arg name="camera_info_topic"	value="color/camera_info"/>
+  <arg name="image_topic"	value="color/image_raw"/>
+  <arg name="depth_topic"	value="aligned_depth_to_color/image_raw"/>
 
 <!-- start realsenseD435 alignedDepth:true -->
 	<!-- <include file="$(find realsense2_camera)/launch/rs_rgbd.launch">
@@ -20,7 +19,6 @@
   <!-- Launch devices and calibrator -->
   <include file="$(dirname)/include/handeye_calibration.launch">
     <arg name="config"			value="mocap"/>
-    <arg name="scene"			value="$(arg scene)"/>
 
     <arg name="camera_info_topic"	value="$(arg camera_info_topic)"/>
     <arg name="image_topic"		value="$(arg image_topic)"/>

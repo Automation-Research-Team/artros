@@ -17,7 +17,7 @@ $(arg prefix)controller:
     $(arg prefix)joint2: {trajectory: 0, goal: 0.2}
     $(arg prefix)joint3: {trajectory: 0, goal: 0.2}
     $(arg prefix)joint4: {trajectory: 0, goal: 0.2}
-  state_publish_rate:  50
+  state_publish_rate:  200
   action_monitor_rate: 20
   #hold_trajectory_duration: 0
 

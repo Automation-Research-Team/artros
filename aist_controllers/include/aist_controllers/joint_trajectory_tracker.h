@@ -123,6 +123,7 @@ class JointTrajectoryTracker
     const std::string		_controller;
     ros::Subscriber		_state_sub;
     const ros::Publisher	_command_pub;
+    const ros::Publisher	_command_debug_pub;
 
     Tracker			_tracker;
 
@@ -136,9 +137,13 @@ JointTrajectoryTracker<ACTION>
     :_nh("~"),
      _controller(_nh.param<std::string>("controller",
 					"/pos_joint_traj_controller")),
-     _state_sub(_nh.subscribe(_controller + "/state", 100,
-			      &JointTrajectoryTracker::state_cb, this)),
-     _command_pub(_nh.advertise<trajectory_t>(_controller + "/command", 10)),
+     _state_sub(_nh.subscribe(
+		    _controller + "/state", 2,
+		    &JointTrajectoryTracker::state_cb, this,
+		    ros::TransportHints().reliable().tcpNoDelay(true))),
+     _command_pub(_nh.advertise<trajectory_t>(_controller + "/command", 1)),
+     _command_debug_pub(_nh.advertise<trajectory_t>(
+			    _controller + "/command_debug", 1)),
      _tracker(_nh.param<std::string>(
 		  _nh.param<std::string>("robot_description",
 					 "/robot_description"),
@@ -211,6 +216,9 @@ JointTrajectoryTracker<ACTION>::state_cb(const state_cp& state)
 
 	_tracker_srv.publishFeedback(_tracker.feedback());
 	_command_pub.publish(_tracker.command());
+	auto	command_debug = _tracker.command();
+	command_debug.header.stamp = ros::Time::now();
+	_command_debug_pub.publish(command_debug);
 #if !defined(NDEBUG)
 	profiler.nextFrame();
 	profiler.print(std::cerr);
@@ -302,14 +310,15 @@ JointTrajectoryTracker<ACTION>::Tracker::init(const std::string& pointing_frame)
   // Update pointing frame.
     _pointing_frame = pointing_frame;
 
-  // Prepare trajectory command.
+  // Prepare trajectory command. Zero timestamp value means that
+  // the trajectory command will be executed immediately by the controller.
     _command.header.stamp    = ros::Time(0);
     _command.header.frame_id = _state->header.frame_id;
     _command.joint_names     = _state->joint_names;
     _command.points.resize(1);
     _command.points[0].positions.resize(njoints());
   //_command.points[0].velocities.resize(njoints());
-    
+
   // Set joint limits.
     _jnt_pos_min.resize(njoints());
     _jnt_pos_max.resize(njoints());

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="signal_frequency"	default="2"/>
+  <arg name="noize_level"	default="0.2"/>
+  <arg name="rate"		default="1000"/>
+
+  <node name="gensig" pkg="aist_utility" type="gensig.py"
+        output="screen" respawn="false">
+    <param name="signal_frequency"	value="$(arg signal_frequency)"/>
+    <param name="noize_level"		value="$(arg noize_level)"/>
+    <param name="rate"			value="$(arg rate)"/>
+  </node>
+
+  <node name="butterworth_lpf_test"
+        pkg="aist_utility" type="butterworth_lpf_test"
+        output="screen" respawn="false">
+    <param name="rate"		value="$(arg rate)"/>
+    <remap from="/in"		to="/gensig/out"/>
+  </node>
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"
+        output="screen" respawn="false"/>
+
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+	args="/gensig/out/x /butterworth_lpf_test/out/x"
+        output="screen" respawn="false"/>
+
+</launch>

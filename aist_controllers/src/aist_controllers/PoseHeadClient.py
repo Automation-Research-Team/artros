@@ -10,9 +10,6 @@
 # otherwise, arising from, out of or in connection with the software or
 # the use or other dealings in the software.
 import rospy
-from math                 import radians, degrees
-from tf                   import transformations as tfs
-from geometry_msgs.msg    import Pose, Point, Quaternion
 from actionlib            import SimpleActionClient
 from aist_controllers.msg import PoseHeadAction, PoseHeadGoal
 
@@ -23,12 +20,13 @@ class PoseHeadClient(object):
     def __init__(self, server="/pose_head_tracker"):
         super(PoseHeadClient, self).__init__()
 
-        self.pointing_frame = rospy.get_param('~pointing_frame',
-                                              'a_bot_outside_camera_color_optical_frame')
-        self.min_duration   = rospy.get_param('~min_duration', 0.05)
-        self.max_velocity   = rospy.get_param('~max_velocity', 0.7)
-        self._pose_head     = SimpleActionClient(server + '/pose_head',
-                                                 PoseHeadAction)
+        self._pointing_frame = rospy.get_param('~pointing_frame',
+                                               'a_bot_outside_camera_color_optical_frame')
+        self._min_duration   = rospy.Duration(rospy.get_param('~min_duration',
+                                                              0.05))
+        self._max_velocity   = rospy.get_param('~max_velocity', 0.7)
+        self._pose_head      = SimpleActionClient(server + '/pose_head',
+                                                  PoseHeadAction)
 
         if self._pose_head.wait_for_server(timeout=rospy.Duration(5)):
             rospy.loginfo('(PoseHeadClient) connected to server[%s]',
@@ -37,7 +35,6 @@ class PoseHeadClient(object):
             self._pose_head = None
             rospy.logerr('(PoseHeadClient) failed to connect to server[%s]',
                          server + '/pose_head')
-
 
     @property
     def is_connected(self):
@@ -67,20 +64,13 @@ class PoseHeadClient(object):
     def max_velocity(self, max_velocity):
         self._max_velocity = max_velocity
 
-    def send_goal(self, target_frame, target_pose=[0, 0, 0.3, 180, 0, 0],
-                  feedback_cb=None):
+    def send_goal(self, pose, feedback_cb=None):
         goal = PoseHeadGoal()
-        goal.target.header.stamp    = rospy.Time.now()
-        goal.target.header.frame_id = target_frame
-        goal.target.pose            = Pose(Point(*target_pose[0:3]),
-                                           Quaternion(
-                                               *tfs.quaternion_from_euler(
-                                                   *map(radians,
-                                                        target_pose[3:6]))))
-        goal.pointing_frame         = self._pointing_frame
-        goal.min_duration           = self._min_duration
-        goal.max_velocity           = self._max_velocity
-
+        goal.target              = pose
+        goal.target.header.stamp = rospy.Time.now()
+        goal.pointing_frame      = self._pointing_frame
+        goal.min_duration        = self._min_duration
+        goal.max_velocity        = self._max_velocity
         self._pose_head.send_goal(goal, feedback_cb=feedback_cb)
 
         rospy.loginfo('(PoseHeadClient) send goal[target_frame=%s,pointing_frame=%s]',

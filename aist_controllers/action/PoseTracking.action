@@ -1,0 +1,10 @@
+# Goal
+geometry_msgs/Pose target_offset
+float64[3]         positional_tolerance
+float64            angular_tolerance
+---
+# Result
+---
+# Feedback
+float64 pointing_position_error
+float64 pointing_angle_error
