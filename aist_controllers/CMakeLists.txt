@@ -128,7 +128,7 @@ add_dependencies(
 )
 
 #
-#  moveit_servo_cpp_api
+#  libmoveit_servo_cpp_api
 #
 add_library(
   ${SERVO_LIB_NAME}
@@ -151,7 +151,7 @@ add_dependencies(
 )
 
 #
-#  pose_tracking
+#  libpose_tracking
 #
 add_library(
   pose_tracking
@@ -189,8 +189,23 @@ add_dependencies(
 )
 
 #
-#  pose_tracking_servo
+#  pose_tracking_example
 #
+add_executable(
+  pose_tracking_example
+  src/moveit_servo/pose_tracking_example.cpp
+)
+
+target_link_libraries(
+  pose_tracking_example
+  pose_tracking
+)
+
+add_dependencies(
+  pose_tracking_example
+  ${catkin_EXPORTED_TARGETS}
+)
+
 add_executable(
   pose_tracking_servo
   src/pose_tracking_servo.cpp
