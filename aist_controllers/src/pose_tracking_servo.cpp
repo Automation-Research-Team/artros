@@ -184,6 +184,7 @@ class PoseTrackingServo
     ros::Subscriber				servo_status_sub_;
     ros::Subscriber				target_pose_sub_;
     ros::Publisher				twist_stamped_pub_;
+    ros::Publisher				target_pose_pub_;
     ros::Publisher				ee_pose_pub_;
     ros::Rate					loop_rate_;
     ros::ServiceClient				reset_servo_status_;
@@ -229,8 +230,10 @@ PoseTrackingServo::PoseTrackingServo()
 				     &PoseTrackingServo::servoStatusCB, this)),
      target_pose_sub_(),
      twist_stamped_pub_(),
-     ee_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>("ee_pose_debug",
-							    1)),
+     target_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+			  "target_pose_debug", 1)),
+     ee_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+		      "ee_pose_debug", 1)),
      loop_rate_(DEFAULT_LOOP_RATE),
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
@@ -696,6 +699,12 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
 			    - ee_frame_transform_.translation()(2);
 
 	tf2::convert(target_transform.getRotation(), q_desired);
+
+      // For debugging
+	geometry_msgs::PoseStamped	target_pose;
+	target_pose.header = target_pose_.header;
+	tf2::toMsg(target_transform, target_pose.pose);
+	target_pose_pub_.publish(target_pose);
     }
 
     angular_error = q_desired

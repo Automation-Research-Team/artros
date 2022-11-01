@@ -1030,8 +1030,8 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 	  // [min_velocity, max_velocity] range.
 	    const auto bounded_velocity
 		= std::min(std::max(unbounded_velocity,
-				    4*bounds.min_velocity_),
-			   4*bounds.max_velocity_);
+				    8*bounds.min_velocity_),
+			   8*bounds.max_velocity_);
 	    velocity_scaling_factor
 	    	= std::min(velocity_scaling_factor,
 	    		   bounded_velocity / unbounded_velocity);
