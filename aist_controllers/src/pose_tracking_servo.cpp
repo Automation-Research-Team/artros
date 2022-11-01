@@ -188,6 +188,13 @@ class PoseTrackingServo
     ros::Publisher				ee_pose_pub_;
     ros::Rate					loop_rate_;
 
+  // Action server stuffs
+    server_t					tracker_srv_;
+    boost::shared_ptr<const server_t::Goal>	current_goal_;
+
+  // Dynamic reconfigure server
+    ddynamic_reconfigure::DDynamicReconfigure	ddr_;
+
     tf2_ros::Buffer				transform_buffer_;
     tf2_ros::TransformListener			transform_listener_;
 
@@ -206,13 +213,6 @@ class PoseTrackingServo
     geometry_msgs::PoseStamped			target_pose_;
     mutable std::mutex				target_pose_mtx_;
     constexpr static double			input_timeout_ = 0.1;
-
-  // Action server stuffs
-    server_t					tracker_srv_;
-    boost::shared_ptr<const server_t::Goal>	current_goal_;
-
-  // Dynamic reconfigure server
-    ddynamic_reconfigure::DDynamicReconfigure	ddr_;
 };
 
 PoseTrackingServo::PoseTrackingServo()
@@ -236,6 +236,10 @@ PoseTrackingServo::PoseTrackingServo()
 		      "ee_pose_debug", 1)),
      loop_rate_(DEFAULT_LOOP_RATE),
 
+     tracker_srv_(nh_, "pose_tracking", false),
+     current_goal_(nullptr),
+     ddr_(ros::NodeHandle(nh_, "pose_tracking")),
+
      transform_buffer_(),
      transform_listener_(transform_buffer_),
 
@@ -249,11 +253,7 @@ PoseTrackingServo::PoseTrackingServo()
      ee_frame_transform_(),
      ee_frame_transform_stamp_(),
      target_pose_(),
-     target_pose_mtx_(),
-
-     tracker_srv_(nh_, "pose_tracking", false),
-     current_goal_(nullptr),
-     ddr_(ros::NodeHandle(nh_, "pose_tracking"))
+     target_pose_mtx_()
 {
     readROSParams();
 
