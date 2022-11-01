@@ -330,7 +330,7 @@ PoseTrackingServo::PoseTrackingServo()
 				  0.0, 20.0);
     ddr_.publishServicesTopics();
 
-    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) started");
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) server started");
 }
 
 PoseTrackingServo::~PoseTrackingServo()
@@ -367,8 +367,7 @@ PoseTrackingServo::createPlanningSceneMonitor(
 				robot_description);
     if (!monitor->getPlanningScene())
     {
-	ROS_ERROR_STREAM_NAMED(
-	    LOGNAME, "(PoseTrackingServo) failed to get PlanningSceneMonitor");
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "Failed to get PlanningSceneMonitor");
 	exit(EXIT_FAILURE);
     }
 
@@ -379,8 +378,7 @@ PoseTrackingServo::createPlanningSceneMonitor(
 	false /* skip octomap monitor */);
     monitor->startStateMonitor();
 
-    ROS_INFO_STREAM_NAMED(LOGNAME,
-			  "(PoseTrackingServo) PlanningSceneMonitor started");
+    ROS_INFO_STREAM_NAMED(LOGNAME, "PlanningSceneMonitor started");
 
     return monitor;
 }
@@ -580,8 +578,7 @@ PoseTrackingServo::goalCB()
     {
 	doPostMotionReset();
 	tracker_srv_.setAborted();
-	ROS_ERROR_STREAM_NAMED(
-	    LOGNAME, "The target pose was not updated recently. Aborting.");
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED[target pose not updated recently]");
     }
 }
 
@@ -590,8 +587,7 @@ PoseTrackingServo::preemptCB()
 {
     doPostMotionReset();
     tracker_srv_.setPreempted();
-    ROS_INFO_STREAM_NAMED(LOGNAME,
-			  "Halting servo motion, a stop was requested.");
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal CANCELED");
 }
 
 void
