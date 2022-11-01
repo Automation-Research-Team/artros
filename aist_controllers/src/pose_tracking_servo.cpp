@@ -137,9 +137,9 @@ class PoseTrackingServo
     void	readROSParams()						;
     void	servoStatusCB(const std_msgs::Int8ConstPtr& msg)	;
     void	targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg);
+    void	timerCB(const ros::TimerEvent&)				;
     void	goalCB()						;
     void	preemptCB()						;
-    void	timerCB(const ros::TimerEvent&)				;
     void	calculatePoseError(const geometry_msgs::Pose& offset,
 				   Eigen::Vector3d& positional_error,
 				   Eigen::AngleAxisd& angular_error) const;
@@ -256,7 +256,7 @@ PoseTrackingServo::PoseTrackingServo()
 
      tracker_srv_(nh_, "pose_tracking", false),
      current_goal_(nullptr),
-     ddr_(ros::NodeHandle(nh_, "pose_tracking"))
+     ddr_(ros::NodeHandle(nh_, "pose_tracker"))
 {
     readROSParams();
 
@@ -268,14 +268,14 @@ PoseTrackingServo::PoseTrackingServo()
 
   // Connect to Servo ROS interfaces
     target_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>(
-			"/target_pose", 1,
-			&PoseTrackingServo::targetPoseCB, this,
-			ros::TransportHints().reliable().tcpNoDelay(true));
+    			"/target_pose", 1,
+    			&PoseTrackingServo::targetPoseCB, this,
+    			ros::TransportHints().reliable().tcpNoDelay(true));
 
   // Publish outgoing twist commands to the Servo object
     twist_stamped_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(
-			   servo_->getParameters().cartesian_command_in_topic,
-			   1);
+    			   servo_->getParameters().cartesian_command_in_topic,
+    			   1);
 
   // Setup action server
     tracker_srv_.registerGoalCallback(boost::bind(&PoseTrackingServo::goalCB,
@@ -334,7 +334,9 @@ PoseTrackingServo::PoseTrackingServo()
   // Start servo and timer
     servo_->start();
     timer_ = nh_.createTimer(loop_rate_.expectedCycleTime(),
-			     &PoseTrackingServo::timerCB, this);
+    			     &PoseTrackingServo::timerCB, this);
+
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) started");
 }
 
 PoseTrackingServo::~PoseTrackingServo()
@@ -373,6 +375,7 @@ PoseTrackingServo::create_planning_scene_monitor(
 void
 PoseTrackingServo::run()
 {
+  //ros::spin();
     ros::AsyncSpinner	spinner(8);
     spinner.start();
 
@@ -474,7 +477,7 @@ PoseTrackingServo::servoStatusCB(const std_msgs::Int8ConstPtr& msg)
 
     if (latest_servo_status != servo_status_)
     {
-	std::lock_guard<std::mutex> lock(servo_status_mtx_);
+      //std::lock_guard<std::mutex> lock(servo_status_mtx_);
 
 	servo_status_ = latest_servo_status;
 
@@ -541,6 +544,82 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	    return;
 	}
     }
+  /*
+    if (!tracker_srv_.isActive())
+	return;
+
+  // Attempt to update robot pose
+    if (servo_->getEEFrameTransform(ee_frame_transform_))
+	ee_frame_transform_stamp_ = ros::Time::now();
+
+  // Check that end-effector pose (command frame transform) is recent enough.
+    if (!haveRecentEndEffectorPose(target_pose_timeout_))
+    {
+	doPostMotionReset();
+	tracker_srv_.setAborted();
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
+			       << "The end effector pose was not updated in time.]");
+
+	return;
+    }
+
+  // Continue sending PID controller output to Servo
+  // until one of the following conditions is met:
+  // - Goal tolerance is satisfied
+  // - Target pose becomes outdated
+  // - Command frame transform becomes outdated
+  // - Another thread requested a stop
+    Eigen::Vector3d	positional_error;
+    Eigen::AngleAxisd	angular_error;
+    calculatePoseError(current_goal_->target_offset,
+		       positional_error, angular_error);
+
+    if (std::abs(positional_error(0)) <
+	current_goal_->positional_tolerance[0] &&
+	std::abs(positional_error(1)) <
+	current_goal_->positional_tolerance[1] &&
+	std::abs(positional_error(2)) <
+	current_goal_->positional_tolerance[2] &&
+	std::abs(angular_error.angle()) < current_goal_->angular_tolerance)
+    {
+	doPostMotionReset();
+	tracker_srv_.setSucceeded();
+	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal SUCCEEDED");
+
+	return;
+    }
+
+    {
+
+	switch (servo_status_)
+	{
+	  case servo_status_t::HALT_FOR_SINGULARITY:
+	  case servo_status_t::HALT_FOR_COLLISION:
+	  case servo_status_t::JOINT_BOUND:
+	    doPostMotionReset();
+	    tracker_srv_.setAborted();
+	    ROS_ERROR_STREAM_NAMED(
+		LOGNAME, "(PoseTrackingServo) goal ABORTED["
+		<< moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
+		<< ']');
+	    return;
+
+	  default:
+	    break;
+	}
+    }
+
+  // Compute servo command from PID controller output and send it
+  // to the Servo object, for execution
+    twist_stamped_pub_.publish(calculateTwistCommand(positional_error,
+						     angular_error));
+
+  // For debugging
+    ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					ee_frame_transform_,
+					ee_frame_transform_stamp_,
+					target_pose_.header.frame_id)));
+  */
 }
 
 void
@@ -554,30 +633,34 @@ PoseTrackingServo::goalCB()
     resetTargetPose();
 
     std_srvs::Empty	empty;
-    reset_servo_status_.call(empty);
+  //reset_servo_status_.call(empty);
 
     servo_->start();
 
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
+  /*
+    std::cerr << "*** OK3" << std::endl;
     const auto	start_time = ros::Time::now();
     while ((!haveRecentTargetPose(target_pose_timeout_) ||
-	    !haveRecentEndEffectorPose(target_pose_timeout_)) &&
-	   ((ros::Time::now() - start_time).toSec() < target_pose_timeout_))
+    !haveRecentEndEffectorPose(target_pose_timeout_)) &&
+    ((ros::Time::now() - start_time).toSec() < target_pose_timeout_))
     {
-	if (servo_->getEEFrameTransform(ee_frame_transform_))
-	    ee_frame_transform_stamp_ = ros::Time::now();
-	ros::Duration(0.001).sleep();
+    if (servo_->getEEFrameTransform(ee_frame_transform_))
+    ee_frame_transform_stamp_ = ros::Time::now();
+    ros::Duration(0.001).sleep();
     }
 
+    std::cerr << "*** OK4" << std::endl;
     if (!haveRecentTargetPose(target_pose_timeout_))
     {
-	doPostMotionReset();
-	tracker_srv_.setAborted();
-	ROS_ERROR_STREAM_NAMED(
-	    LOGNAME, "The target pose was not updated recently. Aborting.");
+    doPostMotionReset();
+    tracker_srv_.setAborted();
+    ROS_ERROR_STREAM_NAMED(
+    LOGNAME, "The target pose was not updated recently. Aborting.");
     }
+  */
 }
 
 void
@@ -688,9 +771,9 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
 
 	positional_error(0) = target_transform.getOrigin().x()
 			    - ee_frame_transform_.translation()(0);
-	positional_error(1) = target_transform.getOrigin().x()
+	positional_error(1) = target_transform.getOrigin().y()
 			    - ee_frame_transform_.translation()(1);
-	positional_error(2) = target_transform.getOrigin().x()
+	positional_error(2) = target_transform.getOrigin().z()
 			    - ee_frame_transform_.translation()(2);
 
 	tf2::convert(target_transform.getRotation(), q_desired);
@@ -761,6 +844,7 @@ PoseTrackingServo::stopMotion()
 		geometry_msgs::TwistStamped>();
     {
 	std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
 	msg->header.frame_id = target_pose_.header.frame_id;
     }
     msg->header.stamp = ros::Time::now();
@@ -828,6 +912,7 @@ void
 PoseTrackingServo::resetTargetPose()
 {
     std::lock_guard<std::mutex>	lock(target_pose_mtx_);
+
     target_pose_	      = geometry_msgs::PoseStamped();
     target_pose_.header.stamp = ros::Time(0);
 }
@@ -835,8 +920,9 @@ PoseTrackingServo::resetTargetPose()
 bool
 PoseTrackingServo::haveRecentTargetPose(double timespan) const
 {
-  std::lock_guard<std::mutex> lock(target_pose_mtx_);
-  return ((ros::Time::now() - target_pose_.header.stamp).toSec() < timespan);
+    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+
+    return ((ros::Time::now() - target_pose_.header.stamp).toSec() < timespan);
 }
 
 // End-effector frame stuffs
