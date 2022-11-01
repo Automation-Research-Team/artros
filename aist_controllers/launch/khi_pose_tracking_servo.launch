@@ -1,0 +1,60 @@
+<launch>
+  <!-- Launch an example that sends commands via C++ API. -->
+
+  <arg name="sim"		default="false"/>
+  <arg name="camera_name"	default="realsense"/>
+  <arg name="traj"		default="true"/>
+  <arg name="manager"		default="camera_manager"/>
+
+  <!-- Launch cameras -->
+  <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
+    <arg name="sim"		 value="$(arg sim)"/>
+    <arg name="phoxi_config"	 value="$(find toyota1_nagara
+  					)/config/motioncam_camera.yaml"/>
+    <arg name="realsense_config" value="$(find toyota1_nagara
+  					)/config/realsense.yaml"/>
+    <arg name="manager"		 value="$(arg manager)"/>
+  </include>
+
+  <!-- Start ArUco -->
+  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
+        args="load aist_aruco_ros/aruco_detector $(arg manager)">
+    <remap if="$(eval camera_name == 'phoxi')"
+  	   from="/camera_info"	to="$(arg camera_name)/camera_info"/>
+    <remap if="$(eval camera_name == 'phoxi')"
+  	   from="/image"	to="$(arg camera_name)/texture"/>
+    <remap if="$(eval camera_name == 'phoxi')"
+  	   from="/depth"	to="$(arg camera_name)/depth_map"/>
+    <remap if="$(eval camera_name == 'realsense')"
+  	   from="/camera_info"	to="$(arg camera_name)/color/camera_info"/>
+    <remap if="$(eval camera_name == 'realsense')"
+  	   from="/image"	to="$(arg camera_name)/color/image_raw"/>
+    <remap if="$(eval camera_name == 'realsense')"
+  	   from="/depth"	to="$(arg camera_name
+  				    )/aligned_depth_to_color/image_raw"/>
+    <rosparam file="$(find aist_handeye_calibration
+  		    )/config/toyota1/$(arg camera_name).yaml"/>
+  </node>
+
+  <arg if="$(arg traj)"
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
+  <arg unless="$(arg traj)"
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
+
+  <arg if="$(arg traj)"
+       name="controller"	value="arm_controller"/>
+  <arg unless="$(arg traj)"
+       name="controller"	value="arm_joint_group_controller"/>
+
+  <node unless="$(arg traj)"
+	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <node name="pose_tracking_servo"
+	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
+    <rosparam file="$(dirname)/../config/khi_servo_server.yaml"
+	      subst_value="true"/>
+    <rosparam file="$(dirname)/../config/khi_pose_tracking.yaml"/>
+  </node>
+
+</launch>

@@ -12,7 +12,7 @@
 import rospy
 from math                 import radians, degrees
 from tf                   import transformations as tfs
-from geometry_msgs.msg    import Pose, Point, Quaternion
+from geometry_msgs.msg    import PoseStamped, Pose, Point, Quaternion
 from actionlib            import SimpleActionClient
 from aist_controllers.msg import PoseHeadAction, PoseHeadGoal
 
@@ -37,7 +37,6 @@ class PoseHeadClient(object):
             self._pose_head = None
             rospy.logerr('(PoseHeadClient) failed to connect to server[%s]',
                          server + '/pose_head')
-
 
     @property
     def is_connected(self):
@@ -67,24 +66,27 @@ class PoseHeadClient(object):
     def max_velocity(self, max_velocity):
         self._max_velocity = max_velocity
 
-    def send_goal(self, target_frame, target_pose=[0, 0, 0.3, 180, 0, 0],
-                  feedback_cb=None):
+    def send_pose_goal(self, pose, feedback_cb=None):
         goal = PoseHeadGoal()
-        goal.target.header.stamp    = rospy.Time.now()
-        goal.target.header.frame_id = target_frame
-        goal.target.pose            = Pose(Point(*target_pose[0:3]),
-                                           Quaternion(
-                                               *tfs.quaternion_from_euler(
-                                                   *map(radians,
-                                                        target_pose[3:6]))))
-        goal.pointing_frame         = self._pointing_frame
-        goal.min_duration           = self._min_duration
-        goal.max_velocity           = self._max_velocity
+        goal.target = pose
+        goal.target.header.stamp = rospy.Time.now()
+        goal.pointing_frame      = self._pointing_frame
+        goal.min_duration        = self._min_duration
+        goal.max_velocity        = self._max_velocity
 
         self._pose_head.send_goal(goal, feedback_cb=feedback_cb)
 
         rospy.loginfo('(PoseHeadClient) send goal[target_frame=%s,pointing_frame=%s]',
                       goal.target.header.frame_id, goal.pointing_frame)
+
+    def send_goal(self, target_frame, target_pose=[0, 0, 0.3, 180, 0, 0],
+                  feedback_cb=None):
+        pose = PoseStamped()
+        pose.header.frame_id = target_frame
+        pose.pose            = Pose(Point(*target_pose[0:3]),
+                                    Quaternion(*tfs.quaternion_from_euler(
+                                        *map(radians, target_pose[3:6]))))
+        self.send_pose_goal(pose, feedback_cb)
 
     def cancel_goal(self):
         self._pose_head.cancel_goal()

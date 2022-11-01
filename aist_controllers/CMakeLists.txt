@@ -22,8 +22,10 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   kdl_parser
   trac_ik_lib
-  nlopt
-  moveit_servo
+  moveit_msgs
+  moveit_ros_planning_interface
+  rosparam_shortcuts
+  control_toolbox
 )
 
 find_package(orocos_kdl REQUIRED)
@@ -32,11 +34,15 @@ find_package(Boost REQUIRED COMPONENTS thread)
 catkin_python_setup()
 
 include_directories(
-  ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
   include
+  ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
 )
 
-add_action_files(FILES PoseHead.action)
+add_action_files(
+  FILES
+    PoseHead.action
+    PoseTracking.action
+)
 
 generate_messages(
   DEPENDENCIES
@@ -52,6 +58,10 @@ catkin_package(
     message_runtime
     trajectory_msgs
     control_msgs
+    moveit_msgs
+    moveit_ros_planning_interface
+    rosparam_shortcuts
+    control_toolbox
 )
 
 add_executable(
@@ -102,23 +112,70 @@ add_dependencies(
 )
 
 add_executable(
-  pose_head_servo
-  src/pose_head_servo.cpp
+  pose_tracking_servo
+  src/pose_tracking_servo.cpp
+  src/moveit_servo/collision_check.cpp
+  src/moveit_servo/low_pass_filter.cpp
+  src/moveit_servo/pose_tracking.cpp
+  src/moveit_servo/servo.cpp
+  src/moveit_servo/servo_calcs.cpp
 )
 
 target_link_libraries(
-  pose_head_servo
+  pose_tracking_servo
   ${Boost_LIBRARIES} ${catkin_LIBRARIES}
 )
 
 add_dependencies(
-  pose_head_servo
+  pose_tracking_servo
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
+add_executable(
+  pose_tracking_example
+  src/moveit_servo/pose_tracking_example.cpp
+  src/moveit_servo/collision_check.cpp
+  src/moveit_servo/low_pass_filter.cpp
+  src/moveit_servo/pose_tracking.cpp
+  src/moveit_servo/servo.cpp
+  src/moveit_servo/servo_calcs.cpp
+)
+
+target_link_libraries(
+  pose_tracking_example
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  pose_tracking_example
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
+add_executable(
+  servo_server
+  src/moveit_servo/collision_check.cpp
+  src/moveit_servo/low_pass_filter.cpp
+  src/moveit_servo/servo.cpp
+  src/moveit_servo/servo_calcs.cpp
+  src/moveit_servo/servo_server.cpp
+)
+
+target_link_libraries(
+  servo_server
+  ${Boost_LIBRARIES} ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  servo_server
   ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 
 install(
-  TARGETS point_head_tracker pose_head_tracker pose_group_tracker pose_head_servo
+  TARGETS point_head_tracker pose_head_tracker pose_group_tracker
+  pose_tracking_servo servo_server
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

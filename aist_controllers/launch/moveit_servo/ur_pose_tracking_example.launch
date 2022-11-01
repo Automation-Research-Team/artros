@@ -5,18 +5,33 @@
   <arg name="cmd"	 default="traj"/>	<!-- "traj", "pos" or "vel" -->
   <arg name="sim"	 default="false"/>
 
+  <arg if="$(eval robot_name in ('a_bot', 'b_bot'))"
+       name="publish_period"	value="0.008"/>
+  <arg unless="$(eval robot_name in ('a_bot', 'b_bot'))"
+       name="publish_period"	value="0.002"/>
+
   <arg if="$(eval cmd == 'traj')"
-       name="config_file"	value="ur_trajectory_controller_config"/>
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
   <arg unless="$(eval cmd == 'traj')"
-       name="config_file"       value="ur_group_controller_config"/>
-  <arg name="pub_pos"		value="$(eval cmd == 'pos')"/>
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
+  
+  <arg name="pub_pos"		value="$(eval cmd != 'vel')"/>
   <arg name="pub_vel"		value="$(eval cmd == 'vel')"/>
 
-  <node name="servo_server"
-	pkg="moveit_servo" type="pose_tracking_example" output="screen">
-    <rosparam file="$(dirname)/../../config/$(arg config_file).yaml"
+  <arg if="$(eval cmd == 'traj')"
+       name="controller"	value="scaled_pos_joint_traj_controller"/>
+  <arg unless="$(eval cmd == 'traj')"
+       name="controller"	value="joint_group_$(arg cmd)_controller"/>
+
+  <node unless="$(eval cmd == 'traj')"
+	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <node name="pose_tracking_example"
+	pkg="aist_controllers" type="pose_tracking_example" output="screen">
+    <rosparam file="$(dirname)/../../config/ur_servo_server.yaml"
 	      subst_value="true"/>
-    <rosparam file="$(dirname)/../../config/pose_tracking_settings.yaml"/>
+    <rosparam file="$(dirname)/../../config/ur_pose_tracking.yaml"/>
   </node>
 
 </launch>

@@ -1,0 +1,28 @@
+<launch>
+  <!-- Launch an example that sends commands via C++ API. -->
+
+  <arg name="sim"	default="true"/>
+  <arg name="traj"	default="true"/>
+  
+  <arg if="$(arg traj)"
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
+  <arg unless="$(arg traj)"
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
+
+  <arg if="$(arg traj)"
+       name="controller"	value="arm_controller"/>
+  <arg unless="$(arg traj)"
+       name="controller"	value="arm_joint_group_controller"/>
+
+  <node unless="$(arg traj)"
+	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <node name="pose_tracking_example"
+	pkg="aist_controllers" type="pose_tracking_example" output="screen">
+    <rosparam file="$(dirname)/../../config/khi_servo_server.yaml"
+	      subst_value="true"/>
+    <rosparam file="$(dirname)/../../config/khi_pose_tracking.yaml"/>
+  </node>
+
+</launch>
