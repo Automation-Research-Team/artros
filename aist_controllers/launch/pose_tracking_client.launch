@@ -28,9 +28,9 @@
   	      /arm_controller/state/actual/positions[5]"/>
   <arg unless="$(arg plot_joints)"
        name="plot_args"
-       value="/pose_tracking_servo/target_pose/pose/position/x
-	      /pose_tracking_servo/target_pose/pose/position/y
-	      /pose_tracking_servo/target_pose/pose/position/z
+       value="/pose_tracking_servo/target_pose_debug/pose/position/x
+	      /pose_tracking_servo/target_pose_debug/pose/position/y
+	      /pose_tracking_servo/target_pose_debug/pose/position/z
 	      /pose_tracking_servo/ee_pose_debug/pose/position/x
 	      /pose_tracking_servo/ee_pose_debug/pose/position/y
 	      /pose_tracking_servo/ee_pose_debug/pose/position/z"/>
