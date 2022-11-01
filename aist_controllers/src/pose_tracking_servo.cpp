@@ -44,6 +44,8 @@
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_controllers/PoseTrackingAction.h>
+#include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -124,7 +126,7 @@ class PoseTrackingServo
     };
 
   public:
-		PoseTrackingServo()					;
+		PoseTrackingServo(const ros::NodeHandle& nh)		;
 		~PoseTrackingServo()					;
 
     void	run()							;
@@ -215,8 +217,8 @@ class PoseTrackingServo
     constexpr static double			input_timeout_ = 0.1;
 };
 
-PoseTrackingServo::PoseTrackingServo()
-    :nh_("~"),
+PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
+    :nh_(nh),
      planning_scene_monitor_(createPlanningSceneMonitor("robot_description")),
      servo_(new moveit_servo::Servo(nh_, planning_scene_monitor_)),
      servo_status_(servo_status_t::INVALID),
@@ -862,18 +864,42 @@ PoseTrackingServo::haveRecentEndEffectorPose(double timeout) const
 {
     return ((ros::Time::now() - ee_frame_transform_stamp_).toSec() < timeout);
 }
+
+/************************************************************************
+*  class PoseTrackingServoNodelet					*
+************************************************************************/
+class PoseTrackingServoNodelet : public nodelet::Nodelet
+{
+  public:
+			PoseTrackingServoNodelet()			{}
+
+    virtual void	onInit()					;
+
+  private:
+    boost::shared_ptr<PoseTrackingServo>	_node;
+};
+
+void
+PoseTrackingServoNodelet::onInit()
+{
+    NODELET_INFO("aist_controllers::PoseTrackingServoNodelet::onInit()");
+    _node.reset(new PoseTrackingServo(getPrivateNodeHandle()));
+}
 }  // namespace aist_controllers
+
+PLUGINLIB_EXPORT_CLASS(aist_controllers::PoseTrackingServoNodelet,
+		       nodelet::Nodelet);
 
 /************************************************************************
 *  main function							*
 ************************************************************************/
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, LOGNAME);
+// int
+// main(int argc, char* argv[])
+// {
+//     ros::init(argc, argv, LOGNAME);
 
-    aist_controllers::PoseTrackingServo	servo;
-    servo.run();
+//     aist_controllers::PoseTrackingServo	servo;
+//     servo.run();
 
-    return 0;
-}
+//     return 0;
+// }
