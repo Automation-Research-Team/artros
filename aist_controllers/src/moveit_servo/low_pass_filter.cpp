@@ -52,10 +52,17 @@ constexpr double EPSILON = 1e-9;
 
 LowPassFilter::LowPassFilter(double low_pass_filter_coeff)
   :previous_measurements_{ 0., 0. },
-   previous_filtered_measurement_(0.),
-   scale_term_(1. / (1. + low_pass_filter_coeff)),
-   feedback_term_(1. - low_pass_filter_coeff)
+   previous_filtered_measurement_(0.)
 {
+    initialize(low_pass_filter_coeff);
+}
+
+void
+LowPassFilter::initialize(double low_pass_filter_coeff)
+{
+    scale_term_    = 1. / (1. + low_pass_filter_coeff);
+    feedback_term_ = 1. - low_pass_filter_coeff;
+
   // guarantee this doesn't change because the logic below depends on this length implicity
     static_assert(LowPassFilter::FILTER_LENGTH == 2,
 		  "moveit_servo::LowPassFilter::FILTER_LENGTH should be 2");

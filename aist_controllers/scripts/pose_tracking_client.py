@@ -38,8 +38,7 @@
 import rospy, threading
 from math                                import radians
 from tf                                  import transformations as tfs
-from geometry_msgs.msg                   import (PoseStamped,
-                                                 Pose, Point, Quaternion)
+from geometry_msgs.msg                   import Pose, Point, Quaternion
 from aist_controllers.PoseTrackingClient import PoseTrackingClient
 from controller_manager_msgs.srv         import SwitchController
 
@@ -50,14 +49,10 @@ class InteractivePoseTrackingClient(PoseTrackingClient):
     def __init__(self, server):
         super(InteractivePoseTrackingClient, self).__init__(server)
 
-        xyzrpy = rospy.get_param('~target_pose', [0, 0, 0.01, 90, 90, 0])
-        target_pose = PoseStamped()
-        target_pose.header.frame_id = rospy.get_param('~target_frame',
-                                                      'calibration_ar_marker')
-        target_pose.pose = Pose(Point(*xyzrpy[0:3]),
-                                Quaternion(*tfs.quaternion_from_euler(
-                                    *map(radians, xyzrpy[3:6]))))
-        self._target_pose = target_pose
+        xyzrpy = rospy.get_param('~target_offset', [0, 0, 0.01, 90, 90, 0])
+        self._target_offset = Pose(Point(*xyzrpy[0:3]),
+                                   Quaternion(*tfs.quaternion_from_euler(
+                                       *map(radians, xyzrpy[3:6]))))
         self._switch_client \
             = rospy.ServiceProxy('/controller_manager/switch_controller',
                                  SwitchController)
@@ -75,13 +70,12 @@ class InteractivePoseTrackingClient(PoseTrackingClient):
                 elif key == 'c':
                     self.cancel_goal()
                 else:
-                    self.send_goal(self._target_pose)
+                    self.send_goal(self._target_offset)
             except Exception as e:
                 print(e.message)
 
 
 if __name__ == '__main__':
-
     rospy.init_node('pose_tracking_client', anonymous=True)
 
     server = rospy.get_param('~server', 'pose_tracking_servo')

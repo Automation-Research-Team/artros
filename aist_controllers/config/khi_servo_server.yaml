@@ -3,16 +3,18 @@
 ###############################################
 use_gazebo: $(arg sim)
 
-## Properties of incoming commands
-command_in_type: "speed_units"
+## Properties of incoming commands: "speed_units" or "unitless"
+command_in_type: $(arg command_in_type)
 
 # Scale parameters are only used if command_in_type=="unitless"
 scale:
-  linear:     0.6
-  rotational: 0.3
-  joint:      0.01
+  linear:     5.0
+  rotational: 3.0
+  joint:      0.1
 
-low_pass_filter_coeff: 10.
+low_pass_filter_coeff: 40.
+low_pass_filter_half_order: 3
+low_pass_filter_cutoff_frequency: 7.
 
 ## Properties of outgoing commands
 publish_period:   0.002
@@ -35,12 +37,12 @@ incoming_command_timeout:          0.1
 num_outgoing_halt_msgs_to_publish: 4
 
 ## Configure handling of singularities and joint limits
-lower_singularity_threshold:     17
-hard_stop_singularity_threshold: 30
+lower_singularity_threshold:     25 #17
+hard_stop_singularity_threshold: 40
 joint_limit_margin:              0.1
 
 ## Topic names
-cartesian_command_in_topic: delta_twist_cmds
+cartesian_command_in_topic: $(arg cartesian_command_in_topic)
 joint_command_in_topic:     delta_joint_cmds
 joint_topic:                joint_states
 status_topic:               status

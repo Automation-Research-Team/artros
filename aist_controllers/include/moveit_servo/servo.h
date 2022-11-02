@@ -46,9 +46,6 @@
 #include <moveit_servo/servo_parameters.h>
 #include <moveit_servo/servo_calcs.h>
 
-// testing
-#include <gtest/gtest.h>
-
 namespace moveit_servo
 {
 /**
@@ -57,7 +54,7 @@ namespace moveit_servo
 class Servo
 {
   public:
-    Servo(ros::NodeHandle& nh,
+    Servo(const ros::NodeHandle& nh,
 	  const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
     ~Servo();

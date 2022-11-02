@@ -133,6 +133,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   :nh_(nh),
    parameters_(parameters),
    planning_scene_monitor_(planning_scene_monitor),
+   ddr_(nh_),
    stop_requested_(true),
    paused_(false)
 {
@@ -214,7 +215,14 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints_; ++i)
     {
+#if defined(BUTTERWORTH)
+	position_filters_.emplace_back(
+	    parameters_.low_pass_filter_half_order,
+	    parameters_.low_pass_filter_cutoff_frequency *
+	    parameters_.publish_period);
+#else
 	position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
+#endif
     }
 
   // A matrix of all zeros is used to check whether matrices have been initialized
@@ -222,6 +230,35 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
     empty_matrix.setZero();
     tf_moveit_to_ee_frame_ = empty_matrix;
     tf_moveit_to_robot_cmd_frame_ = empty_matrix;
+
+  // Setup dynamic reconfigure server
+#if defined(BUTTERWORTH)
+    ddr_.registerVariable<int>("lowpass_filter_half_order",
+			       parameters_.low_pass_filter_half_order,
+			       boost::bind(
+				   &ServoCalcs::initializeLowPassFilters,
+				   this, _1,
+				   parameters_.low_pass_filter_cutoff_frequency),
+			       "Half order of low pass filter", 1, 5);
+    ddr_.registerVariable<double>("lowpass_filter_cutoff_frequency",
+				  parameters_.low_pass_filter_cutoff_frequency,
+				  boost::bind(
+				      &ServoCalcs::initializeLowPassFilters,
+				      this,
+				      parameters_.low_pass_filter_half_order,
+				      _1),
+				  "Cutoff frequency of low pass filter",
+				  0.5, 100.0);
+#else
+    ddr_.registerVariable<double>("lowpass_filter_coeff",
+				  parameters_.low_pass_filter_coeff,
+				  boost::bind(
+				      &ServoCalcs::initializeLowPassFilters,
+				      this, _1),
+				  "Cutoff frequency of low pass filter",
+				  1.0, 100.0);
+#endif
+    ddr_.publishServicesTopics();
 }
 
 ServoCalcs::~ServoCalcs()
@@ -458,7 +495,7 @@ ServoCalcs::calculateSingleIteration()
     }
 
   // Print a warning to the user if both are stale
-    if (!twist_command_is_stale_ || !joint_command_is_stale_)
+    if (twist_command_is_stale_ && joint_command_is_stale_)
     {
 	ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
 				       "Stale command. "
@@ -537,7 +574,9 @@ ServoCalcs::calculateSingleIteration()
 
   // Update the filters if we haven't yet
     if (!updated_filters_)
+    {
 	resetLowPassFilters(original_joint_state_);
+    }
 }
 // Perform the servoing calculations
 bool
@@ -786,6 +825,42 @@ ServoCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
     updated_filters_ = true;
 }
 
+#if defined(BUTTERWORTH)
+void
+ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    parameters_.low_pass_filter_half_order	 = half_order;
+    parameters_.low_pass_filter_cutoff_frequency = cutoff_frequency;
+
+    for (std::size_t i = 0; i < position_filters_.size(); ++i)
+    {
+	position_filters_[i].initialize(
+	    parameters_.low_pass_filter_half_order,
+	    parameters_.low_pass_filter_cutoff_frequency *
+	    parameters_.publish_period);
+    }
+
+    resetLowPassFilters(original_joint_state_);
+}
+#else
+void
+ServoCalcs::initializeLowPassFilters(double coeff)
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    parameters_.low_pass_filter_coeff = coeff;
+
+    for (std::size_t i = 0; i < position_filters_.size(); ++i)
+    {
+	position_filters_[i].initialize(parameters_.low_pass_filter_coeff);
+    }
+
+    resetLowPassFilters(original_joint_state_);
+}
+#endif
+
 void
 ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state,
 				     const Eigen::ArrayXd& delta_theta)
@@ -954,18 +1029,22 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
 	    const auto bounded_velocity
-		= std::min(std::max(unbounded_velocity, bounds.min_velocity_),
-			   bounds.max_velocity_);
+		= std::min(std::max(unbounded_velocity,
+				    8*bounds.min_velocity_),
+			   8*bounds.max_velocity_);
 	    velocity_scaling_factor
-		= std::min(velocity_scaling_factor,
-			   bounded_velocity / unbounded_velocity);
+	    	= std::min(velocity_scaling_factor,
+	    		   bounded_velocity / unbounded_velocity);
 	}
 	++joint_delta_index;
     }
 
   // Convert back to joint angle increments.
+    if (velocity_scaling_factor < 1.0)
+      std::cerr << "*** velocity_scaling_factor="
+		<< velocity_scaling_factor << std::endl;
     delta_theta = velocity_scaling_factor * velocity
-		* parameters_.publish_period;
+    		* parameters_.publish_period;
 }
 
 bool

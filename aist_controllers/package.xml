@@ -23,6 +23,7 @@
   <depend>rospy</depend>
   <depend>tf</depend>
   <depend>tf_conversions</depend>
+  <depend>tf2_geometry_msgs</depend>
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
   <depend>geometry_msgs</depend>
@@ -33,10 +34,11 @@
   <depend>kdl_parser</depend>
   <depend>trac_ik_lib</depend>
   <depend>nlopt</depend>
-  <depend>moveit_servo</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>
   <depend>control_toolbox</depend>
+  <depend>ddynamic_reconfigure</depend>
+  <depend>aist_utility</depend>
 
 </package>
