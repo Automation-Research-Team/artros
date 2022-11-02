@@ -53,10 +53,16 @@
 
 namespace
 {
-constexpr char	 LOGNAME[]	   = "pose_tracking_servo";
-constexpr double DEFAULT_LOOP_RATE = 100;	// Hz
-constexpr double ROS_STARTUP_WAIT  = 10;	// sec
+constexpr char		LOGNAME[]	  = "pose_tracking_servo";
+constexpr double	DEFAULT_LOOP_RATE = 100;	// Hz
+constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
+constexpr double	INPUT_TIMEOUT(0.5);		// sec
+}	// anonymous namespace
 
+namespace aist_controllers
+{
+namespace
+{
 /************************************************************************
 *  static functions							*
 ************************************************************************/
@@ -96,10 +102,8 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 	       << twist.angular.y << ' '
 	       << twist.angular.z;
 }
-}  // namespace
+}	// anonymous namespace
 
-namespace aist_controllers
-{
 /************************************************************************
 *  class PoseTrackingServo						*
 ************************************************************************/
@@ -214,7 +218,6 @@ class PoseTrackingServo
     ros::Time					ee_frame_transform_stamp_;
     geometry_msgs::PoseStamped			target_pose_;
     mutable std::mutex				target_pose_mtx_;
-    constexpr static double			input_timeout_ = 0.1;
 };
 
 PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
@@ -386,22 +389,23 @@ PoseTrackingServo::tick()
     }
 
   // Check that target pose is recent enough.
-    // if (!haveRecentTargetPose(input_timeout_))
-    // {
-    // 	doPostMotionReset();
-    // 	tracker_srv_.setAborted();
-    //     ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
-    // 			       << "The target pose was not updated recently.]");
+    if (!haveRecentTargetPose(INPUT_TIMEOUT))
+    {
+    	doPostMotionReset();
+    	tracker_srv_.setAborted();
+        ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
+    			       << "The target pose was not updated recently."
+			       << ']');
 
-    // 	return;
-    // }
+    	return;
+    }
 
   // Attempt to update robot pose.
     if (servo_->getEEFrameTransform(ee_frame_transform_))
 	ee_frame_transform_stamp_ = ros::Time::now();
 
   // Check that end-effector pose (command frame transform) is recent enough.
-    if (!haveRecentEndEffectorPose(input_timeout_))
+    if (!haveRecentEndEffectorPose(INPUT_TIMEOUT))
     {
 	doPostMotionReset();
 	tracker_srv_.setAborted();
@@ -611,65 +615,61 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 
     target_pose_ = *msg;
 
-  // If the target pose is not defined in planning frame,
-  // transform the target pose.
-    if (target_pose_.header.frame_id != planning_frame_)
-    {
-	try
-	{
-	    const auto
-		target_to_planning_frame = transform_buffer_.lookupTransform(
-						planning_frame_,
-						target_pose_.header.frame_id,
-						ros::Time(0),
-						ros::Duration(0.1));
-	    tf2::doTransform(target_pose_, target_pose_,
-			     target_to_planning_frame);
+  // Prevent doTransform from copying a stamp of 0,
+  // which will cause the haveRecentTargetPose check to fail servo motions
+    if (target_pose_.header.stamp == ros::Time(0))
+	target_pose_.header.stamp = ros::Time::now();
 
-	    if (target_pose_.header.stamp == ros::Time(0))
-	    {
-	      // Prevent doTransform from copying a stamp of 0,
-	      // which will cause the haveRecentTargetPose check
-	      // to fail servo motions
-		target_pose_.header.stamp = ros::Time::now();
-	    }
-	}
-	catch (const tf2::TransformException& ex)
-	{
-	    ROS_WARN_STREAM_NAMED(LOGNAME,
-				  "(PoseTrackingServo) " << ex.what());
-	    return;
-	}
+  // If the target pose is defined in planning frame, it's OK as is.
+    if (target_pose_.header.frame_id == planning_frame_)
+	return;
+
+  // Otherwise, transform it to planning frame.
+    try
+    {
+	const auto	target_to_planning_frame
+			    = transform_buffer_.lookupTransform(
+				planning_frame_, target_pose_.header.frame_id,
+				ros::Time(0), ros::Duration(0.1));
+	tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
+    }
+    catch (const tf2::TransformException& err)
+    {
+	ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) " << err.what());
     }
 }
 
 void
 PoseTrackingServo::goalCB()
 {
-    current_goal_ = tracker_srv_.acceptNewGoal();
-
-    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
-			  << current_goal_->target_offset << ']');
-
     resetTargetPose();
-
-    std_srvs::Empty	empty;
-    reset_servo_status_.call(empty);
-
-    servo_->start();
-
+    
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
-    const auto	start_time = ros::Time::now();
-    while ((!haveRecentTargetPose(input_timeout_) ||
-	    !haveRecentEndEffectorPose(input_timeout_)) &&
-	   ((ros::Time::now() - start_time).toSec() < input_timeout_))
+    for (const auto start_time = ros::Time::now();
+	 (ros::Time::now() - start_time).toSec() < INPUT_TIMEOUT;
+	ros::Duration(0.001).sleep())
     {
+	if (haveRecentTargetPose(INPUT_TIMEOUT) &&
+	    haveRecentEndEffectorPose(INPUT_TIMEOUT))
+	{
+	    std_srvs::Empty	empty;
+	    reset_servo_status_.call(empty);
+	    servo_->start();
+
+	    current_goal_ = tracker_srv_.acceptNewGoal();
+	    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
+				  << current_goal_->target_offset << ']');
+	    
+	    return;
+	}
+	
 	if (servo_->getEEFrameTransform(ee_frame_transform_))
 	    ee_frame_transform_stamp_ = ros::Time::now();
-	ros::Duration(0.001).sleep();
     }
+
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Cannot accept goal because no target pose available recently.");
 }
 
 void
