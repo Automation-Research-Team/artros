@@ -59,6 +59,7 @@
        name="command_in_type"	value="speed_units"/>
 
   <arg name="cartesian_command_in_topic"	value="delta_twist_cmds"/>
+
   <node name="pose_tracking_servo"
   	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
     <rosparam file="$(dirname)/../config/khi_servo_server.yaml"

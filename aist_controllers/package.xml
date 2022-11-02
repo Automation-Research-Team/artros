@@ -16,12 +16,12 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
-  <depend>roscpp</depend>
-  <depend>rospy</depend>
-  <depend>tf</depend>
   <depend>tf_conversions</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>actionlib</depend>

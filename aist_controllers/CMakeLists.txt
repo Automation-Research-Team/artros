@@ -13,13 +13,15 @@ set(CMAKE_CXX_BUILD_TYPE	Release)
 set(SERVO_LIB_NAME moveit_servo_cpp_api)
 
 # Load catkin and all dependencies required for this package
+find_package(orocos_kdl REQUIRED)
+find_package(Boost REQUIRED COMPONENTS thread)
+
 find_package(catkin REQUIRED
   COMPONENTS
     roscpp
     rospy
     genmsg
     message_generation
-    tf
     tf_conversions
     tf2_geometry_msgs
     ddynamic_reconfigure
@@ -36,15 +38,7 @@ find_package(catkin REQUIRED
     aist_utility
 )
 
-find_package(orocos_kdl REQUIRED)
-find_package(Boost REQUIRED COMPONENTS thread)
-
 catkin_python_setup()
-
-include_directories(
-  include
-  ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
-)
 
 add_action_files(
   FILES
@@ -70,6 +64,11 @@ catkin_package(
     moveit_ros_planning_interface
     rosparam_shortcuts
     control_toolbox
+)
+
+include_directories(
+  include
+  ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
 )
 
 #
