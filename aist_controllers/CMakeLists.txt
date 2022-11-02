@@ -22,8 +22,6 @@ find_package(catkin REQUIRED
     rospy
     genmsg
     message_generation
-    pluginlib
-    nodelet
     tf_conversions
     tf2_geometry_msgs
     ddynamic_reconfigure
@@ -207,7 +205,7 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
-add_library(
+add_executable(
   pose_tracking_servo
   src/pose_tracking_servo.cpp
 )

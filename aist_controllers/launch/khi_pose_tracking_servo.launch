@@ -58,13 +58,10 @@
   <arg unless="$(arg unitless)"
        name="command_in_type"	value="speed_units"/>
 
-  <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
-  <arg unless="$(eval manager == '')"	name="command"	value="load"/>
-
   <arg name="cartesian_command_in_topic"	value="delta_twist_cmds"/>
-  <node name="pose_tracking_servo" pkg="nodelet" type="nodelet" output="screen"
-	args="$(arg command)
-	      aist_controllers/pose_tracking_servo $(arg manager)">
+
+  <node name="pose_tracking_servo"
+  	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
     <rosparam file="$(dirname)/../config/khi_servo_server.yaml"
   	      subst_value="true"/>
     <rosparam file="$(dirname)/../config/khi_pose_tracking.yaml"/>

@@ -1,8 +1,0 @@
-<library path="lib/libpose_tracking_servo">
-  <class name="aist_controllers/pose_tracking_servo"
-	 type="aist_controllers::PoseTrackingServo"
-	 base_class_type="nodelet::Nodelet">
-    <description>
-    </description>
-  </class>
-</library>

@@ -22,8 +22,6 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
-  <depend>pluginlib</depend>
-  <depend>nodelet</depend>
   <depend>tf_conversions</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>actionlib</depend>
@@ -41,9 +39,5 @@
   <depend>control_toolbox</depend>
   <depend>ddynamic_reconfigure</depend>
   <depend>aist_utility</depend>
-
-  <export>
-    <nodelet plugin="${prefix}/nodelet_description.xml"/>
-  </export>
 
 </package>
