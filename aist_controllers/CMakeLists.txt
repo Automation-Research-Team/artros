@@ -222,9 +222,27 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+#
+#  joint_state_extractor
+#
+add_executable(
+  joint_state_extractor
+  src/joint_state_extractor.cpp
+)
+
+target_link_libraries(
+  joint_state_extractor
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  joint_state_extractor
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
   TARGETS point_head_tracker pose_head_tracker pose_group_tracker servo_server
-  pose_tracking_servo
+  pose_tracking_servo joint_state_extractor
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

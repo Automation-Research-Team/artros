@@ -6,7 +6,7 @@
   <arg name="speed"		default="13.0"/>
   <arg name="turn"		default="13.0"/>
   <arg name="repeat_rate"	default="100.0"/>
-       
+
   <node ns="servo_server" name="teleop_twist_keyboard"
 	pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py"
 	output="screen">

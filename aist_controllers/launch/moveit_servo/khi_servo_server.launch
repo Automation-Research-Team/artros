@@ -5,7 +5,7 @@
   <arg name="traj"			 default="true"/>
   <arg name="unitless"			 default="false"/>
   <arg name="cartesian_command_in_topic" default="delta_twist_cmds"/>
-  
+
   <arg if="$(arg traj)"
        name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
   <arg unless="$(arg traj)"
@@ -29,6 +29,15 @@
 	pkg="aist_controllers" type="servo_server" output="screen">
     <rosparam file="$(dirname)/../../config/khi_servo_server.yaml"
 	      subst_value="true"/>
+  </node>
+
+  <arg name="joint_names"	value="['arm_joint1', 'arm_joint2',
+					'arm_joint3', 'arm_joint4',
+					'arm_joint5', 'arm_joint6']"/>
+  <node name="joint_state_extractor"
+	pkg="aist_controllers" type="joint_state_extractor" output="screen">
+    <rosparam param="joint_names"
+	      subst_value="true">$(arg joint_names)</rosparam>
   </node>
 
 </launch>
