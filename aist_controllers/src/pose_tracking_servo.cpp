@@ -47,6 +47,7 @@
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_controllers/PoseTrackingAction.h>
+#include <aist_utility/butterworth_lpf.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -58,6 +59,39 @@ constexpr double	DEFAULT_LOOP_RATE = 100;	// Hz
 constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
 constexpr double	INPUT_TIMEOUT(0.5);		// sec
 }	// anonymous namespace
+
+namespace geometry_msgs
+{
+Pose
+operator +(const Pose& a, const Pose& b)
+{
+    Pose	ret;
+    ret.position.x    = a.position.x	+ b.position.x;
+    ret.position.y    = a.position.y	+ b.position.y;
+    ret.position.z    = a.position.z	+ b.position.z;
+    ret.orientation.x = a.orientation.x	+ b.orientation.x;
+    ret.orientation.y = a.orientation.y	+ b.orientation.y;
+    ret.orientation.z = a.orientation.z	+ b.orientation.z;
+    ret.orientation.w = a.orientation.w	+ b.orientation.w;
+
+    return ret;
+}
+    
+Pose
+operator *(double c, const Pose& a)
+{
+    Pose	ret;
+    ret.position.x    = c * a.position.x;
+    ret.position.y    = c * a.position.y;
+    ret.position.z    = c * a.position.z;
+    ret.orientation.x = c * a.orientation.x;
+    ret.orientation.y = c * a.orientation.y;
+    ret.orientation.z = c * a.orientation.z;
+    ret.orientation.w = c * a.orientation.w;
+
+    return ret;
+}
+}	// namespace geometry_msgs
 
 namespace aist_controllers
 {
@@ -102,6 +136,17 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 	       << twist.angular.y << ' '
 	       << twist.angular.z;
 }
+
+void
+normalize(geometry_msgs::Quaternion& q)
+{
+    const auto	norm1 = 1/std::sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
+    q.x *= norm1;
+    q.y *= norm1;
+    q.z *= norm1;
+    q.w *= norm1;
+}
+
 }	// anonymous namespace
 
 /************************************************************************
@@ -155,6 +200,10 @@ class PoseTrackingServo
     void	stopMotion()						;
     void	doPostMotionReset()					;
 
+  // Input low-pass filter stuffs
+    void	updateInputLowPassFilter(int half_order,
+					 double cutoff_frequency)	;
+    
   // PID stuffs
     void	initializePID(const PIDConfig& pid_config,
 			      std::vector<control_toolbox::Pid>& pid_vector);
@@ -190,8 +239,8 @@ class PoseTrackingServo
     ros::Subscriber				servo_status_sub_;
     ros::Subscriber				target_pose_sub_;
     ros::Publisher				twist_stamped_pub_;
-    ros::Publisher				target_pose_pub_;
-    ros::Publisher				ee_pose_pub_;
+    ros::Publisher				target_pose_pub_;  // for debug
+    ros::Publisher				ee_pose_pub_;	   // for debug
     ros::Rate					loop_rate_;
 
   // Action server stuffs
@@ -203,6 +252,12 @@ class PoseTrackingServo
 
     tf2_ros::Buffer				transform_buffer_;
     tf2_ros::TransformListener			transform_listener_;
+
+  // Filters for input target pose
+    int				input_low_pass_filter_half_order_;
+    double			input_low_pass_filter_cutoff_frequency_;
+    aist_utility::ButterworthLPF<double, geometry_msgs::Pose>
+				input_low_pass_filter_;
 
   // PIDs
     std::vector<control_toolbox::Pid>		cartesian_position_pids_;
@@ -248,6 +303,12 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      transform_buffer_(),
      transform_listener_(transform_buffer_),
 
+     input_low_pass_filter_half_order_(3),
+     input_low_pass_filter_cutoff_frequency_(7.0),
+     input_low_pass_filter_(input_low_pass_filter_half_order_,
+			    input_low_pass_filter_cutoff_frequency_ *
+			    loop_rate_.expectedCycleTime().toSec()),
+     
      cartesian_position_pids_(),
      cartesian_orientation_pids_(),
      x_pid_config_(),
@@ -288,13 +349,30 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     tracker_srv_.start();
 
   // Setup dynamic reconfigure server
+    ddr_.registerVariable<int>("input_lowpass_filter_half_order",
+			       input_low_pass_filter_half_order_,
+			       boost::bind(
+				   &PoseTrackingServo
+				   ::updateInputLowPassFilter,
+				   this, _1,
+				   input_low_pass_filter_cutoff_frequency_),
+			       "Half order of input low pass filter", 1, 5);
+    ddr_.registerVariable<double>("input_lowpass_filter_cutoff_frequency",
+				  input_low_pass_filter_cutoff_frequency_,
+				  boost::bind(
+				      &PoseTrackingServo
+				      ::updateInputLowPassFilter,
+				      this, input_low_pass_filter_half_order_,
+				      _1),
+				  "Cutoff frequency of input low pass filter",
+				  0.5, 100.0);
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  x_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for translation",
-				  0.5, 100.0);
+				  0.5, 300.0);
     ddr_.registerVariable<double>("linear_integral_gain",
 				  x_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
@@ -316,7 +394,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for rotation",
-				  0.5, 100.0);
+				  0.5, 300.0);
     ddr_.registerVariable<double>("angular_integral_gain",
 				  angular_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
@@ -534,6 +612,14 @@ PoseTrackingServo::readROSParams()
     z_pid_config_.dt	   = publish_period;
     angular_pid_config_.dt = publish_period;
 
+  // Setup input low-pass filter
+    error += !rosparam_shortcuts::get(LOGNAME, nh,
+				      "input_low_pass_filter_half_order",
+				      input_low_pass_filter_half_order_);
+    error += !rosparam_shortcuts::get(LOGNAME, nh,
+				      "input_low_pass_filter_cutoff_frequency",
+				      input_low_pass_filter_cutoff_frequency_);
+
   // Setup PID configurations
     double	windup_limit;
     error += !rosparam_shortcuts::get(LOGNAME, nh, "windup_limit",
@@ -654,6 +740,8 @@ PoseTrackingServo::goalCB()
 	if (haveRecentTargetPose(INPUT_TIMEOUT) &&
 	    haveRecentEndEffectorPose(INPUT_TIMEOUT))
 	{
+	    input_low_pass_filter_.reset(target_pose_.pose);
+	    
 	    std_srvs::Empty	empty;
 	    reset_servo_status_.call(empty);
 	    servo_->start();
@@ -692,6 +780,10 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
 	target_pose = target_pose_;
     }
 
+  // Applly input low-pass filter
+    target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
+    normalize(target_pose.pose.orientation);
+    
   // Correct target_pose by offset
     tf2::Transform	target_transform;
     tf2::fromMsg(target_pose.pose, target_transform);
@@ -699,7 +791,7 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
     tf2::fromMsg(offset, offset_transform);
     tf2::toMsg(target_transform * offset_transform, target_pose.pose);
 
-  // For debugging
+  // Publish corrected pose for debugging
     target_pose_pub_.publish(target_pose);
 
   // Compute errors
@@ -782,6 +874,21 @@ PoseTrackingServo::stopMotion()
     }
     msg->header.stamp = ros::Time::now();
     twist_stamped_pub_.publish(msg);
+}
+
+// Low-pass filter stuffs
+void
+PoseTrackingServo::updateInputLowPassFilter(int half_order,
+					    double cutoff_frequency)
+{
+    input_low_pass_filter_half_order_	    = half_order;
+    input_low_pass_filter_cutoff_frequency_ = cutoff_frequency;
+
+    input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
+				      input_low_pass_filter_cutoff_frequency_
+				      *loop_rate_.expectedCycleTime().toSec());
+
+    input_low_pass_filter_.reset(target_pose_.pose);
 }
 
 // PID controller stuffs
