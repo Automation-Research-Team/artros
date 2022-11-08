@@ -5,7 +5,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 
-namespace aist_controllers
+namespace aist_utility
 {
 class JointStateExtractor
 {
@@ -76,7 +76,7 @@ JointStateExtractor::joint_state_cb(const joint_state_cp& joint_state)
     _joint_state_pub.publish(_joint_state);
 }
 
-}	// namespace aist_controllers
+}	// namespace aist_utility
 
 int
 main(int argc, char* argv[])
@@ -85,7 +85,7 @@ main(int argc, char* argv[])
 
     try
     {
-	aist_controllers::JointStateExtractor	extractor;
+	aist_utility::JointStateExtractor	extractor;
 	extractor.run();
     }
     catch (const std::exception& err)
