@@ -91,8 +91,6 @@ class ButterworthLPF
 			_A[k]  = a2/t;
 			_d1[k] = 2*(1 - a2)/t;
 			_d2[k] = -(1 - 2*a*s + a2)/t;
-
-			_y0[k] = _y1[k] = _y2[k] = 0;
 		    }
 		}
 
@@ -124,7 +122,7 @@ class ButterworthLPF
     void	reset(const value_type& x)
 		{
 		    for (size_t k = 0; k < _A.size(); ++k)
-			_y1[k] = _y2[k] = x / (1 - _d1[k] - _d2[k]);
+			_y1[k] = _y2[k] = (1/(1 - _d1[k] - _d2[k]))*x;
 		}
 
   private:

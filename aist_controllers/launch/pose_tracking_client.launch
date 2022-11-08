@@ -12,6 +12,12 @@
 	      subst_value="true">$(arg target_offset)</rosparam>
   </node>
 
+  <include file="$(find aist_utility)/launch/joint_state_extractor.launch">
+    <arg name="joint_names"	value="['arm_joint1', 'arm_joint2',
+  					'arm_joint3', 'arm_joint4',
+  					'arm_joint5', 'arm_joint6']"/>
+  </include>
+
   <arg if="$(arg plot_joints)"
        name="plot_args"
        value="/arm_controller/command_debug/points[0]/positions[0]
