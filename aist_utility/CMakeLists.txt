@@ -119,12 +119,30 @@ add_dependencies(butterworth_lpf_test
   ${catkin_EXPORTED_TARGETS}
 )
 
+#
+#  joint_state_extractor
+#
+add_executable(
+  joint_state_extractor
+  src/joint_state_extractor.cpp
+)
+
+target_link_libraries(
+  joint_state_extractor
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  joint_state_extractor
+  ${catkin_EXPORTED_TARGETS}
+)
+
 #############
 ## Install ##
 #############
 install(
   TARGETS
-    rotconv
+    rotconv joint_state_extractor
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
