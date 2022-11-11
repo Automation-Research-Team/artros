@@ -17,3 +17,13 @@
 [submodule "third_party/ur_robot_driver"]
 	path = third_party/ur_robot_driver
 	url = https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
+[submodule "third_party/src/universal_robot"]
+	path = third_party/src/universal_robot
+	url = https://github.com/ros-industrial/universal_robot.git
+[submodule "third_party/Universal_Robots_ROS_Driver"]
+	path = third_party/Universal_Robots_ROS_Driver
+	url = https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
+[submodule "third_party/universal_robot"]
+	path = third_party/universal_robot
+	url = https://github.com/ros-industrial/universal_robot.git
+	branch = melodic-devel

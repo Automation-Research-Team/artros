@@ -26,9 +26,11 @@
   <arg name="devices"		value="ur5, ur5, robotiq_85"/>
   <arg name="controllers"	value="ur, ur, cmodel"/>
   <arg name="drivers"		value="ur, ur, cmodel"/>
-  <arg name="driver_args"	value="163.220.51.110, 50005, 50006, 50007, 0;
-				       163.220.51.111, 50001, 50002, 50003, 0;
-				       urcap, 163.220.51.110" />
+  <arg name="driver_args"	value="163.220.51.110,
+				       50001, 50002, 50003, 50004, 0;
+  				       163.220.51.111,
+				       50005, 50006, 50007, 50008, 0;
+  				       urcap, 163.220.51.110" />
 
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">
@@ -85,18 +87,18 @@
   <group unless="$(arg sim)">
 
     <!-- Drivers for the force sensors -->
-    <include ns="a_bot_ftsensor"
-    	     file="$(find aist_ftsensor)/launch/ft300.launch">
-      <arg name="calib_file"		value="a_bot_ftsensor"/>
-      <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
-      <arg name="hostname"		value="a_bot"/>
-    </include>
-    <include ns="b_bot_ftsensor"
-    	     file="$(find aist_ftsensor)/launch/ft300.launch">
-      <arg name="calib_file"		value="b_bot_ftsensor"/>
-      <arg name="frame_id"		value="b_bot_ftsensor_wrench_link"/>
-      <arg name="hostname"		value="b_bot"/>
-    </include>
+    <!-- <include ns="a_bot_ftsensor" -->
+    <!-- 	     file="$(find aist_ftsensor)/launch/ft300.launch"> -->
+    <!--   <arg name="calib_file"		value="a_bot_ftsensor"/> -->
+    <!--   <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/> -->
+    <!--   <arg name="hostname"		value="a_bot"/> -->
+    <!-- </include> -->
+    <!-- <include ns="b_bot_ftsensor" -->
+    <!-- 	     file="$(find aist_ftsensor)/launch/ft300.launch"> -->
+    <!--   <arg name="calib_file"		value="b_bot_ftsensor"/> -->
+    <!--   <arg name="frame_id"		value="b_bot_ftsensor_wrench_link"/> -->
+    <!--   <arg name="hostname"		value="b_bot"/> -->
+    <!-- </include> -->
 
     <!-- Launch suction controller -->
     <include ns="b_bot"
