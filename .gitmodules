@@ -7,13 +7,13 @@
 [submodule "iiwa_stack"]
 	path = third_party/iiwa_stack
 	url = https://github.com/IFL-CAMP/iiwa_stack
-[submodule "universal_robot"]
-	path = third_party/universal_robot
-	url = https://github.com/fmauch/universal_robot.git
-	branch = calibration_devel
 [submodule "third_party/aruco_ros"]
 	path = third_party/aruco_ros
 	url = https://gitlab.com/art-aist/aruco_ros
 [submodule "third_party/ur_robot_driver"]
 	path = third_party/ur_robot_driver
-	url = https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
+	url = https://gitlab.com/art-aist/ur_robot_driver
+[submodule "third_party/universal_robot"]
+	path = third_party/universal_robot
+	url = https://github.com/ros-industrial/universal_robot.git
+	branch = melodic

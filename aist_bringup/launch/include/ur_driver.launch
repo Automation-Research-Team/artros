@@ -3,7 +3,7 @@
 
   <arg name="prefix"	 default="b_bot_"/>
   <arg name="device"	 default="ur5"/>
-  <arg name="driver_arg" default="10.66.171.51, 50001, 50002, 50003, 0"/>
+  <arg name="driver_arg" default="10.66.171.51, 50001, 50002, 50003, 50004, 0"/>
 
   <arg name="ip"			value="$(eval
 					       driver_arg.split(',')[0])"/>
@@ -13,8 +13,10 @@
 					       driver_arg.split(',')[2])"/>
   <arg name="trajectory_port"		value="$(eval
 					       driver_arg.split(',')[3])"/>
-  <arg name="tool_tcp_port"		value="$(eval
+  <arg name="script_command_port"	value="$(eval
 					       driver_arg.split(',')[4])"/>
+  <arg name="tool_tcp_port"		value="$(eval
+					       driver_arg.split(',')[5])"/>
   <arg name="use_tool_communication"	value="$(eval tool_tcp_port != 0)"/>
   <arg name="namespace"			value="$(eval prefix.rstrip('_'))"/>
 

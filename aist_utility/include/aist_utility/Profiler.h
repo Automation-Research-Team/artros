@@ -89,8 +89,6 @@ class Profiler
 
     void	stop(std::ostream& out)
 		{
-		    stamp();
-
 		    if (_accums.size() == 0)
 			_accums.resize(_current);
 		    else if (++_nframes == _nframes_max)
