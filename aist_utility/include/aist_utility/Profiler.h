@@ -87,25 +87,31 @@ class Profiler
 		    ++_current;
 		}
 
-    void	stop(std::ostream& out)
+    bool	stop()
 		{
-		    if (_accums.size() == 0)
-			_accums.resize(_current);
-		    else if (++_nframes == _nframes_max)
-		    {
-			for (size_t i = 0; i < _accums.size(); ++i)
-			    print(out, lap_time(i));
-			out << '|';
-			print(out, total_time());
-			out << std::endl;
+		    stamp();
 
-			_nframes = 0;
-			std::fill(_accums.begin(), _accums.end(),
-				  duration_t(0));
-		    }
+		    if (_accums.size() > 0)
+			return ++_nframes == _nframes_max;
 
-		    _current = 0;
+		    _accums.resize(_current);
+		    return false;
 		}
+
+    void	print(std::ostream& out)
+		{
+		    for (size_t i = 0; i < _accums.size(); ++i)
+			print(out, lap_time(i));
+		    out << '|';
+		    print(out, total_time());
+
+		    _nframes = 0;
+		    std::fill(_accums.begin(), _accums.end(),
+			      duration_t(0));
+		}
+
+    friend std::ostream&
+		operator <<(std::ostream& out, const Profiler& profiler);
 
   private:
     void	print(std::ostream& out, double sec) const
@@ -133,4 +139,11 @@ class Profiler
     std::vector<duration_t>	_accums;
 };
 
+inline std::ostream&
+operator <<(std::ostream& out, const Profiler& profiler)
+{
+    const_cast<Profiler&>(profiler).print(out);
+
+    return out;
+}
 }	// namespace aist_utility
