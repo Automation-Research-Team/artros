@@ -35,6 +35,7 @@
     <arg name="controllers"		value="$(arg controllers)"/>
     <arg name="drivers"			value="$(arg drivers)"/>
     <arg name="driver_args"		value="$(arg driver_args)"/>
+    <arg name="ns"			value="torobo"/>
   </include>
 
   <!-- Start MoveIt! -->

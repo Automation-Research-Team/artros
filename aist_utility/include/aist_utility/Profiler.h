@@ -57,61 +57,61 @@ class Profiler
     using duration_t	= ros::Duration;
 
   public:
-		Profiler(size_t nframes_max)
-		    :_nframes_max(nframes_max), _nframes(0),
-		     _current(0), _t0(0), _accums()			{}
+		Profiler()
+		    :_accums(), _t0(0), _stamp_idx(0), _nframes(0)	{}
 
-    void	reset()
+    void	reset(const time_t& t=ros::Time::now())
 		{
-		    _nframes = 0;
-		    _current = 0;
-		    _t0	     = ros::Time(0);
 		    _accums.clear();
+		    _t0	       = t;
+		    _stamp_idx = 0;
+		    _nframes   = 0;
 		}
 
     void	start(const time_t& t=ros::Time::now())
 		{
-		    _current = 0;
-		    _t0	     = t;
+		    _t0	       = t;
+		    _stamp_idx = 0;
 		}
 
     void	stamp()
 		{
 		    if (_accums.size() > 0)	// initialized?
 		    {
-			if (_current >= _accums.size())
+			if (_stamp_idx >= _accums.size())
 			    throw std::runtime_error("Profiler::stamp(): run out of stamp buffer");
-			_accums[_current] += (ros::Time::now() - _t0);
+			_accums[_stamp_idx] += (ros::Time::now() - _t0);
 		    }
 
-		    ++_current;
+		    ++_stamp_idx;
 		}
 
-    void	stop(std::ostream& out)
+    void	stop()
 		{
+		    stamp();
+
 		    if (_accums.size() == 0)
-			_accums.resize(_current);
-		    else if (++_nframes == _nframes_max)
-		    {
-			for (size_t i = 0; i < _accums.size(); ++i)
-			    print(out, lap_time(i));
-			out << '|';
-			print(out, total_time());
-			out << std::endl;
+			_accums.resize(_stamp_idx);
+		    else
+			++_nframes;
+		}
 
-			_nframes = 0;
-			std::fill(_accums.begin(), _accums.end(),
-				  duration_t(0));
-		    }
-
-		    _current = 0;
+    void	print(std::ostream& out) const
+		{
+		    if (_nframes == 0)
+			return;
+		    
+		    for (size_t i = 0; i < _accums.size(); ++i)
+			print(out, lap_time(i));
+		    out << '|';
+		    print(out, total_time());
 		}
 
   private:
     void	print(std::ostream& out, double sec) const
 		{
-		    out << std::setw(9) << 1000.0*sec << "ms("
-			<< std::setw(7) << 1.0/sec << "fps)";
+		    out << std::setw(6) << 1000.0*sec << "ms("
+			<< std::setw(4) << 1.0/sec << "fps)";
 		}
 
     double	lap_time(size_t i) const
@@ -126,11 +126,17 @@ class Profiler
 		}
 
   private:
-    const size_t		_nframes_max;
-    size_t			_nframes;
-    size_t			_current;
-    time_t			_t0;
     std::vector<duration_t>	_accums;
+    time_t			_t0;
+    size_t			_stamp_idx;
+    size_t			_nframes;
 };
 
+inline std::ostream&
+operator <<(std::ostream& out, const Profiler& profiler)
+{
+    profiler.print(out);
+
+    return out;
+}
 }	// namespace aist_utility
