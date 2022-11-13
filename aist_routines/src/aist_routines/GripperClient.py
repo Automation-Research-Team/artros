@@ -34,9 +34,15 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from actionlib          import SimpleActionClient
-from actionlib_msgs.msg import GoalStatus
-from numpy              import clip
+from actionlib                   import SimpleActionClient
+from actionlib_msgs.msg          import GoalStatus
+from numpy                       import clip
+from control_msgs.msg            import (GripperCommand, GripperCommandAction,
+                                         GripperCommandGoal)
+from aist_suction_controller.msg import (SuctionControlAction,
+                                         SuctionControlGoal)
+from std_msgs.msg                import Bool
+
 
 ######################################################################
 #  class GripperClient                                               #
@@ -131,9 +137,6 @@ class VoidGripper(GripperClient):
 class GenericGripper(GripperClient):
     def __init__(self, name, action_ns, base_link, tip_link,
                  min_position=0.0, max_position=0.1, max_effort=5.0):
-        from control_msgs.msg   import (GripperCommand, GripperCommandAction,
-                                        GripperCommandGoal)
-
         super(GenericGripper, self).__init__(name, 'two_finger',
                                              base_link, tip_link)
         self._client = SimpleActionClient(action_ns, GripperCommandAction)
@@ -251,10 +254,6 @@ class PrecisionGripper(GenericGripper):
 ######################################################################
 class SuctionGripper(GripperClient):
     def __init__(self, name, action_ns, state_ns='', eject=False):
-        from aist_suction_controller.msg import (SuctionControlAction,
-                                                 SuctionControlGoal)
-        from std_msgs.msg                import Bool
-
         super(SuctionGripper, self).__init__(
             *SuctionGripper._initargs(name, action_ns, state_ns, eject))
         self._client    = SimpleActionClient(action_ns, SuctionControlAction)

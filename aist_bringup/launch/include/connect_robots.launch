@@ -1,37 +1,31 @@
 <?xml version="1.0"?>
 <launch>
 
+  <arg name="robot_description_param"	default="robot_description"/>
   <arg name="robot_description_file"
        default="$(find aist_description
 		)/scenes/urdf/aist_base_scene.urdf.xacro"/>
-  <arg name="move_base"			default="false"/>
   <arg name="sim"			default="false"/>
-  <arg name="suppress_gazebo"		default="false"/>
   <arg name="manager"			default=""/>
   <arg name="gui"			default="true"/>
   <arg name="joint_state_frequency"	default="50"/>
 
-  <arg name="gazebo_init_args"		default=""/>
   <arg name="prefixes"			default=""/>
   <arg name="devices"			default=""/>
   <arg name="controllers"		default=""/>
   <arg name="drivers"			default=""/>
   <arg name="driver_args"		default=""/>
 
+  <arg name="gazebo_init_args"		default=""/>
+  <arg name="ns"			default=""/>
+
   <param name="use_real_robot"	value="$(eval not sim)"/>
 
-  <!-- Setup namespace -->
-  <arg name="ns" value="$(eval '/' if manager == '' else 'torobo/')"/>
-
   <!-- Load URDF to param "robot_description" or "move_base_description" -->
-  <arg if="$(arg move_base)"
-       name="robot_description_param"	value="move_base_description"/>
-  <arg unless="$(arg move_base)"
-       name="robot_description_param"	value="robot_description"/>
-  <param name="$(arg ns)$(arg robot_description_param)"
+  <param name="$(arg ns)/$(arg robot_description_param)"
   	 command="$(find xacro)/xacro $(arg robot_description_file)"/>
 
-  <group if="$(eval sim and not suppress_gazebo)">
+  <group if="$(arg sim)">
     <!-- Startup simulated world -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
       <arg name="world_name"	value="worlds/empty.world"/>
@@ -40,7 +34,7 @@
       <arg name="verbose"	value="true"/>
     </include>
 
-    <node ns="$(arg ns)" name="spawn_gazebo_model"
+    <node ns="$(arg ns)/" name="spawn_gazebo_model"
 	  pkg="gazebo_ros" type="spawn_model"
           args="-urdf -param $(arg robot_description_param)
 		-model robot -unpause

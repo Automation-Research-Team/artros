@@ -47,7 +47,8 @@
       visual_parameters_file="$(find ur_description
 			      )/config/ur5/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
-				  )/config/a_bot_calibration.yaml"/>
+				  )/config/a_bot_calibration.yaml"
+      transmission_hw_interface="hardware_interface/PositionJointInterface"/>
 
   <!-- <xacro:gazebo_ros_control ns="/b_bot"/> -->
   <xacro:ur_robot_gazebo
@@ -59,7 +60,8 @@
       visual_parameters_file="$(find ur_description
 			      )/config/ur5/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
-				  )/config/b_bot_calibration.yaml"/>
+				  )/config/b_bot_calibration.yaml"
+      transmission_hw_interface="hardware_interface/PositionJointInterface"/>
 
   <joint name="ground_a_bot_joint" type="fixed">
     <parent link="ground"/>

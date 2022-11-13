@@ -51,9 +51,9 @@ class MoveBaseClient(object):
     def __init__(self):
         super(MoveBaseClient, self).__init__()
 
-        self._move_base = actionlib.SimpleActionClient("move_base",
+        self._move_base = actionlib.SimpleActionClient("/move_base",
                                                        MoveBaseAction)
-        if self._move_base.wait_for_server(rospy.Duration(20)):
+        if self._move_base.wait_for_server(rospy.Duration(10)):
             rospy.loginfo("Connected to move_base.")
         else:
             rospy.logerr("MoveBaseClient.__init()__: failed to connect move_base action server")
