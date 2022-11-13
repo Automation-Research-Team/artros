@@ -39,7 +39,8 @@
       visual_parameters_file="$(find ur_description
                               )/config/ur5e/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
-				  )/config/c_bot_calibration.yaml"/>
+				  )/config/c_bot_calibration.yaml"
+      transmission_hw_interface="hardware_interface/PositionJointInterface"/>
 
   <joint name="ground_c_bot_joint" type="fixed">
     <parent link="ground"/>
