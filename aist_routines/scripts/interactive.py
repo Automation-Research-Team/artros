@@ -230,6 +230,9 @@ class InteractiveRoutines(AISTBaseRoutines):
                 except rospy.ROSException as e:
                     rospy.logerr('Unknown pose: %s' % e)
 
+            else:
+                print('  unknown command! [%s]' % key)
+
         # Reset pose
         self.go_to_named_pose(self._robot_name, "home")
 
