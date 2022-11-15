@@ -54,17 +54,35 @@
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
-  <xacro:robotiq_arg2f_coupling prefix="d_bot_gripper_coupling_"
-				parent="d_bot_flange">
+			   )/urdf/robotiq_dual_bracket.urdf.xacro"/>
+  <xacro:robotiq_dual_bracket prefix="d_bot_dual_bracket_"
+			      parent="d_bot_flange">
     <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  </xacro:robotiq_dual_bracket>
+
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="d_bot_left_coupling_"
+				parent="d_bot_dual_bracket_left_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_140_gripper_with_tip_link.urdf.xacro"/>
   <xacro:robotiq_140_gripper_with_tip_link prefix="d_bot_gripper_"
-					   parent="d_bot_gripper_coupling_flange_link">
+					   parent="d_bot_left_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_140_gripper_with_tip_link>
+
+  <xacro:robotiq_arg2f_coupling prefix="d_bot_right_coupling_"
+				parent="d_bot_dual_bracket_right_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
+  <xacro:include filename="$(find aist_robotiq)/urdf/robotiq_epick.urdf.xacro"/>
+  <xacro:robotiq_epick prefix="d_bot_suction_"
+		       parent="d_bot_right_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_epick>
 
   <!-- Add PhoXi 3D scanner -->
   <xacro:include filename="$(find
