@@ -62,7 +62,7 @@ class Profiler
 
     void	reset(const time_t& t=ros::Time::now())
 		{
-		    _accums.clear();
+		    std::fill(_accums.begin(), _accums.end(), duration_t(0));
 		    _t0	       = t;
 		    _stamp_idx = 0;
 		    _nframes   = 0;
@@ -91,7 +91,7 @@ class Profiler
 		    stamp();
 
 		    if (_accums.size() == 0)
-			_accums.resize(_stamp_idx);
+			_accums.resize(_stamp_idx, duration_t(0));
 		    else
 			++_nframes;
 		}

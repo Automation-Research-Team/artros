@@ -5,11 +5,10 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Planning Request1
-        - /TF1/Frames1
         - /Realsense1/Auto Size1
         - /PhoXi1/Auto Size1
       Splitter Ratio: 0.7425600290298462
-    Tree Height: 331
+    Tree Height: 1280
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -88,15 +87,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           d_bot_camera_color_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           d_bot_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_connector_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -108,19 +107,11 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_bot_camera_infra1_frame:
+          d_bot_camera_left_ir_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_bot_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          d_bot_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          d_bot_camera_infra2_optical_frame:
+          d_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -129,6 +120,27 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          d_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_right_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_dual_bracket_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_dual_bracket_left_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_dual_bracket_right_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           d_bot_flange:
             Alpha: 1
             Show Axes: false
@@ -139,15 +151,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           d_bot_gripper_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          d_bot_gripper_coupling_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          d_bot_gripper_coupling_flange_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -210,11 +213,38 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          d_bot_left_coupling_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_left_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_right_coupling_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_right_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           d_bot_shoulder_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          d_bot_suction_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_suction_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           d_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -239,16 +269,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_phoxi_m_camera:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           d_phoxi_m_camera_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_phoxi_m_sensor:
+            Value: true
+          d_phoxi_m_camera_sensor:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_phoxi_m_camera_sensor_reference:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -327,15 +357,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_bot_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           d_bot_camera_color_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           d_bot_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_connector_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -347,19 +377,11 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_bot_camera_infra1_frame:
+          d_bot_camera_left_ir_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_bot_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          d_bot_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          d_bot_camera_infra2_optical_frame:
+          d_bot_camera_left_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -368,6 +390,27 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          d_bot_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_camera_right_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_dual_bracket_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_dual_bracket_left_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_dual_bracket_right_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           d_bot_flange:
             Alpha: 1
             Show Axes: false
@@ -378,15 +421,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           d_bot_gripper_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          d_bot_gripper_coupling_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          d_bot_gripper_coupling_flange_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -449,11 +483,38 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          d_bot_left_coupling_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_left_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_right_coupling_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_right_coupling_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           d_bot_shoulder_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          d_bot_suction_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_suction_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           d_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -478,16 +539,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_phoxi_m_camera:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           d_phoxi_m_camera_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_phoxi_m_sensor:
+            Value: true
+          d_phoxi_m_camera_sensor:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_phoxi_m_camera_sensor_reference:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -518,45 +579,43 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        calibrated_d_bot_camera_color_optical_frame:
-          Value: true
-        calibrated_d_phoxi_m_camera:
-          Value: true
         d_bot_base:
           Value: false
         d_bot_base_link:
           Value: false
         d_bot_base_link_inertia:
           Value: true
-        d_bot_camera_bottom_screw_frame:
-          Value: false
         d_bot_camera_color_frame:
           Value: false
         d_bot_camera_color_optical_frame:
           Value: true
+        d_bot_camera_connector_link:
+          Value: false
         d_bot_camera_depth_frame:
           Value: false
         d_bot_camera_depth_optical_frame:
           Value: false
-        d_bot_camera_infra1_frame:
+        d_bot_camera_left_ir_frame:
           Value: false
-        d_bot_camera_infra1_optical_frame:
-          Value: false
-        d_bot_camera_infra2_frame:
-          Value: false
-        d_bot_camera_infra2_optical_frame:
+        d_bot_camera_left_ir_optical_frame:
           Value: false
         d_bot_camera_link:
+          Value: false
+        d_bot_camera_right_ir_frame:
+          Value: false
+        d_bot_camera_right_ir_optical_frame:
+          Value: false
+        d_bot_dual_bracket_base_link:
+          Value: false
+        d_bot_dual_bracket_left_flange_link:
+          Value: false
+        d_bot_dual_bracket_right_flange_link:
           Value: false
         d_bot_flange:
           Value: true
         d_bot_forearm_link:
           Value: false
         d_bot_gripper_base_link:
-          Value: false
-        d_bot_gripper_coupling_base_link:
-          Value: false
-        d_bot_gripper_coupling_flange_link:
           Value: false
         d_bot_gripper_left_inner_finger:
           Value: false
@@ -582,12 +641,22 @@ Visualization Manager:
           Value: false
         d_bot_gripper_tip_link:
           Value: true
+        d_bot_left_coupling_base_link:
+          Value: false
+        d_bot_left_coupling_flange_link:
+          Value: false
+        d_bot_right_coupling_base_link:
+          Value: false
+        d_bot_right_coupling_flange_link:
+          Value: false
         d_bot_shoulder_link:
           Value: false
+        d_bot_suction_base_link:
+          Value: false
+        d_bot_suction_flange_link:
+          Value: true
         d_bot_tool0:
           Value: false
-        d_bot_tool0_controller:
-          Value: true
         d_bot_upper_arm_link:
           Value: false
         d_bot_wrist_1_link:
@@ -596,11 +665,11 @@ Visualization Manager:
           Value: false
         d_bot_wrist_3_link:
           Value: false
-        d_phoxi_m_camera:
-          Value: true
         d_phoxi_m_camera_link:
           Value: true
-        d_phoxi_m_sensor:
+        d_phoxi_m_camera_sensor:
+          Value: true
+        d_phoxi_m_camera_sensor_reference:
           Value: true
         ground:
           Value: false
@@ -620,8 +689,7 @@ Visualization Manager:
           ground:
             d_bot_base_link:
               d_bot_base:
-                d_bot_tool0_controller:
-                  {}
+                {}
               d_bot_base_link_inertia:
                 d_bot_shoulder_link:
                   d_bot_upper_arm_link:
@@ -630,52 +698,56 @@ Visualization Manager:
                         d_bot_wrist_2_link:
                           d_bot_wrist_3_link:
                             d_bot_flange:
-                              calibrated_d_bot_camera_color_optical_frame:
-                                {}
-                              d_bot_gripper_coupling_base_link:
-                                d_bot_gripper_coupling_flange_link:
-                                  d_bot_gripper_base_link:
-                                    d_bot_camera_bottom_screw_frame:
-                                      d_bot_camera_link:
-                                        d_bot_camera_color_frame:
-                                          d_bot_camera_color_optical_frame:
+                              d_bot_dual_bracket_base_link:
+                                d_bot_dual_bracket_left_flange_link:
+                                  d_bot_left_coupling_base_link:
+                                    d_bot_left_coupling_flange_link:
+                                      d_bot_gripper_base_link:
+                                        d_bot_camera_connector_link:
+                                          d_bot_camera_link:
+                                            d_bot_camera_depth_frame:
+                                              d_bot_camera_color_frame:
+                                                d_bot_camera_color_optical_frame:
+                                                  {}
+                                              d_bot_camera_depth_optical_frame:
+                                                {}
+                                              d_bot_camera_left_ir_frame:
+                                                d_bot_camera_left_ir_optical_frame:
+                                                  {}
+                                              d_bot_camera_right_ir_frame:
+                                                d_bot_camera_right_ir_optical_frame:
+                                                  {}
+                                        d_bot_gripper_robotiq_arg2f_base_link:
+                                          d_bot_gripper_left_inner_knuckle:
                                             {}
-                                        d_bot_camera_depth_frame:
-                                          d_bot_camera_depth_optical_frame:
+                                          d_bot_gripper_left_outer_knuckle:
+                                            d_bot_gripper_left_outer_finger:
+                                              d_bot_gripper_left_inner_finger:
+                                                d_bot_gripper_left_inner_finger_pad:
+                                                  {}
+                                          d_bot_gripper_right_inner_knuckle:
                                             {}
-                                        d_bot_camera_infra1_frame:
-                                          d_bot_camera_infra1_optical_frame:
-                                            {}
-                                        d_bot_camera_infra2_frame:
-                                          d_bot_camera_infra2_optical_frame:
-                                            {}
-                                    d_bot_gripper_robotiq_arg2f_base_link:
-                                      d_bot_gripper_left_inner_knuckle:
-                                        {}
-                                      d_bot_gripper_left_outer_knuckle:
-                                        d_bot_gripper_left_outer_finger:
-                                          d_bot_gripper_left_inner_finger:
-                                            d_bot_gripper_left_inner_finger_pad:
-                                              {}
-                                      d_bot_gripper_right_inner_knuckle:
-                                        {}
-                                      d_bot_gripper_right_outer_knuckle:
-                                        d_bot_gripper_right_outer_finger:
-                                          d_bot_gripper_right_inner_finger:
-                                            d_bot_gripper_right_inner_finger_pad:
-                                              {}
-                                    d_bot_gripper_tip_link:
-                                      {}
+                                          d_bot_gripper_right_outer_knuckle:
+                                            d_bot_gripper_right_outer_finger:
+                                              d_bot_gripper_right_inner_finger:
+                                                d_bot_gripper_right_inner_finger_pad:
+                                                  {}
+                                        d_bot_gripper_tip_link:
+                                          {}
+                                d_bot_dual_bracket_right_flange_link:
+                                  d_bot_right_coupling_base_link:
+                                    d_bot_right_coupling_flange_link:
+                                      d_bot_suction_base_link:
+                                        d_bot_suction_flange_link:
+                                          {}
                               d_bot_tool0:
                                 {}
             workbox:
               {}
             workspace_center:
-              calibrated_d_phoxi_m_camera:
-                {}
-              d_phoxi_m_camera:
-                d_phoxi_m_sensor:
-                  d_phoxi_m_camera_link:
+              d_phoxi_m_camera_link:
+                d_phoxi_m_camera_sensor:
+                  d_phoxi_m_camera_sensor_reference:
                     {}
       Update Interval: 0
       Value: true
@@ -808,15 +880,15 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6397966742515564
+      Pitch: 0.6097967028617859
       Target Frame: world
       Value: XYOrbit (rviz)
-      Yaw: 5.13994836807251
+      Yaw: 5.304947853088379
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 759
+  Height: 1687
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -825,11 +897,11 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002ad0000029dfc0200000007fc0000003d000001a50000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a400fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001a005200650061006c00730065006e00730065002d00520047004201000001e8000000f20000001600ffffff000002ba0000029d00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000005fbfc0200000007fc0000006e000004ff0000030301000039fa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000003a300fffffffb000000100044006900730070006c0061007900730100000000000002ad000001f700fffffffb0000000800480065006c00700000000342000000bb000000d400fffffffb0000000a0056006900650077007300000003b0000000b00000013200fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000002600000026fb0000001a005200650061006c00730065006e00730065002d0052004700420100000579000000f00000002600ffffff000004ff000005fb00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Realsense-RGB:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1389
-  X: 2129
-  Y: 295
+  Width: 2222
+  X: 652
+  Y: 382
