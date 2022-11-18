@@ -57,7 +57,7 @@ namespace
 constexpr char		LOGNAME[]	  = "pose_tracking_servo";
 constexpr double	DEFAULT_LOOP_RATE = 100;	// Hz
 constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
-constexpr double	INPUT_TIMEOUT(0.5);		// sec
+const	  ros::Duration	INPUT_TIMEOUT{0.5};	// sec
 }	// anonymous namespace
 
 namespace geometry_msgs
@@ -218,12 +218,12 @@ class PoseTrackingServo
 
   // Target pose stuffs
     void	resetTargetPose()					;
-    bool	haveRecentTargetPose(double timeout)		const	;
+    bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
   // End-effector pose stuffs
     bool	getEEFrameTransform(
 		    geometry_msgs::TransformStamped& transform)	const	;
-    bool	haveRecentEndEffectorPose(double timeout)	const	;
+    bool	haveRecentEndEffectorPose(const ros::Duration& timeout)	const;
 
   private:
     ros::NodeHandle				nh_;
@@ -454,23 +454,29 @@ PoseTrackingServo::tick()
       case servo_status_t::HALT_FOR_SINGULARITY:
       case servo_status_t::HALT_FOR_COLLISION:
       case servo_status_t::JOINT_BOUND:
+      {
 	doPostMotionReset();
-	tracker_srv_.setAborted();
+	PoseTrackingResult	result;
+	result.status = static_cast<int8_t>(servo_status_);
+	tracker_srv_.setAborted(result);
 	ROS_ERROR_STREAM_NAMED(
 	    LOGNAME, "(PoseTrackingServo) goal ABORTED["
 	    << moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
 	    << ']');
 	return;
-
+      }
+      
       default:
 	break;
     }
 
   // Check that target pose is recent enough.
-    if (!haveRecentTargetPose(INPUT_TIMEOUT))
+    if (!haveRecentTargetPose(current_goal_->timeout))
     {
     	doPostMotionReset();
-    	tracker_srv_.setAborted();
+	PoseTrackingResult	result;
+	result.status = PoseTrackingResult::INPUT_TIMEOUT;
+    	tracker_srv_.setAborted(result);
         ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
     			       << "The target pose was not updated recently."
 			       << ']');
@@ -483,10 +489,12 @@ PoseTrackingServo::tick()
 	ee_frame_transform_stamp_ = ros::Time::now();
 
   // Check that end-effector pose (command frame transform) is recent enough.
-    if (!haveRecentEndEffectorPose(INPUT_TIMEOUT))
+    if (!haveRecentEndEffectorPose(current_goal_->timeout))
     {
 	doPostMotionReset();
-	tracker_srv_.setAborted();
+	PoseTrackingResult	result;
+	result.status = PoseTrackingResult::INPUT_TIMEOUT;
+    	tracker_srv_.setAborted(result);
 	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
 			       << "The end effector pose was not updated in time.]");
 
@@ -509,12 +517,22 @@ PoseTrackingServo::tick()
 	std::abs(angular_error.angle()) < current_goal_->angular_tolerance)
     {
 	doPostMotionReset();
-	tracker_srv_.setSucceeded();
+	PoseTrackingResult	result;
+	result.status = PoseTrackingResult::NO_ERROR;
+	tracker_srv_.setSucceeded(result);
 	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal SUCCEEDED");
 
 	return;
     }
 
+  // Set tracking result.
+    PoseTrackingFeedback	feedback;
+    feedback.positional_error[0] = positional_error(0);
+    feedback.positional_error[1] = positional_error(1);
+    feedback.positional_error[2] = positional_error(2);
+    feedback.angular_error	 = angular_error.angle();
+    feedback.status		 = static_cast<int8_t>(servo_status_);
+    
   // Compute servo command from PID controller output and send it
   // to the Servo object, for execution
     twist_stamped_pub_.publish(calculateTwistCommand(positional_error,
@@ -734,8 +752,8 @@ PoseTrackingServo::goalCB()
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
     for (const auto start_time = ros::Time::now();
-	 (ros::Time::now() - start_time).toSec() < INPUT_TIMEOUT;
-	ros::Duration(0.001).sleep())
+	 ros::Time::now() - start_time < INPUT_TIMEOUT;
+	 ros::Duration(0.001).sleep())
     {
 	if (haveRecentTargetPose(INPUT_TIMEOUT) &&
 	    haveRecentEndEffectorPose(INPUT_TIMEOUT))
@@ -958,11 +976,11 @@ PoseTrackingServo::resetTargetPose()
 }
 
 bool
-PoseTrackingServo::haveRecentTargetPose(double timeout) const
+PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
 {
     std::lock_guard<std::mutex> lock(target_pose_mtx_);
 
-    return ((ros::Time::now() - target_pose_.header.stamp).toSec() < timeout);
+    return (ros::Time::now() - target_pose_.header.stamp < timeout);
 }
 
 // End-effector frame stuffs
@@ -974,9 +992,10 @@ PoseTrackingServo::getEEFrameTransform(
 }
 
 bool
-PoseTrackingServo::haveRecentEndEffectorPose(double timeout) const
+PoseTrackingServo::haveRecentEndEffectorPose(
+			const ros::Duration& timeout) const
 {
-    return ((ros::Time::now() - ee_frame_transform_stamp_).toSec() < timeout);
+    return (ros::Time::now() - ee_frame_transform_stamp_ < timeout);
 }
 }	// namespace aist_controllers
 
