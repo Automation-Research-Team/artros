@@ -76,7 +76,7 @@ operator +(const Pose& a, const Pose& b)
 
     return ret;
 }
-    
+
 Pose
 operator *(double c, const Pose& a)
 {
@@ -180,7 +180,7 @@ class PoseTrackingServo
     void	tick()							;
     const ros::Rate&
 		loop_rate()					const	;
-    
+
   private:
     static planning_scene_monitor_p
 		createPlanningSceneMonitor(
@@ -203,7 +203,7 @@ class PoseTrackingServo
   // Input low-pass filter stuffs
     void	updateInputLowPassFilter(int half_order,
 					 double cutoff_frequency)	;
-    
+
   // PID stuffs
     void	initializePID(const PIDConfig& pid_config,
 			      std::vector<control_toolbox::Pid>& pid_vector);
@@ -308,7 +308,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    loop_rate_.expectedCycleTime().toSec()),
-     
+
      cartesian_position_pids_(),
      cartesian_orientation_pids_(),
      x_pid_config_(),
@@ -465,7 +465,7 @@ PoseTrackingServo::tick()
 	    << ']');
 	return;
       }
-      
+
       default:
 	break;
     }
@@ -525,14 +525,15 @@ PoseTrackingServo::tick()
 	return;
     }
 
-  // Set tracking result.
+  // Publish tracking result as feedback.
     PoseTrackingFeedback	feedback;
     feedback.positional_error[0] = positional_error(0);
     feedback.positional_error[1] = positional_error(1);
     feedback.positional_error[2] = positional_error(2);
     feedback.angular_error	 = angular_error.angle();
     feedback.status		 = static_cast<int8_t>(servo_status_);
-    
+    tracker_srv_.publishFeedback(feedback);
+
   // Compute servo command from PID controller output and send it
   // to the Servo object, for execution
     twist_stamped_pub_.publish(calculateTwistCommand(positional_error,
@@ -747,7 +748,7 @@ void
 PoseTrackingServo::goalCB()
 {
     resetTargetPose();
-    
+
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
@@ -759,7 +760,7 @@ PoseTrackingServo::goalCB()
 	    haveRecentEndEffectorPose(INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(target_pose_.pose);
-	    
+
 	    std_srvs::Empty	empty;
 	    reset_servo_status_.call(empty);
 	    servo_->start();
@@ -767,10 +768,10 @@ PoseTrackingServo::goalCB()
 	    current_goal_ = tracker_srv_.acceptNewGoal();
 	    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
 				  << current_goal_->target_offset << ']');
-	    
+
 	    return;
 	}
-	
+
 	if (servo_->getEEFrameTransform(ee_frame_transform_))
 	    ee_frame_transform_stamp_ = ros::Time::now();
     }
@@ -801,7 +802,7 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
   // Applly input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
     normalize(target_pose.pose.orientation);
-    
+
   // Correct target_pose by offset
     tf2::Transform	target_transform;
     tf2::fromMsg(target_pose.pose, target_transform);
@@ -1013,4 +1014,3 @@ main(int argc, char* argv[])
 
     return 0;
 }
-
