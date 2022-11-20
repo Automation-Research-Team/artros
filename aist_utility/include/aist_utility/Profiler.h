@@ -76,31 +76,24 @@ class Profiler
 
     void	stamp()
 		{
-		    if (_accums.size() > 0)	// initialized?
-		    {
-			if (_stamp_idx >= _accums.size())
-			    throw std::runtime_error("Profiler::stamp(): run out of stamp buffer");
-			_accums[_stamp_idx] += (ros::Time::now() - _t0);
-		    }
+		    if (_stamp_idx == _accums.size())
+			_accums.resize(_accums.size() + 1);
 
+		    _accums[_stamp_idx] += (ros::Time::now() - _t0);
 		    ++_stamp_idx;
 		}
 
     void	stop()
 		{
 		    stamp();
-
-		    if (_accums.size() == 0)
-			_accums.resize(_stamp_idx, duration_t(0));
-		    else
-			++_nframes;
+		    ++_nframes;
 		}
 
     void	print(std::ostream& out) const
 		{
 		    if (_nframes == 0)
 			return;
-		    
+
 		    for (size_t i = 0; i < _accums.size(); ++i)
 			print(out, lap_time(i));
 		    out << '|';
