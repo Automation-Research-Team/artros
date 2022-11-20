@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
-import sys
-import os
 import rospy
-import argparse
-from math          import radians, degrees
-from std_srvs.srv  import Empty, Trigger
-from geometry_msgs import msg as gmsg
-from tf            import TransformListener, transformations as tfs
-from aist_routines import AISTBaseRoutines
+from math              import radians
+from std_srvs.srv      import Trigger
+from geometry_msgs.msg import PoseStamed, Pose, point, Quaternion
+from tf                import transformations as tfs
+from aist_routines     import AISTBaseRoutines
 
 ######################################################################
 #  class FTCalibrationRoutines                                       #
@@ -40,12 +37,11 @@ class FTCalibrationRoutines(AISTBaseRoutines):
             self._clear_samples       = None
 
     def move(self, xyzrpy):
-        target_pose = gmsg.PoseStamped()
+        target_pose = PoseStamped()
         target_pose.header.frame_id = self.reference_frame
-        target_pose.pose = gmsg.Pose(gmsg.Point(*xyzrpy[0:3]),
-                                     gmsg.Quaternion(
-                                         *tfs.quaternion_from_euler(
-                                             *map(radians, xyzrpy[3:6]))))
+        target_pose.pose = Pose(Point(*xyzrpy[0:3]),
+                                Quaternion(*tfs.quaternion_from_euler(
+                                               *map(radians, xyzrpy[3:6]))))
         success, _, _ = self.go_to_pose_goal(self._robot_name, target_pose,
                                              self._speed, move_lin=True)
         return success
