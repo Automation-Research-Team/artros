@@ -57,7 +57,7 @@ namespace
 constexpr char		LOGNAME[]	  = "pose_tracking_servo";
 constexpr double	DEFAULT_LOOP_RATE = 100;	// Hz
 constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
-const	  ros::Duration	INPUT_TIMEOUT{0.5};	// sec
+const	  ros::Duration	DEFAULT_INPUT_TIMEOUT{0.5};	// sec
 }	// anonymous namespace
 
 namespace geometry_msgs
@@ -732,11 +732,10 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
   // Otherwise, transform it to planning frame.
     try
     {
-	const auto	target_to_planning_frame
-			    = transform_buffer_.lookupTransform(
-				planning_frame_, target_pose_.header.frame_id,
-				ros::Time(0), ros::Duration(0.1));
-	tf2::doTransform(target_pose_, target_pose_, target_to_planning_frame);
+	tf2::doTransform(target_pose_, target_pose_,
+			 transform_buffer_.lookupTransform(
+			     planning_frame_, target_pose_.header.frame_id,
+			     ros::Time(0), ros::Duration(0.1)));
     }
     catch (const tf2::TransformException& err)
     {
@@ -753,11 +752,11 @@ PoseTrackingServo::goalCB()
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
     for (const auto start_time = ros::Time::now();
-	 ros::Time::now() - start_time < INPUT_TIMEOUT;
+	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
 	 ros::Duration(0.001).sleep())
     {
-	if (haveRecentTargetPose(INPUT_TIMEOUT) &&
-	    haveRecentEndEffectorPose(INPUT_TIMEOUT))
+	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
+	    haveRecentEndEffectorPose(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(target_pose_.pose);
 
@@ -783,7 +782,9 @@ void
 PoseTrackingServo::preemptCB()
 {
     doPostMotionReset();
-    tracker_srv_.setPreempted();
+    PoseTrackingResult	result;
+    result.status = static_cast<int8_t>(servo_status_);
+    tracker_srv_.setPreempted(result);
     ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal CANCELED");
 }
 
