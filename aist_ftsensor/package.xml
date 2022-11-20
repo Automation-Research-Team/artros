@@ -9,8 +9,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>hardware_interface</build_depend>
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
 
   <depend>controller_manager</depend>
   <depend>controller_interface</depend>
@@ -20,9 +18,12 @@
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>std_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_eigen</depend>
   <depend>boost</depend>
   <depend>eigen</depend>
   <depend>aist_utility</depend>
+  <depend>ddynamic_reconfigure</depend>
 
   <build_export_depend>hardware_interface</build_export_depend>
 

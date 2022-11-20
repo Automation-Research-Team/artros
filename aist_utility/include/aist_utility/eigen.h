@@ -160,7 +160,8 @@ class Plane
     friend std::ostream&
 			operator <<(std::ostream& out, const Plane& plane)
 			{
-			    out << plane._n.transpose() << ": " << plane._d;
+			    return out << plane._n.transpose() << ": "
+				       << plane._d;
 			}
 
   private:
