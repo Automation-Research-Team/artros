@@ -30,6 +30,7 @@ find_package(catkin REQUIRED
     actionlib
     kdl_parser
     trac_ik_lib
+    nlopt
     moveit_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts

@@ -35,39 +35,50 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, collections
-from aist_routines import AISTBaseRoutines
-from aist_routines import msg as amsg
+import rospy
+from aist_robotiq import EPickGripper
 
 if __name__ == '__main__':
 
-    rospy.init_node("test", anonymous=True)
+    def is_float(s):
+        try:
+            float(s)
+        except ValueError:
+            return False
+        else:
+            return True
 
-    robots   = rospy.get_param("~robots")
-    cameras  = rospy.get_param("~cameras")
-    grippers = {}
+    rospy.init_node('test_epick_client')
 
-    for robot_name, robot in robots.items():
-        if "grippers" in robot:
-            grippers.update(robot["grippers"])
-        if "cameras" in robot:
-            cameras.update(robot["cameras"])
+    prefix             = rospy.get_param('~prefix', 'a_bot_gripper_')
+    advanced_mode      = rospy.get_param('~advanced_mode',      False)
+    grasp_pressure     = rospy.get_param('~grasp_pressure',     -78.0)
+    detection_pressure = rospy.get_param('~detection_pressure', -10.0)
+    release_pressure   = rospy.get_param('~release_pressure',     0.0)
+    timeout            = rospy.Duration(rospy.get_param('~timeout',  1.0))
 
-    # for camera_name, camera in cameras.items():
-    #     print camera_name, ':', camera
+    gripper = EPickGripper(prefix, advanced_mode, grasp_pressure,
+                           detection_pressure, release_pressure)
 
-    # for gripper_name, gripper in grippers.items():
-    #     print gripper_name, ':', gripper
+    while not rospy.is_shutdown():
+        print('==== Available commands ====')
+        print('  g:         Grasp')
+        print('  r:         Release')
+        print('  <numeric>: Set gripper a specified pressure value')
+        print('  q:         Quit\n')
 
-    gripper_list = {}
-    camera_list = {}
-    for robot_name, robot in robots.items():
-        if "grippers" in robot:
-            for gripper in robot["grippers"].values():
-                gripper_list[robot_name] = gripper
-        if "cameras" in robot:
-            for camera in robot["cameras"].values():
-                camera_list[robot_name] = camera
+        key = raw_input('>> ')
+        if key == 'g':
+            result = gripper.grasp(timeout)
+        elif key == 'r':
+            result = gripper.release()
+        elif is_float(key):
+            result = gripper.move(float(key), detection_pressure, timeout)
+        elif key=='q':
+            break
+        else:
+            print('unknown command: %s' % key)
+            continue
 
-    print gripper_list
-    print camera_list
+        print('---- Result ----')
+        print(result)
