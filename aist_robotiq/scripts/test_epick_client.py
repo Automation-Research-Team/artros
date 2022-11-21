@@ -36,7 +36,7 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from aist_robotiq import RobotiqGripper
+from aist_robotiq import EPickGripper
 
 if __name__ == '__main__':
 
@@ -48,25 +48,32 @@ if __name__ == '__main__':
         else:
             return True
 
-    rospy.init_node('test_client')
+    rospy.init_node('test_epick_client')
 
-    prefix  = rospy.get_param('~prefix', 'a_bot_gripper_')
-    gripper = RobotiqGripper(prefix)
+    prefix             = rospy.get_param('~prefix', 'a_bot_gripper_')
+    advanced_mode      = rospy.get_param('~advanced_mode',      False)
+    grasp_pressure     = rospy.get_param('~grasp_pressure',     -78.0)
+    detection_pressure = rospy.get_param('~detection_pressure', -10.0)
+    release_pressure   = rospy.get_param('~release_pressure',     0.0)
+    timeout            = rospy.Duration(rospy.get_param('~timeout',  1.0))
+
+    gripper = EPickGripper(prefix, advanced_mode, grasp_pressure,
+                           detection_pressure, release_pressure)
 
     while not rospy.is_shutdown():
         print('==== Available commands ====')
         print('  g:         Grasp')
         print('  r:         Release')
-        print('  <numeric>: Open gripper with a specified gap value')
+        print('  <numeric>: Set gripper a specified pressure value')
         print('  q:         Quit\n')
 
         key = raw_input('>> ')
         if key == 'g':
-            result = gripper.grasp()
+            result = gripper.grasp(timeout)
         elif key == 'r':
             result = gripper.release()
         elif is_float(key):
-            result = gripper.move(float(key))
+            result = gripper.move(float(key), detection_pressure, timeout)
         elif key=='q':
             break
         else:
