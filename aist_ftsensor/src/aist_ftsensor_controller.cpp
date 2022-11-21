@@ -98,7 +98,19 @@ class ForceTorqueSensorController
 	using quaternion_t	= Eigen::Quaterniond;
 	using ft_t		= Eigen::Matrix<double, 6, 1>;
 	using filter_t		= aist_utility::ButterworthLPF<double, ft_t>;
-	using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
+
+	struct ddr_t : ddynamic_reconfigure::DDynamicReconfigure
+	{
+	    using super	= ddynamic_reconfigure::DDynamicReconfigure;
+
+			ddr_t(const ros::NodeHandle& nh) :super(nh)	{}
+
+	    void	publishServicesTopics()
+			{
+			    super::publishServicesTopics();
+			    super::updateConfigData(generateConfig());
+			}
+	};
 
 	constexpr static double	G = 9.80665;
 
@@ -152,9 +164,10 @@ class ForceTorqueSensorController
 	vector_t			_f0;		// force offset
 	vector_t			_m0;		// torque offset
 
-      // Filtering stuffs
+      // DDynamicReconfigure stuffs: filtering and gravity compensation
 	ft_t				_ft;
 	filter_t			_filter;
+	bool				_compensate_gravity;
 	ddr_t				_ddr;
 
       // Calibration stuffs
@@ -323,6 +336,7 @@ ForceTorqueSensorController::Sensor::Sensor(
      _m0(vector_param("torque_offset")),
      _ft(ft_t::Zero()),
      _filter(2, 7.0*_pub_interval.toSec()),
+     _compensate_gravity(_nh.param<bool>("compensate_gravity", false)),
      _ddr(_nh),
      _do_sample(false),
      _nsamples(0),
@@ -344,6 +358,9 @@ ForceTorqueSensorController::Sensor::Sensor(
 	"filter_cutoff_frequency", _filter.cutoff()/_pub_interval.toSec(),
 	boost::bind(&Sensor::set_filter_cutoff_frequency, this, _1),
 	"Cutoff frequency of input low pass filter", 0.5, 100.0);
+    _ddr.registerVariable<bool>(
+	"compensate_gravity", &_compensate_gravity,
+	"Compensate gravity if true", false, true);
     _ddr.publishServicesTopics();
 
     ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
@@ -392,36 +409,46 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 
 	if (_pub->trylock())
 	{
-	  // Compute gravty direction w.r.t. sensor frame, that is, frame_id.
-	    vector_t	k;
-	    try
+	    vector_t	force, torque;
+	    
+	    if (_compensate_gravity)
 	    {
-		tf2::doTransform(vector_t(0, 0, -1), k,
-				 _tf2_buffer.lookupTransform(
-				     frame_id, _gravity_frame,
-				     time, ros::Duration(0.1)));
+	      // Compute gravty direction w.r.t. sensor frame, i.e. frame_id.
+		vector_t	k;
+		try
+		{
+		    tf2::doTransform(vector_t(0, 0, -1), k,
+				     _tf2_buffer.lookupTransform(
+					 frame_id, _gravity_frame,
+					 time, ros::Duration(0.1)));
+		}
+		catch (const std::exception& err)
+		{
+		    _pub->unlock();
+		    ROS_ERROR_STREAM("(aist_ftsensor) " << err.what());
+		    return;
+		}
+
+	      // Compute filtered force and torque.
+		const vector_t	f = ft.head<3>();
+		const vector_t	m = ft.tail<3>();
+
+		if (_do_sample)
+		{
+		    take_sample(k, f, m);
+		    _do_sample = false;
+		}
+
+	      // Compensate force/torque offsets and gravity.
+		force  = _q.inverse()*(f - _f0) - _mg*k;
+		torque = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
 	    }
-	    catch (const std::exception& err)
+	    else
 	    {
-		_pub->unlock();
-		ROS_ERROR_STREAM("(aist_ftsensor) " << err.what());
-		return;
+		force  = ft.head<3>();
+		torque = ft.tail<3>();
 	    }
-
-	  // Compute filtered force and torque.
-	    const vector_t	f = ft.head<3>();
-	    const vector_t	m = ft.tail<3>();
-
-	    if (_do_sample)
-	    {
-		take_sample(k, f, m);
-		_do_sample = false;
-	    }
-
-	  // Compensate force/torque offsets and gravity.
-	    const vector_t force  = _q.inverse()*(f - _f0) - _mg*k;
-	    const vector_t torque = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
-
+	    
 	  // We're actually publishing, so increment time.
 	    _last_pub_time = _last_pub_time + _pub_interval;
 
