@@ -80,14 +80,6 @@
     <!-- 	   unless="$(eval manager == '')"/> -->
     <!-- </include> -->
 
-    <!-- Drivers for the force sensors -->
-    <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->
-    <!--   <arg name="robot_name"	value="c_bot"/> -->
-    <!-- </include> -->
-    <!-- <include file="$(find aist_ftsensor)/launch/aist_ftsensor.launch"> -->
-    <!--   <arg name="robot_name"	value="d_bot"/> -->
-    <!-- </include> -->
-
   </group>
 
 </launch>
