@@ -1,4 +1,4 @@
 ftsensor_name: d_bot
 robot_name: d_bot
-robot_base_frame: workspace_center
+gravity_frame: workspace_center
 initpose: [0.00, 0.00, 0.30, 0, 90, -90]

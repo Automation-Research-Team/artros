@@ -27,22 +27,13 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   std_msgs
-  tf
+  tf2_ros
+  tf2_eigen
   aist_utility
+  ddynamic_reconfigure
 )
 
 # catkin_python_setup()
-
-add_service_files(
-  FILES
-    SetDecay.srv
-)
-
-generate_messages(
-  DEPENDENCIES
-    std_msgs
-    sensor_msgs
-)
 
 ###################################
 ## catkin specific configuration ##
@@ -54,7 +45,6 @@ catkin_package(
     geometry_msgs
     hardware_interface
     realtime_tools
-    message_runtime
   LIBRARIES ${PROJECT_NAME}
 )
 
@@ -72,7 +62,6 @@ add_library(${PROJECT_NAME}_controller
 
 add_dependencies(
   ${PROJECT_NAME}_controller
-  ${PROJECT_NAME}_generate_messages_cpp
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )

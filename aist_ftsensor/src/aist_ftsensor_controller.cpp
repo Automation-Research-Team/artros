@@ -43,15 +43,17 @@
 #include <realtime_tools/realtime_publisher.h>
 #include <pluginlib/class_list_macros.hpp>
 #include <geometry_msgs/WrenchStamped.h>
-#include <aist_ftsensor/SetDecay.h>
-#include <tf/transform_listener.h>
 #include <std_srvs/Trigger.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_eigen/tf2_eigen.h>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <cstdlib>		// for std::getenv()
 #include <sys/stat.h>		// for mkdir()
 #include <Eigen/Dense>
 #include <aist_utility/eigen.h>
+#include <aist_utility/butterworth_lpf.h>
+#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 
 namespace aist_ftsensor
 {
@@ -95,14 +97,15 @@ class ForceTorqueSensorController
 	using matrix_t		= Eigen::Matrix3d;
 	using quaternion_t	= Eigen::Quaterniond;
 	using ft_t		= Eigen::Matrix<double, 6, 1>;
-	using transform_t	= tf::StampedTransform;
+	using filter_t		= aist_utility::ButterworthLPF<double, ft_t>;
+	using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
 
 	constexpr static double	G = 9.80665;
 
       public:
 		Sensor(interface_t* hw, ros::NodeHandle& root_nh,
 		       const std::string& name, double pub_rate,
-		       const tf::TransformListener& listener)		;
+		       const tf2_ros::Buffer& tf2_buffer)		;
 
 	void	starting(const ros::Time& time)				;
 	void	update(const ros::Time& time,
@@ -117,12 +120,11 @@ class ForceTorqueSensorController
 				       std_srvs::Trigger::Response& res);
 	bool	clear_samples_cb(std_srvs::Trigger::Request&  req,
 				 std_srvs::Trigger::Response& res)	;
-	bool	set_decay_cb(SetDecay::Request&  req,
-			     SetDecay::Response& res)			;
-
 	void	take_sample(const vector_t& k,
 			    const vector_t& f, const vector_t& m)	;
 	void	clear_samples()						;
+	void	set_filter_half_order(int half_order)			;
+	void	set_filter_cutoff_frequency(double cutoff_frequency)	;
 
 	vector_t	vector_param(const std::string& name)	  const	;
 	quaternion_t	quaternion_param(const std::string& name) const	;
@@ -139,11 +141,10 @@ class ForceTorqueSensorController
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
 	const ros::ServiceServer	_clear_samples;
-	const ros::ServiceServer	_set_decay;
-	const tf::TransformListener&	_listener;
+	const tf2_ros::Buffer&		_tf2_buffer;
 
       // Variables retrieved from parameter server
-	std::string			_robot_base_frame;
+	std::string			_gravity_frame;
 	double				_rate;
 	double				_mg;		// effector mass
 	quaternion_t			_q;		// rotation
@@ -152,8 +153,9 @@ class ForceTorqueSensorController
 	vector_t			_m0;		// torque offset
 
       // Filtering stuffs
-	double				_decay;
 	ft_t				_ft;
+	filter_t			_filter;
+	ddr_t				_ddr;
 
       // Calibration stuffs
 	bool				_do_sample;
@@ -172,7 +174,7 @@ class ForceTorqueSensorController
     using sensor_p	= std::shared_ptr<Sensor>;
 
   public:
-			ForceTorqueSensorController()			{}
+			ForceTorqueSensorController()			;
 
     virtual bool	init(interface_t* hw,
 			     ros::NodeHandle &root_nh,
@@ -187,12 +189,20 @@ class ForceTorqueSensorController
 				    std_srvs::Trigger::Response& res)	;
 
   private:
-    std::vector<sensor_p>	_sensors;
-    const tf::TransformListener	_listener;
-    std::string			_calib_file;
-    ros::ServiceServer		_save_calibration;
+    std::vector<sensor_p>		_sensors;
+    tf2_ros::Buffer			_tf2_buffer;
+    const tf2_ros::TransformListener	_listener;
+    std::string				_calib_file;
+    ros::ServiceServer			_save_calibration;
 };
 
+ForceTorqueSensorController::ForceTorqueSensorController()
+    :_sensors(),
+     _tf2_buffer(), _listener(_tf2_buffer),
+     _calib_file(), _save_calibration()
+{
+}
+    
 bool
 ForceTorqueSensorController::init(interface_t* hw,
 				  ros::NodeHandle& root_nh,
@@ -209,7 +219,7 @@ ForceTorqueSensorController::init(interface_t* hw,
   // Setup sensors.
     for (const auto& name : hw->getNames())
 	_sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
-					       pub_rate, _listener)));
+					       pub_rate, _tf2_buffer)));
 
   // Get namespace for saving calibration.
   // Read calibration file name from parameter server.
@@ -290,7 +300,7 @@ ForceTorqueSensorController::save_calibration_cb(
 ************************************************************************/
 ForceTorqueSensorController::Sensor::Sensor(
     interface_t* hw, ros::NodeHandle& root_nh, const std::string& name,
-    double pub_rate, const tf::TransformListener& listener)
+    double pub_rate, const tf2_ros::Buffer& tf2_buffer)
     :_hw_handle(hw->getHandle(name)),
      _pub_org(new publisher_t(root_nh, name + "_org", 4)),
      _pub(new publisher_t(root_nh, name, 4)),
@@ -304,17 +314,16 @@ ForceTorqueSensorController::Sensor::Sensor(
 					       this)),
      _clear_samples(_nh.advertiseService("clear_samples",
 					 &Sensor::clear_samples_cb, this)),
-     _set_decay(_nh.advertiseService("set_decay",
-				     &Sensor::set_decay_cb, this)),
-     _listener(listener),
-     _robot_base_frame(_nh.param<std::string>("robot_base_frame", "world")),
+     _tf2_buffer(tf2_buffer),
+     _gravity_frame(_nh.param<std::string>("gravity_frame", "world")),
      _mg(G*_nh.param<double>("effector_mass", 0.0)),
      _q(quaternion_param("rotation")),
      _r(vector_param("mass_center")),
      _f0(vector_param("force_offset")),
      _m0(vector_param("torque_offset")),
-     _decay(_nh.param<double>("decay", 0.0)),
      _ft(ft_t::Zero()),
+     _filter(2, 7.0*_pub_interval.toSec()),
+     _ddr(_nh),
      _do_sample(false),
      _nsamples(0),
      _k_sum(vector_t::Zero()),
@@ -326,6 +335,17 @@ ForceTorqueSensorController::Sensor::Sensor(
      _mm_sum(matrix_t::Zero()),
      _fout()
 {
+  // Setup dynamic reconfigure server
+    _ddr.registerVariable<int>(
+	"filter_half_order", _filter.half_order(),
+	boost::bind(&Sensor::set_filter_half_order, this, _1),
+	"Half order of input low pass filter", 1, 5);
+    _ddr.registerVariable<double>(
+	"filter_cutoff_frequency", _filter.cutoff()/_pub_interval.toSec(),
+	boost::bind(&Sensor::set_filter_cutoff_frequency, this, _1),
+	"Cutoff frequency of input low pass filter", 0.5, 100.0);
+    _ddr.publishServicesTopics();
+
     ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
 }
 
@@ -343,46 +363,43 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	_last_pub_time + _pub_interval < time)
     {
       // Get current force-torque values.
-	ft_t	ft;
-	ft << _hw_handle.getForce()[0],
-	      _hw_handle.getForce()[1],
-	      _hw_handle.getForce()[2],
-	      _hw_handle.getTorque()[0],
-	      _hw_handle.getTorque()[1],
-	      _hw_handle.getTorque()[2];
+	_ft(0) = _hw_handle.getForce()[0];
+	_ft(1) = _hw_handle.getForce()[1];
+	_ft(2) = _hw_handle.getForce()[2];
+	_ft(3) = _hw_handle.getTorque()[0];
+	_ft(4) = _hw_handle.getTorque()[1];
+	_ft(5) = _hw_handle.getTorque()[2];
 
 	const auto& frame_id = _hw_handle.getFrameId();
 
+      // Publish unfiltered force-torque signal.
 	if (_pub_org->trylock())
 	{
-	  // Populate message.
 	    _pub_org->msg_.header.stamp    = time;
 	    _pub_org->msg_.header.frame_id = frame_id;
-	    _pub_org->msg_.wrench.force.x  = ft[0];
-	    _pub_org->msg_.wrench.force.y  = ft[1];
-	    _pub_org->msg_.wrench.force.z  = ft[2];
-	    _pub_org->msg_.wrench.torque.x = ft[3];
-	    _pub_org->msg_.wrench.torque.y = ft[4];
-	    _pub_org->msg_.wrench.torque.z = ft[5];
+	    _pub_org->msg_.wrench.force.x  = _ft[0];
+	    _pub_org->msg_.wrench.force.y  = _ft[1];
+	    _pub_org->msg_.wrench.force.z  = _ft[2];
+	    _pub_org->msg_.wrench.torque.x = _ft[3];
+	    _pub_org->msg_.wrench.torque.y = _ft[4];
+	    _pub_org->msg_.wrench.torque.z = _ft[5];
 
 	    _pub_org->unlockAndPublish();
 	}
 
-      // Apply decay filter to input force-torque signal.
-	(_ft *= _decay) += ft*(1.0 - _decay);
+      // Apply low-pass filter to input force-torque signal.
+	const auto	ft = _filter.filter(_ft);
 
 	if (_pub->trylock())
 	{
-	    vector_t	k;			// direction of gravity force
+	  // Compute gravty direction w.r.t. sensor frame, that is, frame_id.
+	    vector_t	k;
 	    try
 	    {
-		transform_t	T;
-		_listener.waitForTransform(_robot_base_frame, frame_id,
-		 			   time, ros::Duration(0.1));
-		_listener.lookupTransform(_robot_base_frame, frame_id,
-					  time, T);
-		const auto	rowz = T.getBasis().getRow(2);
-		k << -rowz.x(), -rowz.y(), -rowz.z();
+		tf2::doTransform(vector_t(0, 0, -1), k,
+				 _tf2_buffer.lookupTransform(
+				     frame_id, _gravity_frame,
+				     time, ros::Duration(0.1)));
 	    }
 	    catch (const std::exception& err)
 	    {
@@ -392,8 +409,8 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	    }
 
 	  // Compute filtered force and torque.
-	    const vector_t	f = _ft.head<3>();
-	    const vector_t	m = _ft.tail<3>();
+	    const vector_t	f = ft.head<3>();
+	    const vector_t	m = ft.tail<3>();
 
 	    if (_do_sample)
 	    {
@@ -450,7 +467,10 @@ ForceTorqueSensorController::Sensor::save_calibration(std::ostream& out) const
 	    << YAML::BeginSeq
 	    << _r(0) << _r(1) << _r(2)
 	    << YAML::EndSeq;
-    emitter << YAML::Key << "decay" << YAML::Value << _decay;
+    emitter << YAML::Key << "filter_half_order"
+	    << YAML::Value << _filter.half_order();
+    emitter << YAML::Key << "filter_cutoff_frequency"
+	    << YAML::Value << _filter.cutoff()/_pub_interval.toSec();
     emitter << YAML::EndMap;
     emitter << YAML::EndMap;
 
@@ -560,26 +580,6 @@ ForceTorqueSensorController::Sensor::clear_samples_cb(
     return true;
 }
 
-bool
-ForceTorqueSensorController::Sensor::set_decay_cb(SetDecay::Request&  req,
-						  SetDecay::Response& res)
-{
-    if (0.0 <= req.decay && req.decay < 1.0)
-    {
-	_decay = req.decay;
-	res.success = true;
-	ROS_INFO_STREAM("(aist_ftsensro) set decay value[" << _decay << "].");
-    }
-    else
-    {
-	res.success = false;
-	ROS_INFO_STREAM("(aist_ftsensro) invalid decay value["
-			<< req.decay << "] requested.");
-    }
-
-    return true;
-}
-
 void
 ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
 						 const vector_t& f,
@@ -614,6 +614,22 @@ ForceTorqueSensorController::Sensor::clear_samples()
 
     if (_fout.is_open())
 	_fout.close();
+}
+
+void
+ForceTorqueSensorController::Sensor::set_filter_half_order(int half_order)
+{
+    _filter.initialize(half_order, _filter.cutoff());
+    _filter.reset(_ft);
+}
+
+void
+ForceTorqueSensorController::Sensor
+::set_filter_cutoff_frequency(double cutoff_frequency)
+{
+    _filter.initialize(_filter.half_order(),
+		       cutoff_frequency*_pub_interval.toSec());
+    _filter.reset(_ft);
 }
 
 ForceTorqueSensorController::Sensor::vector_t
