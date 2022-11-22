@@ -44,8 +44,6 @@
 #include <pluginlib/class_list_macros.hpp>
 #include <geometry_msgs/WrenchStamped.h>
 #include <std_srvs/Trigger.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_eigen/tf2_eigen.h>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include <cstdlib>		// for std::getenv()
@@ -54,6 +52,13 @@
 #include <aist_utility/eigen.h>
 #include <aist_utility/butterworth_lpf.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
+#include <kdl/chainfksolver.hpp>
+#include <kdl/chain.hpp>
+#include <kdl/chainjnttojacsolver.hpp>
+#include <kdl/chainfksolverpos_recursive.hpp>
+#include <kdl/frames_io.hpp>
+#include <kdl/kinfam_io.hpp>
+#include <kdl_parser/kdl_parser.hpp>
 
 namespace aist_ftsensor
 {
@@ -117,7 +122,7 @@ class ForceTorqueSensorController
       public:
 		Sensor(interface_t* hw, ros::NodeHandle& root_nh,
 		       const std::string& name, double pub_rate,
-		       const tf2_ros::Buffer& tf2_buffer)		;
+		       const KDL::Tree& tree)				;
 
 	void	starting(const ros::Time& time)				;
 	void	update(const ros::Time& time,
@@ -153,8 +158,10 @@ class ForceTorqueSensorController
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
 	const ros::ServiceServer	_clear_samples;
-	const tf2_ros::Buffer&		_tf2_buffer;
 
+	const KDL::Tree&		_tree;
+	KDL::Chain			_chain;
+	
       // Variables retrieved from parameter server
 	std::string			_gravity_frame;
 	double				_rate;
@@ -202,17 +209,14 @@ class ForceTorqueSensorController
 				    std_srvs::Trigger::Response& res)	;
 
   private:
-    std::vector<sensor_p>		_sensors;
-    tf2_ros::Buffer			_tf2_buffer;
-    const tf2_ros::TransformListener	_listener;
-    std::string				_calib_file;
-    ros::ServiceServer			_save_calibration;
+    std::vector<sensor_p>	_sensors;
+    std::string			_calib_file;
+    ros::ServiceServer		_save_calibration;
+    KDL::Tree			_tree;
 };
 
 ForceTorqueSensorController::ForceTorqueSensorController()
-    :_sensors(),
-     _tf2_buffer(), _listener(_tf2_buffer),
-     _calib_file(), _save_calibration()
+    :_sensors(), _calib_file(), _save_calibration(), _urdf(), _tree()
 {
 }
     
@@ -221,6 +225,26 @@ ForceTorqueSensorController::init(interface_t* hw,
 				  ros::NodeHandle& root_nh,
 				  ros::NodeHandle& controller_nh)
 {
+  // Load contents of "robot_description" parameter.
+    const auto	param_name = root_nh.param<std::string>("robot_description",
+							"/robot_description");
+    std::string	robot_desc_string;
+    if (!root_nh.getParam(param_name, robot_desc_string))
+    {
+	ROS_ERROR_STREAM("(aist_ftsensor_controller) "
+			 << "Robot description parameter["
+			 << param_name << "] not found");
+	return false;
+    }
+	
+  // Construct KDL tree from robot_description parameter.
+    if (!kdl_parser::treeFromString(robot_desc_string, _tree))
+    {
+	ROS_ERROR_STREAM("(aist_ftsensor_controller) "
+			 << "Failed to construct kdl tree");
+	return false;
+    }
+    
   // Get publishing period.
     double	pub_rate;
     if (!controller_nh.getParam("publish_rate", pub_rate))
@@ -232,7 +256,7 @@ ForceTorqueSensorController::init(interface_t* hw,
   // Setup sensors.
     for (const auto& name : hw->getNames())
 	_sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
-					       pub_rate, _tf2_buffer)));
+					       pub_rate, _tree)));
 
   // Get namespace for saving calibration.
   // Read calibration file name from parameter server.
@@ -313,7 +337,7 @@ ForceTorqueSensorController::save_calibration_cb(
 ************************************************************************/
 ForceTorqueSensorController::Sensor::Sensor(
     interface_t* hw, ros::NodeHandle& root_nh, const std::string& name,
-    double pub_rate, const tf2_ros::Buffer& tf2_buffer)
+    double pub_rate, const KDL::Tree& tree)
     :_hw_handle(hw->getHandle(name)),
      _pub_org(new publisher_t(root_nh, name + "_org", 4)),
      _pub(new publisher_t(root_nh, name, 4)),
@@ -327,7 +351,7 @@ ForceTorqueSensorController::Sensor::Sensor(
 					       this)),
      _clear_samples(_nh.advertiseService("clear_samples",
 					 &Sensor::clear_samples_cb, this)),
-     _tf2_buffer(tf2_buffer),
+     _tree(tree),
      _gravity_frame(_nh.param<std::string>("gravity_frame", "world")),
      _mg(G*_nh.param<double>("effector_mass", 0.0)),
      _q(quaternion_param("rotation")),
@@ -349,6 +373,12 @@ ForceTorqueSensorController::Sensor::Sensor(
      _mm_sum(matrix_t::Zero()),
      _fout()
 {
+  // Get chain from _base_link to pointing_frame.
+    if (!_tree.getChain(_gravity_frame, _hw_handle.getFrameId(), _chain))
+	throw std::runtime_error("Couldn't create chain from "
+				 + _gravity_frame + " to "
+				 + _hw_handle.getFrameId());
+
   // Setup dynamic reconfigure server
     _ddr.registerVariable<int>(
 	"filter_half_order", _filter.half_order(),
