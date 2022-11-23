@@ -41,13 +41,11 @@
 #include <controller_interface/controller.h>
 #include <hardware_interface/force_torque_sensor_interface.h>
 #include <realtime_tools/realtime_publisher.h>
-#include <pluginlib/class_list_macros.hpp>
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <std_srvs/Trigger.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <kdl_parser/kdl_parser.hpp>
-#include <kdl/chain.hpp>
 #include <kdl/chainfksolverpos_recursive.hpp>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -530,8 +528,8 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	}
 
       // Compensate force/torque offsets and gravity.
-	ft.head<3>() = (_q.inverse()*(f - _f0) - _mg*k).eval();
-	ft.tail<3>() = (_q.inverse()*(m - _m0) - _r.cross(_mg*k)).eval();
+	ft.head<3>() = _q.inverse()*(f - _f0) - _mg*k;
+	ft.tail<3>() = _q.inverse()*(m - _m0) - _r.cross(_mg*k);
     }
 
   // Publish filtered (and optionally gravity compensated) force-torque signal.
@@ -780,6 +778,8 @@ ForceTorqueSensorController::Sensor
 }
 
 }	// namespace aist_ftsensor
+
+#include <pluginlib/class_list_macros.hpp>
 
 PLUGINLIB_EXPORT_CLASS(aist_ftsensor::ForceTorqueSensorController,
 		       controller_interface::ControllerBase)
