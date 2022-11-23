@@ -38,7 +38,8 @@
 import os
 import rospy
 
-from tf import TransformBroadcaster, TransformListener, transformations as tfs
+from tf2_ros import StaticTransformBroadcaster, Buffer, TransformListener
+from tf      import transformations as tfs
 from geometry_msgs import msg as gmsg
 from math import degrees
 
@@ -49,8 +50,9 @@ class CalibrationPublisher(object):
     def __init__(self):
         super(CalibrationPublisher, self).__init__()
 
-        self._broadcaster = TransformBroadcaster()
-        self._listener    = TransformListener()
+        self._broadcaster = StaticTransformBroadcaster()
+        self._tf2_buffer  = Buffer
+        self._listener    = TransformListener(self._tf2_buffer)
 
         self._transform = gmsg.TransformStamped()
         self._transform.header.frame_id = rospy.get_param("~parent")
@@ -86,17 +88,13 @@ class CalibrationPublisher(object):
         return True
 
     def run(self):
-        rate = rospy.Rate(50)
-        while not rospy.is_shutdown():
-            self._transform.header.stamp = rospy.Time.now()
-            self._broadcaster.sendTransformMessage(self._transform)
-            rate.sleep()
+        self._transform.header.stamp = rospy.Time.now()
+        self._broadcaster.sendTransform(self._transform)
+        rospy.spin()
 
     def _get_transform(self, target_frame, source_frame):
-        now = rospy.Time.now()
-        self._listener.waitForTransform(target_frame, source_frame, now,
-                                        rospy.Duration(10))
-        return self._listener.lookupTransform(target_frame, source_frame, now)
+        self._tf2_buffer.lookup_transform(target_frame, source_frame,
+                                          rospy.Time())
 
     def _print_mat(self, mat):
         xyz = tfs.translation_from_matrix(mat)
