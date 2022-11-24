@@ -43,7 +43,7 @@
 #include <cstdlib>	// for std::getenv()
 #include <sys/stat.h>	// for mkdir()
 #include <errno.h>
-#include <tf/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <yaml-cpp/yaml.h>
 #include <aist_utility/geometry_msgs.h>
 #include "Calibrator.h"
@@ -53,6 +53,19 @@
 
 namespace aist_handeye_calibration
 {
+static geometry_msgs::TransformStamped
+fromPoseToTransform(const geometry_msgs::PoseStamped pose)
+{
+    geometry_msgs::TransformStamped	transform;
+    transform.header = pose.header;
+    transform.transform.translation.x = pose.pose.position.x;
+    transform.transform.translation.y = pose.pose.position.y;
+    transform.transform.translation.z = pose.pose.position.z;
+    transform.transform.rotation      = pose.pose.orientation;
+
+    return transform;
+}
+
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
@@ -70,7 +83,8 @@ Calibrator::Calibrator(const ros::NodeHandle& nh)
 			      &Calibrator::save_calibration, this)),
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
      _take_sample_srv(_nh, "take_sample", false),
-     _listener(),
+     _transform_buffer(),
+     _transform_listener(_transform_buffer),
      _use_dual_quaternion(_nh.param<bool>("use_dual_quaternion", true)),
      _eye_on_hand(_nh.param<bool>("eye_on_hand", true)),
      _timeout(_nh.param<double>("timeout", 5.0))
@@ -150,27 +164,20 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
       // Set camera frame.
 	_eMc.child_frame_id = poseMsg->header.frame_id;
 
-      // Convert marker pose to TF.
-	tf::Pose	pose;
-	tf::poseMsgToTF(poseMsg->pose, pose);
-	tf::StampedTransform	cMo(pose, poseMsg->header.stamp,
-				    camera_frame(), object_frame());
+      // Convert marker pose to camera <= object transform.
+	TakeSampleResult	result;
+	result.cMo = fromPoseToTransform(*poseMsg);
+	result.cMo.child_frame_id = object_frame();
 
       // Lookup world <= effector transform at the moment marker detected.
-	if (!_listener.waitForTransform(world_frame(), effector_frame(),
-					poseMsg->header.stamp, _timeout))
-	    throw std::runtime_error("take_sample(): timeout expired in waiting for transform from " + effector_frame() + " to " + world_frame());
-	
-	tf::StampedTransform	wMe;
-	_listener.lookupTransform(world_frame(), effector_frame(),
-				  poseMsg->header.stamp, wMe);
-	ROS_INFO_STREAM(cMo);
-	ROS_INFO_STREAM(wMe);
+	result.wMe = _transform_buffer.lookupTransform(world_frame(),
+						       effector_frame(),
+						       poseMsg->header.stamp,
+						       _timeout);
+	ROS_INFO_STREAM(result.cMo);
+	ROS_INFO_STREAM(result.wMe);
 
-	TakeSampleResult	result;
-	tf::transformStampedTFToMsg(cMo, result.cMo);
 	_cMo.emplace_back(result.cMo);
-	tf::transformStampedTFToMsg(wMe, result.wMe);
 	_wMe.emplace_back(result.wMe);
 
 	_take_sample_srv.setSucceeded(result);
