@@ -3,7 +3,7 @@
 
   <arg name="prefix"		default="a_bot_gripper_"/>
   <arg name="device"		default="robotiq_85"/>
-  <arg name="driver_arg"	default="urcap, 10.66.171.52"/>
+  <arg name="driver_arg"	default="urcap, 10.66.171.52 9"/>
 
   <arg name="type"	value="$(eval driver_arg.split(',')[0].strip())"/>
   <arg name="args"	value="$(eval driver_arg.split(',')[1].strip())"/>
