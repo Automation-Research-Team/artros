@@ -155,7 +155,7 @@ class ForceTorqueSensorController
 	const publisher_p		_pub;
 	const ros::Duration		_pub_interval;
 	ros::Time			_last_pub_time;
-
+	
       // ROS node stuffs
 	ros::NodeHandle			_nh;
 	const ros::ServiceServer	_take_sample;
@@ -166,6 +166,7 @@ class ForceTorqueSensorController
       // Filtering stuffs
 	ft_t				_ft;
 	filter_t			_filter;
+	mutable std::mutex		_ft_mtx;
 
       // Forward kinematics stuffs
 	const controller_t&		_controller;
@@ -249,8 +250,8 @@ ForceTorqueSensorController::init(interface_t* hw,
     std::string	robot_desc_string;
     if (!root_nh.getParam(param_name, robot_desc_string))
     {
-	ROS_ERROR_STREAM("(aist_ftsensor_controller) "
-			 << "Robot description parameter["
+	ROS_ERROR_STREAM('(' << controller_nh.getNamespace()
+			 << ") Robot description parameter["
 			 << param_name << "] not found");
 	return false;
     }
@@ -258,8 +259,8 @@ ForceTorqueSensorController::init(interface_t* hw,
   // Construct KDL tree from robot_description parameter.
     if (!kdl_parser::treeFromString(robot_desc_string, _tree))
     {
-	ROS_ERROR_STREAM("(aist_ftsensor_controller) "
-			 << "Failed to construct kdl tree");
+	ROS_ERROR_STREAM('(' << controller_nh.getNamespace()
+			 << ") Failed to construct kdl tree");
 	return false;
     }
 
@@ -282,17 +283,30 @@ ForceTorqueSensorController::init(interface_t* hw,
     const auto	pub_rate = controller_nh.param<double>("publish_rate", 0.0);
     if (pub_rate <= 0.0)
     {
-	ROS_ERROR_STREAM("(aist_ftsensor_controller) "
-			 << "Value of parameter 'publish_rate' is "
+	ROS_ERROR_STREAM('(' << controller_nh.getNamespace()
+			 << ") Value of parameter 'publish_rate' is "
 			 << pub_rate << ", but must be positive.");
 	return false;
     }
 
   // Setup sensors.
     for (const auto& name : hw->getNames())
-	_sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
-					       pub_rate, *this)));
+    {
+	try
+	{
+	    _sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
+						   pub_rate, *this)));
+	}
+	catch (const std::exception& err)
+	{
+	    ROS_ERROR_STREAM('(' << controller_nh.getNamespace()
+			     << ") " << err.what());
+	}
+    }
 
+    ROS_INFO_STREAM('(' << controller_nh.getNamespace()
+		    << ") Susccesfully initialized");
+    
     return true;
 }
 
@@ -369,13 +383,13 @@ ForceTorqueSensorController::save_calibration_cb(
 
 	res.success = true;
 	res.message = "save_calibration succeeded.";
-	ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
+	ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
     }
     catch (const std::exception& err)
     {
 	res.success = false;
 	res.message = std::string("save_calibration failed: ") + err.what();
-	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
+	ROS_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
     }
 
     return true;
@@ -405,6 +419,7 @@ ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
      _ddr(_nh),
      _ft(ft_t::Zero()),
      _filter(2, 7.0*_pub_interval.toSec()),
+     _ft_mtx(),
      _controller(controller),
      _chain(),
      _joint_names(),
@@ -456,13 +471,13 @@ ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
     _ddr.registerVariable<double>(
 	"filter_cutoff_frequency", _filter.cutoff()/_pub_interval.toSec(),
 	boost::bind(&Sensor::set_filter_cutoff_frequency, this, _1),
-	"Cutoff frequency of input low pass filter", 0.5, 100.0);
+	"Cutoff frequency of input low pass filter", 0.5, pub_rate/2);
     _ddr.registerVariable<bool>(
 	"compensate_gravity", &_compensate_gravity,
 	"Compensate gravity if true", false, true);
     _ddr.publishServicesTopics();
 
-    ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor: " << name);
+    ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor[" << name << ']');
 }
 
 void
@@ -475,17 +490,21 @@ void
 ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 					    const ros::Duration& period)
 {
-    if (time - _last_pub_time < _pub_interval)
+    if (time < _last_pub_time + _pub_interval)
 	return;
 
   // Get current force-torque values.
-    _ft(0) = _hw_handle.getForce()[0];
-    _ft(1) = _hw_handle.getForce()[1];
-    _ft(2) = _hw_handle.getForce()[2];
-    _ft(3) = _hw_handle.getTorque()[0];
-    _ft(4) = _hw_handle.getTorque()[1];
-    _ft(5) = _hw_handle.getTorque()[2];
+    {
+	std::lock_guard<std::mutex> lock(_ft_mtx);
 
+	_ft(0) = _hw_handle.getForce()[0];
+	_ft(1) = _hw_handle.getForce()[1];
+	_ft(2) = _hw_handle.getForce()[2];
+	_ft(3) = _hw_handle.getTorque()[0];
+	_ft(4) = _hw_handle.getTorque()[1];
+	_ft(5) = _hw_handle.getTorque()[2];
+    }
+    
   // Publish unfiltered force-torque signal.
     if (_pub_org->trylock())
     {
@@ -596,7 +615,7 @@ ForceTorqueSensorController::Sensor::take_sample_cb(
 
     res.success = true;
     res.message = "take_sample succeeded.";
-    ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
+    ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
 
     return true;
 }
@@ -612,7 +631,7 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
     {
 	res.message = "Not enough samples[" + std::to_string(_nsamples)
 		    + "] for calibration!";
-	ROS_ERROR_STREAM("(aist_ftsensor) " << res.message);
+	ROS_ERROR_STREAM("(aist_ftsensor_controller) " << res.message);
 	return true;
     }
 
@@ -622,7 +641,7 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
     SelfAdjointEigenSolver<matrix_t>	eigensolver(mm_var);
     vector_t		normal = eigensolver.eigenvectors().col(0);
 
-    ROS_INFO_STREAM("(aist_ftsensor) RMS error in plane fitting: "
+    ROS_INFO_STREAM("(aist_ftsensor_controller) RMS error in plane fitting: "
 		    << std::sqrt(eigensolver.eigenvalues()(0)));
 
   // [1] Compute similarity transformation from gravity to observed torque.
@@ -665,13 +684,13 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
 
   // Evaluate residual error.
     // const auto	f_var = f_sqsum/_nsamples - f_avg.squaredNorm();
-    // ROS_INFO_STREAM("(aist_ftsensor) force residual error = "
+    // ROS_INFO_STREAM("(aist_ftsensor_controller) force residual error = "
     // 		    << std::sqrt(f_var/k_var - _mg*_mg)
     // 		    << "(Newton)");
 
     res.success = true;
     res.message = "Successfully computed calibration.";
-    ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
+    ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
 
     return true;
 }
@@ -684,7 +703,7 @@ ForceTorqueSensorController::Sensor::clear_samples_cb(
 
     res.success = true;
     res.message = "clear_samples succeeded.";
-    ROS_INFO_STREAM("(aist_ftsensor) " << res.message);
+    ROS_INFO_STREAM("(aist_ftsensor_controller) " << res.message);
 
     return true;
 }
@@ -728,6 +747,8 @@ ForceTorqueSensorController::Sensor::clear_samples()
 void
 ForceTorqueSensorController::Sensor::set_filter_half_order(int half_order)
 {
+    std::lock_guard<std::mutex> lock(_ft_mtx);
+
     _filter.initialize(half_order, _filter.cutoff());
     _filter.reset(_ft);
 }
@@ -736,6 +757,8 @@ void
 ForceTorqueSensorController::Sensor
 ::set_filter_cutoff_frequency(double cutoff_frequency)
 {
+    std::lock_guard<std::mutex> lock(_ft_mtx);
+
     _filter.initialize(_filter.half_order(),
 		       cutoff_frequency*_pub_interval.toSec());
     _filter.reset(_ft);
