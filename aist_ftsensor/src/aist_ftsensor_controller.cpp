@@ -71,7 +71,7 @@ template <class T> std::ostream&
 operator <<(std::ostream& out, const std::vector<T>& v)
 {
     for (const auto& elm : v)
-	out << elm << std::endl;
+	out << ' ' << elm;
     return out << std::endl;
 }
 
@@ -124,8 +124,8 @@ class ForceTorqueSensorController
 
       public:
 		Sensor(interface_t* hw, ros::NodeHandle& root_nh,
-		       const std::string& name, double pub_rate,
-		       const controller_t& controller)			;
+		       const std::string& name, const std::string& frame_id,
+		       double pub_rate, const controller_t& controller)	;
 
 	void	starting(const ros::Time& time)				;
 	void	update(const ros::Time& time,
@@ -150,14 +150,14 @@ class ForceTorqueSensorController
 	quaternion_t	quaternion_param(const std::string& name) const	;
 
       private:
+      // ROS node stuffs
+	ros::NodeHandle			_nh;
+	const std::string		_frame_id;
 	const handle_t			_hw_handle;
 	const publisher_p		_pub_org;
 	const publisher_p		_pub;
 	const ros::Duration		_pub_interval;
 	ros::Time			_last_pub_time;
-	
-      // ROS node stuffs
-	ros::NodeHandle			_nh;
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
 	const ros::ServiceServer	_clear_samples;
@@ -290,11 +290,12 @@ ForceTorqueSensorController::init(interface_t* hw,
     }
 
   // Setup sensors.
+    const auto	frame_id = controller_nh.param<std::string>("frame_id", "");
     for (const auto& name : hw->getNames())
     {
 	try
 	{
-	    _sensors.push_back(sensor_p(new Sensor(hw, root_nh, name,
+	    _sensors.push_back(sensor_p(new Sensor(hw, root_nh, name, frame_id,
 						   pub_rate, *this)));
 	}
 	catch (const std::exception& err)
@@ -401,14 +402,16 @@ ForceTorqueSensorController::save_calibration_cb(
 ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
 					    ros::NodeHandle& root_nh,
 					    const std::string& name,
+					    const std::string& frame_id,
 					    double pub_rate,
 					    const controller_t& controller)
-    :_hw_handle(hw->getHandle(name)),
+    :_nh(name),
+     _hw_handle(hw->getHandle(name)),
+     _frame_id(frame_id != "" ? frame_id : _hw_handle.getFrameId()),
      _pub_org(new publisher_t(root_nh, name + "_org", 4)),
      _pub(new publisher_t(root_nh, name, 4)),
      _pub_interval(1.0/pub_rate),
      _last_pub_time(0),
-     _nh(name),
      _take_sample(_nh.advertiseService("take_sample",
       				       &Sensor::take_sample_cb, this)),
      _compute_calibration(_nh.advertiseService("compute_calibration",
@@ -445,11 +448,9 @@ ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
   // Get chain from gravity frame to sensor frame.
     const auto	gravity_frame = _nh.param<std::string>("gravity_frame",
 						       "world");
-    if (!_controller.get_tree().getChain(gravity_frame,
-					 _hw_handle.getFrameId(), _chain))
+    if (!_controller.get_tree().getChain(gravity_frame, _frame_id, _chain))
 	throw std::runtime_error("Couldn't create chain from "
-				 + gravity_frame + " to "
-				 + _hw_handle.getFrameId());
+				 + gravity_frame + " to " + _frame_id);
 
   // Get names of joints contained in the chain.
     for (size_t i = 0; i < _chain.getNrOfSegments(); ++i)
@@ -509,7 +510,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
     if (_pub_org->trylock())
     {
 	_pub_org->msg_.header.stamp    = time;
-	_pub_org->msg_.header.frame_id = _hw_handle.getFrameId();
+	_pub_org->msg_.header.frame_id = _frame_id;
 	_pub_org->msg_.wrench.force.x  = _ft(0);
 	_pub_org->msg_.wrench.force.y  = _ft(1);
 	_pub_org->msg_.wrench.force.z  = _ft(2);
