@@ -151,13 +151,13 @@ class ForceTorqueSensorController
 
       private:
       // ROS node stuffs
-	ros::NodeHandle			_nh;
-	const std::string		_frame_id;
 	const handle_t			_hw_handle;
+	const std::string		_frame_id;
 	const publisher_p		_pub_org;
 	const publisher_p		_pub;
 	const ros::Duration		_pub_interval;
 	ros::Time			_last_pub_time;
+	ros::NodeHandle			_nh;
 	const ros::ServiceServer	_take_sample;
 	const ros::ServiceServer	_compute_calibration;
 	const ros::ServiceServer	_clear_samples;
@@ -405,13 +405,13 @@ ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
 					    const std::string& frame_id,
 					    double pub_rate,
 					    const controller_t& controller)
-    :_nh(name),
-     _hw_handle(hw->getHandle(name)),
+    :_hw_handle(hw->getHandle(name)),
      _frame_id(frame_id != "" ? frame_id : _hw_handle.getFrameId()),
      _pub_org(new publisher_t(root_nh, name + "_org", 4)),
      _pub(new publisher_t(root_nh, name, 4)),
      _pub_interval(1.0/pub_rate),
      _last_pub_time(0),
+     _nh(name),
      _take_sample(_nh.advertiseService("take_sample",
       				       &Sensor::take_sample_cb, this)),
      _compute_calibration(_nh.advertiseService("compute_calibration",
