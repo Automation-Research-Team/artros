@@ -3,11 +3,11 @@
   <!-- Add AR markers -->
   <xacro:include filename="$(find aist_description)/objects/urdf/ar_markers.urdf.xacro"/>
 
-  <xacro:ar_marker_70_5 prefix="c_bot_"
-  			parent="c_bot_gripper_tip_link"
-  			marker_id="26"
-  			thickness="0.005">
-    <origin xyz="0.0 0.0 0.0185" rpy="0 0 0"/>
-  </xacro:ar_marker_70_5>
+  <xacro:ar_marker_160_10 prefix="c_bot_"
+  			  parent="c_bot_gripper_tip_link"
+  			  marker_id="32"
+  			  thickness="0.005">
+    <origin xyz="0.04 0.0 0.0185" rpy="0 0 0"/>
+  </xacro:ar_marker_160_10>
 
 </robot>
