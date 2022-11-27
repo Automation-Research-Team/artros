@@ -21,5 +21,4 @@ keyposes:
   - [ 0.40,  0.45, 0.70,  55,   0,   0]
 speed: 0.1
 
-body_frame: realsense_link
-tcp_frame: realsense_color_optical_frame
+camera_parent_frame: realsense_flange

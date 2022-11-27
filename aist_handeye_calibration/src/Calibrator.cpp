@@ -190,7 +190,6 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
 
 	ROS_ERROR_STREAM("take_sample(): aborted[" << err.what() << ']');
     }
-
 }
 
 bool

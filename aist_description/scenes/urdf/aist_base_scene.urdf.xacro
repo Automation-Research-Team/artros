@@ -92,13 +92,15 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_85_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_85_gripper_with_tip_link prefix="a_bot_gripper_"
-					  parent="a_bot_gripper_coupling_flange_link">
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
+  <xacro:robotiq_85_gripper prefix="a_bot_gripper_"
+			    parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_85_gripper_with_tip_link>
+  </xacro:robotiq_85_gripper>
 
-  <xacro:include filename="$(find aist_description)/devices/urdf/single_suction_gripper.urdf.xacro"/>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
   <xacro:single_suction_gripper prefix="b_bot_gripper_"
   				parent="b_bot_ftsensor_flange_link">
     <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->

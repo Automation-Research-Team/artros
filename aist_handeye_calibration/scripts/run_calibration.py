@@ -35,15 +35,15 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, copy, actionlib
+import rospy, actionlib, rospkg, copy, yaml
 from math                         import radians
 from std_srvs.srv                 import Empty, Trigger
-from geometry_msgs                import msg as gmsg
-from tf                           import transformations as tfs
-from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
-from aist_routines                import AISTBaseRoutines
-from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
+from geometry_msgs.msg            import PoseStamped, Pose, Point, Quaternion
 from actionlib_msgs.msg           import GoalStatus
+from tf                           import transformations as tfs
+from aist_routines                import AISTBaseRoutines
+from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
+from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
 
 ######################################################################
 #  class HandEyeCalibrationRoutines                                  #
@@ -68,29 +68,27 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         if rospy.get_param('calibration', True):
             ns = '/handeye_calibrator'
             self.get_sample_list = rospy.ServiceProxy(ns + '/get_sample_list',
-                                                    GetSampleList)
+                                                      GetSampleList)
             self.compute_calibration = rospy.ServiceProxy(
                 ns + '/compute_calibration', ComputeCalibration)
             self.save_calibration = rospy.ServiceProxy(ns + '/save_calibration',
-                                                    Trigger)
+                                                       Trigger)
             self.reset = rospy.ServiceProxy(ns + '/reset', Empty)
             self.take_sample = actionlib.SimpleActionClient(ns + '/take_sample',
                                                             TakeSampleAction)
-
         else:
             self.get_sample_list     = None
             self.compute_calibration = None
-            self.save_calibration    = None
+            # self.save_calibration    = None
             self.reset               = None
             self.take_sample         = None
 
     def move(self, pose):
-        poseStamped = gmsg.PoseStamped()
+        poseStamped = PoseStamped()
         poseStamped.header.frame_id = self._robot_base_frame
-        poseStamped.pose = gmsg.Pose(gmsg.Point(*pose[0:3]),
-                                     gmsg.Quaternion(
-                                         *tfs.quaternion_from_euler(
-                                             *map(radians, pose[3:6]))))
+        poseStamped.pose = Pose(Point(*pose[0:3]),
+                                Quaternion(*tfs.quaternion_from_euler(
+                                                *map(radians, pose[3:6]))))
         print('  move to ' + self.format_pose(poseStamped))
         (success, _, current_pose) \
             = self.go_to_pose_goal(
@@ -117,7 +115,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                 return False
 
             result = self.take_sample.get_result()
-            pose = gmsg.PoseStamped()
+            pose = PoseStamped()
             pose.header = result.cMo.header
             pose.pose.position    = result.cMo.transform.translation
             pose.pose.orientation = result.cMo.transform.rotation
@@ -181,12 +179,62 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                 res = self.compute_calibration()
                 print(res.message)
                 if res.success:
+                    self.save_attachment_transform(res.eMc)
                     res = self.save_calibration()
                     print(res.message)
             except rospy.ServiceException as e:
                 rospy.logerr('Service call failed: %s' % e)
-
+            except Exception as e:
+                rospy.logerr(e)
         self.go_to_named_pose(self._robot_name, 'home')
+
+    def save_attachment_transform(self, eMc):
+        # Frame to which the camera attached
+        camera_parent_frame = rospy.get_param('~camera_parent_frame')
+
+        # Get camera base frame whose parent is camera_parent_frame.
+        camera_frame      = eMc.child_frame_id
+        stamp             = eMc.header.stamp
+        chain             = self.listener.chain(camera_parent_frame, stamp,
+                                                camera_frame, stamp,
+                                                camera_parent_frame)
+        camera_base_frame = chain[-2]
+
+        # Compute transform from camera base frame to its parent.
+        eTc = self.listener.fromTranslationRotation(
+                                (eMc.transform.translation.x,
+                                 eMc.transform.translation.y,
+                                 eMc.transform.translation.z),
+                                (eMc.transform.rotation.x,
+                                 eMc.transform.rotation.y,
+                                 eMc.transform.rotation.z,
+                                 eMc.transform.rotation.w))
+        pTe = self.listener.fromTranslationRotation(
+                                *self.listener.lookupTransform(
+                                    camera_parent_frame,
+                                    eMc.header.frame_id, stamp))
+        cTb = self.listener.fromTranslationRotation(
+                                *self.listener.lookupTransform(
+                                    camera_frame, camera_base_frame, stamp))
+        pTb = tfs.concatenate_matrices(pTe, eTc, cTb)
+
+        # Convert the transform to xyz-rpy representation.
+        xyz  = map(float, tfs.translation_from_matrix(pTb))
+        rpy  = map(float, tfs.euler_from_matrix(pTb))
+        data = {'parent': camera_parent_frame,
+                'child':  camera_base_frame,
+                'x':      xyz[0],
+                'y':      xyz[1],
+                'z':      xyz[2],
+                'roll':   rpy[0],
+                'pitch':  rpy[1],
+                'yaw':    rpy[2]}
+        print(data)
+        # Save the transform.
+        filename = rospkg.RosPack().get_path('aist_handeye_calibration') \
+                 + '/calib/' + self._camera_name + '.yaml'
+        with open(filename, mode='w') as file:
+            yaml.dump(data, file, default_flow_style=False)
 
     def run(self):
         while not rospy.is_shutdown():

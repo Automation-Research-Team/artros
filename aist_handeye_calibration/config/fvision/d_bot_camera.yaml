@@ -5,6 +5,7 @@ eye_on_hand: true
 robot_base_frame: workspace_center
 robot_effector_frame: d_bot_flange
 robot_effector_tip_frame: d_bot_gripper_tip_link
+camera_parent_frame: d_bot_gripper_base_link
 marker_id: 26
 marker_size: 0.07
 planarity_tolerance: 0.003
@@ -19,6 +20,3 @@ keyposes:
   - [ 0.00,  0.00, 0.25,   0,  80, 90]
   - [ 0.00,  0.15, 0.25,   0, 110, 90]
   - [ 0.00,  0.20, 0.25,   0, 120, 90]
-
-body_frame: d_bot_camera_link
-tcp_frame: d_bot_camera_color_optical_frame

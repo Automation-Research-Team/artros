@@ -21,5 +21,4 @@ keyposes:
   - [ 0.35,  0.35, 0.65,  60,   0,   0]
 speed: 0.1
 
-body_frame: phoxi_link
-tcp_frame: phoxi_sensor
+camera_parent_frame: phoxi_flange
