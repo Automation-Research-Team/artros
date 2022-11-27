@@ -14,23 +14,24 @@ set(CMAKE_CXX_BUILD_TYPE	Release)
 
 find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
+find_package(orocos_kdl REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 
-find_package(catkin REQUIRED COMPONENTS
-  controller_manager
-  controller_interface
-  geometry_msgs
-  hardware_interface
-  pluginlib
-  realtime_tools
-  roscpp
-  roslib
-  std_msgs
-  tf2_ros
-  tf2_eigen
-  aist_utility
-  ddynamic_reconfigure
+find_package(catkin REQUIRED
+  COMPONENTS
+    controller_manager
+    controller_interface
+    geometry_msgs
+    hardware_interface
+    pluginlib
+    realtime_tools
+    roscpp
+    roslib
+    std_msgs
+    aist_utility
+    ddynamic_reconfigure
+    kdl_parser
 )
 
 # catkin_python_setup()
@@ -54,6 +55,7 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  ${orocos_kdl_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}_controller
@@ -69,6 +71,7 @@ add_dependencies(
 target_link_libraries(${PROJECT_NAME}_controller
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
+  ${orocos_kdl_LIBRARIES}
   yaml-cpp
 )
 

@@ -26,6 +26,7 @@ force_torque_sensor_controller:
 aist_ftsensor_controller:
   type:         aist_ftsensor_controller/ForceTorqueSensorController
   publish_rate: *loop_hz
+  frame_id:     $(arg prefix)flange
 
 # Publish speed_scaling factor
 speed_scaling_state_controller:
@@ -150,7 +151,7 @@ forward_cartesian_traj_controller:
 
 twist_controller:
   type: "ros_controllers_cartesian/TwistController"
-  frame_id: "tool0_controller"
+  frame_id: $(arg prefix)tool0_controller
   publish_rate: *loop_hz
   joints: *robot_joints
 
