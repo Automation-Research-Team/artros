@@ -1,0 +1,11 @@
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="load_calibration">
+
+  <xacro:macro name="load_calibration" params="directory name">
+    <xacro:property name="calibration_parameters"
+		    value="${xacro.load_yaml(directory + '/' + name + '.yaml')}"/>
+    <xacro:property name="${name + '_origin'}"
+		    value="${calibration_parameters['origin']}"
+		    scope="parent"/>
+  </xacro:macro>
+
+</robot>

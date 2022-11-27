@@ -65,11 +65,19 @@
 
   <!-- Add RealSense camera -->
   <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration directory="$(find aist_handeye_calibration)/calib"
+			  name="realsenseD435"/>
+  <xacro:include filename="$(find aist_description
 			   )/devices/urdf/_d435.urdf.xacro"/>
   <xacro:sensor_d435 name="realsenseD435" parent="workspace_center"
 		     use_nominal_extrinsics="true">
-    <origin xyz="0.0 0.7 0.6"
-	    rpy="${0*pi/180} ${30*pi/180} ${-90*pi/180}"/>
+    <origin xyz="${realsenseD435_origin[0]}
+		 ${realsenseD435_origin[1]}
+		 ${realsenseD435_origin[2]}"
+    	    rpy="${realsenseD435_origin[3]}
+		 ${realsenseD435_origin[4]}
+		 ${realsenseD435_origin[5]}"/>
   </xacro:sensor_d435>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->

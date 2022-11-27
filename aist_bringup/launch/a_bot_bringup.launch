@@ -78,18 +78,6 @@
   <!-- Launch calibration publisher and other hardware drivers -->
   <group unless="$(arg sim)">
 
-    <!-- Load and publish hand-eye calibration -->
-    <include file="$(find aist_handeye_calibration
-    		   )/launch/publish_calibration.launch">
-      <arg name="config"	value="aist" />
-      <arg name="camera_name"	value="a_bot_inside_camera" />
-    </include>
-    <include file="$(find aist_handeye_calibration
-    		   )/launch/publish_calibration.launch">
-      <arg name="config"	value="aist" />
-      <arg name="camera_name"	value="a_bot_outside_camera" />
-    </include>
-
     <!-- Drivers for the force sensors -->
     <include ns="a_bot_ftsensor"
     	     file="$(find aist_ftsensor)/launch/ft300.launch">
@@ -97,21 +85,6 @@
       <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
       <arg name="hostname"		value="a_bot"/>
     </include>
-
-  </group>
-
-  <group if="$(arg sim)">
-
-    <node name="inside_transform_publisher"
-          pkg="tf" type="static_transform_publisher"
-          args="0 0 0 0 0 0
-		a_bot_inside_camera_color_optical_frame
-		calibrated_a_bot_inside_camera_color_optical_frame 10"/>
-    <node name="outsidestatic_transform_publisher"
-          pkg="tf" type="static_transform_publisher"
-          args="0 0 0 0 0 0
-		a_bot_outside_camera_color_optical_frame
-		calibrated_a_bot_outside_camera_color_optical_frame 10"/>
 
   </group>
 

@@ -179,7 +179,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                 res = self.compute_calibration()
                 print(res.message)
                 if res.success:
-                    self.save_attachment_transform(res.eMc)
+                    self.save_camera_placement(res.eMc)
                     res = self.save_calibration()
                     print(res.message)
             except rospy.ServiceException as e:
@@ -188,7 +188,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                 rospy.logerr(e)
         self.go_to_named_pose(self._robot_name, 'home')
 
-    def save_attachment_transform(self, eMc):
+    def save_camera_placement(self, eMc):
         # Frame to which the camera attached
         camera_parent_frame = rospy.get_param('~camera_parent_frame')
 
@@ -222,13 +222,8 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         xyz  = map(float, tfs.translation_from_matrix(pTb))
         rpy  = map(float, tfs.euler_from_matrix(pTb))
         data = {'parent': camera_parent_frame,
-                'child':  camera_base_frame,
-                'x':      xyz[0],
-                'y':      xyz[1],
-                'z':      xyz[2],
-                'roll':   rpy[0],
-                'pitch':  rpy[1],
-                'yaw':    rpy[2]}
+                'child' : camera_base_frame,
+                'origin': xyz + rpy}
         print(data)
         # Save the transform.
         filename = rospkg.RosPack().get_path('aist_handeye_calibration') \
