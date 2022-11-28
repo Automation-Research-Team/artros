@@ -928,7 +928,7 @@ Visualization Manager:
           Value: false
         b_bot_wrist_3_link:
           Value: false
-        calibrated_a_bot_inside_camera_color_optical_frame:
+        a_bot_inside_camera_color_optical_frame:
           Value: true
         ground:
           Value: true
@@ -1016,7 +1016,7 @@ Visualization Manager:
                                                   {}
                               a_bot_tool0:
                                 {}
-                              calibrated_a_bot_inside_camera_color_optical_frame:
+                              a_bot_inside_camera_color_optical_frame:
                                 {}
             b_bot_base_link:
               b_bot_base:
