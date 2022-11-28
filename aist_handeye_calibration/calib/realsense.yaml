@@ -1,0 +1,9 @@
+parent: realsense_flange
+child:  realsense_connector_link
+origin:
+- 0
+- 0
+- 0
+- 0
+- 0
+- 0
