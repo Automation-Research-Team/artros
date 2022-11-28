@@ -66,8 +66,8 @@
   <!-- Add RealSense camera -->
   <xacro:include filename="$(find aist_description
 			   )/scenes/urdf/load_calibration.urdf.xacro"/>
-  <xacro:load_calibration directory="$(find aist_handeye_calibration)/calib"
-			  name="realsenseD435"/>
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/realsenseD435.yaml"/>
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/_d435.urdf.xacro"/>
   <xacro:sensor_d435 name="realsenseD435" parent="workspace_center"

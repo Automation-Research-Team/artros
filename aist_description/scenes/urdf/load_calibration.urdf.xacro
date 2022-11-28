@@ -1,10 +1,11 @@
+<?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="load_calibration">
 
   <xacro:macro name="load_calibration"
-	       params="directory name property_name:=origin">
+	       params="filename propname:=origin">
     <xacro:property name="calibration_parameters"
-		    value="${xacro.load_yaml(directory + '/' + name + '.yaml')}"/>
-    <xacro:property name="${property_name}"
+		    value="${xacro.load_yaml(filename)}"/>
+    <xacro:property name="${propname}"
 		    value="${calibration_parameters['origin']}"
 		    scope="parent"/>
   </xacro:macro>

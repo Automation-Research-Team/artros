@@ -43,9 +43,9 @@
 
     <xacro:include filename="$(find aist_description
 			     )/scenes/urdf/load_calibration.urdf.xacro"/>
-    <xacro:load_calibration directory="$(find aist_handeye_calibration)/calib"
-			    name="${prefix}inside_camera"
-			    property_name="inside_camera_origin"/>
+    <xacro:load_calibration filename="$(find aist_handeye_calibration
+				      )/calib/${prefix}inside_camera.yaml"
+			    propname="inside_camera_origin"/>
     <xacro:sensor_sr305 name="${prefix}inside_camera" parent="${parent}">
       <origin xyz="${inside_camera_origin[0]}
 		   ${inside_camera_origin[1]}
@@ -55,9 +55,9 @@
 		   ${inside_camera_origin[5]}"/>
     </xacro:sensor_sr305>
 
-    <xacro:load_calibration directory="$(find aist_handeye_calibration)/calib"
-			    name="${prefix}outside_camera"
-			    property_name="outside_camera_origin"/>
+    <xacro:load_calibration filename="$(find aist_handeye_calibration
+				      )/calib/${prefix}outside_camera.yaml"
+			    propname="outside_camera_origin"/>
     <xacro:sensor_sr305 name="${prefix}outside_camera" parent="${parent}">
       <origin xyz="${outside_camera_origin[0]}
 		   ${outside_camera_origin[1]}
