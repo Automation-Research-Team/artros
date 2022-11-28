@@ -72,12 +72,8 @@
 			   )/devices/urdf/_d435.urdf.xacro"/>
   <xacro:sensor_d435 name="realsenseD435" parent="workspace_center"
 		     use_nominal_extrinsics="true">
-    <origin xyz="${realsenseD435_origin[0]}
-		 ${realsenseD435_origin[1]}
-		 ${realsenseD435_origin[2]}"
-    	    rpy="${realsenseD435_origin[3]}
-		 ${realsenseD435_origin[4]}
-		 ${realsenseD435_origin[5]}"/>
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:sensor_d435>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
