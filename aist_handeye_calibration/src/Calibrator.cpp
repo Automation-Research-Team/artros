@@ -174,8 +174,8 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
 						       effector_frame(),
 						       poseMsg->header.stamp,
 						       _timeout);
-	ROS_INFO_STREAM(result.cMo);
-	ROS_INFO_STREAM(result.wMe);
+	ROS_DEBUG_STREAM(result.cMo);
+	ROS_DEBUG_STREAM(result.wMe);
 
 	_cMo.emplace_back(result.cMo);
 	_wMe.emplace_back(result.wMe);
