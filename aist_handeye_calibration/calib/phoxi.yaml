@@ -1,9 +1,9 @@
-parent: phoxi_flange
-child:  phoxi_link
+child: phoxi_link
 origin:
-- 0
-- 0
-- 0
-- 0
-- 0
-- 0
+- -0.010839995473262393
+- -0.002497959075495687
+- 0.04161180155289195
+- -0.0009981565766113824
+- 0.20788582698056018
+- 0.005884934473070509
+parent: magripper_phoxi_flange

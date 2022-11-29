@@ -230,6 +230,8 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                  + '/calib/' + self._camera_name + '.yaml'
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
+            rospy.loginfo('Saved transform from camera base frame[%s] to camera parent frame[%s] into %s'
+                          % (camera_base_frame, camera_parent_frame, filename))
 
     def run(self):
         while not rospy.is_shutdown():

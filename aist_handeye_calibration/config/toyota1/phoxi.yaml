@@ -5,20 +5,19 @@ eye_on_hand: true
 robot_base_frame: basement_link
 robot_effector_frame: arm_ee_link
 robot_effector_tip_frame: magnet_tip_link
+camera_parent_frame: magripper_phoxi_flange
 marker_id: 26
 marker_size: 0.186
 planarity_tolerance: 0.001
 initpose: [0.40,  0.00, 0.75, 90, 0, 0]
 keyposes:
-  - [ 0.00,  0.00, 0.65,  90, -30,   0]
+  - [ 0.00,  0.00, 0.70,  90, -30,   0]
   - [ 0.15,  0.00, 0.70,  90, -15,   0]
   - [ 0.35,  0.00, 0.80,  90,   0,   0]
   - [ 0.55,  0.00, 0.70,  90,  15,   0]
   - [ 0.65,  0.00, 0.70,  90,  25,   0]
-  - [ 0.35, -0.35, 0.65, 120,   0,   0]
+  - [ 0.35, -0.35, 0.70, 120,   0,   0]
   - [ 0.35, -0.15, 0.70, 105,   0,   0]
   - [ 0.35,  0.15, 0.70,  75,   0,   0]
-  - [ 0.35,  0.35, 0.65,  60,   0,   0]
+  - [ 0.35,  0.35, 0.70,  60,   0,   0]
 speed: 0.1
-
-camera_parent_frame: phoxi_flange

@@ -5,6 +5,7 @@ eye_on_hand: true
 robot_base_frame: basement_link
 robot_effector_frame: arm_ee_link
 robot_effector_tip_frame: magnet_tip_link
+camera_parent_frame: magripper_realsense_flange
 marker_id: 26
 marker_size: 0.186
 planarity_tolerance: 0.003
@@ -20,5 +21,3 @@ keyposes:
   - [ 0.40,  0.20, 0.70,  75,   0,   0]
   - [ 0.40,  0.45, 0.70,  55,   0,   0]
 speed: 0.1
-
-camera_parent_frame: realsense_flange
