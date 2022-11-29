@@ -730,8 +730,9 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	return;
 
   // Otherwise, transform it to planning frame.
-    const auto	current_state = planning_scene_monitor_->getStateMonitor()
-						       ->getCurrentState();
+    // const auto	current_state = planning_scene_monitor_->getStateMonitor()
+    // 						       ->getCurrentState();
+    const auto	current_state = servo_->getCurrentState();
     auto	Tpt = tf2::eigenToTransform(
 			current_state->getGlobalLinkTransform(
 			    planning_frame_).inverse()

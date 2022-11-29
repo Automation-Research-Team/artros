@@ -96,6 +96,9 @@ class Servo
 	     servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
 	 }
 
+    moveit::core::RobotStatePtr
+	 getCurrentState() const { return servo_calcs_->getCurrentState(); }
+
   // Give test access to private/protected methods
     friend class ServoFixture;
 

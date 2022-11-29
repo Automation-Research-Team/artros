@@ -110,6 +110,9 @@ class ServoCalcs
    */
     void changeRobotLinkCommandFrame(const std::string& new_command_frame);
 
+    moveit::core::RobotStatePtr
+	 getCurrentState()		 const	{ return current_state_; }
+
   // Give test access to private/protected methods
     friend class ServoFixture;
 

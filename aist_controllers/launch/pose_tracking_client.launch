@@ -2,9 +2,9 @@
 <launch>
 
   <!-- offset for realsense -->
-  <arg name="target_offset"	default="[0.1, 0.05, 0.10, -90, 90, 0]"/>
+  <!-- <arg name="target_offset"	default="[0.1, 0.05, 0.10, -90, 90, 0]"/> -->
   <!-- offset for phoxi -->
-  <!-- <arg name="target_offset"	default="[0.1, 0.15, 0.4, -90, 90, 0]"/> -->
+  <arg name="target_offset"	default="[0.1, 0.15, 0.4, -90, 90, 0]"/>
   <arg name="plot_joints"	default="false"/>
 
   <!-- Spawn client -->
