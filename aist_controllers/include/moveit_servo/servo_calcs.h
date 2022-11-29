@@ -102,6 +102,9 @@ class ServoCalcs
     bool getEEFrameTransform(Eigen::Isometry3d& transform);
     bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
+    Eigen::Isometry3d
+	 getFrameTransform(const std::string& frame);
+    
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
     void setPaused(bool paused);
 
@@ -109,9 +112,6 @@ class ServoCalcs
    * This must be a link on the robot since MoveIt tracks the transform (not tf)
    */
     void changeRobotLinkCommandFrame(const std::string& new_command_frame);
-
-    moveit::core::RobotStatePtr
-	 getCurrentState()		 const	{ return current_state_; }
 
   // Give test access to private/protected methods
     friend class ServoFixture;
