@@ -173,7 +173,9 @@ Plane<T, N>::fit(ITER begin, ITER end)
   // Check #points.
     const auto	npoints = std::distance(begin, end);
     if (npoints < 3)
-	throw std::runtime_error("Failed to fit a plane: three or more points required!");
+	throw std::runtime_error("Plane::fit(): three or more points required, but only "
+				 + std::to_string(npoints)
+				 + " points given!!");
 
   // Compute centroid.
     auto	centroid = vector_type::zeros();
@@ -242,7 +244,10 @@ Rigidity<T, D>::fit(ITER begin, ITER end)
   // 充分な個数の点対があるか？
     const size_t	ndata = std::distance(begin, end);
     if (ndata < D)
-	throw std::runtime_error("Rigidity::fit(): not enough data!!");
+	throw std::runtime_error("Rigidity::fit(): at least "
+				 + std::to_string(D)
+				 + " data required, but only "
+				 + std::to_string(ndata) + " given!!");
 
   // 重心の計算
     vector_t	xc(vector_t::zeros()), yc(vector_t::zeros());
@@ -343,7 +348,10 @@ Similarity<T, D>::fit(ITER begin, ITER end)
   // 充分な個数の点対があるか？
     const size_t	ndata = std::distance(begin, end);
     if (ndata < D)
-	throw std::runtime_error("Similarity::fit(): not enough data!!");
+	throw std::runtime_error("Similarity::fit(): at least "
+				 + std::to_string(D)
+				 + " data required, but only "
+				 + std::to_string(ndata) + " given!!");
 
   // 重心の計算
     vector_t	xc(vector_t::zeros()), yc(vector_t::zeros());

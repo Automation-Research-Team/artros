@@ -138,7 +138,7 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          calibrated_biclops_camera_link:
+          biclops_camera_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -257,7 +257,7 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          calibrated_biclops_camera_link:
+          biclops_camera_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -365,17 +365,17 @@ Visualization Manager:
           Value: false
         biclops_tilt_link:
           Value: false
-        calibrated_biclops_camera_aligned_depth_to_color_frame:
+        biclops_camera_aligned_depth_to_color_frame:
           Value: false
-        calibrated_biclops_camera_color_frame:
+        biclops_camera_color_frame:
           Value: false
-        calibrated_biclops_camera_color_optical_frame:
+        biclops_camera_color_optical_frame:
           Value: false
-        calibrated_biclops_camera_depth_frame:
+        biclops_camera_depth_frame:
           Value: false
-        calibrated_biclops_camera_depth_optical_frame:
+        biclops_camera_depth_optical_frame:
           Value: false
-        calibrated_biclops_camera_link:
+        biclops_camera_link:
           Value: false
         marker_frame:
           Value: true
@@ -406,15 +406,15 @@ Visualization Manager:
                         biclops_camera_right_ir_frame:
                           biclops_camera_right_ir_optical_frame:
                             {}
-                      calibrated_biclops_camera_link:
-                        calibrated_biclops_camera_aligned_depth_to_color_frame:
-                          calibrated_biclops_camera_color_optical_frame:
+                      biclops_camera_link:
+                        biclops_camera_aligned_depth_to_color_frame:
+                          biclops_camera_color_optical_frame:
                             marker_frame:
                               {}
-                        calibrated_biclops_camera_color_frame:
+                        biclops_camera_color_frame:
                           {}
-                        calibrated_biclops_camera_depth_frame:
-                          calibrated_biclops_camera_depth_optical_frame:
+                        biclops_camera_depth_frame:
+                          biclops_camera_depth_optical_frame:
                             {}
             biclops_stem_link:
               {}
