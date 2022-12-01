@@ -85,6 +85,12 @@ class Servo
     bool getEEFrameTransform(Eigen::Isometry3d& transform);
     bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
+    Eigen::Isometry3d
+	 getFrameTransform(const std::string& frame)
+	 {
+	     return servo_calcs_->getFrameTransform(frame);
+	 }
+    
   /** \brief Get the parameters used by servo node. */
     const ServoParameters& getParameters() const;
 
@@ -95,9 +101,6 @@ class Servo
 	 {
 	     servo_calcs_->changeRobotLinkCommandFrame(new_command_frame);
 	 }
-
-    moveit::core::RobotStatePtr
-	 getCurrentState() const { return servo_calcs_->getCurrentState(); }
 
   // Give test access to private/protected methods
     friend class ServoFixture;
