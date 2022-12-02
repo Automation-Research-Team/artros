@@ -45,6 +45,9 @@ from actionlib                import SimpleActionServer
 #  class HMIServer                                                   #
 ######################################################################
 class HMIServer(object):
+    _Pointing    = ('NO_RES', 'SWEEP_RES', 'RECAPTURE_RES')
+    _RequestHelp = ('NO_REQ', 'SWEEP_DIR_REQ')
+
     def __init__(self):
         super(HMIServer, self).__init__()
 
@@ -84,9 +87,12 @@ class HMIServer(object):
         @type  pointing_msg: finger_pointing_msgs.msg.pointing
         @param pointing_msg: finger direction response from VR side
         """
+        rospy.loginfo('(hmi_server) received pointing message[%s]'
+                      %  self._Pointing[pointing_msg.pointing_state])
+
         pointing_msg.header.stamp = rospy.Time.now()
         if self._hmi_srv.is_active():
-            if pointing_msg.pointing_state is pointing.NO_RES:
+            if pointing_msg.pointing_state == pointing.NO_RES:
                 self._hmi_srv.publish_feedback(
                     RequestHelpFeedback(pointing_msg))
             else:
