@@ -54,7 +54,7 @@
   </joint>
 
   <!-- Spawn and attach force sensor -->
-  <xacro:include filename="$(find aist_ftsensor)/urdf/ft300.urdf.xacro"/>
+  <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
   <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange">
     <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:ft300>

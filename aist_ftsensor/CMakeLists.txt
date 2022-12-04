@@ -75,13 +75,6 @@ target_link_libraries(${PROJECT_NAME}_controller
   yaml-cpp
 )
 
-add_executable(ft300_driver src/ft300_driver.cpp)
-
-target_link_libraries(ft300_driver
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-)
-
 add_executable(dynpick_driver src/dynpick_driver.cpp)
 
 target_link_libraries(dynpick_driver
