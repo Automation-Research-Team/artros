@@ -15,13 +15,6 @@
     <arg name="rviz_config"	value="$(find aist_controllers)/launch/a_bot.rviz"/>
   </include>
 
-  <!-- Load and publish hand-eye calibration -->
-  <include file="$(find aist_handeye_calibration
-                 )/launch/publish_calibration.launch">
-    <arg name="config"		value="aist"/>
-    <arg name="camera_name"	value="$(arg camera_name)"/>
-  </include>
-
   <!-- Spawn aruco marker tracker -->
   <node name="aruco_detector"
 	pkg="aist_aruco_ros" type="aist_aruco_detector"	output="screen">

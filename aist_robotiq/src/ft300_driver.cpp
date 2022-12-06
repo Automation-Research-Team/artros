@@ -48,7 +48,7 @@
 #include <netdb.h>		// for struct hostent, gethostbyname()
 #include <errno.h>
 
-namespace aist_ftsensor
+namespace aist_robotiq
 {
 /************************************************************************
 *  static functions							*
@@ -154,7 +154,7 @@ ft300_driver::read(const ros::Time&, const ros::Duration&)
 						buf.data(), buf.size());
     if (nbytes < 0)
     {
-	ROS_ERROR_STREAM("(ftsensor) failed to read from socket: "
+	ROS_ERROR_STREAM("(ft300_driver) failed to read from socket: "
 			 << strerror(errno));
 	throw;
     }
@@ -215,7 +215,7 @@ ft300_driver::connect_socket(u_long s_addr, int port)
 	return false;
     }
 }
-}	// namepsace aist_ftsensor
+}	// namepsace aist_robotiq
 
 /************************************************************************
 *  global functions							*
@@ -227,7 +227,7 @@ main(int argc, char* argv[])
 
     try
     {
-	aist_ftsensor::ft300_driver	node;
+	aist_robotiq::ft300_driver	node;
 	node.run();
     }
     catch (const std::exception& err)

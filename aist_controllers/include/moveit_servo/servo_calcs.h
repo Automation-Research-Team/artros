@@ -102,6 +102,9 @@ class ServoCalcs
     bool getEEFrameTransform(Eigen::Isometry3d& transform);
     bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
+    Eigen::Isometry3d
+	 getFrameTransform(const std::string& frame);
+    
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
     void setPaused(bool paused);
 

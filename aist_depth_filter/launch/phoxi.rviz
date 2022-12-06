@@ -87,7 +87,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: calibrated_a_phoxi_m_camera
+    Fixed Frame: a_phoxi_m_camera
     Frame Rate: 30
   Name: root
   Tools:

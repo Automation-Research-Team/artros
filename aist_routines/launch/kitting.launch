@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="config"		default="aist"/>
-  <arg name="scene"		default="kitting"/>
-  <arg name="sim"		default="false"/>
-  <arg name="camera_name"	default="a_phoxi_m_camera"/>
 
-  <!-- Start robot controller -->
+  <arg name="sim"	default="false"/>
+
+  <!-- Start robots -->
+  <arg name="config"	value="aist"/>
+  <arg name="scene"	value="kitting"/>
   <include file="$(find aist_bringup)/launch/$(arg config)_bringup.launch">
     <arg name="scene"		value="$(arg scene)"/>
     <arg name="sim"		value="$(arg sim)"/>
@@ -13,19 +13,19 @@
 				       )/launch/kitting.rviz"/>
   </include>
 
-  <!-- Load and publish hand-eye calibration -->
-  <include file="$(find aist_handeye_calibration
-		 )/launch/publish_calibration.launch">
-    <arg name="config"		value="$(arg config)" />
-    <arg name="camera_name"	value="$(arg camera_name)" />
-  </include>
-
   <!-- Start graspability server -->
+  <arg name="camera_name"	value="a_phoxi_m_camera"/>
   <include file="$(find aist_graspability)/launch/run.launch">
     <arg name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
     <arg name="image_topic"		value="$(arg camera_name)/texture"/>
     <arg name="depth_topic"		value="$(arg camera_name)/depth_map"/>
     <arg name="normal_topic"		value="$(arg camera_name)/normal_map"/>
+  </include>
+
+  <!-- Start rosbridge server -->
+  <arg name="port"	value="9090"/>
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+    <arg name="port"	value="$(arg port)"/>
   </include>
 
 </launch>

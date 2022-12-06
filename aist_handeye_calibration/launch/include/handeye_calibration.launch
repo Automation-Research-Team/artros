@@ -38,15 +38,6 @@
     <rosparam file="$(arg config_file)"/>
   </node>
 
-  <!-- Publish calibrated camera pose -->
-  <node if="$(arg check)"
-	name="$(anon handeye_publisher)"
-	pkg="aist_handeye_calibration" type="publish_calibration.py"
-	output="screen">
-    <rosparam file="$(arg calib_file)"/>
-    <rosparam file="$(arg config_file)"/>
-  </node>
-
   <!-- Start calibrator -->
   <node unless="$(arg check)"
 	name="handeye_calibrator"

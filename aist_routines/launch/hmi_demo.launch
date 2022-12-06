@@ -1,26 +1,30 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="port"		default="9090"/>
-  <arg name="rosbridge_name"	default="rosbridge_websocket"/>
+  <arg name="sim"	default="false"/>
+
+  <!-- Start kitting servers -->
+  <!-- <include file="$(dirname)/kitting.launch"> -->
+  <!--   <arg name="sim"	value="$(arg sim)"/> -->
+  <!-- </include> -->
+
+  <!-- Start rosbridge server -->
+  <!-- <arg name="port"		value="9090"/> -->
+  <!-- <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"> -->
+  <!--   <arg name="port"	value="$(arg port)"/> -->
+  <!-- </include> -->
 
   <!-- Start hmi_demo server -->
+  <arg name="rosbridge_name"	value="rosbridge_websocket"/>
   <node name="hmi_server"
-	pkg="aist_routines" type="hmi_server.py" output="screen">
-    <remap from="/pointing"	to="$(arg rosbridge_name)/pointing"/>
-  </node>
-
-  <!-- Start hmi_demo client -->
-  <node name="hmi_demo"
-  	pkg="aist_routines" type="hmi_demo.py" output="screen">
-    <rosparam file="$(find aist_routines)/config/aist_config.yaml"/>
-    <rosparam file="$(find aist_routines)/config/hmi_demo.yaml"/>
+  	pkg="aist_routines" type="hmi_server.py" output="screen">
+    <!-- <remap from="/pointing"	to="$(arg rosbridge_name)/pointing"/> -->
   </node>
 
   <!-- Start live camera -->
-  <!-- <node name="live_camera" -->
-  <!-- 	pkg="usb_cam" type="usb_cam_node" output="screen"> -->
-  <!--   <rosparam file="$(find aist_routines)/config/live_camera.yaml"/> -->
-  <!-- </node> -->
+  <node name="usb_cam"
+  	pkg="usb_cam" type="usb_cam_node" output="screen">
+    <rosparam file="$(dirname)/../config/live_camera.yaml"/>
+  </node>
 
 </launch>

@@ -56,20 +56,24 @@
     <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/robotiq_85_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_85_gripper_with_tip_link prefix="c_bot_gripper_"
-					  parent="c_bot_gripper_coupling_flange_link">
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
+  <xacro:robotiq_85_gripper prefix="c_bot_gripper_"
+			    parent="c_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_85_gripper_with_tip_link>
+  </xacro:robotiq_85_gripper>
 
   <!-- Add RealSense camera -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/realsenseD435.yaml"/>
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/_d435.urdf.xacro"/>
   <xacro:sensor_d435 name="realsenseD435" parent="workspace_center"
 		     use_nominal_extrinsics="true">
-    <origin xyz="0.0 0.7 0.6"
-	    rpy="${0*pi/180} ${30*pi/180} ${-90*pi/180}"/>
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:sensor_d435>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->

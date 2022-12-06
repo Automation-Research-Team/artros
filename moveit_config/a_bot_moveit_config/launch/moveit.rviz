@@ -716,9 +716,9 @@ Visualization Manager:
           Value: false
         a_bot_wrist_3_link:
           Value: false
-        calibrated_a_bot_inside_camera_color_optical_frame:
+        a_bot_inside_camera_color_optical_frame:
           Value: true
-        calibrated_a_bot_outside_camera_color_optical_frame:
+        a_bot_outside_camera_color_optical_frame:
           Value: true
         ground:
           Value: true
@@ -780,7 +780,7 @@ Visualization Manager:
                                             a_bot_inside_camera_depth_frame:
                                               a_bot_inside_camera_color_frame:
                                                 a_bot_inside_camera_color_optical_frame:
-                                                  calibrated_a_bot_inside_camera_color_optical_frame:
+                                                  a_bot_inside_camera_color_optical_frame:
                                                     {}
                                               a_bot_inside_camera_depth_optical_frame:
                                                 {}
@@ -795,7 +795,7 @@ Visualization Manager:
                                             a_bot_outside_camera_depth_frame:
                                               a_bot_outside_camera_color_frame:
                                                 a_bot_outside_camera_color_optical_frame:
-                                                  calibrated_a_bot_outside_camera_color_optical_frame:
+                                                  a_bot_outside_camera_color_optical_frame:
                                                     {}
                                               a_bot_outside_camera_depth_optical_frame:
                                                 {}

@@ -10,5 +10,5 @@ grippers:
       effort: 5.0
       velocity: 0.1
 
-#cameras:
-#  realsenseD435: DepthCamera
+cameras:
+  realsenseD435: DepthCamera

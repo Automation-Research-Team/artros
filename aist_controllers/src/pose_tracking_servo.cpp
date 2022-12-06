@@ -730,6 +730,13 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	return;
 
   // Otherwise, transform it to planning frame.
+    auto Tpt = tf2::eigenToTransform(servo_->getFrameTransform(
+					 target_pose_.header.frame_id));
+    Tpt.header.stamp    = target_pose_.header.stamp;
+    Tpt.header.frame_id = planning_frame_;
+    Tpt.child_frame_id  = target_pose_.header.frame_id;
+    tf2::doTransform(target_pose_, target_pose_, Tpt);
+  /*
     try
     {
 	tf2::doTransform(target_pose_, target_pose_,
@@ -741,6 +748,7 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
     {
 	ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) " << err.what());
     }
+  */
 }
 
 void

@@ -42,7 +42,7 @@
     <include file="$(find aist_phoxi_camera)/launch/run.launch">
       <arg name="camera_name"		value="camera"/>
       <arg name="id"			value="2020-01-098-LC3"/>
-      <arg name="frame"			value="a_khi_calibrated_camera"/>
+      <arg name="frame"			value="camera_sensor"/>
       <arg name="intensity_scale"	value="0.05"/>
     </include>
 

@@ -42,7 +42,7 @@
 #define CALIBRATOR_H
 
 #include <ros/ros.h>
-#include <tf/transform_listener.h>
+#include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
@@ -62,7 +62,6 @@ class Calibrator
     using transformMsg_t  = geometry_msgs::TransformStamped;
 
   private:
-    using poseMsg_t	  = geometry_msgs::PoseStamped;
     using poseMsg_cp	  = geometry_msgs::PoseStampedConstPtr;
     using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
 
@@ -101,7 +100,8 @@ class Calibrator
     const ros::ServiceServer	_reset_srv;
     action_server_t		_take_sample_srv;
 
-    const tf::TransformListener	_listener;
+    tf2_ros::Buffer			_transform_buffer;
+    const tf2_ros::TransformListener	_transform_listener;
 
     std::vector<transformMsg_t>	_cMo;	//!< in:  camera <- object   transform
     std::vector<transformMsg_t>	_wMe;	//!< in:  world  <- effector transform

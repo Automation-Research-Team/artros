@@ -4,7 +4,6 @@
   <!-- <arg name="id" default="InstalledExamples-basic-example"/> -->
   <arg name="id"		default="2018-09-015-LC3"/>
   <arg name="camera_name"	default="a_phoxi_m_camera"/>
-  <arg name="camera_frame"	default="calibrated_$(arg camera_name)"/>
   <arg name="trigger_mode"	default="0"/>
   <arg name="rate"		default="10"/>
   <arg name="subscribe_normal"	default="false"/>
@@ -14,7 +13,6 @@
   <include file="$(find aist_phoxi_camera)/launch/run.launch">
     <arg name="id"		value="$(arg id)"/>
     <arg name="camera_name"	value="$(arg camera_name)"/>
-    <arg name="frame"		value="$(arg camera_frame)"/>
     <arg name="trigger_mode"	value="$(arg trigger_mode)"/>
     <arg name="rate"		value="$(arg rate)"/>
     <arg name="manager"		value="$(arg manager)"/>
