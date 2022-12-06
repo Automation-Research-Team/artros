@@ -88,7 +88,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: calibrated_a_bot_camera_link
+    Fixed Frame: a_bot_camera_link
     Frame Rate: 30
   Name: root
   Tools:

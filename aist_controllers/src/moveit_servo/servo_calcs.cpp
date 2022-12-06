@@ -1384,6 +1384,16 @@ ServoCalcs::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
     return true;
 }
 
+Eigen::Isometry3d
+ServoCalcs::getFrameTransform(const std::string& frame)
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    return current_state_->getGlobalLinkTransform(parameters_.planning_frame)
+	  .inverse()
+	 * current_state_->getGlobalLinkTransform(frame);
+}
+
 void
 ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {

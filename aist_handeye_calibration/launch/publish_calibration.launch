@@ -5,12 +5,12 @@
 
   <!-- Publish hand-eye calibration -->
   <node  name="$(anon handeye_publisher)"
-	 pkg="aist_handeye_calibration" type="publish_calibration.py"
-	 output="screen">
+  	 pkg="aist_handeye_calibration" type="publish_calibration.py"
+  	 output="screen">
     <rosparam file="$(dirname
-		    )/../config/$(arg config)/$(arg camera_name).yaml"/>
+  		    )/../config/$(arg config)/$(arg camera_name).yaml"/>
     <rosparam file="$(env HOME
-		    )/.ros/aist_handeye_calibration/$(arg camera_name).yaml"/>
+  		    )/.ros/aist_handeye_calibration/$(arg camera_name).yaml"/>
   </node>
 
 </launch>

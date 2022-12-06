@@ -3,7 +3,6 @@
 
   <xacro:arg name="scene" default=""/>
 
-  <!-- Calibration help: If the robot is not moving far enough to the calibration point, increase these distances -->
   <xacro:property name="a_bot_x" value="0"/>
   <xacro:property name="a_bot_y" value="-0.4875"/>
   <!-- <xacro:property name="a_bot_theta" value="${pi}"/> -->
@@ -13,16 +12,14 @@
 
   <xacro:property name="bots_z" value="0.77"/>
 
-  <!-- This is the main file defining our robot arrangement and physical environment. -->
-
-  <!-- Main workspace -->
-  <!-- The surface is 0.01 m below the robot bases and the "workspace_center" frame. -->
+  <!-- ground and workspace -->
   <link name="ground"/>
 
-  <xacro:include filename="$(find aist_description)/objects/urdf/aist_box.urdf.xacro"/>
   <xacro:property name="table_w" value="0.9"/>
   <xacro:property name="table_l" value="1.8"/>
   <xacro:property name="table_h" value="0.01"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/aist_box.urdf.xacro"/>
   <xacro:aist_box name="workbox"
 		  width="${table_w}" length="${table_l}" height="${table_h}"
 		  parent="ground">
@@ -36,7 +33,6 @@
   </joint>
 
   <!-- robot arms -->
-  <!-- <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro"/> -->
   <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
   <xacro:ur_robot_gazebo
       prefix="a_bot_"
@@ -50,7 +46,6 @@
 				  )/config/a_bot_calibration.yaml"
       transmission_hw_interface="hardware_interface/PositionJointInterface"/>
 
-  <!-- <xacro:gazebo_ros_control ns="/b_bot"/> -->
   <xacro:ur_robot_gazebo
       prefix="b_bot_"
       joint_limits_parameters_file="$(find ur_description
@@ -76,7 +71,7 @@
   </joint>
 
   <!-- Spawn and attach force sensor -->
-  <xacro:include filename="$(find aist_ftsensor)/urdf/ft300.urdf.xacro"/>
+  <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
   <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange">
     <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:ft300>
@@ -92,17 +87,19 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
-  <xacro:include filename="$(find aist_description)/devices/urdf/robotiq_85_gripper_with_tip_link.urdf.xacro"/>
-  <xacro:robotiq_85_gripper_with_tip_link prefix="a_bot_gripper_"
-					  parent="a_bot_gripper_coupling_flange_link">
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
+  <xacro:robotiq_85_gripper prefix="a_bot_gripper_"
+			    parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_85_gripper_with_tip_link>
+  </xacro:robotiq_85_gripper>
 
-  <xacro:include filename="$(find aist_description)/devices/urdf/single_suction_gripper.urdf.xacro"/>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
   <xacro:single_suction_gripper prefix="b_bot_gripper_"
   				parent="b_bot_ftsensor_flange_link">
     <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->
-    <origin xyz="0 0 0" rpy="0 ${-0.1*pi/180} ${0.15*pi/180}"/>
+    <origin xyz="0 0 0" rpy="0 ${0.7*pi/180} ${-0.1*pi/180}"/>
   </xacro:single_suction_gripper>
 
   <!-- Add virtual wall to avoid collisions-->
@@ -112,22 +109,22 @@
   </xacro:aist_box>
 
   <!-- Add PhoXi 3D scanner -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/a_phoxi_m_camera.yaml"/>
   <xacro:include filename="$(find aist_phoxi_camera
 			   )/urdf/phoxi_m_camera.urdf.xacro"/>
   <xacro:phoxi_m_camera name="a_phoxi_m_camera" parent="workspace_center">
-    <origin xyz="0.483543436025
-		 -0.0149511700982
-		 0.633792706454"
-	    rpy="${-152.286950706*pi/180}
-		 ${-2.00315281361*pi/180}
-		 ${86.7522427304*pi/180}"/>
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:phoxi_m_camera>
 
   <!-- Add RealSense camera -->
   <xacro:include filename="$(find aist_description
-			   )/devices/urdf/wrist_cameras.urdf.xacro" />
+  			   )/devices/urdf/wrist_cameras.urdf.xacro" />
   <xacro:wrist_cameras prefix="a_bot_"
-		       parent="a_bot_gripper_base_link"/>
+  		       parent="a_bot_gripper_base_link"/>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
