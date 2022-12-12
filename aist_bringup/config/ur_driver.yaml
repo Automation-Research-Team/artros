@@ -17,3 +17,10 @@ tool_rx_idle_chars: 1.5
 tool_tx_idle_chars: 3.5
 servoj_gain: 2000
 servoj_lookahead_time: 0.03
+joints:
+  - $(arg prefix)shoulder_pan_joint
+  - $(arg prefix)shoulder_lift_joint
+  - $(arg prefix)elbow_joint
+  - $(arg prefix)wrist_1_joint
+  - $(arg prefix)wrist_2_joint
+  - $(arg prefix)wrist_3_joint
