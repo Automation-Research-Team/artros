@@ -332,8 +332,7 @@ class HMIRoutines(AISTBaseRoutines):
         res = feedback.response
         self._publish_marker('finger',
                              res.header, res.finger_pos, res.finger_dir)
-        # print('*** feedback=%s' % str(res))
-        # print res.finger_pos, res.finger_dir
+        print('*** feedback=%s' % str(res))
 
     # Marker stuffs
     def _delete_markers(self):
