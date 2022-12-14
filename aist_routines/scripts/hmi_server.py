@@ -58,9 +58,9 @@ class HMIServer(object):
                                      message='no requests')
         self._curr_req = self._no_req
         self._hmi_pub  = rospy.Publisher('/help', request_help,
-                                             queue_size=10)
+                                         queue_size=10)
         self._hmi_sub  = rospy.Subscriber('/pointing', pointing,
-                                              self._pointing_cb)
+                                          self._pointing_cb)
         self._hmi_srv  = SimpleActionServer('~request_help',
                                             RequestHelpAction,
                                             auto_start=False)

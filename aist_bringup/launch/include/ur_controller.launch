@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix" default="b_bot_"/>
+  <arg name="prefix" default="a_bot_"/>
   <arg name="device" default="ur5"/>
   <arg name="sim"    default="false"/>
 
