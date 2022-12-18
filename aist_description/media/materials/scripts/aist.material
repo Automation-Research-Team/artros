@@ -151,6 +151,7 @@ material Aruco/marker-256-80-10
       }
     }
   }
+}
 
 material Aruco/marker-17_26_32_256-150-5
 {
