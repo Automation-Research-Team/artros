@@ -7,9 +7,6 @@
 [submodule "iiwa_stack"]
 	path = third_party/iiwa_stack
 	url = https://github.com/IFL-CAMP/iiwa_stack
-[submodule "third_party/aruco_ros"]
-	path = third_party/aruco_ros
-	url = https://gitlab.com/art-aist/aruco_ros
 [submodule "third_party/universal_robot"]
 	path = third_party/universal_robot
 	url = https://github.com/ros-industrial/universal_robot.git
