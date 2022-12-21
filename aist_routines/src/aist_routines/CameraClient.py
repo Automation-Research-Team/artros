@@ -89,10 +89,25 @@ class MonocularCamera(CameraClient):
 class DepthCamera(CameraClient):
     def __init__(self, name):
         super(DepthCamera, self).__init__(name, 'depth')
+        self._dyn_camera = dynamic_reconfigure.client.Client(name, timeout=5.0)
 
     @staticmethod
     def base(name):
         return CameraClient(name, 'depth')
+
+    # Parameter setting stuffs
+    def set_setting(self, name, value):
+        self.set_settings({name : value})
+        return self.get_setting(name)
+
+    def get_setting(self, name):
+        return self.get_settings()[name]
+
+    def set_settings(self, settings):
+        self._dyn_camera.update_configuration(settings)
+
+    def get_settings(self):
+        return self._dyn_camera.get_configuration()
 
 ######################################################################
 #  class RealSenseCamera                                             #
@@ -100,7 +115,6 @@ class DepthCamera(CameraClient):
 class RealSenseCamera(DepthCamera):
     def __init__(self, name='a_bot_camera'):
         super(RealSenseCamera, self).__init__(name)
-        self._dyn_camera = dynamic_reconfigure.client.Client(name, timeout=5.0)
         self._dyn_sensor = dynamic_reconfigure.client.Client(
                                name + '/coded_light_depth_sensor', timeout=5.0)
         # Don't change current value of laser power not to activate
