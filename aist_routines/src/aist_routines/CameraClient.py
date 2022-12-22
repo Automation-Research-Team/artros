@@ -61,8 +61,11 @@ class CameraClient(object):
     def type(self):
         return self._type
 
-    def continuous_shot(self, enabled):
+    def is_continuous_shot(self):
         return True
+
+    def continuous_shot(self, enabled):
+        pass
 
     def trigger_frame(self):
         return True
@@ -79,9 +82,11 @@ class MonocularCamera(CameraClient):
     def base(name):
         return CameraClient(name, 'area')
 
+    def is_continuous_shot(self):
+        return self._dyn_reconf.get_configuration()['continuous_shot']
+
     def continuous_shot(self, enabled):
         self._dyn_reconf.update_configuration({'continuous_shot' : enabled})
-        return True
 
 ######################################################################
 #  class DepthCamera                                                 #
@@ -102,19 +107,12 @@ class RealSenseCamera(DepthCamera):
         super(RealSenseCamera, self).__init__(name)
         self._dyn_camera = dynamic_reconfigure.client.Client(name, timeout=5.0)
 
-    # Parameter setting stuffs
-    def set_setting(self, name, value):
-        self.set_settings({name : value})
-        return self.get_setting(name)
+    def is_continuous_shot(self):
+        return self._dyn_reconf.get_configuration()['enable_streaming']
 
-    def get_setting(self, name):
-        return self.get_settings()[name]
-
-    def set_settings(self, settings):
-        self._dyn_camera.update_configuration(settings)
-
-    def get_settings(self):
-        return self._dyn_camera.get_configuration()
+    def continuous_shot(self, enabled):
+        self._dyn_camera.update_configuration({'enable_streaming' : enabled})
+        return True
 
 ######################################################################
 #  class CodedLightRealSenseCamera                                   #
@@ -145,6 +143,9 @@ class PhoXiCamera(DepthCamera):
         self._trigger_frame = rospy.ServiceProxy(name + '/trigger_frame',
                                                  std_srvs.srv.Trigger,
                                                  persistent=True)
+
+    def is_continuous_shot(self):
+        self._dyn_reconf.get_configuration()['trigger_mode'] == 0
 
     def continuous_shot(self, enabled):
         self._dyn_reconf.update_configuration({'trigger_mode' :
