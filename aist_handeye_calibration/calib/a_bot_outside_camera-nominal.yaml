@@ -1,0 +1,9 @@
+child: a_bot_outside_camera_connector_link
+origin:
+- 0.026
+- 0.0
+- 0.0835
+- 0.0
+- -0.2618
+- 0.0
+parent: a_bot_gripper_base_link
