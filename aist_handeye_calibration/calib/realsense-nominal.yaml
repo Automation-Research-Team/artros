@@ -1,0 +1,9 @@
+child: realsense_connector_link
+origin:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+parent: magripper_realsense_flange
