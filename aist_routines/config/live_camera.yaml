@@ -6,8 +6,8 @@
 #framerate: 5
 
 video_device: /dev/video0
-image_width: 640
-image_height: 480
+image_width: 720
+image_height: 540
 pixel_format: "yuyv"
 camera_frame_id: live_camera_optical_frame
 framerate: 30
