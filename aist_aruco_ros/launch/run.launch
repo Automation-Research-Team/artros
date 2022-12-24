@@ -1,0 +1,43 @@
+<launch>
+
+  <arg name="marker_map_dir"		default="$(dirname)/../config"/>
+  <arg name="marker_map"		default=""/>
+  <arg name="marker_id"			default="26"/>
+  <arg name="marker_size"		default="0.070"/>    <!-- in meters -->
+  <arg name="marker_frame"		default="marker_frame"/>
+  <arg name="image_is_rectified"	default="false"/>
+  <arg name="planarity_tolerance"	default="0.001"/>
+  <arg name="camera_info_topic"		default="phoxi/camera_info"/>
+  <arg name="image_topic"		default="phoxi/texture"/>
+  <arg name="depth_topic"		default="phoxi/depth_map"/>
+  <arg name="cloud_topic"		default=""/>
+  <arg name="manager"			default=""/>
+
+  <arg name="enable_pointcloud"		value="$(eval cloud_topic != '')"/>
+
+  <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
+  <arg unless="$(eval manager == '')"	name="command"	value="load"/>
+
+  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
+  	args="$(arg command) aist_aruco_ros/aruco_detector
+	      $(arg manager)">
+    <remap from="/camera_info"		to="$(arg camera_info_topic)"/>
+    <remap unless="$(arg enable_pointcloud)"
+	   from="/image"		to="$(arg image_topic)"/>
+    <remap unless="$(arg enable_pointcloud)"
+	   from="/depth"		to="$(arg depth_topic)"/>
+    <remap if="$(arg enable_pointcloud)"
+	   from="/pointcloud"		to="$(arg cloud_topic)"/>
+
+    <!-- Other parameters -->
+    <param name="image_is_rectified"	value="false"/>
+    <param name="marker_map_dir"	value="$(arg marker_map_dir)"/>
+    <param name="marker_map"		value="$(arg marker_map)"/>
+    <param name="marker_id"		value="$(arg marker_id)"/>
+    <param name="marker_size"		value="$(arg marker_size)"/>
+    <param name="marker_frame"		value="$(arg marker_frame)"/>
+    <param name="image_is_rectified"	value="$(arg image_is_rectified)"/>
+    <param name="planarity_tolerance"	value="$(arg planarity_tolerance)"/>
+  </node>
+
+</launch>
