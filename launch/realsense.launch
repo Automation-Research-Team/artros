@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="marker_size"		default="0.070"/>  <!-- in meters -->
+  <arg name="serial_no"			default=""/>
+  <arg name="camera_name"		default="a_bot_camera"/>
+  <arg name="marker_map_dir"		default="$(dirname)/../config"/>
+  <arg name="marker_map"		default="markermap-17-26-32-256"/>
+  <!-- <arg name="marker_map"		default=""/> -->
+  <arg name="marker_id"			default="26"/>
+  <arg name="planarity_tolerance"	default="0.005"/>
+  <arg name="enable_pointcloud"		default="false"/>
+  <arg name="manager"			default=""/>
+  <arg name="vis"			default="true"/>
+
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="serial_no"		value="$(arg serial_no)"/>
+    <arg name="camera"			value="$(arg camera_name)"/>
+    <arg name="tf_prefix"		value="$(arg camera_name)"/>
+    <arg name="enable_depth"		value="true"/>
+    <arg name="enable_infra1"		value="false"/>
+    <arg name="enable_infra2"		value="false"/>
+    <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
+    <arg name="ordered_pc"		value="true"/>
+    <arg name="align_depth"		value="$(eval not enable_pointcloud)"/>
+    <arg name="manager"			value="$(arg manager)"
+	 unless="$(eval manager == '')"/>
+  </include>
+
+  <include file="$(dirname)/run.launch">
+    <arg name="camera_info_topic"	value="$(arg camera_name
+					       )/color/camera_info"/>
+    <arg unless="$(arg enable_pointcloud)"
+	 name="image_topic"		value="$(arg camera_name
+					       )/color/image_raw"/>
+    <arg unless="$(arg enable_pointcloud)"
+	 name="depth_topic"		value="$(arg camera_name
+					       )/aligned_depth_to_color/image_raw"/>
+    <arg if="$(arg enable_pointcloud)"
+	 name="cloud_topic"		value="$(arg camera_name
+					       )/depth/color/points"/>
+    <arg name="marker_map_dir"		value="$(arg marker_map_dir)"/>
+    <arg name="marker_map"		value="$(arg marker_map)"/>
+    <arg name="marker_id"		value="$(arg marker_id)"/>
+    <arg name="marker_size"		value="$(arg marker_size)"/>
+    <arg name="planarity_tolerance"	value="$(arg planarity_tolerance)"/>
+    <arg name="manager"			value="$(arg manager)"/>
+  </include>
+
+  <group if="$(arg vis)">
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" output="screen"
+	  args="-d $(find aist_aruco_ros)/launch/realsense.rviz"/>
+
+    <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+  </group>
+
+</launch>
