@@ -221,8 +221,6 @@ class PoseTrackingServo
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
   // End-effector pose stuffs
-    bool	getEEFrameTransform(
-		    geometry_msgs::TransformStamped& transform)	const	;
     bool	haveRecentEndEffectorPose(const ros::Duration& timeout)	const;
 
   private:
@@ -998,14 +996,7 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
 }
 
-// End-effector frame stuffs
-bool
-PoseTrackingServo::getEEFrameTransform(
-			geometry_msgs::TransformStamped& transform) const
-{
-    return servo_->getEEFrameTransform(transform);
-}
-
+// End-effector pose stuffs
 bool
 PoseTrackingServo::haveRecentEndEffectorPose(
 			const ros::Duration& timeout) const
