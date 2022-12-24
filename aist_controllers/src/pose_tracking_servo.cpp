@@ -323,6 +323,11 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 {
     readROSParams();
 
+  // Initialize input lowpass-filter
+    input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
+				      input_low_pass_filter_cutoff_frequency_ *
+				      loop_rate_.expectedCycleTime().toSec());
+
   // Initialize PID controllers
     initializePID(x_pid_config_,       cartesian_position_pids_);
     initializePID(y_pid_config_,       cartesian_position_pids_);
