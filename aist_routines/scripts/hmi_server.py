@@ -51,16 +51,6 @@ from std_msgs.msg             import ColorRGBA
 ######################################################################
 class HMIServer(object):
     _Pointing    = ('NO_RES', 'SWEEP_RES', 'RECAPTURE_RES')
-    _RequestHelp = ('NO_REQ', 'SWEEP_DIR_REQ')
-    MarkerProps = collections.namedtuple("MarkerProps",
-                                         "id, length, scale, color")
-    _marker_props = {
-        "finger" :
-        MarkerProps(0, 1.0,  (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8)),
-        "sweep"  :
-        MarkerProps(1, 0.03, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8)),
-        }
-
 
     def __init__(self):
         super(HMIServer, self).__init__()
@@ -103,27 +93,24 @@ class HMIServer(object):
         @type  pointing_msg: finger_pointing_msgs.msg.pointing
         @param pointing_msg: finger direction response from VR side
         """
-        # self._publish_marker('finger', pointing_msg.header,
-        #                      pointing_msg.finger_pos, pointing_msg.finger_dir)
-
         if pointing_msg.pointing_state == pointing.SWEEP_RES:
             rospy.loginfo('(hmi_server) received pointing message[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
-                          %  (self._Pointing[pointing_msg.pointing_state],
-                              pointing_msg.finger_pos.x,
-                              pointing_msg.finger_pos.y,
-                              pointing_msg.finger_pos.z,
-                              pointing_msg.finger_dir.x,
-                              pointing_msg.finger_dir.y,
-                              pointing_msg.finger_dir.z))
+                          % (self._Pointing[pointing_msg.pointing_state],
+                             pointing_msg.finger_pos.x,
+                             pointing_msg.finger_pos.y,
+                             pointing_msg.finger_pos.z,
+                             pointing_msg.finger_dir.x,
+                             pointing_msg.finger_dir.y,
+                             pointing_msg.finger_dir.z))
         elif pointing_msg.pointing_state == pointing.RECAPTURE_RES:
             rospy.logwarn('(hmi_server) received pointing message[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
-                          %  (self._Pointing[pointing_msg.pointing_state],
-                              pointing_msg.finger_pos.x,
-                              pointing_msg.finger_pos.y,
-                              pointing_msg.finger_pos.z,
-                              pointing_msg.finger_dir.x,
-                              pointing_msg.finger_dir.y,
-                              pointing_msg.finger_dir.z))
+                          % (self._Pointing[pointing_msg.pointing_state],
+                             pointing_msg.finger_pos.x,
+                             pointing_msg.finger_pos.y,
+                             pointing_msg.finger_pos.z,
+                             pointing_msg.finger_dir.x,
+                             pointing_msg.finger_dir.y,
+                             pointing_msg.finger_dir.z))
 
         pointing_msg.header.stamp = rospy.Time.now()
         if self._hmi_srv.is_active():
@@ -152,42 +139,6 @@ class HMIServer(object):
         self._hmi_srv.set_preempted()
         self._curr_req = self._no_req           # Revert to _no_req
         rospy.loginfo('(hmi_server) PREEMPTED current goal')
-
-    # Marker stuffs
-    def _delete_markers(self):
-        """
-        Delete all markers published by _marker_pub.
-        """
-        marker        = Marker()
-        marker.action = Marker.DELETEALL
-        marker.ns     = "pointing"
-        self._marker_pub.publish(marker)
-
-    def _publish_marker(self, marker_type, header, pos, dir, lifetime=15):
-        """
-        Publish arrow marker with specified start point and direction.
-
-        @type  pos: geometry_msgs.msg.Point
-        @param pos: start point of the arrow marker
-        @type  dir: geometry_msgs.msg.Vector3
-        @param dir: direction of the arrow marker
-        """
-        marker_prop = HMIServer._marker_props[marker_type]
-        marker              = Marker()
-        marker.header       = header
-        marker.header.stamp = rospy.Time.now()
-        marker.ns           = "pointing"
-        marker.id           = marker_prop.id
-        marker.type         = Marker.ARROW
-        marker.action       = Marker.ADD
-        marker.scale        = Vector3(*marker_prop.scale)
-        marker.color        = ColorRGBA(*marker_prop.color)
-        marker.lifetime     = rospy.Duration(lifetime)
-        marker.points.append(pos)
-        marker.points.append(Point(pos.x + marker_prop.length*dir.x,
-                                   pos.y + marker_prop.length*dir.y,
-                                   pos.z + marker_prop.length*dir.z))
-        self._marker_pub.publish(marker)
 
 
 #########################################################################
