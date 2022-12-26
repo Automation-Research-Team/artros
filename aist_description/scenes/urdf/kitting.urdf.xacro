@@ -5,8 +5,8 @@
   <xacro:property name="plate_l" value="0.42"/>
   <xacro:property name="plate_h" value="0.015"/>
 
-  <xacro:property name="marker_x" value="0.25"/>
-  <xacro:property name="marker_y" value="0.27"/>
+  <xacro:property name="marker_x" value="0.181"/>
+  <xacro:property name="marker_y" value="0.310"/>
 
   <!-- front plate -->
   <xacro:include filename="$(find aist_description)/objects/urdf/aist_box.urdf.xacro"/>
@@ -131,8 +131,8 @@
   <xacro:ar_marker prefix="workspace_"
   		   parent="workspace_center"
   		   marker_id="32"
-  		   size="0.0475"
-  		   margin="0.02625"
+  		   size="0.095"
+  		   margin="0.0525"
   		   thickness="0.003">
     <origin xyz="${marker_x} ${marker_y} 0.0003" rpy="0 0 ${pi/2}"/>
   </xacro:ar_marker>

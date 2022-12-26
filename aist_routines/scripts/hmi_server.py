@@ -35,18 +35,22 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+import rospy, collections
 from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
                                       RequestHelpResult, RequestHelpFeedback,
                                       request_help, pointing)
 from actionlib                import SimpleActionServer
+from visualization_msgs.msg   import Marker
+from geometry_msgs.msg        import (QuaternionStamped, PoseStamped,
+                                      PointStamped, Vector3Stamped,
+                                      Point, Quaternion, Vector3)
+from std_msgs.msg             import ColorRGBA
 
 ######################################################################
 #  class HMIServer                                                   #
 ######################################################################
 class HMIServer(object):
     _Pointing    = ('NO_RES', 'SWEEP_RES', 'RECAPTURE_RES')
-    _RequestHelp = ('NO_REQ', 'SWEEP_DIR_REQ')
 
     def __init__(self):
         super(HMIServer, self).__init__()
@@ -57,10 +61,12 @@ class HMIServer(object):
                                      request=request_help.NO_REQ,
                                      message='no requests')
         self._curr_req = self._no_req
+        self._marker_pub = rospy.Publisher("pointing_marker",
+                                           Marker, queue_size=10)
         self._hmi_pub  = rospy.Publisher('/help', request_help,
-                                             queue_size=10)
+                                         queue_size=10)
         self._hmi_sub  = rospy.Subscriber('/pointing', pointing,
-                                              self._pointing_cb)
+                                          self._pointing_cb)
         self._hmi_srv  = SimpleActionServer('~request_help',
                                             RequestHelpAction,
                                             auto_start=False)
@@ -87,8 +93,24 @@ class HMIServer(object):
         @type  pointing_msg: finger_pointing_msgs.msg.pointing
         @param pointing_msg: finger direction response from VR side
         """
-        rospy.loginfo('(hmi_server) received pointing message[%s]'
-                      %  self._Pointing[pointing_msg.pointing_state])
+        if pointing_msg.pointing_state == pointing.SWEEP_RES:
+            rospy.loginfo('(hmi_server) received pointing message[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
+                          % (self._Pointing[pointing_msg.pointing_state],
+                             pointing_msg.finger_pos.x,
+                             pointing_msg.finger_pos.y,
+                             pointing_msg.finger_pos.z,
+                             pointing_msg.finger_dir.x,
+                             pointing_msg.finger_dir.y,
+                             pointing_msg.finger_dir.z))
+        elif pointing_msg.pointing_state == pointing.RECAPTURE_RES:
+            rospy.logwarn('(hmi_server) received pointing message[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
+                          % (self._Pointing[pointing_msg.pointing_state],
+                             pointing_msg.finger_pos.x,
+                             pointing_msg.finger_pos.y,
+                             pointing_msg.finger_pos.z,
+                             pointing_msg.finger_dir.x,
+                             pointing_msg.finger_dir.y,
+                             pointing_msg.finger_dir.z))
 
         pointing_msg.header.stamp = rospy.Time.now()
         if self._hmi_srv.is_active():

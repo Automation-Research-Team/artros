@@ -221,8 +221,6 @@ class PoseTrackingServo
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
   // End-effector pose stuffs
-    bool	getEEFrameTransform(
-		    geometry_msgs::TransformStamped& transform)	const	;
     bool	haveRecentEndEffectorPose(const ros::Duration& timeout)	const;
 
   private:
@@ -322,6 +320,11 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      target_pose_mtx_()
 {
     readROSParams();
+
+  // Initialize input lowpass-filter
+    input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
+				      input_low_pass_filter_cutoff_frequency_ *
+				      loop_rate_.expectedCycleTime().toSec());
 
   // Initialize PID controllers
     initializePID(x_pid_config_,       cartesian_position_pids_);
@@ -993,14 +996,7 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
 }
 
-// End-effector frame stuffs
-bool
-PoseTrackingServo::getEEFrameTransform(
-			geometry_msgs::TransformStamped& transform) const
-{
-    return servo_->getEEFrameTransform(transform);
-}
-
+// End-effector pose stuffs
 bool
 PoseTrackingServo::haveRecentEndEffectorPose(
 			const ros::Duration& timeout) const

@@ -1,7 +1,8 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="sim"	default="false"/>
+  <arg name="sim"		default="false"/>
+  <arg name="rviz_config"	default="kitting"/>
 
   <!-- Start robots -->
   <arg name="config"	value="aist"/>
@@ -10,7 +11,7 @@
     <arg name="scene"		value="$(arg scene)"/>
     <arg name="sim"		value="$(arg sim)"/>
     <arg name="rviz_config"	value="$(find aist_routines
-				       )/launch/kitting.rviz"/>
+				       )/launch/$(arg rviz_config).rviz"/>
   </include>
 
   <!-- Start graspability server -->

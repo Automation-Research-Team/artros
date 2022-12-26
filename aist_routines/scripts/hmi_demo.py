@@ -58,13 +58,11 @@ from std_msgs.msg             import ColorRGBA
 class HMIRoutines(AISTBaseRoutines):
     """Implements HMI routines for aist robot system."""
 
-    MarkerProps = collections.namedtuple("MarkerProps",
-                                         "id, length, scale, color")
+    MarkerProps = collections.namedtuple('MarkerProps',
+                                         'id, scale, color')
     _marker_props = {
-        "finger" :
-        MarkerProps(0, 1.0,  (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8)),
-        "sweep"  :
-        MarkerProps(1, 0.03, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8)),
+        'finger' : MarkerProps(0, (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8)),
+        'sweep'  : MarkerProps(1, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8))
         }
 
     def __init__(self, server='hmi_server'):
@@ -332,7 +330,7 @@ class HMIRoutines(AISTBaseRoutines):
         res = feedback.response
         self._publish_marker('finger',
                              res.header, res.finger_pos, res.finger_dir)
-        print('*** feedback=%s' % str(res))
+        #print('*** feedback=%s' % str(res))
 
     # Marker stuffs
     def _delete_markers(self):
@@ -354,6 +352,18 @@ class HMIRoutines(AISTBaseRoutines):
         @param dir: direction of the arrow marker
         """
         marker_prop = HMIRoutines._marker_props[marker_type]
+
+        if marker_type == 'finger':
+            workspace_center = PointStamped()
+            workspace_center.header.stamp    = header.stamp
+            workspace_center.header.frame_id = 'workspace_center'
+            workspace_center.point           = Point(0, 0, 0)
+            t = (self.listener.transformPoint(header.frame_id,
+                                              workspace_center).point.z
+                 - pos.z) / dir.z
+        else:
+            t = 0.03
+
         marker              = Marker()
         marker.header       = header
         marker.header.stamp = rospy.Time.now()
@@ -365,9 +375,9 @@ class HMIRoutines(AISTBaseRoutines):
         marker.color        = ColorRGBA(*marker_prop.color)
         marker.lifetime     = rospy.Duration(lifetime)
         marker.points.append(pos)
-        marker.points.append(Point(pos.x + marker_prop.length*dir.x,
-                                   pos.y + marker_prop.length*dir.y,
-                                   pos.z + marker_prop.length*dir.z))
+        marker.points.append(Point(pos.x + t*dir.x,
+                                   pos.y + t*dir.y,
+                                   pos.z + t*dir.z))
         self._marker_pub.publish(marker)
 
     # Misc stuffs

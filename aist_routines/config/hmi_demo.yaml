@@ -234,13 +234,13 @@ graspability_parameters:
     open_width: 100
     finger_width: 1
     finger_thickness: 5
-    insertion_depth: 0.020
+    insertion_depth: 0.002
   05_MBRFA30-2-P6:
     ns: 2
     nz: 0.7
-    object_size: 15
-    min_distance: 30
-    contact_radius: 15
+    object_size: 5
+    min_distance: 10
+    contact_radius: 3
     open_width: 45
     finger_width: 1
     finger_thickness: 5
