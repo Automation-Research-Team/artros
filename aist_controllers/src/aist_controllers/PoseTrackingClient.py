@@ -50,5 +50,8 @@ class PoseTrackingClient(object):
         if wait:
             self._pose_tracking.wait_for_result()
 
+    def cancel_all_goals(self):
+        self._pose_tracking.cancel_all_goals()
+
     def get_state(self):
         return self._pose_tracking.get_state()

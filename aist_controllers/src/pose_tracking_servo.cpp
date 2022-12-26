@@ -779,6 +779,8 @@ PoseTrackingServo::goalCB()
 	    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
 				  << current_goal_->target_offset << ']');
 
+	    if (tracker_srv_.isPreemptRequested())
+		preemptCB();
 	    return;
 	}
 
