@@ -7,7 +7,7 @@ robot_effector_frame: arm_ee_link
 robot_effector_tip_frame: magnet_tip_link
 camera_parent_frame: magripper_phoxi_flange
 marker_map: markermap-17-26-32-256
-marker_size: 0.150
+marker_size: 0.070
 planarity_tolerance: 0.001
 initpose: [0.40,  0.00, 0.75, 90, 0, 0]
 keyposes:

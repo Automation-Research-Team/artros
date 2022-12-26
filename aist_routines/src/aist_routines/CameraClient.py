@@ -107,12 +107,18 @@ class RealSenseCamera(DepthCamera):
         super(RealSenseCamera, self).__init__(name)
         self._dyn_camera = dynamic_reconfigure.client.Client(name, timeout=5.0)
 
-    def is_continuous_shot(self):
-        return self._dyn_reconf.get_configuration()['enable_streaming']
+    # def is_continuous_shot(self):
+    #     return self._dyn_reconf.get_configuration()['enable_streaming']
 
-    def continuous_shot(self, enabled):
-        self._dyn_camera.update_configuration({'enable_streaming' : enabled})
-        return True
+    # def continuous_shot(self, enabled):
+    #     self._dyn_camera.update_configuration({'enable_streaming' : enabled})
+    #     return True
+
+    # def trigger_frame(self):
+    #     self.continuous_shot(True)
+    #     rospy.sleep(0.5)
+    #     self.continuous_shot(False)
+    #     return True
 
 ######################################################################
 #  class CodedLightRealSenseCamera                                   #
