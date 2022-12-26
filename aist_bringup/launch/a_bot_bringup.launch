@@ -66,7 +66,7 @@
   <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
     <arg name="camera_names"		value="$(arg camera_names)"/>
     <arg name="serial_nos"		value="$(arg serial_nos)"/>
-    <arg name="publish_tf"		value="false"/>
+    <arg name="publish_tf"		value="true"/>
     <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
     <arg name="camera_width"		value="$(arg camera_width)"/>
     <arg name="camera_height"		value="$(arg camera_height)"/>
