@@ -75,7 +75,7 @@
     <!--   <arg name="color_width"		value="$(arg camera_width)"/> -->
     <!--   <arg name="color_height"		value="$(arg camera_height)"/> -->
     <!--   <arg name="color_fps"		value="$(arg fps)"/> -->
-    <!--   <arg name="publish_tf"		value="false"/> -->
+    <!--   <arg name="publish_tf"		value="true"/> -->
     <!--   <arg name="manager"		value="$(arg manager)" -->
     <!-- 	   unless="$(eval manager == '')"/> -->
     <!-- </include> -->

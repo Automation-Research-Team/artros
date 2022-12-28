@@ -779,12 +779,22 @@ PoseTrackingServo::goalCB()
 	    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
 				  << current_goal_->target_offset << ']');
 
+	    if (tracker_srv_.isPreemptRequested())
+		preemptCB();
+
 	    return;
 	}
 
 	if (servo_->getEEFrameTransform(ee_frame_transform_))
 	    ee_frame_transform_stamp_ = ros::Time::now();
     }
+
+  // No target pose available recently.
+  // Once accept the pending goal and then abort it immediately.
+    current_goal_ = tracker_srv_.acceptNewGoal();
+    PoseTrackingResult	result;
+    result.status = static_cast<int8_t>(servo_status_);
+    tracker_srv_.setAborted(result);
 
     ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Cannot accept goal because no target pose available recently.");
 }

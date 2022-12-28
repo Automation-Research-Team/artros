@@ -1040,9 +1040,9 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
     }
 
   // Convert back to joint angle increments.
-    if (velocity_scaling_factor < 1.0)
-      std::cerr << "*** velocity_scaling_factor="
-		<< velocity_scaling_factor << std::endl;
+    // if (velocity_scaling_factor < 1.0)
+    //   std::cerr << "*** velocity_scaling_factor="
+    // 		<< velocity_scaling_factor << std::endl;
     delta_theta = velocity_scaling_factor * velocity
     		* parameters_.publish_period;
 }
