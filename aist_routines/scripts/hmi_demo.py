@@ -73,11 +73,11 @@ class HMIRoutines(AISTBaseRoutines):
         self._part_props         = rospy.get_param('~part_props')
         self._current_robot_name = None
         self._fail_poses         = []
-        self._request_help_srv   = SimpleActionClient(server + '/request_help',
+        self._request_help_clnt  = SimpleActionClient(server + '/request_help',
                                                       RequestHelpAction)
         self._marker_pub         = rospy.Publisher("pointing_marker",
                                                    Marker, queue_size=10)
-        self._request_help_srv.wait_for_server()
+        self._request_help_clnt.wait_for_server()
 
     @property
     def nbins(self):
@@ -112,10 +112,7 @@ class HMIRoutines(AISTBaseRoutines):
 
         orientation = QuaternionStamped()
         orientation.header.frame_id = self.reference_frame
-        orientation.quaternion.x = 0
-        orientation.quaternion.y = 0
-        orientation.quaternion.z = 0
-        orientation.quaternion.w = 1
+        orientation.quaternion = Quaternion(0, 0, 0, 1)
         return self.graspability_wait_for_result(orientation, max_slant)
 
     def sweep_bin(self, bin_id):
@@ -266,10 +263,10 @@ class HMIRoutines(AISTBaseRoutines):
         req.pose       = self.listener.transformPose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
-        self._request_help_srv.send_goal(RequestHelpGoal(req),
+        self._request_help_clnt.send_goal(RequestHelpGoal(req),
                                          feedback_cb=self._feedback_cb)
-        self._request_help_srv.wait_for_result()
-        return self._request_help_srv.get_result().response
+        self._request_help_clnt.wait_for_result()
+        return self._request_help_clnt.get_result().response
 
     def _request_help_and_sweep(self, robot_name, pose, part_id, message):
         """
