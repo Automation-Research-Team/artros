@@ -23,10 +23,4 @@
     <arg name="normal_topic"		value="$(arg camera_name)/normal_map"/>
   </include>
 
-  <!-- Start rosbridge server -->
-  <arg name="port"	value="9090"/>
-  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
-    <arg name="port"	value="$(arg port)"/>
-  </include>
-
 </launch>
