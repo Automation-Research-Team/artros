@@ -105,6 +105,12 @@ class Servo
   // Give test access to private/protected methods
     friend class ServoFixture;
 
+    aist_controllers::DurationArray&
+	 durations()
+	 {
+	     return servo_calcs_->durations();
+	 }
+
   private:
     bool readParameters();
 

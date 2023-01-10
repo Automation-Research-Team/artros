@@ -45,6 +45,11 @@ add_action_files(
     PoseTracking.action
 )
 
+add_message_files(
+  FILES
+    DurationArray.msg
+)
+
 generate_messages(
   DEPENDENCIES
     actionlib_msgs
