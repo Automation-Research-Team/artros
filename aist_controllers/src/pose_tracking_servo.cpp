@@ -240,7 +240,8 @@ class PoseTrackingServo
     ros::Publisher				target_pose_pub_;  // for debug
     ros::Publisher				ee_pose_pub_;	   // for debug
     ros::Rate					loop_rate_;
-
+    DurationArray&				durations_;
+    
   // Action server stuffs
     server_t					tracker_srv_;
     boost::shared_ptr<const server_t::Goal>	current_goal_;
@@ -293,6 +294,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      ee_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
 		      "ee_pose_debug", 1)),
      loop_rate_(DEFAULT_LOOP_RATE),
+     durations_(servo_->durations()),
 
      tracker_srv_(nh_, "pose_tracking", false),
      current_goal_(nullptr),
@@ -441,6 +443,8 @@ PoseTrackingServo::run()
 void
 PoseTrackingServo::tick()
 {
+    durations_.tick_begin = ros::Time::now() - durations_.header.stamp;
+    
     if (!tracker_srv_.isActive())
 	return;
 
@@ -490,6 +494,9 @@ PoseTrackingServo::tick()
   // Attempt to update robot pose.
     if (servo_->getEEFrameTransform(ee_frame_transform_))
 	ee_frame_transform_stamp_ = ros::Time::now();
+
+    durations_.ee_frame_in = ee_frame_transform_stamp_
+			   - durations_.header.stamp;
 
   // Check that end-effector pose (command frame transform) is recent enough.
     if (!haveRecentEndEffectorPose(current_goal_->timeout))
@@ -541,6 +548,8 @@ PoseTrackingServo::tick()
   // to the Servo object, for execution
     twist_stamped_pub_.publish(calculateTwistCommand(positional_error,
 						     angular_error));
+
+    durations_.twist_out = ros::Time::now() - durations_.header.stamp;
 
   // For debugging
     ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
@@ -727,6 +736,9 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
   // which will cause the haveRecentTargetPose check to fail servo motions
     if (target_pose_.header.stamp == ros::Time(0))
 	target_pose_.header.stamp = ros::Time::now();
+
+    durations_.header	      = target_pose_.header;
+    durations_.target_pose_in = ros::Time::now() - durations_.header.stamp;
 
   // If the target pose is defined in planning frame, it's OK as is.
     if (target_pose_.header.frame_id == planning_frame_)
