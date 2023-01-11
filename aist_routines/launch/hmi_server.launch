@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <!-- Start hmi_demo server -->
+  <node name="hmi_server"
+  	pkg="aist_routines" type="hmi_server.py" output="screen"/>
+
+</launch>
