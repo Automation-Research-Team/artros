@@ -71,11 +71,11 @@ class HMIRoutines(AISTBaseRoutines):
         self._ground_frame       = rospy.get_param('~ground_frame', 'ground')
         self._bin_props          = rospy.get_param('~bin_props')
         self._part_props         = rospy.get_param('~part_props')
-        self._current_robot_name = None
         self._hmi_graspability_params \
             = rospy.get_param('~hmi_graspability_parameters')
-        self._fail_poses         = []
         self._graspability_params_back = None
+        self._current_robot_name = None
+        self._fail_poses         = []
         self._request_help_clnt  = SimpleActionClient(server + '/request_help',
                                                       RequestHelpAction)
         self._marker_pub         = rospy.Publisher("pointing_marker",
@@ -89,6 +89,10 @@ class HMIRoutines(AISTBaseRoutines):
     @property
     def current_robot_name(self):
         return self._current_robot_name
+
+    @property
+    def use_hmi_graspability_params(self):
+        return self._graspability_params_back is not None
 
     ###----- main procedure
     def demo(self, bin_id, max_attempts=1):
@@ -174,11 +178,7 @@ class HMIRoutines(AISTBaseRoutines):
         poses, _ = self.search(bin_id)
 
         # Attempt to pick the item.
-        nattempts = 0
         for p in poses.poses:
-            if nattempts == max_attempts:
-                break
-
             pose = PoseStamped(poses.header, p)
             if self._is_close_to_fail_poses(pose):
                 continue
@@ -205,7 +205,11 @@ class HMIRoutines(AISTBaseRoutines):
                 self.restore_original_graspability_params(bin_id)
                 return True
 
-        return False
+        if self.use_hmi_graspability_params:
+            return False
+        else:
+            self.set_hmi_graspability_params(bin_id)
+            return True
 
     def request_help_bin(self, bin_id):
         """
@@ -243,6 +247,8 @@ class HMIRoutines(AISTBaseRoutines):
         print('*** response=%s' % str(res))
 
     def set_hmi_graspability_params(self, bin_id):
+        if self.use_hmi_graspability_params:
+            return
         part_id = self._bin_props[bin_id]['part_id']
         self._grasparility_params_back = self._graspability_params[part_id]
         self._graspability_params[part_id] \
@@ -250,9 +256,11 @@ class HMIRoutines(AISTBaseRoutines):
         rospy.logwarn('(hmi_demo) Set graspability paramters for HMI demo.')
 
     def restore_original_graspability_params(self, bin_id):
+        if not self.use_hmi_graspability_params:
+            return
         part_id = self._bin_props[bin_id]['part_id']
-        if self._graspability_params_back is not None:
-            self._graspability_params[part_id] = self._graspability_params_back
+        self._graspability_params[part_id] = self._graspability_params_back
+        self._graspability_params_back = None
         rospy.logwarn('(hmi_demo) Restore original graspability paramters.')
 
     def clear_fail_poses(self):
@@ -311,13 +319,11 @@ class HMIRoutines(AISTBaseRoutines):
             self._publish_marker('sweep', pose.header, pose.pose.position,
                                  Vector3(*sweep_dir))
             result = self.sweep(robot_name, pose, sweep_dir, part_id)
-            print('*** OK1')
             if result == SweepResult.MOVE_FAILURE or \
                result == SweepResult.APPROACH_FAILURE:
                 return True                     # Need to send request again
             elif result == SweepResult.DEPARTURE_FAILURE:
                 raise RuntimeError('Failed to depart from sweep pose')
-            print('*** OK2')
 
         elif res.pointing_state == pointing.RECAPTURE_RES:
             rospy.loginfo('(hmi_demo) Recapture required.')
@@ -461,10 +467,8 @@ if __name__ == '__main__':
                 elif key == 'A':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     hmi.clear_fail_poses()
-                    for i in range(2):
-                        while hmi.attempt_bin(bin_id, 5):
-                            pass
-                        hmi.set_hmi_graspability_params(bin_id)
+                    while hmi.attempt_bin(bin_id, 5):
+                        pass
                     hmi.go_to_named_pose(hmi.current_robot_name, 'home')
                 elif key == 'w':
                     bin_id = 'bin_' + raw_input('  bin id? ')
