@@ -117,6 +117,7 @@ class HMIServer(object):
                 self._request_help_srv.set_succeeded(RequestHelpResult(
                                                         pointing_msg))
                 self._curr_req = self._no_req   # Revert to _no_req
+                rospy.loginfo('(hmi_server) SUCCEEDED current goal')
 
     def _goal_cb(self):
         """

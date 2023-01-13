@@ -91,8 +91,8 @@ class HMIRoutines(AISTBaseRoutines):
         return self._current_robot_name
 
     @property
-    def use_hmi_graspability_params(self):
-        return self._graspability_params_back is not None
+    def using_hmi_graspability_params(self):
+        return not self._graspability_params_back is None
 
     ###----- main procedure
     def demo(self, bin_id, max_attempts=1):
@@ -202,13 +202,13 @@ class HMIRoutines(AISTBaseRoutines):
                 while self._request_help_and_sweep(robot_name, pose, part_id,
                                                    message):
                     message = 'Planning for sweeping failed! Please specify another sweep direction.'
-                self.restore_original_graspability_params(bin_id)
+                self._restore_original_graspability_params(bin_id)
                 return True
 
-        if self.use_hmi_graspability_params:
+        if self.using_hmi_graspability_params:
             return False
         else:
-            self.set_hmi_graspability_params(bin_id)
+            self._set_hmi_graspability_params(bin_id)
             return True
 
     def request_help_bin(self, bin_id):
@@ -245,26 +245,6 @@ class HMIRoutines(AISTBaseRoutines):
             self._publish_marker('sweep', pose.header, pose.pose.position,
                                  Vector3(*sweep_dir))
         print('*** response=%s' % str(res))
-
-    def set_hmi_graspability_params(self, bin_id):
-        if self.use_hmi_graspability_params:
-            return
-        part_id = self._bin_props[bin_id]['part_id']
-        self._grasparility_params_back = self._graspability_params[part_id]
-        self._graspability_params[part_id] \
-            = self._hmi_graspability_params[part_id]
-        rospy.logwarn('(hmi_demo) Set graspability paramters for HMI demo.')
-
-    def restore_original_graspability_params(self, bin_id):
-        if not self.use_hmi_graspability_params:
-            return
-        part_id = self._bin_props[bin_id]['part_id']
-        self._graspability_params[part_id] = self._graspability_params_back
-        self._graspability_params_back = None
-        rospy.logwarn('(hmi_demo) Restore original graspability paramters.')
-
-    def clear_fail_poses(self):
-        self._fail_poses = []
 
     # Request help stuffs
     def _request_help(self, robot_name, pose, part_id, message):
@@ -403,6 +383,28 @@ class HMIRoutines(AISTBaseRoutines):
         self._marker_pub.publish(marker)
 
     # Misc stuffs
+    def _set_hmi_graspability_params(self, bin_id):
+        if self.using_hmi_graspability_params:
+            rospy.logwarn('(hmi_demo) Already using graspability paramters for HMI demo.')
+            return
+        part_id = self._bin_props[bin_id]['part_id']
+        self._graspability_params_back = self._graspability_params[part_id]
+        self._graspability_params[part_id] \
+            = self._hmi_graspability_params[part_id]
+        rospy.loginfo('(hmi_demo) Set graspability paramters for HMI demo.')
+
+    def _restore_original_graspability_params(self, bin_id):
+        if not self.using_hmi_graspability_params:
+            rospy.logwarn('(hmi_demo) Already using original graspability paramters.')
+            return
+        part_id = self._bin_props[bin_id]['part_id']
+        self._graspability_params[part_id] = self._graspability_params_back
+        self._graspability_params_back = None
+        rospy.loginfo('(hmi_demo) Restore original graspability paramters.')
+
+    def clear_fail_poses(self):
+        self._fail_poses = []
+
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'
 
