@@ -61,8 +61,8 @@ class HMIRoutines(AISTBaseRoutines):
     MarkerProps = collections.namedtuple('MarkerProps',
                                          'id, scale, color')
     _marker_props = {
-        'finger' : MarkerProps(0, (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8)),
-        'sweep'  : MarkerProps(1, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8))
+        'finger' : MarkerProps(0, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8)),
+        'sweep'  : MarkerProps(1, (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8))
         }
 
     def __init__(self, server='hmi_server'):
