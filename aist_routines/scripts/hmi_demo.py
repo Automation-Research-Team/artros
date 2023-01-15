@@ -61,8 +61,8 @@ class HMIRoutines(AISTBaseRoutines):
     MarkerProps = collections.namedtuple('MarkerProps',
                                          'id, scale, color')
     _marker_props = {
-        'finger' : MarkerProps(0, (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8)),
-        'sweep'  : MarkerProps(1, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8))
+        'finger' : MarkerProps(0, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8)),
+        'sweep'  : MarkerProps(1, (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8))
         }
 
     def __init__(self, server='hmi_server'):
@@ -71,13 +71,16 @@ class HMIRoutines(AISTBaseRoutines):
         self._ground_frame       = rospy.get_param('~ground_frame', 'ground')
         self._bin_props          = rospy.get_param('~bin_props')
         self._part_props         = rospy.get_param('~part_props')
+        self._hmi_graspability_params \
+            = rospy.get_param('~hmi_graspability_parameters')
+        self._graspability_params_back = None
         self._current_robot_name = None
         self._fail_poses         = []
-        self._request_help_srv   = SimpleActionClient(server + '/request_help',
+        self._request_help_clnt  = SimpleActionClient(server + '/request_help',
                                                       RequestHelpAction)
         self._marker_pub         = rospy.Publisher("pointing_marker",
                                                    Marker, queue_size=10)
-        self._request_help_srv.wait_for_server()
+        self._request_help_clnt.wait_for_server()
 
     @property
     def nbins(self):
@@ -86,6 +89,10 @@ class HMIRoutines(AISTBaseRoutines):
     @property
     def current_robot_name(self):
         return self._current_robot_name
+
+    @property
+    def using_hmi_graspability_params(self):
+        return not self._graspability_params_back is None
 
     ###----- main procedure
     def demo(self, bin_id, max_attempts=1):
@@ -112,10 +119,7 @@ class HMIRoutines(AISTBaseRoutines):
 
         orientation = QuaternionStamped()
         orientation.header.frame_id = self.reference_frame
-        orientation.quaternion.x = 0
-        orientation.quaternion.y = 0
-        orientation.quaternion.z = 0
-        orientation.quaternion.w = 1
+        orientation.quaternion = Quaternion(0, 0, 0, 1)
         return self.graspability_wait_for_result(orientation, max_slant)
 
     def sweep_bin(self, bin_id):
@@ -174,11 +178,7 @@ class HMIRoutines(AISTBaseRoutines):
         poses, _ = self.search(bin_id)
 
         # Attempt to pick the item.
-        nattempts = 0
         for p in poses.poses:
-            if nattempts == max_attempts:
-                break
-
             pose = PoseStamped(poses.header, p)
             if self._is_close_to_fail_poses(pose):
                 continue
@@ -202,9 +202,14 @@ class HMIRoutines(AISTBaseRoutines):
                 while self._request_help_and_sweep(robot_name, pose, part_id,
                                                    message):
                     message = 'Planning for sweeping failed! Please specify another sweep direction.'
+                self._restore_original_graspability_params(bin_id)
                 return True
 
-        return False
+        if self.using_hmi_graspability_params:
+            return False
+        else:
+            self._set_hmi_graspability_params(bin_id)
+            return True
 
     def request_help_bin(self, bin_id):
         """
@@ -241,9 +246,6 @@ class HMIRoutines(AISTBaseRoutines):
                                  Vector3(*sweep_dir))
         print('*** response=%s' % str(res))
 
-    def clear_fail_poses(self):
-        self._fail_poses = []
-
     # Request help stuffs
     def _request_help(self, robot_name, pose, part_id, message):
         """
@@ -266,10 +268,10 @@ class HMIRoutines(AISTBaseRoutines):
         req.pose       = self.listener.transformPose(self._ground_frame, pose)
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
-        self._request_help_srv.send_goal(RequestHelpGoal(req),
+        self._request_help_clnt.send_goal(RequestHelpGoal(req),
                                          feedback_cb=self._feedback_cb)
-        self._request_help_srv.wait_for_result()
-        return self._request_help_srv.get_result().response
+        self._request_help_clnt.wait_for_result()
+        return self._request_help_clnt.get_result().response
 
     def _request_help_and_sweep(self, robot_name, pose, part_id, message):
         """
@@ -302,6 +304,7 @@ class HMIRoutines(AISTBaseRoutines):
                 return True                     # Need to send request again
             elif result == SweepResult.DEPARTURE_FAILURE:
                 raise RuntimeError('Failed to depart from sweep pose')
+
         elif res.pointing_state == pointing.RECAPTURE_RES:
             rospy.loginfo('(hmi_demo) Recapture required.')
         else:
@@ -330,7 +333,6 @@ class HMIRoutines(AISTBaseRoutines):
         res = feedback.response
         self._publish_marker('finger',
                              res.header, res.finger_pos, res.finger_dir)
-        #print('*** feedback=%s' % str(res))
 
     # Marker stuffs
     def _delete_markers(self):
@@ -381,6 +383,28 @@ class HMIRoutines(AISTBaseRoutines):
         self._marker_pub.publish(marker)
 
     # Misc stuffs
+    def _set_hmi_graspability_params(self, bin_id):
+        if self.using_hmi_graspability_params:
+            rospy.logwarn('(hmi_demo) Already using graspability paramters for HMI demo.')
+            return
+        part_id = self._bin_props[bin_id]['part_id']
+        self._graspability_params_back = self._graspability_params[part_id]
+        self._graspability_params[part_id] \
+            = self._hmi_graspability_params[part_id]
+        rospy.loginfo('(hmi_demo) Set graspability paramters for HMI demo.')
+
+    def _restore_original_graspability_params(self, bin_id):
+        if not self.using_hmi_graspability_params:
+            rospy.logwarn('(hmi_demo) Already using original graspability paramters.')
+            return
+        part_id = self._bin_props[bin_id]['part_id']
+        self._graspability_params[part_id] = self._graspability_params_back
+        self._graspability_params_back = None
+        rospy.loginfo('(hmi_demo) Restore original graspability paramters.')
+
+    def clear_fail_poses(self):
+        self._fail_poses = []
+
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'
 

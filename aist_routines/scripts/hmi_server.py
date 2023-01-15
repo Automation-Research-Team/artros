@@ -35,16 +35,14 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, collections
+import rospy
 from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
                                       RequestHelpResult, RequestHelpFeedback,
                                       request_help, pointing)
 from actionlib                import SimpleActionServer
-from visualization_msgs.msg   import Marker
 from geometry_msgs.msg        import (QuaternionStamped, PoseStamped,
                                       PointStamped, Vector3Stamped,
                                       Point, Quaternion, Vector3)
-from std_msgs.msg             import ColorRGBA
 
 ######################################################################
 #  class HMIServer                                                   #
@@ -55,31 +53,29 @@ class HMIServer(object):
     def __init__(self):
         super(HMIServer, self).__init__()
 
-        self._seq     = 0
-        self._no_req  = request_help(robot_name='unknown robot name',
-                                     item_id='unknown part ID',
-                                     request=request_help.NO_REQ,
-                                     message='no requests')
-        self._curr_req = self._no_req
-        self._marker_pub = rospy.Publisher("pointing_marker",
-                                           Marker, queue_size=10)
-        self._hmi_pub  = rospy.Publisher('/help', request_help,
-                                         queue_size=10)
-        self._hmi_sub  = rospy.Subscriber('/pointing', pointing,
-                                          self._pointing_cb)
-        self._hmi_srv  = SimpleActionServer('~request_help',
-                                            RequestHelpAction,
-                                            auto_start=False)
+        self._seq              = 0
+        self._no_req           = request_help(robot_name='unknown robot name',
+                                              item_id='unknown part ID',
+                                              request=request_help.NO_REQ,
+                                              message='no requests')
+        self._curr_req         = self._no_req
+        self._request_help_pub = rospy.Publisher('/help', request_help,
+                                                 queue_size=10)
+        self._pointing_sub     = rospy.Subscriber('/pointing', pointing,
+                                                  self._pointing_cb)
+        self._request_help_srv = SimpleActionServer('~request_help',
+                                                    RequestHelpAction,
+                                                    auto_start=False)
 
-        self._hmi_srv.register_goal_callback(self._goal_cb)
-        self._hmi_srv.register_preempt_callback(self._preempt_cb)
-        self._hmi_srv.start()
+        self._request_help_srv.register_goal_callback(self._goal_cb)
+        self._request_help_srv.register_preempt_callback(self._preempt_cb)
+        self._request_help_srv.start()
 
     def run(self):
         rate = rospy.Rate(10)   # 10Hz
         while not rospy.is_shutdown():
             self._curr_req.pose.header.seq = self._seq
-            self._hmi_pub.publish(self._curr_req)
+            self._request_help_pub.publish(self._curr_req)
             self._seq += 1
             rate.sleep()
 
@@ -113,20 +109,22 @@ class HMIServer(object):
                              pointing_msg.finger_dir.z))
 
         pointing_msg.header.stamp = rospy.Time.now()
-        if self._hmi_srv.is_active():
+        if self._request_help_srv.is_active():
             if pointing_msg.pointing_state == pointing.NO_RES:
-                self._hmi_srv.publish_feedback(
+                self._request_help_srv.publish_feedback(
                     RequestHelpFeedback(pointing_msg))
             else:
-                self._hmi_srv.set_succeeded(RequestHelpResult(pointing_msg))
+                self._request_help_srv.set_succeeded(RequestHelpResult(
+                                                        pointing_msg))
                 self._curr_req = self._no_req   # Revert to _no_req
+                rospy.loginfo('(hmi_server) SUCCEEDED current goal')
 
     def _goal_cb(self):
         """
         Accept new goal from action client and store the help request from
         robot side in _curr_req.
         """
-        self._curr_req = self._hmi_srv.accept_new_goal().request
+        self._curr_req = self._request_help_srv.accept_new_goal().request
         rospy.loginfo('(hmi_server) ACCPETED new goal[robot_name=%s, item_id=%s. request=%d]',
                       self._curr_req.robot_name, self._curr_req.item_id,
                       self._curr_req.request)
@@ -136,7 +134,7 @@ class HMIServer(object):
         Set state of the goal to PREEMPTED and revert _curr_req to _no_req
         upon a cancel request from the action client.
         """
-        self._hmi_srv.set_preempted()
+        self._request_help_srv.set_preempted()
         self._curr_req = self._no_req           # Revert to _no_req
         rospy.loginfo('(hmi_server) PREEMPTED current goal')
 

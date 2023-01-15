@@ -59,8 +59,7 @@ class Sweep(object):
     # Client stuffs
     def execute(self, robot_name, pose_stamped, sweep_length,
                 sweep_offset, approach_offset, departure_offset,
-                speed_fast, speed_slow, timeout=rospy.Duration(0),
-                feedback_cb=None):
+                speed_fast, speed_slow, wait=True, feedback_cb=None):
         goal = SweepGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
@@ -71,7 +70,7 @@ class Sweep(object):
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
         self._client.send_goal(goal, feedback_cb=feedback_cb)
-        return self.wait_for_result(timeout)
+        return self.wait_for_result() if wait else None
 
     def wait_for_result(self, timeout=rospy.Duration(0)):
         if self._client.wait_for_result(timeout):

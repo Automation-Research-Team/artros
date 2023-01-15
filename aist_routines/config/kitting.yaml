@@ -374,3 +374,64 @@ graspability_parameters:
     finger_width: 1
     finger_thickness: 5
     insertion_depth: 0.001
+
+hmi_graspability_parameters:
+  04_37D-GEARMOTOR-50-70:
+    ns: 2
+    nz: 0.7
+    object_size: 15
+    min_distance: 30
+    contact_radius: 15
+    open_width: 100
+    finger_width: 1
+    finger_thickness: 5
+    insertion_depth: 0.002
+  05_MBRFA30-2-P6:
+    ns: 2
+    nz: 0.7
+    object_size: 5
+    min_distance: 20
+    contact_radius: 3
+    open_width: 45
+    finger_width: 1
+    finger_thickness: 5
+    insertion_depth: 0.002
+  07_SBARB6200ZZ_30:
+    ns: 2
+    nz: 0.7
+    object_size: 15
+    min_distance: 30
+    contact_radius: 10
+    open_width: 20
+    finger_width: 1
+    finger_thickness: 5
+    insertion_depth: 0.003
+  08_KZAF1075NA4WA55GA20AA0:
+    ns: 0
+    object_size: 4
+    min_distance: 30
+    contact_radius: 2
+    open_width: 20
+    finger_width: 1
+    finger_thickness: 5
+    insertion_depth: 0.004
+  16_SPWF6:
+    ns: 0
+    nz: 0.7
+    object_size: 3
+    min_distance: 30
+    contact_radius: 3
+    open_width: 15
+    finger_width: 1
+    finger_thickness: 5
+    insertion_depth: 0.001
+  17_SCB4-10:
+    ns: 0
+    nz: 0.7
+    object_size: 1
+    min_distance: 30
+    contact_radius: 1
+    open_width: 10
+    finger_width: 1
+    finger_thickness: 5
+    insertion_depth: 0.001

@@ -59,6 +59,7 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
+#include <aist_controllers/DurationArray.h>
 
 // moveit_servo
 #include <moveit_servo/servo_parameters.h>
@@ -112,6 +113,8 @@ class ServoCalcs
    * This must be a link on the robot since MoveIt tracks the transform (not tf)
    */
     void changeRobotLinkCommandFrame(const std::string& new_command_frame);
+
+    aist_controllers::DurationArray&	durations()	{ return durations_; }
 
   // Give test access to private/protected methods
     friend class ServoFixture;
@@ -304,9 +307,11 @@ class ServoCalcs
     ros::Publisher				worst_case_stop_time_pub_;
     ros::Publisher				outgoing_cmd_pub_;
     ros::Publisher				outgoing_cmd_debug_pub_;
+    ros::Publisher				durations_pub_;
     ros::ServiceServer				drift_dimensions_server_;
     ros::ServiceServer				control_dimensions_server_;
     ros::ServiceServer				reset_servo_status_;
+    aist_controllers::DurationArray		durations_;
     ddynamic_reconfigure::DDynamicReconfigure	ddr_;
 
   // Main tracking / result publisher loop

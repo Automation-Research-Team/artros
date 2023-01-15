@@ -201,6 +201,8 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
     status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
 						ROS_QUEUE_SIZE);
 
+    durations_pub_ = nh_.advertise<aist_controllers::DurationArray>("durations", 1);
+    
     internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
     num_joints_ = internal_joint_state_.name.size();
     internal_joint_state_.position.resize(num_joints_);
@@ -569,6 +571,9 @@ ServoCalcs::calculateSingleIteration()
 	    outgoing_cmd_pub_.publish(joints);
 	}
 
+	durations_.cmd_out = ros::Time::now() - durations_.header.stamp;
+	durations_pub_.publish(durations_);
+	
 	last_sent_command_ = joint_trajectory;
     }
 
