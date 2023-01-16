@@ -47,11 +47,21 @@
 
 namespace aist_utility
 {
-namespace eigen
-{
 /************************************************************************
 *  global functions							*
 ************************************************************************/
+template <class T, int M, int N> Eigen::Matrix<T, M, N>
+zero(Eigen::Matrix<T, M, N>)
+{
+    return Eigen::Matrix<T, M, N>::Zero();
+}
+
+template <class T, int M, int N> Eigen::Matrix<T, M, N>
+identity(Eigen::Matrix<T, M, N>)
+{
+    return Eigen::Matrix<T, M, N>::Identity();
+}
+
 //! Exterior product of two vectors.
 template <class T, int M, int N> Eigen::Matrix<T, M, N>
 operator %(const Eigen::Matrix<T, M, 1>& x,
@@ -121,6 +131,8 @@ variance(ITER begin, ITER end)
     return v/n;
 }
 
+namespace eigen
+{
 /************************************************************************
 *  class Plane<T, N>							*
 ************************************************************************/

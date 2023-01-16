@@ -40,90 +40,72 @@
  */
 #pragma once
 
-#include <cmath>
-#include <vector>
+#include <ros/ros.h>
 
 namespace aist_utility
 {
-/*!
-  Butterworth low-pass filter of even order
-  \param T	type of signal to be filtered
-*/
-template <class T>
+template <class T> T	zero(T)				{ return 0; }
+
+template <class T, class T=S>
 class CubicSplineFilter
 {
   public:
-    using value_type	= T;	//!< type of signal to be filtered
+    using time_type	= ros::Time;
+    using value_type	= T;		//!< type of signal to be filtered
 
   public:
-  /*!
-    バタワースフィルタを生成
-    \param half_order	フィルタの次数の半分
-    \param cutoff	カットオフ周波数fcをサンプリング周波数fsで正規化した値
-			すなわちfc/fs
-   */
     explicit	CubicSplineFilter()
-		    :_a0(0), _a1(0), _a2(0), _a3(0), _tp(0), _xp(0)
 		{
-		    initialize();
+		    reset(ros::Time(0), zero(value_type()));
 		}
 
-    void	initialize()
-		{
-		    _a0 = 0;
-		    _a1 = 0;
-		    _
-		}
-
-    void	update(value_type t, value_type x)
-		{
-		    _a0 = pos(t);
-		    _a1 = vel(t);
-
-		    const auto	dt_inv = 1/(t - _tp);
-		    const auto	v = (x - _xp)*dt_inv;
-		    
-		    _a2 = (-(v + 2*_a1) + 3*(x - _a0)*dt_inv)*dt_inv;
-		    _a3 = ( (v +   _a1) - 2*(x - _a0)*dt_inv)*dt_inv*dt_inv;
-		    
-		    _tp = t;
-		    _xp = x;
-		}
-    
-    value_type	pos(value_type t) const
-		{
-		    const auto	dt = t - _tp;
-
-		    return _a0 + (_a1 + (_a2 + _a3*dt)*dt)*dt;
-		}
-    
-    value_type	vel(value_type t) const
-		{
-		    const auto	dt = t - _tp;
-
-		    return _a1 + (2*_a2 + 3*_a3*dt)*dt;
-		}
-    
-    value_type	acc(value_type t) const
-		{
-		    const auto	dt = t - t0;
-
-		    return 2*(_a2 + 3*_a3*dt);
-		}
-    
-    void	reset(value_type t, value_type x)
+    void	reset(const time_type& t, const value_type& x)
 		{
 		    _a0 = x;
-		    _a1 = 0;
-		    _a2 = 0;
-		    _a3 = 0;
+		    _a3 = _a2 = _a1 = zero(value_type());
 		    _tp = t;
 		    _xp = x;
+		}
+
+    void	update(const time_type& t, const value_type& x)
+		{
+		    _a0 = pos(t);			// position at t
+		    _a1 = vel(t);			// velocity at t
+
+		    const auto	dt_inv = 1/(t - _tp).toSec();
+		    const auto	v = (x - _xp)*dt_inv;	// velocity at _tp
+
+		    _a2 =  dt_inv	 *(-(v+2*_a1) + (3*dt_inv)*(x-_a0));
+		    _a3 = (dt_inv*dt_inv)*( (v+  _a1) - (2*dt_inv)*(x-_a0));
+
+		    _tp = t;
+		    _xp = x;
+		}
+
+    value_type	pos(const time_type& t) const
+		{
+		    const auto	dt = (t - _tp).toSec();
+
+		    return _a0 + dt*(_a1 + dt*(_a2 + dt*_a3));
+		}
+
+    value_type	vel(const time_type& t) const
+		{
+		    const auto	dt = (t - _tp).toSec();
+
+		    return _a1 + dt*(2*_a2 + (3*dt)*_a3);
+		}
+
+    value_type	acc(const time_type& t) const
+		{
+		    const auto	dt = (t - t0).toSec();
+
+		    return 2*(_a2 + (3*dt)*_a3);
 		}
 
   private:
     value_type	_a0, _a1, _a2, _a3;
-    value_type	_tp;
+    time_type	_tp;
     value_type	_xp;
 };
 

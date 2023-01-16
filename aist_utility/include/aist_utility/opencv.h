@@ -55,11 +55,21 @@ get(const Vec<T, N>& x)
 
 namespace aist_utility
 {
-namespace opencv
-{
 /************************************************************************
 *  global functions							*
 ************************************************************************/
+template <class T, int M, int N> cv::Matx<T, M, N>
+zero(cv::Matx<T, M, N>)
+{
+    return cv::Matx<T, M, N>::zeros();
+}
+
+template <class T, int M, int N> cv::Matx<T, M, N>
+identity(cv::Matx<T, M, N>)
+{
+    return cv::Matx<T, M, N>::eye();
+}
+
 //! Exterior product of two vectors.
 template <class T, int M, int N> ::cv::Matx<T, M, N>
 operator %(const cv::Matx<T, M, 1>& x, const cv::Matx<T, N, 1>& y)
@@ -109,6 +119,8 @@ pointTFToCV(const tf::Point& p)
     return {T(p.x()), T(p.y()), T(p.z())};
 }
 
+namespace opencv
+{
 /************************************************************************
 *  struct Plane<T, N>							*
 ************************************************************************/
