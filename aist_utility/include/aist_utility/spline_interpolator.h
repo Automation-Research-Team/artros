@@ -34,9 +34,9 @@
 // Author: Toshio Ueshiba
 //
 /*!
- *  \file	spline_filter.h
+ *  \file	spline_interpolator.h
  *  \author	Toshio Ueshiba
- *  \brief	Butterworth low-pass filter of even order
+ *  \brief	Spline interpolator
  */
 #pragma once
 
@@ -47,14 +47,14 @@ namespace aist_utility
 template <class T> T	zero(T)				{ return 0; }
 
 template <class T, class T=S>
-class CubicSplineFilter
+class CubicSplineInterpolator
 {
   public:
     using time_type	= ros::Time;
-    using value_type	= T;		//!< type of signal to be filtered
+    using value_type	= T;		//!< type of signal to be interpolated
 
   public:
-    explicit	CubicSplineFilter()
+    explicit	CubicSplineInterpolator()
 		{
 		    reset(ros::Time(0), zero(value_type()));
 		}
