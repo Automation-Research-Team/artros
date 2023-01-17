@@ -3,6 +3,7 @@
  *  \brief	ROS tracker of aist_utility::PoseHeadAction type
  */
 #include <ros/ros.h>
+#include <geometry_msgs/Vector3Stamped.h>
 #include <aist_utility/Flt.h>
 #include <aist_utility/spline_interpolator.h>
 
@@ -14,7 +15,7 @@ namespace aist_utility
 class SplineInterpolatorTest
 {
   public:
-    using value_type	= float;
+    using value_type	= double;
 
   public:
 		SplineInterpolatorTest()				;
@@ -29,14 +30,15 @@ class SplineInterpolatorTest
     ros::NodeHandle					_nh;
     ros::Subscriber					_sub;
     const ros::Publisher				_pub;
-    aist_utility::SplineInterpolator<value_type>	_interpolator;
+    aist_utility::SplineInterpolator<value_type, 2>	_interpolator2;
+    aist_utility::SplineInterpolator<value_type, 3>	_interpolator3;
+    aist_utility::SplineInterpolator<value_type, 4>	_interpolator4;
 };
 
 SplineInterpolatorTest::SplineInterpolatorTest()
     :_nh("~"),
      _sub(_nh.subscribe("/in", 1, &SplineInterpolatorTest::flt_cb, this)),
-     _pub(_nh.advertise<aist_utility::Flt>("out", 1)),
-     _interpolator()
+     _pub(_nh.advertise<geometry_msgs::Vector3Stamped>("out", 1))
 {
 }
 
@@ -49,10 +51,12 @@ SplineInterpolatorTest::run()
 
     while (ros::ok())
     {
-	aist_utility::Flt	flt;
-	flt.header.stamp = ros::Time::now();
-	flt.x		 = _interpolator.pos(flt.header.stamp);
-	_pub.publish(flt);
+	geometry_msgs::Vector3Stamped	vec;
+	vec.header.stamp = ros::Time::now();
+	vec.vector.x	 = _interpolator2.pos(vec.header.stamp);
+	vec.vector.y	 = _interpolator3.pos(vec.header.stamp);
+	vec.vector.z	 = _interpolator4.pos(vec.header.stamp);
+	_pub.publish(vec);
 
 	rate.sleep();
     }
@@ -65,8 +69,12 @@ SplineInterpolatorTest::run()
 void
 SplineInterpolatorTest::flt_cb(const FltConstPtr& flt)
 {
-  //_interpolator.reset(flt->header.stamp, flt->x);
-    _interpolator.update(ros::Time::now(), flt->x);
+    const auto	now = ros::Time::now();
+
+  //_interpolator.update(flt->header.stamp, flt->x);
+    _interpolator2.update(now, flt->x);
+    _interpolator3.update(now, flt->x);
+    _interpolator4.update(now, flt->x);
 }
 
 }	// namepsace aist_utility

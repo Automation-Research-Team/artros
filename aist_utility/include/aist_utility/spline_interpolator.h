@@ -46,11 +46,10 @@ namespace aist_utility
 {
 template <class T> T	zero(T)				{ return 0; }
 
-template <class T>
+template <class T, size_t N=3>
 class SplineInterpolator
 {
   public:
-    using time_type	= ros::Time;
     using value_type	= T;		//!< type of signal to be interpolated
 
   public:
@@ -59,54 +58,114 @@ class SplineInterpolator
 		    reset(ros::Time::now(), x);
 		}
 
-    void	reset(const time_type& t, const value_type& x)
+    void	reset(const ros::Time& t, const value_type& x)
 		{
-		    _a0 = x;
-		    _a3 = _a2 = _a1 = zero(value_type());
+		    _a[0] = x;
+		    std::fill(_a.begin() + 1, _a.end(), zero(value_type()));
 		    _tp = t;
 		    _xp = x;
 		}
 
-    void	update(const time_type& t, const value_type& x)
+    void	update(const ros::Time& t, const value_type& x)
 		{
-		    _a0 = pos(t);			// position at t
-		    _a1 = vel(t);			// velocity at t
-
-		    const auto	dt_inv = 1/(t - _tp).toSec();
-		    const auto	v = (x - _xp)*dt_inv;	// velocity at _tp
-
-		    _a2 =  dt_inv	 *(-(v+2*_a1) + (3*dt_inv)*(x-_a0));
-		    _a3 = (dt_inv*dt_inv)*( (v+  _a1) - (2*dt_inv)*(x-_a0));
-
+		    update(std::integral_constant<size_t, N>(),
+			   (t - _tp).toSec(), x - _xp);
 		    _tp = t;
 		    _xp = x;
 		}
 
-    value_type	pos(const time_type& t) const
+    value_type	pos(const ros::Time& t) const
 		{
-		    const auto	dt = (t - _tp).toSec();
-
-		    return _a0 + dt*(_a1 + dt*(_a2 + dt*_a3));
+		    return pos(std::integral_constant<size_t, 0>(),
+			       (t - _tp).toSec());
 		}
 
-    value_type	vel(const time_type& t) const
+    value_type	vel(const ros::Time& t) const
 		{
-		    const auto	dt = (t - _tp).toSec();
-
-		    return _a1 + dt*(2*_a2 + (3*dt)*_a3);
+		    return vel(std::integral_constant<size_t, 1>(),
+			       (t - _tp).toSec());
 		}
 
-    value_type	acc(const time_type& t) const
+    value_type	acc(const ros::Time& t) const
 		{
-		    const auto	dt = (t - _tp).toSec();
-
-		    return 2*(_a2 + (3*dt)*_a3);
+		    return acc(std::integral_constant<size_t, 2>(),
+			       (t - _tp).toSec());
 		}
 
   private:
-    value_type	_a0, _a1, _a2, _a3;
-    time_type	_tp;
-    value_type	_xp;
+    void	update(std::integral_constant<size_t, 2>,
+		       double dt, const value_type& dx)
+		{
+		    const auto	rdt = 1/dt;
+		    const auto	vp  = rdt*dx;
+
+		    _a[0] = pos(std::integral_constant<size_t, 0>(), dt);
+		    _a[1] =      -vp + 2*rdt*(_xp - _a[0]);
+		    _a[2] = rdt*( vp -	 rdt*(_xp - _a[0]));
+		}
+    void	update(std::integral_constant<size_t, 3>,
+		       double dt, const value_type& dx)
+		{
+		    const auto	rdt = 1/dt;
+		    const auto	vp  = rdt*dx;
+
+		    _a[0] = pos(std::integral_constant<size_t, 0>(), dt);
+		    _a[1] = vel(std::integral_constant<size_t, 1>(), dt);
+		    _a[2] =	rdt*(-(vp + 2*_a[1]) + 3*rdt*(_xp - _a[0]));
+		    _a[3] = rdt*rdt*( (vp +   _a[1]) - 2*rdt*(_xp - _a[0]));
+		}
+    void	update(std::integral_constant<size_t, 4>,
+		       double dt, const value_type& dx)
+		{
+		    const auto	rdt = 1/dt;
+		    const auto	vp  = rdt*dx;
+
+		    _a[0] = pos(std::integral_constant<size_t, 0>(), dt);
+		    _a[1] = vel(std::integral_constant<size_t, 1>(), dt);
+		    _a[2] = vel(std::integral_constant<size_t, 2>(), dt);
+		    _a[3] =	rdt*(-2*_a[2] + rdt*(-(vp + 3*_a[1])
+						     + 4*rdt*(_xp - _a[0])));
+		    _a[4] = rdt*rdt*(   _a[2] + rdt*( (vp + 2*_a[1])
+						     - 3*rdt*(_xp - _a[0])));
+		}
+
+    template <size_t N_>
+    value_type	pos(std::integral_constant<size_t, N_>, double dt) const
+		{
+		    return _a[N_]
+			 + dt*pos(std::integral_constant<size_t, N_+1>(), dt);
+		}
+    value_type	pos(std::integral_constant<size_t, N>, double dt) const
+		{
+		    return _a[N];
+		}
+
+    template <size_t N_>
+    value_type	vel(std::integral_constant<size_t, N_>, double dt) const
+		{
+		    return N_*_a[N_]
+			 + dt*vel(std::integral_constant<size_t, N_+1>(), dt);
+		}
+    value_type	vel(std::integral_constant<size_t, N>, double dt) const
+		{
+		    return N*_a[N];
+		}
+
+    template <size_t N_>
+    value_type	acc(std::integral_constant<size_t, N_>, double dt) const
+		{
+		    return (N_*(N_-1))*_a[N_]
+			 + dt*vel(std::integral_constant<size_t, N_+1>(), dt);
+		}
+    value_type	acc(std::integral_constant<size_t, N>, double dt) const
+		{
+		    return (N*(N-1))*_a[N];
+		}
+
+  private:
+    std::array<value_type, N+1>	_a;
+    ros::Time			_tp;
+    value_type			_xp;
 };
 
 }  // namespace moveit_servo

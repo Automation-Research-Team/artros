@@ -4,7 +4,7 @@
   <arg name="signal_frequency"	default="1"/>
   <arg name="noize_level"	default="0.2"/>
   <arg name="generator_rate"	default="20"/>
-  <arg name="interpolator_rate"	default="500"/>
+  <arg name="interpolator_rate"	default="1000"/>
 
   <node name="gensig" pkg="aist_utility" type="gensig.py"
         output="screen" respawn="false">
@@ -21,7 +21,10 @@
   </node>
 
   <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
-	args="/gensig/out/x /spline_interpolator_test/out/x"
+	args="/gensig/out/x
+	      /spline_interpolator_test/out/vector/x
+	      /spline_interpolator_test/out/vector/y
+	      /spline_interpolator_test/out/vector/z"
         output="screen" respawn="false"/>
 
 </launch>
