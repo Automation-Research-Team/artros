@@ -34,9 +34,9 @@
 // Author: Toshio Ueshiba
 //
 /*!
- *  \file	spline_interpolator.h
+ *  \file	spline_extrapolator.h
  *  \author	Toshio Ueshiba
- *  \brief	Spline interpolator
+ *  \brief	Spline extrapolator
  */
 #pragma once
 
@@ -47,13 +47,13 @@ namespace aist_utility
 template <class T> T	zero(T)				{ return 0; }
 
 template <class T, size_t N=3>
-class SplineInterpolator
+class SplineExtrapolator
 {
   public:
     using value_type	= T;		//!< type of signal to be interpolated
 
   public:
-    explicit	SplineInterpolator(const value_type& x=zero(value_type()))
+    explicit	SplineExtrapolator(const value_type& x=zero(value_type()))
 		{
 		    reset(ros::Time::now(), x);
 		}

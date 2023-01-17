@@ -1,48 +1,48 @@
 /*
- *  \file	spline_interpolator_test.cpp
+ *  \file	spline_extrapolator_test.cpp
  *  \brief	ROS tracker of aist_utility::PoseHeadAction type
  */
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3Stamped.h>
-#include <aist_utility/Flt.h>
-#include <aist_utility/spline_interpolator.h>
+#include <aist_utility/Float32Stamped.h>
+#include <aist_utility/spline_extrapolator.h>
 
 namespace aist_utility
 {
 /************************************************************************
-*  class SplineInterpolatorTest						*
+*  class SplineExtrapolatorTest						*
 ************************************************************************/
-class SplineInterpolatorTest
+class SplineExtrapolatorTest
 {
   public:
     using value_type	= float;
 
   public:
-		SplineInterpolatorTest()				;
+		SplineExtrapolatorTest()				;
 
     void	run()							;
 
   private:
-    void	flt_cb(const FltConstPtr& flt)				;
+    void	flt_cb(const Float32StampedConstPtr& flt)		;
 
   private:
     ros::NodeHandle			_nh;
     ros::Subscriber			_sub;
     const ros::Publisher		_pub;
-    SplineInterpolator<value_type, 2>	_interpolator2;
-    SplineInterpolator<value_type, 3>	_interpolator3;
-    SplineInterpolator<value_type, 4>	_interpolator4;
+    SplineExtrapolator<value_type, 2>	_extrapolator2;
+    SplineExtrapolator<value_type, 3>	_extrapolator3;
+    SplineExtrapolator<value_type, 4>	_extrapolator4;
 };
 
-SplineInterpolatorTest::SplineInterpolatorTest()
+SplineExtrapolatorTest::SplineExtrapolatorTest()
     :_nh("~"),
-     _sub(_nh.subscribe("/in", 1, &SplineInterpolatorTest::flt_cb, this)),
+     _sub(_nh.subscribe("/in", 1, &SplineExtrapolatorTest::flt_cb, this)),
      _pub(_nh.advertise<geometry_msgs::Vector3Stamped>("out", 1))
 {
 }
 
 void
-SplineInterpolatorTest::run()
+SplineExtrapolatorTest::run()
 {
     ros::Rate		rate(_nh.param<double>("rate", 100.0));
     ros::AsyncSpinner	spinner(8);
@@ -52,9 +52,9 @@ SplineInterpolatorTest::run()
     {
 	geometry_msgs::Vector3Stamped	vec;
 	vec.header.stamp = ros::Time::now();
-	vec.vector.x	 = _interpolator2.pos(vec.header.stamp);
-	vec.vector.y	 = _interpolator3.pos(vec.header.stamp);
-	vec.vector.z	 = _interpolator4.pos(vec.header.stamp);
+	vec.vector.x	 = _extrapolator2.pos(vec.header.stamp);
+	vec.vector.y	 = _extrapolator3.pos(vec.header.stamp);
+	vec.vector.z	 = _extrapolator4.pos(vec.header.stamp);
 	_pub.publish(vec);
 
 	rate.sleep();
@@ -66,14 +66,14 @@ SplineInterpolatorTest::run()
 }
 
 void
-SplineInterpolatorTest::flt_cb(const FltConstPtr& flt)
+SplineExtrapolatorTest::flt_cb(const Float32StampedConstPtr& flt)
 {
     const auto	now = ros::Time::now();
 
-  //_interpolator.update(flt->header.stamp, flt->x);
-    _interpolator2.update(now, flt->x);
-    _interpolator3.update(now, flt->x);
-    _interpolator4.update(now, flt->x);
+  //_extrapolator.update(flt->header.stamp, flt->x);
+    _extrapolator2.update(now, flt->data);
+    _extrapolator3.update(now, flt->data);
+    _extrapolator4.update(now, flt->data);
 }
 
 }	// namepsace aist_utility
@@ -84,10 +84,10 @@ SplineInterpolatorTest::flt_cb(const FltConstPtr& flt)
 int
 main(int argc, char* argv[])
 {
-    ros::init(argc, argv, "spline_interpolator_test");
+    ros::init(argc, argv, "spline_extrapolator_test");
 
-    aist_utility::SplineInterpolatorTest	spline_interpolator_test;
-    spline_interpolator_test.run();
+    aist_utility::SplineExtrapolatorTest	spline_extrapolator_test;
+    spline_extrapolator_test.run();
 
     return 0;
 }
