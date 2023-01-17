@@ -15,7 +15,7 @@ namespace aist_utility
 class SplineInterpolatorTest
 {
   public:
-    using value_type	= double;
+    using value_type	= float;
 
   public:
 		SplineInterpolatorTest()				;
@@ -23,16 +23,15 @@ class SplineInterpolatorTest
     void	run()							;
 
   private:
-    void	initialize(int half_order, double cutoff_frequency)	;
     void	flt_cb(const FltConstPtr& flt)				;
 
   private:
-    ros::NodeHandle					_nh;
-    ros::Subscriber					_sub;
-    const ros::Publisher				_pub;
-    aist_utility::SplineInterpolator<value_type, 2>	_interpolator2;
-    aist_utility::SplineInterpolator<value_type, 3>	_interpolator3;
-    aist_utility::SplineInterpolator<value_type, 4>	_interpolator4;
+    ros::NodeHandle			_nh;
+    ros::Subscriber			_sub;
+    const ros::Publisher		_pub;
+    SplineInterpolator<value_type, 2>	_interpolator2;
+    SplineInterpolator<value_type, 3>	_interpolator3;
+    SplineInterpolator<value_type, 4>	_interpolator4;
 };
 
 SplineInterpolatorTest::SplineInterpolatorTest()
