@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="signal_frequency"	default="1"/>
+  <arg name="noize_level"	default="0.2"/>
+  <arg name="generator_rate"	default="20"/>
+  <arg name="interpolator_rate"	default="500"/>
+
+  <node name="gensig" pkg="aist_utility" type="gensig.py"
+        output="screen" respawn="false">
+    <param name="signal_frequency"	value="$(arg signal_frequency)"/>
+    <param name="noize_level"		value="$(arg noize_level)"/>
+    <param name="rate"			value="$(arg generator_rate)"/>
+  </node>
+
+  <node name="spline_interpolator_test"
+        pkg="aist_utility" type="spline_interpolator_test"
+        output="screen" respawn="false">
+    <param name="rate"		value="$(arg interpolator_rate)"/>
+    <remap from="/in"		to="/gensig/out"/>
+  </node>
+
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+	args="/gensig/out/x /spline_interpolator_test/out/x"
+        output="screen" respawn="false"/>
+
+</launch>

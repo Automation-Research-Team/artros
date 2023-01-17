@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import rospy, random
 import numpy as np
-from math                 import pi, sin
-from aist_controllers.msg import Flt
+from math             import pi, sin
+from aist_utility.msg import Flt
 # from scipy import signal
 # from scipy import fftpack
 # from matplotlib import pyplot as plt

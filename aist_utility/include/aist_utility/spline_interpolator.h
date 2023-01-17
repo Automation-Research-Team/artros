@@ -46,17 +46,17 @@ namespace aist_utility
 {
 template <class T> T	zero(T)				{ return 0; }
 
-template <class T, class T=S>
-class CubicSplineInterpolator
+template <class T>
+class SplineInterpolator
 {
   public:
     using time_type	= ros::Time;
     using value_type	= T;		//!< type of signal to be interpolated
 
   public:
-    explicit	CubicSplineInterpolator()
+    explicit	SplineInterpolator(const value_type& x=zero(value_type()))
 		{
-		    reset(ros::Time(0), zero(value_type()));
+		    reset(ros::Time::now(), x);
 		}
 
     void	reset(const time_type& t, const value_type& x)
@@ -98,7 +98,7 @@ class CubicSplineInterpolator
 
     value_type	acc(const time_type& t) const
 		{
-		    const auto	dt = (t - t0).toSec();
+		    const auto	dt = (t - _tp).toSec();
 
 		    return 2*(_a2 + (3*dt)*_a3);
 		}

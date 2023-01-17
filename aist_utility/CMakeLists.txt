@@ -137,6 +137,21 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(
+  spline_interpolator_test
+  src/spline_interpolator_test.cpp
+)
+
+target_link_libraries(
+  spline_interpolator_test
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  spline_interpolator_test
+  ${catkin_EXPORTED_TARGETS}
+)
+
 #############
 ## Install ##
 #############
