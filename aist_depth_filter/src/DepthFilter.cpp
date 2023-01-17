@@ -555,7 +555,7 @@ DepthFilter::computeNormal(const camera_info_t& camera_info,
   // 3.1: Convovle with a box filter in horizontal direction.
     for (int v = 0; v < n.cols; ++v)
     {
-	using namespace	aist_utility::opencv;
+	using namespace	aist_utility;
 
 	auto		sum_n = 0;
 	vector3_t	sum_c(0, 0, 0);

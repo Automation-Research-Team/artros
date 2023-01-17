@@ -307,7 +307,7 @@ ForceTorqueSensorController::init(interface_t* hw,
 
     ROS_INFO_STREAM('(' << controller_nh.getNamespace()
 		    << ") Susccesfully initialized");
-    
+
     return true;
 }
 
@@ -505,7 +505,7 @@ ForceTorqueSensorController::Sensor::update(const ros::Time& time,
 	_ft(4) = _hw_handle.getTorque()[1];
 	_ft(5) = _hw_handle.getTorque()[2];
     }
-    
+
   // Publish unfiltered force-torque signal.
     if (_pub_org->trylock())
     {
@@ -626,7 +626,7 @@ ForceTorqueSensorController::Sensor::compute_calibration_cb(
     std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
     using namespace	Eigen;
-    using namespace	aist_utility::eigen;
+    using namespace	aist_utility;
 
     if (_nsamples < 3)
     {
@@ -714,7 +714,7 @@ ForceTorqueSensorController::Sensor::take_sample(const vector_t& k,
 						 const vector_t& f,
 						 const vector_t& m)
 {
-    using namespace	aist_utility::eigen;
+    using namespace	aist_utility;
 
     ++_nsamples;
     _k_sum   += k;

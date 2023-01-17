@@ -241,7 +241,7 @@ class PoseTrackingServo
     ros::Publisher				ee_pose_pub_;	   // for debug
     ros::Rate					loop_rate_;
     DurationArray&				durations_;
-    
+
   // Action server stuffs
     server_t					tracker_srv_;
     boost::shared_ptr<const server_t::Goal>	current_goal_;
@@ -444,7 +444,7 @@ void
 PoseTrackingServo::tick()
 {
     durations_.tick_begin = ros::Time::now() - durations_.header.stamp;
-    
+
     if (!tracker_srv_.isActive())
 	return;
 
