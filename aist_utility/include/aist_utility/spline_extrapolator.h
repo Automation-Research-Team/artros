@@ -66,6 +66,12 @@ class SplineExtrapolator
 		    _xp = x;
 		}
 
+    const value_type&
+		xp() const
+		{
+		    return _xp;
+		}
+	    
     void	update(const ros::Time& t, const value_type& x)
 		{
 		    update(std::integral_constant<size_t, N>(),

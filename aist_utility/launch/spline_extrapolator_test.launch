@@ -21,7 +21,7 @@
   </node>
 
   <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
-	args="/gensig/out/data /spline_extrapolator_test/out/vector/x:y:z"
+	args="/spline_extrapolator_test/out/vector/x:z"
         output="screen" respawn="false"/>
 
 </launch>

@@ -52,7 +52,8 @@ SplineExtrapolatorTest::run()
     {
 	geometry_msgs::Vector3Stamped	vec;
 	vec.header.stamp = ros::Time::now();
-	vec.vector.x	 = _extrapolator2.pos(vec.header.stamp);
+      //vec.vector.x	 = _extrapolator2.pos(vec.header.stamp);
+	vec.vector.x	 = _extrapolator2.xp();
 	vec.vector.y	 = _extrapolator3.pos(vec.header.stamp);
 	vec.vector.z	 = _extrapolator4.pos(vec.header.stamp);
 	_pub.publish(vec);
