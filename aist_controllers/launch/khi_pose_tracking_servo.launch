@@ -17,7 +17,7 @@
     <arg name="manager"		 value="$(arg manager)"/>
   </include>
 
-  <!-- Start ArUco -->
+  <!-- Launch ArUco -->
   <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
         args="load aist_aruco_ros/aruco_detector $(arg manager)">
     <remap if="$(eval camera_name == 'phoxi')"
@@ -37,6 +37,7 @@
   		    )/config/toyota1/$(arg camera_name).yaml"/>
   </node>
 
+  <!-- Launch pose_tracking_servo -->
   <arg if="$(arg traj)"
        name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
   <arg unless="$(arg traj)"

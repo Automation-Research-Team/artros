@@ -38,7 +38,7 @@
   		    )/config/toyota1/$(arg camera_name).yaml"/>
   </node>
 
-  <!-- Spawn pose_head_controller -->
+  <!-- Spawn pose_head_tracker -->
   <group unless="$(arg group_controller)">
     <arg  name="controller_name"	value="arm_controller"/>
     <node name="pose_head_tracker"
