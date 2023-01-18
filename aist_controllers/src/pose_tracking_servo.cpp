@@ -443,7 +443,8 @@ PoseTrackingServo::run()
 void
 PoseTrackingServo::tick()
 {
-    durations_.tick_begin = ros::Time::now() - durations_.header.stamp;
+    durations_.tick_begin = (ros::Time::now() -
+			     durations_.header.stamp).toSec();
 
     if (!tracker_srv_.isActive())
 	return;
@@ -495,8 +496,8 @@ PoseTrackingServo::tick()
     if (servo_->getEEFrameTransform(ee_frame_transform_))
 	ee_frame_transform_stamp_ = ros::Time::now();
 
-    durations_.ee_frame_in = ee_frame_transform_stamp_
-			   - durations_.header.stamp;
+    durations_.ee_frame_in = (ee_frame_transform_stamp_ -
+			      durations_.header.stamp).toSec();
 
   // Check that end-effector pose (command frame transform) is recent enough.
     if (!haveRecentEndEffectorPose(current_goal_->timeout))
@@ -549,7 +550,8 @@ PoseTrackingServo::tick()
     twist_stamped_pub_.publish(calculateTwistCommand(positional_error,
 						     angular_error));
 
-    durations_.twist_out = ros::Time::now() - durations_.header.stamp;
+    durations_.twist_out = (ros::Time::now() -
+			    durations_.header.stamp).toSec();
 
   // For debugging
     ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
@@ -738,7 +740,8 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	target_pose_.header.stamp = ros::Time::now();
 
     durations_.header	      = target_pose_.header;
-    durations_.target_pose_in = ros::Time::now() - durations_.header.stamp;
+    durations_.target_pose_in = (ros::Time::now() -
+				 durations_.header.stamp).toSec();
 
   // If the target pose is defined in planning frame, it's OK as is.
     if (target_pose_.header.frame_id == planning_frame_)

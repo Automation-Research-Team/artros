@@ -1,6 +1,6 @@
 std_msgs/Header header
-duration        tick_begin
-duration        target_pose_in
-duration        ee_frame_in
-duration        twist_out
-duration        cmd_out
+float64         tick_begin
+float64         target_pose_in
+float64         ee_frame_in
+float64         twist_out
+float64         cmd_out

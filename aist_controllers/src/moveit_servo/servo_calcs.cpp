@@ -571,7 +571,8 @@ ServoCalcs::calculateSingleIteration()
 	    outgoing_cmd_pub_.publish(joints);
 	}
 
-	durations_.cmd_out = ros::Time::now() - durations_.header.stamp;
+	durations_.cmd_out = (ros::Time::now() -
+			      durations_.header.stamp).toSec();
 	durations_pub_.publish(durations_);
 	
 	last_sent_command_ = joint_trajectory;
