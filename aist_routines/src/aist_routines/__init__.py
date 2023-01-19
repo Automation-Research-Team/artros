@@ -201,11 +201,12 @@ class AISTBaseRoutines(object):
                                        speed, accel,
                                        end_effector_link, high_precision)
 
+        group = self._cmd.get_group(robot_name)
+
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
-
-        group = self._cmd.get_group(robot_name)
         group.set_end_effector_link(end_effector_link)
+
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         group.set_pose_target(target_pose)
@@ -217,8 +218,7 @@ class AISTBaseRoutines(object):
 
     def go_along_poses(self, robot_name, poses, speed=1.0, accel=1.0,
                        end_effector_link='', high_precision=False):
-        if end_effector_link == '':
-            end_effector_link = self.gripper(robot_name).tip_link
+        group = self._cmd.get_group(robot_name)
 
         try:
             transformed_poses = self.transform_poses_to_target_frame(
@@ -226,10 +226,9 @@ class AISTBaseRoutines(object):
         except Exception as e:
             return (False, False, group.get_current_pose())
 
-        group = self._cmd.get_group(robot_name)
+        if end_effector_link == '':
+            end_effector_link = self.gripper(robot_name).tip_link
         group.set_end_effector_link(end_effector_link)
-        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
-        group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
 
         if high_precision:
             goal_tolerance = group.get_goal_tolerance()
@@ -237,6 +236,8 @@ class AISTBaseRoutines(object):
             group.set_goal_tolerance(.000001)
             group.set_planning_time(10)
 
+        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
+        group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         plan, fraction = group.compute_cartesian_path(transformed_poses,
                                                       self._eef_step, 0.0)
         if fraction > 0.995:
