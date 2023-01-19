@@ -170,13 +170,14 @@ class AISTBaseRoutines(object):
                          .format(e))
             return False
         group.set_max_velocity_scaling_factor(1.0)
+        #group.set_max_acceleration_scaling_factor(1.0)
         success = group.go(wait=True)
         group.clear_pose_targets()
         return success
 
     def go_to_frame(self, robot_name, target_frame, offset=(0, 0, 0),
-                    speed=1.0, end_effector_link='',
-                    high_precision=False, move_lin=True):
+                    speed=1.0, accel=1.0,
+                    end_effector_link='', high_precision=False, move_lin=True):
         target_pose = gmsg.PoseStamped()
         target_pose.header.frame_id = target_frame
         target_pose.pose            = gmsg.Pose(gmsg.Point(0, 0, 0),
@@ -184,12 +185,12 @@ class AISTBaseRoutines(object):
         return self.go_to_pose_goal(robot_name,
                                     self.effector_target_pose(target_pose,
                                                               offset),
-                                    speed, end_effector_link,
+                                    speed, accel, end_effector_link,
                                     high_precision, move_lin)
 
-    def go_to_pose_goal(self, robot_name, target_pose,
-                        speed=1.0, end_effector_link='',
-                        high_precision=False, move_lin=True):
+    def go_to_pose_goal(self, robot_name, target_pose, speed=1.0, accel=1.0,
+                        end_effector_link='', high_precision=False,
+                        move_lin=True):
         self.add_marker('pose', target_pose)
         self.publish_marker()
 
@@ -197,7 +198,8 @@ class AISTBaseRoutines(object):
             return self.go_along_poses(robot_name,
                                        gmsg.PoseArray(target_pose.header,
                                                       [target_pose.pose]),
-                                       speed, end_effector_link, high_precision)
+                                       speed, accel,
+                                       end_effector_link, high_precision)
 
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
@@ -205,6 +207,7 @@ class AISTBaseRoutines(object):
         group = self._cmd.get_group(robot_name)
         group.set_end_effector_link(end_effector_link)
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
+        group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         group.set_pose_target(target_pose)
         success      = group.go(wait=True)
         current_pose = group.get_current_pose()
@@ -212,20 +215,21 @@ class AISTBaseRoutines(object):
                                        current_pose.pose, 0.01)
         return (success, is_all_close, current_pose)
 
-    def go_along_poses(self, robot_name, poses,
-                       speed=1.0, end_effector_link='', high_precision=False):
+    def go_along_poses(self, robot_name, poses, speed=1.0, accel=1.0,
+                       end_effector_link='', high_precision=False):
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
-
-        group = self._cmd.get_group(robot_name)
-        group.set_end_effector_link(end_effector_link)
-        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
 
         try:
             transformed_poses = self.transform_poses_to_target_frame(
                                     poses, group.get_planning_frame()).poses
         except Exception as e:
             return (False, False, group.get_current_pose())
+
+        group = self._cmd.get_group(robot_name)
+        group.set_end_effector_link(end_effector_link)
+        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
+        group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
 
         if high_precision:
             goal_tolerance = group.get_goal_tolerance()
@@ -238,7 +242,9 @@ class AISTBaseRoutines(object):
         if fraction > 0.995:
             success = group.execute(group.retime_trajectory(
                                         self._cmd.get_current_state(),
-                                        plan, speed),
+                                        plan,
+                                        velocity_scaling_factor=speed,
+                                        acceleration_scaling_factor=speed/2),
                                     wait=True)
             group.stop()
             if success:
@@ -264,14 +270,14 @@ class AISTBaseRoutines(object):
         return (success, is_all_close, current_pose)
 
     def move_relative(self, robot_name, offset,
-                      speed=1.0, end_effector_link='',
+                      speed=1.0, accel=1.0, end_effector_link='',
                       high_precision=False, move_lin=True):
         return self.go_to_pose_goal(
                    robot_name,
                    self.shift_pose(self.get_current_pose(robot_name,
                                                          end_effector_link),
                                    offset),
-                   speed, end_effector_link, high_precision, move_lin)
+                   speed, accel, end_effector_link, high_precision, move_lin)
 
     def stop(self, robot_name):
         group = self._cmd.get_group(robot_name)
