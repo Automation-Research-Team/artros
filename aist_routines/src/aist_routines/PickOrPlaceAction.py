@@ -105,6 +105,7 @@ class PickOrPlace(object):
         rospy.loginfo("--- Go to approach pose. ---")
         if self._check_if_canceled(PickOrPlaceFeedback.MOVING):
             return
+        scaling_factor = goal.speed_fast if goal.pick else goal.speed_slow
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
                              routines.effector_target_pose(
@@ -116,7 +117,7 @@ class PickOrPlace(object):
                                   goal.approach_offset.rotation.y,
                                   goal.approach_offset.rotation.z,
                                   goal.approach_offset.rotation.w)),
-                             goal.speed_fast if goal.pick else goal.speed_slow)
+                             scaling_factor, scaling_factor)
         if not success:
             result.result = PickOrPlaceResult.MOVE_FAILURE
             self._server.set_aborted(result, "Failed to go to approach pose")
@@ -166,11 +167,11 @@ class PickOrPlace(object):
             return
         if goal.pick:
             gripper.postgrasp(-1)    # Postgrap (not wait)
-            offset = goal.departure_offset
-            speed  = goal.speed_slow
+            offset         = goal.departure_offset
+            scaling_factor = goal.speed_slow
         else:
-            offset = goal.approach_offset
-            speed  = goal.speed_fast
+            offset         = goal.approach_offset
+            scaling_factor = goal.speed_fast
         success, _, _ = routines.go_to_pose_goal(goal.robot_name,
                                                  routines.effector_target_pose(
                                                      goal.pose,
@@ -181,7 +182,7 @@ class PickOrPlace(object):
                                                       offset.rotation.y,
                                                       offset.rotation.z,
                                                       offset.rotation.w)),
-                                                 speed)
+                                                 scaling_factor, scaling_factor)
         if not success:
             result.result = PickOrPlaceResult.DEPARTURE_FAILURE
             self._server.set_aborted(result, "Failed to depart from target")

@@ -245,7 +245,7 @@ class AISTBaseRoutines(object):
                                         self._cmd.get_current_state(),
                                         plan,
                                         velocity_scaling_factor=speed,
-                                        acceleration_scaling_factor=speed/2),
+                                        acceleration_scaling_factor=accel),
                                     wait=True)
             group.stop()
             if success:
