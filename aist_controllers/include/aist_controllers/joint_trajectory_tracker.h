@@ -76,6 +76,7 @@ class JointTrajectoryTracker
 	void		init(const std::string& pointing_frame)		;
 	void		read(const state_cp& state)			;
 	bool		update(const goal_cp& goal)			;
+	void		tick()						;
 
       private:
 	void		clamp(KDL::JntArray& jnt_pos)		const	;
@@ -164,7 +165,18 @@ JointTrajectoryTracker<ACTION>
 template <class ACTION> void
 JointTrajectoryTracker<ACTION>::run()
 {
-    ros::spin();
+    ros::Rate		rate(_nh.param<double>("rate", 100.0));
+    ros::AsyncSpinner	spinner(8);
+    spinner.start();
+
+    while (ros::ok())
+    {
+	_tracker.tick();
+	rate.sleep();
+    }
+
+    spinner.stop();
+    ros::waitForShutdown();
 }
 
 template <class ACTION> void
@@ -344,6 +356,11 @@ template <class ACTION> void
 JointTrajectoryTracker<ACTION>::Tracker::read(const state_cp& state)
 {
     _state = state;
+}
+
+template <class ACTION> void
+JointTrajectoryTracker<ACTION>::Tracker::tick()
+{
 }
 
 template <class ACTION> std::string
