@@ -6,7 +6,6 @@
 #include <boost/optional.hpp>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_listener.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_controllers/PoseTrackingAction.h>
@@ -18,9 +17,7 @@
 
 namespace
 {
-constexpr char		LOGNAME[]	  = "pose_tracking_servo";
-constexpr double	DEFAULT_LOOP_RATE = 100;	// Hz
-constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
+constexpr char		LOGNAME[] = "joint_trajectory_servo";
 const	  ros::Duration	DEFAULT_INPUT_TIMEOUT{0.5};	// sec
 }	// anonymous namespace
 
@@ -133,22 +130,19 @@ class JointTrajectoryServo
 		JointTrajectoryServo(const ros::NodeHandle& nh)		;
 		~JointTrajectoryServo()					;
 
+    const std::string&
+		planning_frame()				const	;
     void	run()							;
 
   private:
     static planning_scene_monitor_p
 		createPlanningSceneMonitor(
 		    const std::string& robot_description)		;
+    void	tick()							;
     void	targetPoseCB(const pose_cp& msg)			;
     void	goalCB()						;
     void	preemptCB()						;
-    void	calculatePoseError(const geometry_msgs::Pose& offset,
-				   Eigen::Vector3d& positional_error,
-				   Eigen::AngleAxisd& angular_error) const;
 
-    geometry_msgs::TwistStampedConstPtr
-		calculateTwistCommand(const Eigen::Vector3d& positional_error,
-				      const Eigen::AngleAxisd& angular_error);
     void	stopMotion()						;
     void	doPostMotionReset()					;
 
@@ -160,20 +154,17 @@ class JointTrajectoryServo
     void	resetTargetPose()					;
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
-  // End-effector pose stuffs
-    bool	haveRecentEndEffectorPose(const ros::Duration& timeout)	const;
-
   private:
     ros::NodeHandle				_nh;
 
   // MoveIt stuffs
-    const std::string				_planning_frame;
     const planning_scene_monitor_p		_planning_scene_monitor;
     moveit::core::RobotStatePtr			_current_state;
     const moveit::core::JointModelGroup* const	_joint_model_group;
 
     ros::Subscriber				_target_pose_sub;
     const ros::Publisher			_command_pub;
+    const ros::Publisher			_target_pose_pub;  // for debug
     const ros::Rate				_loop_rate;
 
   // Action server stuffs
@@ -183,22 +174,21 @@ class JointTrajectoryServo
   // Dynamic reconfigure server
     ddynamic_reconfigure::DDynamicReconfigure	_ddr;
 
-    tf2_ros::Buffer			_transform_buffer;
-    tf2_ros::TransformListener		_transform_listener;
-
   // Filter and extrapolator for input target pose
-    int					_input_low_pass_filter_half_order;
-    double				_input_low_pass_filter_cutoff_frequency;
+    int				_input_low_pass_filter_half_order;
+    double			_input_low_pass_filter_cutoff_frequency;
     aist_utility::ButterworthLPF<double, pose_raw>
-					_input_low_pass_filter;
+				_input_low_pass_filter;
     aist_utility::SplineExtrapolator<pose_raw>
-					_input_extrapolator;
-    mutable std::mutex			_input_mtx;
+				_input_extrapolator;
+    mutable std::mutex		_input_mtx;
+
+  // Output joint trajectory
+    trajectory_t		_joint_trajectory;
 };
 
 JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
     :_nh(nh),
-     _planning_frame(_nh.param<std::string>("planning_frame", "arm_base_link")),
      _planning_scene_monitor(createPlanningSceneMonitor("robot_description")),
      _current_state(_planning_scene_monitor->getStateMonitor()
 					   ->getCurrentState()),
@@ -209,15 +199,13 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 			  &JointTrajectoryServo::targetPoseCB, this,
 			  ros::TransportHints().reliable().tcpNodDelay(true))),
      _command_pub(_nh.advertise<trajectory_t>(_controller + "/command", 1)),
+     _target_pose_pub(nh_.advertise<pose_t>("target_pose_debug", 1)),
      _ee_pose_pub(_nh.advertise<pose_t>("ee_pose_debug", 1)),
      _loop_rate(_nh.param<double>("loop_rate", DEFAULT_LOOP_RATE)),
 
      _tracker_srv(_nh, "pose_tracking", false),
      _current_goal(nullptr),
-     _ddr(ros::NodeHandle(_nh, "pose_tracking")),
-
-     _transform_buffer(),
-     _transform_listener(_transform_buffer),
+     _ddr(ros::NodeHandle(_nh)),
 
      _input_low_pass_filter_half_order(3),
      _input_low_pass_filter_cutoff_frequency(7.0),
@@ -225,12 +213,28 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 			    _input_low_pass_filter_cutoff_frequency *
 			    _loop_rate.expectedCycleTime().toSec()),
      _input_extrapolator(),
-     _input_mtx()
+     _input_mtx(),
+
+     _joint_trajectory()
 {
   // Initialize input lowpass-filter
     _input_low_pass_filter.initialize(_input_low_pass_filter_half_order,
 				      _input_low_pass_filter_cutoff_frequency *
 				      _loop_rate.expectedCycleTime().toSec());
+
+  // Setup output joint trajectory
+    _joint_trajectory.header.stamp    = ros::Time(0);
+    _joint_trajectory.header.frame_id = _nh.param<std::string>(
+					    "planning_frame", "arm_base_link");
+    _joint_trajectory.joint_names     = _joint_model_group
+					    ->getActiveJointModelNames();
+    
+  // Put current joint positions to joint trajectory
+    trajectory_msgs::JointTrajectoryPoint	point;
+    _current_state->copyJointGroupPositions(_joint_model_group,
+					    point.positions);
+    point.time_from_start = _loop_rate.expectedCycleTime();
+    _joint_trajectory.points.push_back(point);
 
   // Setup action server
     _tracker_srv.registerGoalCallback(boost::bind(&JointTrajectoryServo::goalCB,
@@ -260,6 +264,7 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 				  0.5, 100.0);
     _ddr.publishServicesTopics();
 
+
     ROS_INFO_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) server started");
 }
 
@@ -267,6 +272,12 @@ JointTrajectoryServo::~JointTrajectoryServo()
 {
 }
 
+const std::string&
+JointTrajectoryServo::planning_frame() const
+{
+    return _joint_trajectory.header.frame_id;
+}
+    
 void
 JointTrajectoryServo::run()
 {
@@ -283,6 +294,35 @@ JointTrajectoryServo::run()
     ros::waitForShutdown();
 }
 
+/*
+ *  private member functions
+ */
+planning_scene_monitor::PlanningSceneMonitorPtr
+JointTrajectoryServo::createPlanningSceneMonitor(
+    const std::string& robot_description)
+{
+    using	namespace planning_scene_monitor;
+
+    const auto	monitor = std::make_shared<planning_scene_monitor_t>(
+				robot_description);
+    if (!monitor->getPlanningScene())
+    {
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "Failed to get PlanningSceneMonitor");
+	exit(EXIT_FAILURE);
+    }
+
+    monitor->startSceneMonitor();
+    monitor->startWorldGeometryMonitor(
+	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+	false /* skip octomap monitor */);
+    monitor->startStateMonitor();
+
+    ROS_INFO_STREAM_NAMED(LOGNAME, "PlanningSceneMonitor started");
+
+    return monitor;
+}
+
 void
 JointTrajectoryServo::tick()
 {
@@ -291,6 +331,34 @@ JointTrajectoryServo::tick()
 
     if (!_tracker_srv.isActive())
 	return;
+
+    if (!haveRecentTargetPose(_current_goal->timeout))
+    {
+	PoseTrackingResult	result;
+	result.status = PoseTrackingResult::INPUT_TIMEOUT;
+    	_tracker_srv.setAborted(result);
+
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) goal ABORTED["
+    			       << "Target pose not recently updated]");
+	return;
+    }
+    
+    const auto	now = ros::Time::now();
+    auto	target_pose = _input_extrapolator.pos(now);
+
+  // Correct target pose by offset given in current goal.
+    tf2::Transform      target_transform;
+    tf2::fromMsg(target_pose.pose, target_transform);
+    tf2::Transform      offset_transform;
+    tf2::fromMsg(_current_goal->offset, offset_transform);
+    tf2::toMsg(target_transform * offset_transform, target_pose.pose);
+
+  // Publish corrected target pose for debugging.
+    target_pose_pub_.publish(target_pose);
+
+  // Compute joint positions for target pose with IK solver.
+    joint_trajectory->header.stamp = ros::Time(0);
+    
 
   // Continue sending PID controller output to Servo
   // until one of the following conditions is met:
@@ -400,42 +468,7 @@ JointTrajectoryServo::tick()
     ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
 					_ee_frame_transform,
 					_ee_frame_transform_stamp,
-					_planning_frame)));
-}
-
-const ros::Rate&
-JointTrajectoryServo::loop_rate() const
-{
-    return _loop_rate;
-}
-
-/*
- *  private member functions
- */
-planning_scene_monitor::PlanningSceneMonitorPtr
-JointTrajectoryServo::createPlanningSceneMonitor(
-    const std::string& robot_description)
-{
-    using	namespace planning_scene_monitor;
-
-    const auto	monitor = std::make_shared<planning_scene_monitor_t>(
-				robot_description);
-    if (!monitor->getPlanningScene())
-    {
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "Failed to get PlanningSceneMonitor");
-	exit(EXIT_FAILURE);
-    }
-
-    monitor->startSceneMonitor();
-    monitor->startWorldGeometryMonitor(
-	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-	false /* skip octomap monitor */);
-    monitor->startStateMonitor();
-
-    ROS_INFO_STREAM_NAMED(LOGNAME, "PlanningSceneMonitor started");
-
-    return monitor;
+					planning_frame())));
 }
 
 void
@@ -445,12 +478,13 @@ JointTrajectoryServo::targetPoseCB(const pose_cp& target_pose)
 
     auto	pose = *target_pose;
 
-    if (pose.header.frame_id != _planning_frame)
+    if (pose.header.frame_id != planning_frame())
     {
-	auto Tpt = tf2::eigenToTransform(_current_state->getGlobalLinkTransform(
-					     pose.header.frame_id));
+	auto	Tpt = tf2::eigenToTransform(
+			_current_state->getGlobalLinkTransform(
+			    pose.header.frame_id));
 	Tpt.header.stamp    = pose.header.stamp;
-	Tpt.header.frame_id = _planning_frame;
+	Tpt.header.frame_id = planning_frame();
 	Tpt.child_frame_id  = pose.header.frame_id;
 	tf2::doTransform(pose, pose, Tpt);
     }
@@ -464,52 +498,18 @@ JointTrajectoryServo::goalCB()
 {
     resetTargetPose();
 
-  // Wait a bit for a target pose message to arrive.
-  // The target pose may get updated by new messages as the robot moves
-  // (in a callback function).
-    for (const auto start_time = ros::Time::now();
-	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
-	 ros::Duration(0.001).sleep())
-    {
-	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
-	    haveRecentEndEffectorPose(DEFAULT_INPUT_TIMEOUT))
-	{
-	    _input_low_pass_filter.reset(_target_pose.pose);
-
-	    std_srvs::Empty	empty;
-	    reset__servo_status_.call(empty);
-	    _servo->start();
-
-	    _current_goal = _tracker_srv.acceptNewGoal();
-	    ROS_INFO_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) goal ACCEPTED["
-				  << _current_goal->target_offset << ']');
-
-	    if (_tracker_srv.isPreemptRequested())
-		preemptCB();
-
-	    return;
-	}
-
-	if (_servo->getEEFrameTransform(_ee_frame_transform))
-	    _ee_frame_transform_stamp = ros::Time::now();
-    }
-
-  // No target pose available recently.
-  // Once accept the pending goal and then abort it immediately.
     _current_goal = _tracker_srv.acceptNewGoal();
-    PoseTrackingResult	result;
-    result.status = static_cast<int8_t>(_servo_status_);
-    _tracker_srv.setAborted(result);
-
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) Cannot accept goal because no target pose available recently.");
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) goal ACCEPTED["
+			  << _current_goal->target_offset << ']');
 }
 
 void
 JointTrajectoryServo::preemptCB()
 {
     doPostMotionReset();
+
     PoseTrackingResult	result;
-    result.status = static_cast<int8_t>(_servo_status_);
+    result.status = PoseTrackingResult::NO_ERROR;
     _tracker_srv.setPreempted(result);
     ROS_WARN_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) goal CANCELED");
 }
@@ -532,7 +532,7 @@ JointTrajectoryServo::stopMotion()
 // Low-pass filter stuffs
 void
 JointTrajectoryServo::updateInputLowPassFilter(int half_order,
-					    double cutoff_frequency)
+					       double cutoff_frequency)
 {
     _input_low_pass_filter_half_order	    = half_order;
     _input_low_pass_filter_cutoff_frequency = cutoff_frequency;
