@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="marker_frame"	default="marker_frame"/>
+  <arg name="screen_offset"	default="0.045"/>
+  <arg name="cam_param_file"
+       default="$(find aist_lenti_mark
+		)/config/CameraParams/Logicool19201080S.txt"/>
+  <arg name="mk_param_file"
+       default="$(find aist_lenti_mark)/config/MarkerParams/marker94Para.yml"/>
+
+  <arg name="manager"		value="camera_manager"/>
+
+  <node name="get_screen_corners" pkg="nodelet" type="nodelet" output="screen"
+	args="load aist_lenti_mark/get_screen_corners $(arg manager)">
+    <remap from="/image_raw"		to="/live_camera/image_raw"/>
+
+    <!-- Other parameters -->
+    <param name="cam_param_file"	value="$(arg cam_param_file)"/>
+    <param name="mk_param_file"		value="$(arg mk_param_file)"/>
+    <param name="marker_frame"		value="$(arg marker_frame)"/>
+    <param name="screen_offset"		value="$(arg screen_offset)"/>
+  </node>
+
+  <node name="quad_broadcaster"
+        pkg="tf" type="static_transform_publisher"
+        args="0 0 0 0 0 0 workspace_ar_marker $(arg marker_frame)_202 30"/>
+
+</launch>
