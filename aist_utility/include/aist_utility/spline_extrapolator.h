@@ -66,6 +66,12 @@ class SplineExtrapolator
 		    _xp = x;
 		}
 
+    const ros::Time&
+		tp() const
+		{
+		    return _tp;
+		}
+	    
     const value_type&
 		xp() const
 		{
