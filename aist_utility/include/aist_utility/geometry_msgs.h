@@ -93,6 +93,16 @@ toPose(const geometry_msgs::Transform& transform)
     return pose;
 }
 
+inline geometry_msgs::PoseStamped
+toPose(const geometry_msgs::TransformStamped& transform)
+{
+    geometry_msgs::PoseStamped	pose;
+    pose.header = transform.header;
+    pose.pose	= toPose(transform.transform);
+
+    return pose;
+}
+
 inline geometry_msgs::Transform
 toTransform(const geometry_msgs::Pose& pose)
 {
@@ -101,6 +111,18 @@ toTransform(const geometry_msgs::Pose& pose)
     transform.translation.y = pose.position.y;
     transform.translation.z = pose.position.z;
     transform.rotation	    = pose.orientation;
+
+    return transform;
+}
+
+inline geometry_msgs::TransformStamped
+toTransform(const geometry_msgs::PoseStamped& pose,
+	    const std::string& child_frame_id)
+{
+    geometry_msgs::TransformStamped	transform;
+    transform.header	     = pose.header;
+    transform.child_frame_id = child_frame_id;
+    transform.transform	     = toTransform(pose.pose);
 
     return transform;
 }

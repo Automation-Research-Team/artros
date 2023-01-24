@@ -13,6 +13,7 @@
 #include <aist_controllers/PoseTrackingAction.h>
 #include <aist_utility/butterworth_lpf.h>
 #include <aist_utility/spline_extrapolator.h>
+#include <aist_utility/geometry_msgs.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -195,6 +196,8 @@ class JointTrajectoryServo
     void	updateInputLowPassFilter(int half_order,
 					 double cutoff_frequency)	;
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
+    geometry_msgs::TransformStamped
+		getFrameTransform(const std::string& frame)	const	;
 
   private:
     ros::NodeHandle				_nh;
@@ -214,6 +217,8 @@ class JointTrajectoryServo
   // MoveIt stuffs
     const planning_scene_monitor_p		_planning_scene_monitor;
     moveit::core::RobotStatePtr			_current_state;
+    ros::Time					_current_state_stamp;
+    mutable std::mutex				_state_mutex;
     const moveit::core::JointModelGroup* const	_joint_model_group;
     const std::string				_ee_frame;
     
@@ -224,7 +229,7 @@ class JointTrajectoryServo
 				_input_low_pass_filter;
     aist_utility::SplineExtrapolator<pose_raw>
 				_input_extrapolator;
-    mutable std::mutex		_input_mtx;
+    mutable std::mutex		_input_mutex;
 
   // Output joint trajectory
     trajectory_t		_joint_trajectory;
@@ -251,6 +256,8 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
      _planning_scene_monitor(createPlanningSceneMonitor("robot_description")),
      _current_state(_planning_scene_monitor->getStateMonitor()
 					   ->getCurrentState()),
+     _current_state_stamp(0),
+     _state_mutex(),
      _joint_model_group(_current_state->getJointModelGroup(
 			    _nh.param<std::string>("move_group_name", "arm"))),
      _ee_frame(_nh.param<std::string>("ee_frame_name", "magnet_tip_link")),
@@ -261,7 +268,7 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 			    _input_low_pass_filter_cutoff_frequency *
 			    _loop_rate.expectedCycleTime().toSec()),
      _input_extrapolator(),
-     _input_mtx(),
+     _input_mutex(),
 
      _joint_trajectory()
 {
@@ -374,8 +381,12 @@ JointTrajectoryServo::createPlanningSceneMonitor(
 void
 JointTrajectoryServo::tick()
 {
-    _current_state = _planning_scene_monitor->getStateMonitor()
-					    ->getCurrentState();
+    {
+	std::lock_guard<std::mutex> lock(_state_mutex);
+	_current_state = _planning_scene_monitor->getStateMonitor()
+						->getCurrentState();
+	_current_state_stamp = ros::Time::now();
+    }
 
     if (!_tracker_srv.isActive())
 	return;
@@ -392,12 +403,15 @@ JointTrajectoryServo::tick()
     			       << "Target pose not recently updated]");
 	return;
     }
-    
-    const auto	now = ros::Time::now();
+
+  // Compute target pose at current time by extrapolation.
     pose_t	target_pose;
-    target_pose.header.frame_id = planning_frame();
-    target_pose.header.stamp	= now;
-    target_pose.pose		= _input_extrapolator.pos(now);
+    target_pose.header.frame_id	= planning_frame();
+    target_pose.header.stamp	= _current_state_stamp;
+    {
+	std::lock_guard<std::mutex>	lock(_input_mutex);
+	target_pose.pose = _input_extrapolator.pos(target_pose.header.stamp);
+    }
     normalize(target_pose.pose.orientation);
     
   // Correct target pose by offset given in current goal.
@@ -431,10 +445,7 @@ JointTrajectoryServo::tick()
     _command_pub.publish(_joint_trajectory);
 
   // Get current transform from end-effector frame to planning frame.
-    const auto	ee_frame_transform = _current_state->getGlobalLinkTransform(
-					planning_frame()).inverse()
-				   * _current_state->getGlobalLinkTransform(
-					_ee_frame);
+    const auto	ee_frame_transform = getFrameTransform(_ee_frame);
 	
   // Publish tracking result as feedback.
     // PoseTrackingFeedback	feedback;
@@ -445,30 +456,20 @@ JointTrajectoryServo::tick()
     // feedback.status		 = static_cast<int8_t>(_servo_status_);
     // _tracker_srv.publishFeedback(feedback);
 
-  // For debugging
-    _ee_pose_pub.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					ee_frame_transform, now,
-					planning_frame())));
+  // Publish current end-effecgtor pose for debugging.
+    _ee_pose_pub.publish(aist_utility::toPose(ee_frame_transform));
 }
 
 void
 JointTrajectoryServo::targetPoseCB(const pose_cp& target_pose)
 {
-    std::lock_guard<std::mutex> lock(_input_mtx);
-
     auto	pose = *target_pose;
 
+  // Transform given pose to planning frame if necessary.
     if (pose.header.frame_id != planning_frame())
-    {
-	auto	Tpt = tf2::eigenToTransform(
-			_current_state->getGlobalLinkTransform(
-			    pose.header.frame_id));
-	Tpt.header.stamp    = pose.header.stamp;
-	Tpt.header.frame_id = planning_frame();
-	Tpt.child_frame_id  = pose.header.frame_id;
-	tf2::doTransform(pose, pose, Tpt);
-    }
+	tf2::doTransform(pose, pose, getFrameTransform(pose.header.frame_id));
     
+    std::lock_guard<std::mutex> lock(_input_mutex);
     _input_extrapolator.update(ros::Time::now(),
 			       _input_low_pass_filter.filter(pose.pose));
 }
@@ -519,9 +520,26 @@ JointTrajectoryServo::updateInputLowPassFilter(int half_order,
 bool
 JointTrajectoryServo::haveRecentTargetPose(const ros::Duration& timeout) const
 {
-    std::lock_guard<std::mutex> lock(_input_mtx);
+    std::lock_guard<std::mutex>	lock(_input_mutex);
 
     return (ros::Time::now() - _input_extrapolator.tp() < timeout);
+}
+
+// Transform from given frame to planning frame
+geometry_msgs::TransformStamped
+JointTrajectoryServo::getFrameTransform(const std::string& frame) const
+{
+    std::lock_guard<std::mutex>	lock(_state_mutex);
+
+    auto transform = tf2::eigenToTransform(
+			_current_state->getGlobalLinkTransform(
+			    planning_frame()).inverse()
+			* _current_state->getGlobalLinkTransform(frame));
+    transform.header.frame_id = planning_frame();
+    transform.header.stamp    = _current_state_stamp;
+    transform.child_frame_id  = frame;
+
+    return transform;
 }
 
 }	// namespace aist_controllers

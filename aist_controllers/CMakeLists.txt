@@ -241,7 +241,6 @@ add_executable(
 target_link_libraries(
   joint_trajectory_servo
   ${catkin_LIBRARIES}
-  ${SERVO_LIB_NAME}
 )
 
 add_dependencies(
