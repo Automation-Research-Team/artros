@@ -86,7 +86,7 @@ operator -(const Pose& a)
 
     return ret;
 }
-    
+
 Pose
 zero(Pose)
 {
@@ -101,7 +101,7 @@ zero(Pose)
 
     return ret;
 }
-    
+
 }	// namespace geometry_msgs
 
 namespace aist_controllers
@@ -175,7 +175,7 @@ class JointTrajectoryServo
     using pose_cp	= geometry_msgs::PoseStampedConstPtr;
     using pose_raw	= geometry_msgs::Pose;
     using trajectory_t	= trajectory_msgs::JointTrajectory;
-    
+
   public:
 		JointTrajectoryServo(const ros::NodeHandle& nh)		;
 		~JointTrajectoryServo()					;
@@ -216,13 +216,14 @@ class JointTrajectoryServo
 
   // MoveIt stuffs
     const planning_scene_monitor_p		_planning_scene_monitor;
-    moveit::core::RobotStatePtr			_current_state;
-    ros::Time					_current_state_stamp;
+    moveit::core::RobotStatePtr			_state;
+    ros::Time					_state_stamp;
     mutable std::mutex				_state_mutex;
     const moveit::core::JointModelGroup* const	_joint_model_group;
     const std::string				_ee_frame;
-    
+
   // Filter and extrapolator for input target pose
+    pose_t			_target_pose;
     int				_input_low_pass_filter_half_order;
     double			_input_low_pass_filter_cutoff_frequency;
     aist_utility::ButterworthLPF<double, pose_raw>
@@ -250,18 +251,18 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 
      _tracker_srv(_nh, "pose_tracking", false),
      _current_goal(nullptr),
-     
+
      _ddr(ros::NodeHandle(_nh)),
 
      _planning_scene_monitor(createPlanningSceneMonitor("robot_description")),
-     _current_state(_planning_scene_monitor->getStateMonitor()
-					   ->getCurrentState()),
-     _current_state_stamp(0),
+     _state(_planning_scene_monitor->getStateMonitor()->getCurrentState()),
+     _state_stamp(0),
      _state_mutex(),
-     _joint_model_group(_current_state->getJointModelGroup(
+     _joint_model_group(_state->getJointModelGroup(
 			    _nh.param<std::string>("move_group_name", "arm"))),
      _ee_frame(_nh.param<std::string>("ee_frame_name", "magnet_tip_link")),
 
+     _target_pose(),
      _input_low_pass_filter_half_order(3),
      _input_low_pass_filter_cutoff_frequency(7.0),
      _input_low_pass_filter(_input_low_pass_filter_half_order,
@@ -283,10 +284,10 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 					    "planning_frame", "arm_base_link");
     _joint_trajectory.joint_names     = _joint_model_group
 					    ->getActiveJointModelNames();
-    
+
   // Put current joint positions to joint trajectory
     trajectory_msgs::JointTrajectoryPoint	point;
-    _current_state->copyJointGroupPositions(_joint_model_group,
+    _state->copyJointGroupPositions(_joint_model_group,
 					    point.positions);
     point.time_from_start = _loop_rate.expectedCycleTime();
     _joint_trajectory.points.push_back(point);
@@ -332,7 +333,7 @@ JointTrajectoryServo::planning_frame() const
 {
     return _joint_trajectory.header.frame_id;
 }
-    
+
 void
 JointTrajectoryServo::run()
 {
@@ -383,9 +384,9 @@ JointTrajectoryServo::tick()
 {
     {
 	std::lock_guard<std::mutex> lock(_state_mutex);
-	_current_state = _planning_scene_monitor->getStateMonitor()
+	_state = _planning_scene_monitor->getStateMonitor()
 						->getCurrentState();
-	_current_state_stamp = ros::Time::now();
+	_state_stamp = ros::Time::now();
     }
 
     if (!_tracker_srv.isActive())
@@ -394,7 +395,7 @@ JointTrajectoryServo::tick()
     if (!haveRecentTargetPose(_current_goal->timeout))
     {
 	stopMotion();
-	
+
 	PoseTrackingResult	result;
 	result.status = PoseTrackingResult::INPUT_TIMEOUT;
     	_tracker_srv.setAborted(result);
@@ -407,13 +408,13 @@ JointTrajectoryServo::tick()
   // Compute target pose at current time by extrapolation.
     pose_t	target_pose;
     target_pose.header.frame_id	= planning_frame();
-    target_pose.header.stamp	= _current_state_stamp;
+    target_pose.header.stamp	= _state_stamp;
     {
 	std::lock_guard<std::mutex>	lock(_input_mutex);
 	target_pose.pose = _input_extrapolator.pos(target_pose.header.stamp);
     }
     normalize(target_pose.pose.orientation);
-    
+
   // Correct target pose by offset given in current goal.
     tf2::Transform      target_transform;
     tf2::fromMsg(target_pose.pose, target_transform);
@@ -425,11 +426,11 @@ JointTrajectoryServo::tick()
     _target_pose_pub.publish(target_pose);
 
   // Compute joint positions for target pose with IK solver.
-    auto	state = *_current_state;
+    auto	state = *_state;
     if (!state.setFromIK(_joint_model_group, target_pose.pose))
     {
 	stopMotion();
-	
+
 	PoseTrackingResult	result;
 	result.status = PoseTrackingResult::HALT_FOR_SINGULARITY;
     	_tracker_srv.setAborted(result);
@@ -437,7 +438,7 @@ JointTrajectoryServo::tick()
     			       << "Failed to solve IK]");
 	return;
     }
-    
+
   // Set joint positions to trajectory and publish.
     auto	positions = state.getVariablePositions();
     for (auto&& position : _joint_trajectory.points[0].positions)
@@ -446,7 +447,7 @@ JointTrajectoryServo::tick()
 
   // Get current transform from end-effector frame to planning frame.
     const auto	ee_frame_transform = getFrameTransform(_ee_frame);
-	
+
   // Publish tracking result as feedback.
     // PoseTrackingFeedback	feedback;
     // feedback.positional_error[0] = positional_error(0);
@@ -463,23 +464,48 @@ JointTrajectoryServo::tick()
 void
 JointTrajectoryServo::targetPoseCB(const pose_cp& target_pose)
 {
-    auto	pose = *target_pose;
+    std::lock_guard<std::mutex>	lock(_input_mutex);
+
+    _target_pose = *target_pose;
+    if (_target_pose.header.stamp == ros::Time(0))
+	_target_pose.header.stamp = ros::Time::now();
 
   // Transform given pose to planning frame if necessary.
-    if (pose.header.frame_id != planning_frame())
-	tf2::doTransform(pose, pose, getFrameTransform(pose.header.frame_id));
-    
-    std::lock_guard<std::mutex> lock(_input_mutex);
+    if (_target_pose.header.frame_id != planning_frame())
+	tf2::doTransform(_target_pose, _target_pose,
+			 getFrameTransform(_target_pose.header.frame_id));
+
     _input_extrapolator.update(ros::Time::now(),
-			       _input_low_pass_filter.filter(pose.pose));
+			       _input_low_pass_filter.filter(_target_pose.pose));
 }
 
 void
 JointTrajectoryServo::goalCB()
 {
-    _current_goal = _tracker_srv.acceptNewGoal();
-    ROS_INFO_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) goal ACCEPTED["
-			  << _current_goal->target_offset << ']');
+    for (const auto start_time = ros::Time::now();
+	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
+	 ros::Duration(0.001).sleep())
+    {
+	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT))
+	{
+	    _input_low_pass_filter.reset(_target_pose.pose);
+
+	    _current_goal = _tracker_srv.acceptNewGoal();
+	    ROS_INFO_STREAM_NAMED(LOGNAME,
+				  "(JointTrajectoryServo) goal ACCEPTED["
+				  << _current_goal->target_offset << ']');
+	    return;
+	}
+    }
+
+  // No target pose available recently.
+  // Once accept the pending goal and then abort it immediately.
+    _tracker_srv.acceptNewGoal();
+    PoseTrackingResult	result;
+    result.status = PoseTrackingResult::INPUT_TIMEOUT;
+    _tracker_srv.setAborted(result);
+
+    ROS_ERROR_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) Cannot accept goal because no target pose available recently.");
 }
 
 void
@@ -496,10 +522,13 @@ JointTrajectoryServo::preemptCB()
 void
 JointTrajectoryServo::stopMotion()
 {
+  // Stop JointTrajectoryController by publishing empty trajectory.
     trajectory_t	empty_trajectory;
     empty_trajectory.joint_names = _joint_trajectory.joint_names;
-
     _command_pub.publish(empty_trajectory);
+
+  // Invalidate buffered taget pose.
+    _target_pose.header.stamp = ros::Time(0);
 }
 
 // Low-pass filter stuffs
@@ -507,6 +536,8 @@ void
 JointTrajectoryServo::updateInputLowPassFilter(int half_order,
 					       double cutoff_frequency)
 {
+    std::lock_guard<std::mutex>	lock(_input_mutex);
+
     _input_low_pass_filter_half_order	    = half_order;
     _input_low_pass_filter_cutoff_frequency = cutoff_frequency;
 
@@ -514,7 +545,7 @@ JointTrajectoryServo::updateInputLowPassFilter(int half_order,
 				      _input_low_pass_filter_cutoff_frequency
 				      *_loop_rate.expectedCycleTime().toSec());
 
-    _input_low_pass_filter.reset(_input_extrapolator.xp());
+    _input_low_pass_filter.reset(_target_pose.pose);
 }
 
 bool
@@ -522,7 +553,7 @@ JointTrajectoryServo::haveRecentTargetPose(const ros::Duration& timeout) const
 {
     std::lock_guard<std::mutex>	lock(_input_mutex);
 
-    return (ros::Time::now() - _input_extrapolator.tp() < timeout);
+    return (ros::Time::now() - _target_pose.header.stamp < timeout);
 }
 
 // Transform from given frame to planning frame
@@ -532,11 +563,11 @@ JointTrajectoryServo::getFrameTransform(const std::string& frame) const
     std::lock_guard<std::mutex>	lock(_state_mutex);
 
     auto transform = tf2::eigenToTransform(
-			_current_state->getGlobalLinkTransform(
-			    planning_frame()).inverse()
-			* _current_state->getGlobalLinkTransform(frame));
+			_state->getGlobalLinkTransform(planning_frame())
+			.inverse() *
+			_state->getGlobalLinkTransform(frame));
     transform.header.frame_id = planning_frame();
-    transform.header.stamp    = _current_state_stamp;
+    transform.header.stamp    = _state_stamp;
     transform.child_frame_id  = frame;
 
     return transform;

@@ -1,0 +1,9 @@
+command_out_topic:         /arm_controller/command
+loop_rate:                 300.0
+move_group_name:           arm
+planning_frame:            arm_base_link
+ee_frame_name:             magnet_tip_link
+robot_link_command_frame:  base_link
+
+input_low_pass_filter_half_order:       3
+input_low_pass_filter_cutoff_frequency: 7.0
