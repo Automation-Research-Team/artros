@@ -23,6 +23,7 @@ namespace
 constexpr char		LOGNAME[]	  = "joint_trajectory_servo";
 constexpr double	DEFAULT_LOOP_RATE = 100;
 const	  ros::Duration	DEFAULT_INPUT_TIMEOUT{0.5};	// sec
+constexpr double	ROBOT_STATE_WAIT_TIME = 10.0;  // seconds
 }	// anonymous namespace
 
 namespace geometry_msgs
@@ -182,12 +183,15 @@ class JointTrajectoryServo
 
     const std::string&
 		planning_frame()				const	;
+    const std::string&
+		root_frame()					const	;
     void	run()							;
 
   private:
     static planning_scene_monitor_p
 		createPlanningSceneMonitor(
-		    const std::string& robot_description)		;
+		    const std::string& robot_description,
+		    const std::string& move_group_name)			;
     void	tick()							;
     void	targetPoseCB(const pose_cp& msg)			;
     void	goalCB()						;
@@ -215,6 +219,7 @@ class JointTrajectoryServo
     ddynamic_reconfigure::DDynamicReconfigure	_ddr;
 
   // MoveIt stuffs
+    const std::string				_move_group_name;
     const planning_scene_monitor_p		_planning_scene_monitor;
     moveit::core::RobotStatePtr			_state;
     ros::Time					_state_stamp;
@@ -234,6 +239,7 @@ class JointTrajectoryServo
 
   // Output joint trajectory
     trajectory_t		_joint_trajectory;
+    std::map<std::string, int>	_active_joint_indices;
 };
 
 JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
@@ -254,12 +260,13 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 
      _ddr(ros::NodeHandle(_nh)),
 
-     _planning_scene_monitor(createPlanningSceneMonitor("robot_description")),
+     _move_group_name(_nh.param<std::string>("move_group_name", "arm")),
+     _planning_scene_monitor(createPlanningSceneMonitor("robot_description",
+							_move_group_name)),
      _state(_planning_scene_monitor->getStateMonitor()->getCurrentState()),
      _state_stamp(0),
      _state_mutex(),
-     _joint_model_group(_state->getJointModelGroup(
-			    _nh.param<std::string>("move_group_name", "arm"))),
+     _joint_model_group(_state->getJointModelGroup(_move_group_name)),
      _ee_frame(_nh.param<std::string>("ee_frame_name", "magnet_tip_link")),
 
      _target_pose(),
@@ -280,15 +287,16 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
 
   // Setup output joint trajectory
     _joint_trajectory.header.stamp    = ros::Time(0);
-    _joint_trajectory.header.frame_id = _nh.param<std::string>(
-					    "planning_frame", "arm_base_link");
+    // _joint_trajectory.header.frame_id = _nh.param<std::string>(
+    // 					    "planning_frame", "arm_base_link");
+    _joint_trajectory.header.frame_id = _state->getRobotModel()
+					      ->getRootLinkName();
     _joint_trajectory.joint_names     = _joint_model_group
 					    ->getActiveJointModelNames();
 
   // Put current joint positions to joint trajectory
     trajectory_msgs::JointTrajectoryPoint	point;
-    _state->copyJointGroupPositions(_joint_model_group,
-					    point.positions);
+    _state->copyJointGroupPositions(_joint_model_group, point.positions);
     point.time_from_start = _loop_rate.expectedCycleTime();
     _joint_trajectory.points.push_back(point);
 
@@ -321,7 +329,9 @@ JointTrajectoryServo::JointTrajectoryServo(const ros::NodeHandle& nh)
     _ddr.publishServicesTopics();
 
 
-    ROS_INFO_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) server started");
+    ROS_INFO_STREAM_NAMED(LOGNAME, "(JointTrajectoryServo) server started["
+			  << "planning_frame=" << planning_frame()
+			  << ", root_frame=" << root_frame() << ']');
 }
 
 JointTrajectoryServo::~JointTrajectoryServo()
@@ -332,6 +342,12 @@ const std::string&
 JointTrajectoryServo::planning_frame() const
 {
     return _joint_trajectory.header.frame_id;
+}
+
+const std::string&
+JointTrajectoryServo::root_frame() const
+{
+    return _joint_model_group->getParentModel().getRootLinkName();
 }
 
 void
@@ -355,7 +371,7 @@ JointTrajectoryServo::run()
  */
 planning_scene_monitor::PlanningSceneMonitorPtr
 JointTrajectoryServo::createPlanningSceneMonitor(
-    const std::string& robot_description)
+    const std::string& robot_description, const std::string& move_group_name)
 {
     using	namespace planning_scene_monitor;
 
@@ -374,6 +390,16 @@ JointTrajectoryServo::createPlanningSceneMonitor(
 	false /* skip octomap monitor */);
     monitor->startStateMonitor();
 
+  // Confirm the planning scene monitor is ready to be used
+    monitor->getStateMonitor()->enableCopyDynamics(true);
+
+    if (!monitor->getStateMonitor()
+		->waitForCompleteState(move_group_name, ROBOT_STATE_WAIT_TIME))
+    {
+	ROS_FATAL_STREAM_NAMED(LOGNAME, "Timeout waiting for current state");
+	exit(EXIT_FAILURE);
+    }
+
     ROS_INFO_STREAM_NAMED(LOGNAME, "PlanningSceneMonitor started");
 
     return monitor;
@@ -384,8 +410,7 @@ JointTrajectoryServo::tick()
 {
     {
 	std::lock_guard<std::mutex> lock(_state_mutex);
-	_state = _planning_scene_monitor->getStateMonitor()
-						->getCurrentState();
+	_state = _planning_scene_monitor->getStateMonitor()->getCurrentState();
 	_state_stamp = ros::Time::now();
     }
 
@@ -410,10 +435,11 @@ JointTrajectoryServo::tick()
     target_pose.header.frame_id	= planning_frame();
     target_pose.header.stamp	= _state_stamp;
     {
-	std::lock_guard<std::mutex>	lock(_input_mutex);
-	target_pose.pose = _input_extrapolator.pos(target_pose.header.stamp);
+    	std::lock_guard<std::mutex>	lock(_input_mutex);
+    	target_pose.pose = _input_extrapolator.pos(target_pose.header.stamp);
     }
     normalize(target_pose.pose.orientation);
+  //target_pose = _target_pose;
 
   // Correct target pose by offset given in current goal.
     tf2::Transform      target_transform;
@@ -426,8 +452,9 @@ JointTrajectoryServo::tick()
     _target_pose_pub.publish(target_pose);
 
   // Compute joint positions for target pose with IK solver.
+    std::cerr << "*** OK3" << std::endl;
     auto	state = *_state;
-    if (!state.setFromIK(_joint_model_group, target_pose.pose))
+    if (!state.setFromIK(_joint_model_group, target_pose.pose, _ee_frame))
     {
 	stopMotion();
 
@@ -440,22 +467,23 @@ JointTrajectoryServo::tick()
     }
 
   // Set joint positions to trajectory and publish.
-    auto	positions = state.getVariablePositions();
-    for (auto&& position : _joint_trajectory.points[0].positions)
-	position = *positions++;
-    _command_pub.publish(_joint_trajectory);
-
+    std::cerr << "*** OK4" << std::endl;
+    _state->copyJointGroupPositions(_joint_model_group,
+				    _joint_trajectory.points[0].positions);
+    std::cerr << "current:";
+    for (const auto& pos : _joint_trajectory.points[0].positions)
+	std::cerr << ' ' << pos;
+    state.copyJointGroupPositions(_joint_model_group,
+				  _joint_trajectory.points[0].positions);
+    std::cerr << "\ntarget: ";
+    for (const auto& pos : _joint_trajectory.points[0].positions)
+	std::cerr << ' ' << pos;
+    std::cerr << std::endl;
+  //_command_pub.publish(_joint_trajectory);
+    
   // Get current transform from end-effector frame to planning frame.
+    std::cerr << "*** OK5" << std::endl;
     const auto	ee_frame_transform = getFrameTransform(_ee_frame);
-
-  // Publish tracking result as feedback.
-    // PoseTrackingFeedback	feedback;
-    // feedback.positional_error[0] = positional_error(0);
-    // feedback.positional_error[1] = positional_error(1);
-    // feedback.positional_error[2] = positional_error(2);
-    // feedback.angular_error	 = angular_error.angle();
-    // feedback.status		 = static_cast<int8_t>(_servo_status_);
-    // _tracker_srv.publishFeedback(feedback);
 
   // Publish current end-effecgtor pose for debugging.
     _ee_pose_pub.publish(aist_utility::toPose(ee_frame_transform));
@@ -471,7 +499,7 @@ JointTrajectoryServo::targetPoseCB(const pose_cp& target_pose)
 	_target_pose.header.stamp = ros::Time::now();
 
   // Transform given pose to planning frame if necessary.
-    if (_target_pose.header.frame_id != planning_frame())
+    if (_target_pose.header.frame_id != root_frame())
 	tf2::doTransform(_target_pose, _target_pose,
 			 getFrameTransform(_target_pose.header.frame_id));
 
@@ -562,11 +590,14 @@ JointTrajectoryServo::getFrameTransform(const std::string& frame) const
 {
     std::lock_guard<std::mutex>	lock(_state_mutex);
 
+    // auto transform = tf2::eigenToTransform(
+    // 			_state->getGlobalLinkTransform(planning_frame())
+    // 			.inverse() *
+    // 			_state->getGlobalLinkTransform(frame));
+  //transform.header.frame_id = planning_frame();
     auto transform = tf2::eigenToTransform(
-			_state->getGlobalLinkTransform(planning_frame())
-			.inverse() *
 			_state->getGlobalLinkTransform(frame));
-    transform.header.frame_id = planning_frame();
+    transform.header.frame_id = root_frame();
     transform.header.stamp    = _state_stamp;
     transform.child_frame_id  = frame;
 
