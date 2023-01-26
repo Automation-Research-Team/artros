@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, collections, copy, threading
+import rospy, collections, threading
 import numpy as np
 from math                     import pi, radians, degrees
 from geometry_msgs.msg        import (QuaternionStamped, PoseStamped,
@@ -62,8 +62,8 @@ class HMIRoutines(AISTBaseRoutines):
     MarkerProps = collections.namedtuple('MarkerProps',
                                          'id, scale, color')
     _marker_props = {
-        'finger' : MarkerProps(0, (0.004, 0.010, 0.015), (0.0, 1.0, 1.0, 0.8)),
-        'sweep'  : MarkerProps(1, (0.004, 0.010, 0.015), (1.0, 1.0, 0.0, 0.8))
+        'finger' : MarkerProps(0, (0.006, 0.014, 0.015), (0.0, 1.0, 1.0, 1.0)),
+        'sweep'  : MarkerProps(1, (0.006, 0.014, 0.015), (1.0, 1.0, 0.0, 1.0))
         }
 
     def __init__(self, server='hmi_server'):
@@ -82,7 +82,7 @@ class HMIRoutines(AISTBaseRoutines):
         self._marker_pub         = rospy.Publisher("pointing_marker",
                                                    Marker, queue_size=10)
         self._condition          = threading.Condition()
-        self._moving             = None
+        self._moving             = False
         self._request_help_clnt.wait_for_server()
 
     @property
@@ -187,7 +187,7 @@ class HMIRoutines(AISTBaseRoutines):
             if result == PickOrPlaceResult.SUCCESS:
                 self.place_at_frame(robot_name, part_props['destination'],
                                     part_id, wait=False,
-                                    feedback_cb=self._place_feedback_cb)
+                                    feedback_cb=self._pick_or_place_feedback_cb)
                 self._wait_for_approaching()
                 poses, _ = self.search(bin_id)
                 result   = self.pick_or_place_wait_for_result()
@@ -208,25 +208,11 @@ class HMIRoutines(AISTBaseRoutines):
                 return True, None
 
         if self.using_hmi_graspability_params:
+            self._restore_original_graspability_params(bin_id)
             return False, None
         else:
             self._set_hmi_graspability_params(bin_id)
-            return True, NOne
-
-    # Place stuffs
-    def _wait_for_approaching(self):
-        self._moving = True
-        with self._condition:
-            while self._moving:  # Use loop for spurious wakeup
-                self._condition.wait()
-
-    def _place_feedback_cb(self, feedback):
-        if self._moving and \
-           feedback.state not in (PickOrPlaceFeedback.UNKNOWN,
-                                  PickOrPlaceFeedback.MOVING):
-            with self._condition:
-                self._moving = False
-                self._condition.notifyAll()
+            return True, None
 
     def request_help_bin(self, bin_id):
         """
@@ -286,7 +272,7 @@ class HMIRoutines(AISTBaseRoutines):
         req.request    = request_help.SWEEP_DIR_REQ
         req.message    = message
         self._request_help_clnt.send_goal(RequestHelpGoal(req),
-                                         feedback_cb=self._feedback_cb)
+                                         feedback_cb=self._request_help_feedback_cb)
         self._request_help_clnt.wait_for_result()
         return self._request_help_clnt.get_result().response
 
@@ -346,10 +332,25 @@ class HMIRoutines(AISTBaseRoutines):
         sdir = np.cross(fnrm, (gnrm.x, gnrm.y, gnrm.z))
         return tuple(sdir / np.linalg.norm(sdir))
 
-    def _feedback_cb(self, feedback):
+    def _request_help_feedback_cb(self, feedback):
         res = feedback.response
         self._publish_marker('finger',
                              res.header, res.finger_pos, res.finger_dir)
+
+    # Waiting for approching stuffs
+    def _wait_for_approaching(self):
+        self._moving = True
+        with self._condition:
+            while self._moving:  # Use loop for spurious wakeup
+                self._condition.wait()
+
+    def _pick_or_place_feedback_cb(self, feedback):
+        if self._moving and \
+           feedback.state not in (PickOrPlaceFeedback.UNKNOWN,
+                                  PickOrPlaceFeedback.MOVING):
+            with self._condition:
+                self._moving = False
+                self._condition.notifyAll()
 
     # Marker stuffs
     def _delete_markers(self):
@@ -481,7 +482,7 @@ if __name__ == '__main__':
                 elif key == 'a':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     hmi.clear_fail_poses()
-                    hmi.attempt_bin(bin_id, 5)
+                    hmi.attempt_bin(bin_id)
                     hmi.go_to_named_pose(hmi.current_robot_name, 'home')
                 elif key == 'A':
                     bin_id   = 'bin_' + raw_input('  bin id? ')
@@ -489,7 +490,7 @@ if __name__ == '__main__':
                     poses    = None
                     hmi.clear_fail_poses()
                     while remained:
-                        remained, poses = hmi.attempt_bin(bin_id, 5, poses):
+                        remained, poses = hmi.attempt_bin(bin_id, poses)
                     hmi.go_to_named_pose(hmi.current_robot_name, 'home')
                 elif key == 'w':
                     bin_id = 'bin_' + raw_input('  bin id? ')

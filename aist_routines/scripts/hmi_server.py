@@ -89,25 +89,6 @@ class HMIServer(object):
         @type  pointing_msg: finger_pointing_msgs.msg.pointing
         @param pointing_msg: finger direction response from VR side
         """
-        if pointing_msg.pointing_state == pointing.SWEEP_RES:
-            rospy.loginfo('(hmi_server) received pointing message[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
-                          % (self._Pointing[pointing_msg.pointing_state],
-                             pointing_msg.finger_pos.x,
-                             pointing_msg.finger_pos.y,
-                             pointing_msg.finger_pos.z,
-                             pointing_msg.finger_dir.x,
-                             pointing_msg.finger_dir.y,
-                             pointing_msg.finger_dir.z))
-        elif pointing_msg.pointing_state == pointing.RECAPTURE_RES:
-            rospy.logwarn('(hmi_server) received pointing message[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
-                          % (self._Pointing[pointing_msg.pointing_state],
-                             pointing_msg.finger_pos.x,
-                             pointing_msg.finger_pos.y,
-                             pointing_msg.finger_pos.z,
-                             pointing_msg.finger_dir.x,
-                             pointing_msg.finger_dir.y,
-                             pointing_msg.finger_dir.z))
-
         pointing_msg.header.stamp = rospy.Time.now()
         if self._request_help_srv.is_active():
             if pointing_msg.pointing_state == pointing.NO_RES:
@@ -117,7 +98,14 @@ class HMIServer(object):
                 self._request_help_srv.set_succeeded(RequestHelpResult(
                                                         pointing_msg))
                 self._curr_req = self._no_req   # Revert to _no_req
-                rospy.loginfo('(hmi_server) SUCCEEDED current goal')
+                rospy.loginfo('(hmi_server) SUCCEEDED current goal[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
+                              % (self._Pointing[pointing_msg.pointing_state],
+                                 pointing_msg.finger_pos.x,
+                                 pointing_msg.finger_pos.y,
+                                 pointing_msg.finger_pos.z,
+                                 pointing_msg.finger_dir.x,
+                                 pointing_msg.finger_dir.y,
+                                 pointing_msg.finger_dir.z))
 
     def _goal_cb(self):
         """
@@ -125,9 +113,8 @@ class HMIServer(object):
         robot side in _curr_req.
         """
         self._curr_req = self._request_help_srv.accept_new_goal().request
-        rospy.loginfo('(hmi_server) ACCPETED new goal[robot_name=%s, item_id=%s. request=%d]',
-                      self._curr_req.robot_name, self._curr_req.item_id,
-                      self._curr_req.request)
+        rospy.loginfo('(hmi_server) ACCPETED new goal for help request[%s, %s]',
+                      self._curr_req.robot_name, self._curr_req.item_id)
 
     def _preempt_cb(self):
         """

@@ -5,12 +5,8 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Scene Robot1
-        - /MotionPlanning1/Planning Request1
         - /TF1/Frames1
-        - /LiveCamera1
-        - /PhoxiTexture1
         - /DepthCloud1/Auto Size1
-        - /PointingMarker1
       Splitter Ratio: 0.6159420013427734
     Tree Height: 406
   - Class: rviz/Selection
@@ -859,7 +855,7 @@ Visualization Manager:
         Robot Alpha: 0.5
         Robot Color: 150; 50; 150
         Show Robot Collision: false
-        Show Robot Visual: true
+        Show Robot Visual: false
         Show Trail: false
         State Display Time: 0.05 s
         Trail Step Size: 1
@@ -1680,11 +1676,11 @@ Visualization Manager:
         a_bot_base_link:
           Value: false
         a_bot_base_link_inertia:
-          Value: true
+          Value: false
         a_bot_camera_mount:
           Value: false
         a_bot_flange:
-          Value: true
+          Value: false
         a_bot_forearm_link:
           Value: false
         a_bot_ftsensor_base_link:
@@ -1723,14 +1719,16 @@ Visualization Manager:
           Value: false
         a_bot_gripper_tip_link:
           Value: true
+        a_bot_inside_camera_aligned_depth_to_color_frame:
+          Value: false
         a_bot_inside_camera_color_frame:
-          Value: true
+          Value: false
         a_bot_inside_camera_color_optical_frame:
           Value: true
         a_bot_inside_camera_connector_link:
           Value: false
         a_bot_inside_camera_depth_frame:
-          Value: true
+          Value: false
         a_bot_inside_camera_depth_optical_frame:
           Value: true
         a_bot_inside_camera_left_ir_frame:
@@ -1738,21 +1736,19 @@ Visualization Manager:
         a_bot_inside_camera_left_ir_optical_frame:
           Value: false
         a_bot_inside_camera_link:
-          Value: true
+          Value: false
         a_bot_inside_camera_right_ir_frame:
           Value: false
         a_bot_inside_camera_right_ir_optical_frame:
           Value: false
-        a_bot_outside_camera_aligned_depth_to_color_frame:
-          Value: true
         a_bot_outside_camera_color_frame:
-          Value: true
+          Value: false
         a_bot_outside_camera_color_optical_frame:
           Value: true
         a_bot_outside_camera_connector_link:
           Value: false
         a_bot_outside_camera_depth_frame:
-          Value: true
+          Value: false
         a_bot_outside_camera_depth_optical_frame:
           Value: true
         a_bot_outside_camera_left_ir_frame:
@@ -1760,7 +1756,7 @@ Visualization Manager:
         a_bot_outside_camera_left_ir_optical_frame:
           Value: false
         a_bot_outside_camera_link:
-          Value: true
+          Value: false
         a_bot_outside_camera_right_ir_frame:
           Value: false
         a_bot_outside_camera_right_ir_optical_frame:
@@ -1782,7 +1778,7 @@ Visualization Manager:
         a_phoxi_m_camera_link:
           Value: false
         a_phoxi_m_camera_reference:
-          Value: true
+          Value: false
         a_phoxi_m_camera_sensor:
           Value: true
         b_bot_base:
@@ -1790,9 +1786,9 @@ Visualization Manager:
         b_bot_base_link:
           Value: false
         b_bot_base_link_inertia:
-          Value: true
+          Value: false
         b_bot_flange:
-          Value: true
+          Value: false
         b_bot_forearm_link:
           Value: false
         b_bot_ftsensor_base_link:
@@ -2036,14 +2032,14 @@ Visualization Manager:
         workspace_ar_marker:
           Value: true
         workspace_center:
-          Value: true
+          Value: false
         world:
           Value: false
       Marker Scale: 0.15000000596046448
       Name: TF
       Show Arrows: false
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
         world:
           ground:
@@ -2087,10 +2083,12 @@ Visualization Manager:
                                           {}
                                         a_bot_inside_camera_connector_link:
                                           a_bot_inside_camera_link:
+                                            a_bot_inside_camera_aligned_depth_to_color_frame:
+                                              a_bot_inside_camera_color_optical_frame:
+                                                {}
+                                            a_bot_inside_camera_color_frame:
+                                              {}
                                             a_bot_inside_camera_depth_frame:
-                                              a_bot_inside_camera_color_frame:
-                                                a_bot_inside_camera_color_optical_frame:
-                                                  {}
                                               a_bot_inside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_inside_camera_left_ir_frame:
@@ -2101,12 +2099,10 @@ Visualization Manager:
                                                   {}
                                         a_bot_outside_camera_connector_link:
                                           a_bot_outside_camera_link:
-                                            a_bot_outside_camera_aligned_depth_to_color_frame:
-                                              a_bot_outside_camera_color_optical_frame:
-                                                {}
-                                            a_bot_outside_camera_color_frame:
-                                              {}
                                             a_bot_outside_camera_depth_frame:
+                                              a_bot_outside_camera_color_frame:
+                                                a_bot_outside_camera_color_optical_frame:
+                                                  {}
                                               a_bot_outside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_outside_camera_left_ir_frame:
@@ -2365,7 +2361,7 @@ Visualization Manager:
       Marker Topic: /visualization_marker
       Name: MarkerArray
       Namespaces:
-        {}
+        markers: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -2440,25 +2436,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.10657960176467896
+      Distance: 0.3097991347312927
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.32473012804985046
-        Y: 0.1256612092256546
-        Z: 0.9716352224349976
+        X: 0.1877845972776413
+        Y: 0.11924061924219131
+        Z: 0.8175492286682129
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9247969388961792
+      Pitch: 0.9288597702980042
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.278131008148193
+      Yaw: 6.2792816162109375
     Saved: ~
 Window Geometry:
   Displays:

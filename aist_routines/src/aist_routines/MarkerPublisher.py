@@ -52,11 +52,11 @@ class MarkerPublisher(object):
                                          "draw_axes, scale, color")
     _marker_props = {
         "pose" :
-            MarkerProps(True,  (0.006, 0.015, 0.015), (0.0, 1.0, 0.0, 0.8)),
+            MarkerProps(True,  (0.004, 0.010, 0.010), (0.0, 1.0, 0.0, 0.8)),
         "pick_pose":
-            MarkerProps(True,  (0.006, 0.015, 0.015), (1.0, 0.0, 1.0, 0.8)),
+            MarkerProps(True,  (0.004, 0.010, 0.010), (1.0, 0.0, 1.0, 0.8)),
         "place_pose":
-            MarkerProps(True,  (0.006, 0.015, 0.015), (0.0, 1.0, 1.0, 0.8)),
+            MarkerProps(True,  (0.004, 0.010, 0.010), (0.0, 1.0, 1.0, 0.8)),
         "graspability":
             MarkerProps(True,  (0.004, 0.004, 0.004), (1.0, 1.0, 0.0, 0.8)),
         "":
