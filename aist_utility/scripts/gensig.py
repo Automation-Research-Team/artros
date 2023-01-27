@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 import rospy, random
 import numpy as np
-from math                 import pi, sin
-from aist_controllers.msg import Flt
+from math             import pi, sin
+from aist_utility.msg import Float32Stamped
 # from scipy import signal
 # from scipy import fftpack
 # from matplotlib import pyplot as plt
@@ -14,8 +14,8 @@ from aist_controllers.msg import Flt
 class GenSig(object):
     def __init__(self):
         super(GenSig, self).__init__()
-        self._pub = rospy.Publisher('~out', Flt, queue_size=10)
-        self._sub = rospy.Subscriber('/in', Flt, self._flt_cb)
+        self._pub = rospy.Publisher('~out', Float32Stamped, queue_size=10)
+        self._sub = rospy.Subscriber('/in', Float32Stamped, self._flt_cb)
 
     def run(self):
         f           = rospy.get_param('~signal_frequency', 2)
@@ -25,9 +25,9 @@ class GenSig(object):
         while not rospy.is_shutdown():
             now = rospy.Time.now()
             dx  = random.uniform(-noize_level, noize_level)
-            flt = Flt()
+            flt = Float32Stamped()
             flt.header.stamp = now
-            flt.x = sin(2*pi*f*now.to_sec()) + dx
+            flt.data = sin(2*pi*f*now.to_sec()) + dx
             self._pub.publish(flt)
             rate.sleep()
 

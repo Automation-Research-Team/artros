@@ -35,11 +35,11 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+import rospy, threading
 from math              import pi, radians, degrees
-from geometry_msgs.msg import PoseStamped, QuaternionStamped
+from geometry_msgs.msg import PoseStamped, QuaternionStamped, Quaternion
 from aist_routines     import AISTBaseRoutines
-from aist_routines.msg import PickOrPlaceResult, SweepResult
+from aist_routines.msg import PickOrPlaceResult, PickOrPlaceFeedback, SweepResult
 
 ######################################################################
 #  class KittingRoutines                                             #
@@ -54,6 +54,8 @@ class KittingRoutines(AISTBaseRoutines):
         self._part_props         = rospy.get_param('~part_props')
         self._current_robot_name = None
         self._fail_poses         = []
+        self._condition          = threading.Condition()
+        self._moving             = False
         #self.go_to_named_pose('all_bots', 'home')
 
     @property
@@ -99,13 +101,10 @@ class KittingRoutines(AISTBaseRoutines):
 
         orientation = QuaternionStamped()
         orientation.header.frame_id = self.reference_frame
-        orientation.quaternion.x = 0
-        orientation.quaternion.y = 0
-        orientation.quaternion.z = 0
-        orientation.quaternion.w = 1
+        orientation.quaternion = Quaternion(0, 0, 0, 1)
         return self.graspability_wait_for_result(orientation, max_slant)
 
-    def attempt_bin(self, bin_id, max_attempts=5):
+    def attempt_bin(self, bin_id, poses=None, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
@@ -122,7 +121,8 @@ class KittingRoutines(AISTBaseRoutines):
             self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
 
         # Search for graspabilities.
-        poses, _ = self.search(bin_id)
+        if poses is None:
+            poses, _ = self.search(bin_id)
 
         # Attempt to pick the item.
         nattempts = 0
@@ -139,10 +139,13 @@ class KittingRoutines(AISTBaseRoutines):
             print('*** pick_result=%d' % result)
 
             if result == PickOrPlaceResult.SUCCESS:
-                result = self.place_at_frame(robot_name,
-                                             part_props['destination'],
-                                             part_id)
-                return result == PickOrPlaceResult.SUCCESS
+                self.place_at_frame(robot_name, part_props['destination'],
+                                    part_id, wait=False,
+                                    feedback_cb=self._pick_or_place_feedback_cb)
+                self._wait_for_approaching()
+                poses, _ = self.search(bin_id)
+                resutl   = self.pick_or_place_wait_for_result()
+                return result == PickOrPlaceResult.SUCCESS, poses
             elif result == PickOrPlaceResult.MOVE_FAILURE or \
                  result == PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
@@ -152,7 +155,7 @@ class KittingRoutines(AISTBaseRoutines):
                 self._fail_poses.append(pose)
                 nattempts += 1
 
-        return False
+        return False, None
 
     def sweep_bin(self, bin_id):
         bin_props  = self._bin_props[bin_id]
@@ -182,6 +185,20 @@ class KittingRoutines(AISTBaseRoutines):
 
     def clear_fail_poses(self):
         self._fail_poses = []
+
+    def _wait_for_approaching(self):
+        self._moving = True
+        with self._condition:
+            while self._moving:  # Use loop for spurious wakeup
+                self._condition.wait()
+
+    def _pick_or_place_feedback_cb(self, feedback):
+        if self._moving and \
+           feedback.state not in (PickOrPlaceFeedback.UNKNOWN,
+                                  PickOrPlaceFeedback.MOVING):
+            with self._condition:
+                self._moving = False
+                self._condition.notifyAll()
 
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'
@@ -245,14 +262,16 @@ if __name__ == '__main__':
                 elif key == 'a':
                     bin_id = 'bin_' + raw_input('  bin id? ')
                     kitting.clear_fail_poses()
-                    kitting.attempt_bin(bin_id, 5)
+                    kitting.attempt_bin(bin_id)
                     kitting.go_to_named_pose(kitting.current_robot_name,
                                              'home')
                 elif key == 'A':
                     bin_id = 'bin_' + raw_input('  bin id? ')
+                    remained = True
+                    poses    = None
                     kitting.clear_fail_poses()
-                    while kitting.attempt_bin(bin_id, 5):
-                        pass
+                    while remained:
+                        remained, poses = kitting.attempt_bin(bin_id, poses)
                     kitting.go_to_named_pose(kitting.current_robot_name,
                                              'home')
                 elif key == 'c':

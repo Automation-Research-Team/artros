@@ -4,8 +4,8 @@
   <!-- offset for realsense -->
   <!-- <arg name="target_offset"	default="[0.1, 0.05, 0.10, -90, 90, 0]"/> -->
   <!-- offset for phoxi -->
-  <arg name="target_offset"	default="[0.1, 0.15, 0.4, -90, 90, 0]"/>
-  <arg name="plot_joints"	default="false"/>
+  <arg name="target_offset"	default="[0.1, 0.15, 0.35, -90, 90, 0]"/>
+  <arg name="plot"		default="durations"/>
 
   <!-- Spawn client -->
   <node name="pose_tracking_client"
@@ -21,7 +21,7 @@
 					'arm_joint5', 'arm_joint6']"/>
   </include>
 
-  <arg if="$(arg plot_joints)"
+  <arg if="$(eval plot == 'positions')"
        name="plot_args"
        value="/arm_controller/command_debug/points[0]/positions[0]
   	      /arm_controller/command_debug/points[0]/positions[1]
@@ -35,7 +35,7 @@
   	      /arm_controller/state/actual/positions[3]
   	      /arm_controller/state/actual/positions[4]
   	      /arm_controller/state/actual/positions[5]"/>
-  <arg unless="$(arg plot_joints)"
+  <arg if="$(eval plot == 'joints')"
        name="plot_args"
        value="/pose_tracking_servo/target_pose_debug/pose/position/x
   	      /pose_tracking_servo/target_pose_debug/pose/position/y
@@ -45,6 +45,8 @@
   	      /arm_controller/command_debug/points[0]/positions[4]
   	      /arm_controller/state/actual/positions[0]
   	      /arm_controller/state/actual/positions[4]"/>
+  <arg if="$(eval plot == 'durations')"
+       name="plot_args"	value="/pose_tracking_servo/durations"/>
 
   <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
 	args="$(arg plot_args)"/>

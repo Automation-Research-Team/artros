@@ -370,59 +370,59 @@ Servo::readParameters()
     return true;
 }
 
-    void
-    Servo::start()
-    {
-	setPaused(false);
+void
+Servo::start()
+{
+    setPaused(false);
 
-      // Crunch the numbers in this timer
-	servo_calcs_->start();
+  // Crunch the numbers in this timer
+    servo_calcs_->start();
 
-      // Check collisions in this timer
-	if (parameters_.check_collisions)
-	    collision_checker_->start();
-    }
+  // Check collisions in this timer
+    if (parameters_.check_collisions)
+	collision_checker_->start();
+}
 
-    Servo::~Servo()
-    {
-	setPaused(true);
-    }
+Servo::~Servo()
+{
+    setPaused(true);
+}
 
-    void
-    Servo::setPaused(bool paused)
-    {
-	servo_calcs_->setPaused(paused);
-	collision_checker_->setPaused(paused);
-    }
+void
+Servo::setPaused(bool paused)
+{
+    servo_calcs_->setPaused(paused);
+    collision_checker_->setPaused(paused);
+}
 
-    bool
-    Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
-    {
-	return servo_calcs_->getCommandFrameTransform(transform);
-    }
+bool
+Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
+{
+    return servo_calcs_->getCommandFrameTransform(transform);
+}
 
-    bool
-    Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
-    {
-	return servo_calcs_->getCommandFrameTransform(transform);
-    }
+bool
+Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+    return servo_calcs_->getCommandFrameTransform(transform);
+}
 
-    bool
-    Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
-    {
-	return servo_calcs_->getEEFrameTransform(transform);
-    }
+bool
+Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
+{
+    return servo_calcs_->getEEFrameTransform(transform);
+}
 
-    bool
-    Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
-    {
-	return servo_calcs_->getEEFrameTransform(transform);
-    }
+bool
+Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
+{
+    return servo_calcs_->getEEFrameTransform(transform);
+}
 
-    const ServoParameters&
-    Servo::getParameters() const
-    {
-	return parameters_;
-    }
+const ServoParameters&
+Servo::getParameters() const
+{
+    return parameters_;
+}
 
 }  // namespace moveit_servo

@@ -43,7 +43,6 @@
 #include <moveit_servo/status_codes.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_listener.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_controllers/PoseTrackingAction.h>
@@ -249,9 +248,6 @@ class PoseTrackingServo
   // Dynamic reconfigure server
     ddynamic_reconfigure::DDynamicReconfigure	ddr_;
 
-    tf2_ros::Buffer				transform_buffer_;
-    tf2_ros::TransformListener			transform_listener_;
-
   // Filters for input target pose
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
@@ -299,9 +295,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      tracker_srv_(nh_, "pose_tracking", false),
      current_goal_(nullptr),
      ddr_(ros::NodeHandle(nh_, "pose_tracking")),
-
-     transform_buffer_(),
-     transform_listener_(transform_buffer_),
 
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
@@ -443,7 +436,8 @@ PoseTrackingServo::run()
 void
 PoseTrackingServo::tick()
 {
-    durations_.tick_begin = ros::Time::now() - durations_.header.stamp;
+    durations_.tick_begin = (ros::Time::now() -
+			     durations_.header.stamp).toSec();
 
     if (!tracker_srv_.isActive())
 	return;
@@ -495,8 +489,8 @@ PoseTrackingServo::tick()
     if (servo_->getEEFrameTransform(ee_frame_transform_))
 	ee_frame_transform_stamp_ = ros::Time::now();
 
-    durations_.ee_frame_in = ee_frame_transform_stamp_
-			   - durations_.header.stamp;
+    durations_.ee_frame_in = (ee_frame_transform_stamp_ -
+			      durations_.header.stamp).toSec();
 
   // Check that end-effector pose (command frame transform) is recent enough.
     if (!haveRecentEndEffectorPose(current_goal_->timeout))
@@ -549,7 +543,8 @@ PoseTrackingServo::tick()
     twist_stamped_pub_.publish(calculateTwistCommand(positional_error,
 						     angular_error));
 
-    durations_.twist_out = ros::Time::now() - durations_.header.stamp;
+    durations_.twist_out = (ros::Time::now() -
+			    durations_.header.stamp).toSec();
 
   // For debugging
     ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
@@ -738,7 +733,8 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	target_pose_.header.stamp = ros::Time::now();
 
     durations_.header	      = target_pose_.header;
-    durations_.target_pose_in = ros::Time::now() - durations_.header.stamp;
+    durations_.target_pose_in = (ros::Time::now() -
+				 durations_.header.stamp).toSec();
 
   // If the target pose is defined in planning frame, it's OK as is.
     if (target_pose_.header.frame_id == planning_frame_)
@@ -751,19 +747,6 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
     Tpt.header.frame_id = planning_frame_;
     Tpt.child_frame_id  = target_pose_.header.frame_id;
     tf2::doTransform(target_pose_, target_pose_, Tpt);
-  /*
-    try
-    {
-	tf2::doTransform(target_pose_, target_pose_,
-			 transform_buffer_.lookupTransform(
-			     planning_frame_, target_pose_.header.frame_id,
-			     ros::Time(0), ros::Duration(0.1)));
-    }
-    catch (const tf2::TransformException& err)
-    {
-	ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) " << err.what());
-    }
-  */
 }
 
 void

@@ -23,16 +23,4 @@
     <arg name="normal_topic"		value="$(arg camera_name)/normal_map"/>
   </include>
 
-  <!-- Start rosbridge server -->
-  <arg name="port"	value="9090"/>
-  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
-    <arg name="port"	value="$(arg port)"/>
-  </include>
-
-  <!-- Start live camera -->
-  <node name="live_camera"
-  	pkg="usb_cam" type="usb_cam_node" output="screen">
-    <rosparam file="$(dirname)/../config/live_camera.yaml"/>
-  </node>
-
 </launch>

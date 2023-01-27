@@ -211,6 +211,9 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+#
+#  pose_tracking_servo
+#
 add_executable(
   pose_tracking_servo
   src/pose_tracking_servo.cpp
@@ -228,9 +231,28 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+#
+#  joint_trajectory_servo
+#
+add_executable(
+  joint_trajectory_servo
+  src/joint_trajectory_servo.cpp
+)
+
+target_link_libraries(
+  joint_trajectory_servo
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  joint_trajectory_servo
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
   TARGETS point_head_tracker pose_head_tracker pose_group_tracker servo_server
-  pose_tracking_servo
+  pose_tracking_servo joint_trajectory_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

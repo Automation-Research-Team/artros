@@ -542,6 +542,8 @@ ServoCalcs::calculateSingleIteration()
 	zero_velocity_count_ = 0;
     }
 
+    const auto	now = ros::Time::now();
+    
     if (ok_to_publish_ && !paused_)
     {
       // Put the outgoing msg in the right format
@@ -555,7 +557,7 @@ ServoCalcs::calculateSingleIteration()
 	    outgoing_cmd_pub_.publish(joint_trajectory);
 
 	    auto	joint_trajectory_debug = *joint_trajectory;
-	    joint_trajectory_debug.header.stamp = ros::Time::now();
+	    joint_trajectory_debug.header.stamp = now;
 	    outgoing_cmd_debug_pub_.publish(joint_trajectory_debug);
 	}
 	else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
@@ -571,8 +573,10 @@ ServoCalcs::calculateSingleIteration()
 	    outgoing_cmd_pub_.publish(joints);
 	}
 
-	durations_.cmd_out = ros::Time::now() - durations_.header.stamp;
-	durations_pub_.publish(durations_);
+	durations_.cmd_out = (now - durations_.header.stamp).toSec();
+	auto	durations_tmp = durations_;
+	durations_tmp.header.stamp = now;
+	durations_pub_.publish(durations_tmp);
 	
 	last_sent_command_ = joint_trajectory;
     }

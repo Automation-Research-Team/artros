@@ -3,7 +3,7 @@
  *  \brief	ROS tracker of aist_utility::PoseHeadAction type
  */
 #include <ros/ros.h>
-#include <aist_utility/Flt.h>
+#include <aist_utility/Float32Stamped.h>
 #include <aist_utility/butterworth_lpf.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 
@@ -22,7 +22,7 @@ class ButterworthLPFTest
 
   private:
     void	initialize(int half_order, double cutoff_frequency)	;
-    void	flt_cb(const FltConstPtr& flt)			const	;
+    void	flt_cb(const Float32StampedConstPtr& flt)	const	;
 
   private:
     ros::NodeHandle				_nh;
@@ -38,7 +38,7 @@ ButterworthLPFTest::ButterworthLPFTest()
     :_nh("~"),
      _rate(_nh.param<double>("rate", 1000.0)),
      _sub(_nh.subscribe("/in", 1, &ButterworthLPFTest::flt_cb, this)),
-     _pub(_nh.advertise<aist_utility::Flt>("out", 1)),
+     _pub(_nh.advertise<aist_utility::Float32Stamped>("out", 1)),
      _lpf(2, 50.0/_rate),
      _x(0.0)
 {
@@ -65,13 +65,13 @@ ButterworthLPFTest::initialize(int half_order, double cutoff_frequency)
 }
 
 void
-ButterworthLPFTest::flt_cb(const FltConstPtr& in) const
+ButterworthLPFTest::flt_cb(const Float32StampedConstPtr& in) const
 {
-    _x = in->x;
+    _x = in->data;
 
-    Flt	out;
+    Float32Stamped	out;
     out.header = in->header;
-    out.x      = _lpf.filter(in->x);
+    out.data   = _lpf.filter(in->data);
     _pub.publish(out);
 }
 

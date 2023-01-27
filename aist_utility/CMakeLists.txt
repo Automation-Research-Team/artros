@@ -38,7 +38,7 @@ catkin_python_setup()
 ###########
 add_message_files(
   FILES
-    Flt.msg
+    Float32Stamped.msg
 )
 
 generate_messages(
@@ -134,6 +134,21 @@ target_link_libraries(
 
 add_dependencies(
   joint_state_extractor
+  ${catkin_EXPORTED_TARGETS}
+)
+
+add_executable(
+  spline_extrapolator_test
+  src/spline_extrapolator_test.cpp
+)
+
+target_link_libraries(
+  spline_extrapolator_test
+  ${catkin_LIBRARIES}
+)
+
+add_dependencies(
+  spline_extrapolator_test
   ${catkin_EXPORTED_TARGETS}
 )
 
