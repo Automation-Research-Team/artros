@@ -142,6 +142,8 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 						  ->getCurrentState();
     joint_model_group_	 = current_state_->getJointModelGroup(
 						parameters_.move_group_name);
+    prev_joint_velocity_ = Eigen::ArrayXd::Zero(joint_model_group_->
+						getActiveJointModels().size());
 
   // Subscribe to command topics
     twist_stamped_sub_ =
@@ -410,15 +412,15 @@ ServoCalcs::calculateSingleIteration()
 	joint_servo_cmd_ = *latest_joint_cmd_;
 
   // Check for stale cmds
-    const auto twist_command_is_stale =
+    twist_command_is_stale_ =
 	((ros::Time::now() - latest_twist_command_stamp_) >=
 	 ros::Duration(parameters_.incoming_command_timeout));
-    const auto joint_command_is_stale =
+    joint_command_is_stale_ =
 	((ros::Time::now() - latest_joint_command_stamp_) >=
 	 ros::Duration(parameters_.incoming_command_timeout));
 
-    const auto	have_nonzero_twist_stamped = latest_nonzero_twist_stamped_;
-    const auto	have_nonzero_joint_command = latest_nonzero_joint_cmd_;
+    have_nonzero_twist_stamped_ = latest_nonzero_twist_stamped_;
+    have_nonzero_joint_command_ = latest_nonzero_joint_cmd_;
 
   // Get the transform from MoveIt planning frame to servoing command frame
   // Calculate this transform to ensure it is available via C++ API
@@ -437,8 +439,8 @@ ServoCalcs::calculateSingleIteration()
 				parameters_.planning_frame).inverse()
 	* current_state_->getGlobalLinkTransform(parameters_.ee_frame_name);
 
-    const auto	have_nonzero_command =  have_nonzero_twist_stamped
-				     || have_nonzero_joint_command;
+    have_nonzero_command_ =  have_nonzero_twist_stamped_
+			  || have_nonzero_joint_command_;
 
   // Don't end this function without updating the filters
     updated_filters_ = false;
@@ -467,7 +469,7 @@ ServoCalcs::calculateSingleIteration()
 
   // Prioritize cartesian servoing above joint servoing
   // Only run commands if not stale and nonzero
-    if (have_nonzero_twist_stamped && !twist_command_is_stale)
+    if (have_nonzero_twist_stamped_ && !twist_command_is_stale_)
     {
 	if (!cartesianServoCalcs(twist_stamped_cmd_, *joint_trajectory))
 	{
@@ -475,7 +477,7 @@ ServoCalcs::calculateSingleIteration()
 	    return;
 	}
     }
-    else if (have_nonzero_joint_command && !joint_command_is_stale)
+    else if (have_nonzero_joint_command_ && !joint_command_is_stale_)
     {
 	if (!jointServoCalcs(joint_servo_cmd_, *joint_trajectory))
 	{
@@ -495,7 +497,7 @@ ServoCalcs::calculateSingleIteration()
     }
 
   // Print a warning to the user if both are stale
-    if (twist_command_is_stale && joint_command_is_stale)
+    if (twist_command_is_stale_ && joint_command_is_stale_)
     {
 	ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
 				       "Stale command. "
@@ -503,16 +505,18 @@ ServoCalcs::calculateSingleIteration()
     }
 
   // If we should halt
-    if (!have_nonzero_command)
+    if (!have_nonzero_command_)
     {
 	suddenHalt(*joint_trajectory);
+	have_nonzero_twist_stamped_ = false;
+	have_nonzero_joint_command_ = false;
     }
 
   // Skip the servoing publication if all inputs have been zero
   // for several cycles in a row.
   // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep
   // republishing forever.
-    if (!have_nonzero_command &&
+    if (!have_nonzero_command_ &&
 	(parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
 	(zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
     {
@@ -527,7 +531,7 @@ ServoCalcs::calculateSingleIteration()
 
   // Store last zero-velocity message flag to prevent superfluous warnings.
   // Cartesian and joint commands must both be zero.
-    if (!have_nonzero_command)
+    if (!have_nonzero_command_)
     {
       // Avoid overflow
 	if (zero_velocity_count_ < std::numeric_limits<int>::max())
@@ -721,6 +725,8 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 			 velocityScalingFactorForSingularity(delta_x, svd,
 							     pseudo_inverse));
 
+    prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
+
     return convertDeltasToOutgoingCmd(joint_trajectory);
 }
 
@@ -747,6 +753,8 @@ ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd,
 
   // If close to a collision, decelerate
     applyVelocityScaling(delta_theta_, 1.0 /* scaling for singularities -- ignore for joint motions */);
+
+    prev_joint_velocity_ = delta_theta_ / parameters_.publish_period;
 
     return convertDeltasToOutgoingCmd(joint_trajectory);
 }

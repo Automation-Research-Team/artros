@@ -105,7 +105,7 @@ class ServoCalcs
 
     Eigen::Isometry3d
 	 getFrameTransform(const std::string& frame);
-
+    
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
     void setPaused(bool paused);
 
@@ -265,6 +265,11 @@ class ServoCalcs
   // Flag saying if the filters were updated during the timer callback
     bool			updated_filters_ = false;
 
+  // Nonzero status flags
+    bool			have_nonzero_twist_stamped_ = false;
+    bool			have_nonzero_joint_command_ = false;
+    bool			have_nonzero_command_ = false;
+
   // Incoming command messages
     geometry_msgs::TwistStamped	twist_stamped_cmd_;
     control_msgs::JointJog	joint_servo_cmd_;
@@ -316,11 +321,14 @@ class ServoCalcs
   // Status
     StatusCode		status_ = StatusCode::NO_WARNING;
     std::atomic<bool>	paused_;
+    bool		twist_command_is_stale_ = false;
+    bool		joint_command_is_stale_ = false;
     bool		ok_to_publish_ = false;
     double		collision_velocity_scale_ = 1.0;
 
   // Use ArrayXd type to enable more coefficient-wise operations
     Eigen::ArrayXd	delta_theta_;
+    Eigen::ArrayXd	prev_joint_velocity_;
 
     const int		gazebo_redundant_message_count_ = 30;
 
