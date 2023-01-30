@@ -246,33 +246,28 @@ class ServoCalcs
 			  std_srvs::Empty::Response& res);
 
   private:
-    ros::NodeHandle		nh_;
+    ros::NodeHandle				nh_;
 
   // Parameters from yaml
-    ServoParameters&		parameters_;
+    ServoParameters&				parameters_;
 
   // Pointer to the collision environment
     planning_scene_monitor::PlanningSceneMonitorPtr
-				planning_scene_monitor_;
+						planning_scene_monitor_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
-    int				zero_velocity_count_ = 0;
+    int						zero_velocity_count_ = 0;
 
   // Flag for staying inactive while there are no incoming commands
-    bool			wait_for_servo_commands_ = true;
+    bool					wait_for_servo_commands_ = true;
 
   // Flag saying if the filters were updated during the timer callback
-    bool			updated_filters_ = false;
+    bool					updated_filters_ = false;
 
-  // Incoming command messages
-    geometry_msgs::TwistStamped	twist_stamped_cmd_;
-    control_msgs::JointJog	joint_servo_cmd_;
 
-    const moveit::core::JointModelGroup*
-				joint_model_group_;
-
-    moveit::core::RobotStatePtr	current_state_;
+    const moveit::core::JointModelGroup*	joint_model_group_;
+    moveit::core::RobotStatePtr			current_state_;
 
   // incoming_joint_state_ is the incoming message. It may contain passive
   // joints or other joints we don't care about.
@@ -281,17 +276,17 @@ class ServoCalcs
   // relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_
   // except it only contains the joints the servo node acts on.
-    sensor_msgs::JointState		internal_joint_state_,
-					original_joint_state_;
-    std::map<std::string, std::size_t>	joint_state_name_map_;
+    sensor_msgs::JointState			internal_joint_state_,
+						original_joint_state_;
+    std::map<std::string, std::size_t>		joint_state_name_map_;
 
 #if defined(BUTTERWORTH)
     std::vector<aist_utility::ButterworthLPF<double> >	position_filters_;
 #else
-    std::vector<LowPassFilter>				position_filters_;
+    std::vector<LowPassFilter>			position_filters_;
 #endif
 
-    trajectory_msgs::JointTrajectoryConstPtr		last_sent_command_;
+    trajectory_msgs::JointTrajectoryConstPtr	last_sent_command_;
 
   // ROS
     ros::Subscriber				joint_state_sub_;
@@ -335,12 +330,8 @@ class ServoCalcs
     mutable std::mutex			input_mutex_;
     Eigen::Isometry3d			tf_moveit_to_robot_cmd_frame_;
     Eigen::Isometry3d			tf_moveit_to_ee_frame_;
-    geometry_msgs::TwistStampedConstPtr	latest_twist_stamped_;
-    control_msgs::JointJogConstPtr	latest_joint_cmd_;
-    ros::Time				latest_twist_command_stamp_ = ros::Time(0.);
-    ros::Time				latest_joint_command_stamp_ = ros::Time(0.);
-    bool				latest_nonzero_twist_stamped_ = false;
-    bool				latest_nonzero_joint_cmd_ = false;
+    geometry_msgs::TwistStamped		twist_stamped_cmd_;
+    control_msgs::JointJog		joint_servo_cmd_;
 
   // input condition variable used for low latency mode
     std::condition_variable		input_cv_;
