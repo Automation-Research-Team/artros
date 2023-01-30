@@ -316,7 +316,6 @@ class ServoCalcs
   // Status
     StatusCode		status_ = StatusCode::NO_WARNING;
     std::atomic<bool>	paused_;
-    bool		ok_to_publish_ = false;
     double		collision_velocity_scale_ = 1.0;
 
   // Use ArrayXd type to enable more coefficient-wise operations

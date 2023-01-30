@@ -383,11 +383,11 @@ JointTrajectoryServo::createPlanningSceneMonitor(
 	exit(EXIT_FAILURE);
     }
 
-    monitor->startSceneMonitor();
-    monitor->startWorldGeometryMonitor(
-	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-	false /* skip octomap monitor */);
+    // monitor->startSceneMonitor();
+    // monitor->startWorldGeometryMonitor(
+    // 	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+    // 	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+    // 	false /* skip octomap monitor */);
     monitor->startStateMonitor();
 
   // Confirm the planning scene monitor is ready to be used

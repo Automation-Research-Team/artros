@@ -512,17 +512,14 @@ ServoCalcs::calculateSingleIteration()
   // for several cycles in a row.
   // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep
   // republishing forever.
+    bool	ok_to_publish = true;
     if (!have_nonzero_command &&
 	(parameters_.num_outgoing_halt_msgs_to_publish != 0) &&
 	(zero_velocity_count_ > parameters_.num_outgoing_halt_msgs_to_publish))
     {
-	ok_to_publish_ = false;
+	ok_to_publish = false;
 	ROS_DEBUG_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 					"All-zero command. Doing nothing.");
-    }
-    else
-    {
-	ok_to_publish_ = true;
     }
 
   // Store last zero-velocity message flag to prevent superfluous warnings.
@@ -540,7 +537,7 @@ ServoCalcs::calculateSingleIteration()
 
     const auto	now = ros::Time::now();
 
-    if (ok_to_publish_ && !paused_)
+    if (ok_to_publish && !paused_)
     {
       // Put the outgoing msg in the right format
       // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).

@@ -86,7 +86,7 @@ Detector::Detector(const ros::NodeHandle& nh)
      _result_pub(_it.advertise("result", 1)),
      _debug_pub(_it.advertise("debug",  1)),
      _pose_pub(_nh.advertise<geometry_msgs::PoseStamped>("pose", 100)),
-     _ddr(),
+     _ddr(_nh),
      _marker_detector(),
      _marker_size(_nh.param("marker_size", 0.05)),
      _useSimilarity(false),
