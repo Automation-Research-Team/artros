@@ -45,6 +45,19 @@ class Detector
 
     struct rgb_t	{ uint8_t r, g, b; };
 
+    struct ddynamic_reconfigure_t : ddynamic_reconfigure::DDynamicReconfigure
+    {
+	using super	= ddynamic_reconfigure::DDynamicReconfigure;
+
+	ddynamic_reconfigure_t(const ros::NodeHandle& nh) :super(nh)	{}
+
+	void	publishServicesTopics()
+		{
+		    super::publishServicesTopics();
+		    super::updateConfigData(generateConfig());
+		}
+    };
+
   public:
 		Detector(const ros::NodeHandle& nh)			;
 
@@ -112,7 +125,7 @@ class Detector
     const image_transport::Publisher		_debug_pub;
     const ros::Publisher			_pose_pub;
 
-    ddynamic_reconfigure::DDynamicReconfigure	_ddr;
+    ddynamic_reconfigure_t			_ddr;
 
     mdetector_t					_marker_detector;
     marker_map_t				_marker_map;

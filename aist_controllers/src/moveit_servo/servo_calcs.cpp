@@ -401,8 +401,8 @@ ServoCalcs::calculateSingleIteration()
     updateJoints();
 
   // Update from latest state
-    current_state_ = planning_scene_monitor_->getStateMonitor()
-					    ->getCurrentState();
+    // current_state_ = planning_scene_monitor_->getStateMonitor()
+    // 					    ->getCurrentState();
 
     if (latest_twist_stamped_)
 	twist_stamped_cmd_ = *latest_twist_stamped_;

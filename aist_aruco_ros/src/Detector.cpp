@@ -142,7 +142,7 @@ Detector::Detector(const ros::NodeHandle& nh)
 				   _marker_detector.getDetectionMode(),
 				   boost::bind(&Detector::set_detection_mode,
 					       this, _1),
-				   "Corner refinement method",
+				   "Marker detection mode",
 				   map_detectionMode);
     ROS_INFO_STREAM("Detection mode: " << _marker_detector.getDetectionMode());
 
