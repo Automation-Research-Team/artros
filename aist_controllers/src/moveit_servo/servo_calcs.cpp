@@ -1334,10 +1334,6 @@ ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
     twist_stamped_cmd_ = *msg;
-    // latest_nonzero_twist_stamped_ = isNonZero(*latest_twist_stamped_);
-
-    // if (msg->header.stamp != ros::Time(0.))
-    // 	latest_twist_command_stamp_ = msg->header.stamp;
 
   // notify that we have a new input
     new_input_cmd_ = true;
@@ -1349,10 +1345,6 @@ ServoCalcs::jointCmdCB(const control_msgs::JointJogConstPtr& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
     joint_servo_cmd_ = *msg;
-    // latest_nonzero_joint_cmd_ = isNonZero(*latest_joint_cmd_);
-
-    // if (msg->header.stamp != ros::Time(0.))
-    // 	latest_joint_command_stamp_ = msg->header.stamp;
 
   // notify that we have a new input
     new_input_cmd_ = true;

@@ -246,30 +246,29 @@ class ServoCalcs
 			  std_srvs::Empty::Response& res);
 
   private:
-    ros::NodeHandle		nh_;
+    ros::NodeHandle			nh_;
 
   // Parameters from yaml
-    ServoParameters&		parameters_;
+    ServoParameters&			parameters_;
 
   // Pointer to the collision environment
     planning_scene_monitor::PlanningSceneMonitorPtr
-				planning_scene_monitor_;
+					planning_scene_monitor_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
-    int				zero_velocity_count_ = 0;
+    int					zero_velocity_count_ = 0;
 
   // Flag for staying inactive while there are no incoming commands
-    bool			wait_for_servo_commands_ = true;
+    bool				wait_for_servo_commands_ = true;
 
   // Flag saying if the filters were updated during the timer callback
-    bool			updated_filters_ = false;
+    bool				updated_filters_ = false;
 
   // Incoming command messages
-    const moveit::core::JointModelGroup*
-				joint_model_group_;
+    const moveit::core::JointModelGroup*	joint_model_group_;
 
-    moveit::core::RobotStatePtr	current_state_;
+    moveit::core::RobotStatePtr			current_state_;
 
   // incoming_joint_state_ is the incoming message. It may contain passive
   // joints or other joints we don't care about.
