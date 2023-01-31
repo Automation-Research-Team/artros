@@ -642,14 +642,14 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd,
 	if (drift_dimensions_[dimension] && jacobian.rows() > 1)
 	    removeDimension(jacobian, delta_x, dimension);
     
-    const auto	svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian,
+    const auto	svd = Eigen::JacobiSVD<matrix_t>(jacobian,
 							Eigen::ComputeThinU |
 							Eigen::ComputeThinV);
     const auto	matrix_s	= svd.singularValues().asDiagonal();
     const auto	pseudo_inverse	= svd.matrixV() * matrix_s.inverse()
 				* svd.matrixU().transpose();
 
-    Eigen::VectorXd	delta_theta = pseudo_inverse * delta_x;
+    vector_t	delta_theta = pseudo_inverse * delta_x;
 
     enforceVelLimits(delta_theta);
 
@@ -687,7 +687,7 @@ ServoCalcs::jointServoCalcs(const joint_jog_t& cmd,
 }
 
 bool
-ServoCalcs::convertDeltasToOutgoingCmd(const Eigen::VectorXd& delta_theta,
+ServoCalcs::convertDeltasToOutgoingCmd(const vector_t& delta_theta,
 				       trajectory_t& joint_trajectory)
 {
     internal_joint_state_ = original_joint_state_;
@@ -789,7 +789,7 @@ ServoCalcs::initializeLowPassFilters(double coeff)
 
 void
 ServoCalcs::calculateJointVelocities(joint_state_t& joint_state,
-				     const Eigen::VectorXd& delta_theta)
+				     const vector_t& delta_theta)
 {
     for (int i = 0; i < delta_theta.size(); ++i)
 	joint_state.velocity[i] = delta_theta[i] / parameters_.publish_period;
@@ -825,7 +825,7 @@ ServoCalcs::composeJointTrajMessage(const joint_state_t& joint_state,
 
 // Apply velocity scaling for proximity of collisions and singularities.
 void
-ServoCalcs::applyVelocityScaling(Eigen::VectorXd& delta_theta,
+ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
 				 double singularity_scale)
 {
     double	collision_scale = collision_velocity_scale_;
@@ -852,9 +852,9 @@ ServoCalcs::applyVelocityScaling(Eigen::VectorXd& delta_theta,
 // due to proximity of singularity and direction of motion
 double
 ServoCalcs::velocityScalingFactorForSingularity(
-    const Eigen::VectorXd& commanded_velocity,
-    const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-    const Eigen::MatrixXd& pseudo_inverse)
+    const vector_t& commanded_velocity,
+    const Eigen::JacobiSVD<matrix_t>& svd,
+    const matrix_t& pseudo_inverse)
 {
     double	velocity_scale = 1;
     std::size_t	num_dimensions = commanded_velocity.size();
@@ -864,10 +864,10 @@ ServoCalcs::velocityScalingFactorForSingularity(
   // toward or away from the singularity.
   // The sign can flip at any time, so we have to do some extra checking.
   // Look ahead to see if the Jacobian's condition will decrease.
-    Eigen::VectorXd vector_toward_singularity = svd.matrixU().col(
-						    num_dimensions - 1);
+    vector_t	vector_toward_singularity = svd.matrixU().col(
+						num_dimensions - 1);
 
-    double	ini_condition = svd.singularValues()(0)
+    const auto	ini_condition = svd.singularValues()(0)
 			      / svd.singularValues()(
 				  svd.singularValues().size() - 1);
 
@@ -875,22 +875,22 @@ ServoCalcs::velocityScalingFactorForSingularity(
   // "Resolving the Sign Ambiguity in the Singular Value Decomposition".
   // Look ahead to see if the Jacobian's condition will decrease in this
   // direction. Start with a scaled version of the singular vector
-    Eigen::VectorXd	delta_x(num_dimensions);
-    double		scale = 100;
+    vector_t	delta_x(num_dimensions);
+    double	scale = 100;
     delta_x = vector_toward_singularity / scale;
 
   // Calculate a small change in joints
-    Eigen::VectorXd	new_theta;
+    vector_t	new_theta;
     current_state_->copyJointGroupPositions(joint_model_group_, new_theta);
     new_theta += pseudo_inverse * delta_x;
     current_state_->setJointGroupPositions(joint_model_group_, new_theta);
-    Eigen::MatrixXd	new_jacobian = current_state_->getJacobian(
+    matrix_t	new_jacobian = current_state_->getJacobian(
 					joint_model_group_);
 
-    Eigen::JacobiSVD<Eigen::MatrixXd>	new_svd(new_jacobian);
-    double		new_condition = new_svd.singularValues()(0)
-				      / new_svd.singularValues()(
-					  new_svd.singularValues().size() - 1);
+    Eigen::JacobiSVD<matrix_t>	new_svd(new_jacobian);
+    const auto	new_condition = new_svd.singularValues()(0)
+			      / new_svd.singularValues()(
+				  new_svd.singularValues().size() - 1);
 
   // If new_condition < ini_condition, the singular vector does point
   // towards a singularity. Otherwise, flip its direction.
@@ -899,7 +899,7 @@ ServoCalcs::velocityScalingFactorForSingularity(
 
   // If this dot product is positive, we're moving toward singularity
   // ==> decelerate
-    double dot = vector_toward_singularity.dot(commanded_velocity);
+    const auto	dot = vector_toward_singularity.dot(commanded_velocity);
     if (dot > 0)
     {
       // Ramp velocity down linearly when the Jacobian condition is between
@@ -931,7 +931,7 @@ ServoCalcs::velocityScalingFactorForSingularity(
 }
 
 void
-ServoCalcs::enforceVelLimits(Eigen::VectorXd& delta_theta)
+ServoCalcs::enforceVelLimits(vector_t& delta_theta)
 {
   // Convert to joint angle velocities for checking and applying joint
   // specific velocity limits.
@@ -1123,9 +1123,10 @@ ServoCalcs::updateJoints()
 }
 
 // Scale the incoming servo command
-Eigen::VectorXd ServoCalcs::scaleCartesianCommand(const twist_t& command) const
+ServoCalcs::vector_t
+ServoCalcs::scaleCartesianCommand(const twist_t& command) const
 {
-    Eigen::VectorXd result(6);
+    vector_t result(6);
 
   // Apply user-defined scaling if inputs are unitless [-1:1]
     if (parameters_.command_in_type == "unitless")
@@ -1160,10 +1161,10 @@ Eigen::VectorXd ServoCalcs::scaleCartesianCommand(const twist_t& command) const
     return result;
 }
 
-Eigen::VectorXd
+ServoCalcs::vector_t
 ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
 {
-    Eigen::VectorXd result(num_joints_);
+    vector_t result(num_joints_);
     result.setZero();
 
     for (size_t m = 0; m < command.joint_names.size(); ++m)
@@ -1200,9 +1201,9 @@ ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
 // Add the deltas to each joint
 bool
 ServoCalcs::addJointIncrements(joint_state_t& output,
-			       const Eigen::VectorXd& increments) const
+			       const vector_t& increments) const
 {
-    for (size_t i = 0; i < increments.size(); ++i)
+    for (int i = 0; i < increments.size(); ++i)
 	try
 	{
 	    output.position[i] += increments[i];
@@ -1219,9 +1220,9 @@ ServoCalcs::addJointIncrements(joint_state_t& output,
     return true;
 }
 
-void ServoCalcs::removeDimension(Eigen::MatrixXd& jacobian,
-				 Eigen::VectorXd& delta_x,
-				 unsigned int row_to_remove)
+void
+ServoCalcs::removeDimension(matrix_t& jacobian, vector_t& delta_x,
+			    unsigned int row_to_remove)
 {
     const auto	num_rows = jacobian.rows() - 1;
     const auto	num_cols = jacobian.cols();

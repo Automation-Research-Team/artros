@@ -82,6 +82,9 @@ class ServoCalcs
     using trajectory_t	     = trajectory_msgs::JointTrajectory;
     using trajectory_point_t = trajectory_msgs::JointTrajectoryPoint;
     using joint_state_t	     = sensor_msgs::JointState;
+
+    using vector_t	     = Eigen::VectorXd;
+    using matrix_t	     = Eigen::MatrixXd;
     
   public:
     ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
@@ -130,65 +133,69 @@ class ServoCalcs
 
   private:
   /** \brief Run the main calculation loop */
-    void mainCalcLoop();
+    void	mainCalcLoop()						;
 
   /** \brief Do calculations for a single iteration. Publish one outgoing command */
-    void calculateSingleIteration();
+    void	calculateSingleIteration()				;
 
   /** \brief Stop the currently running thread */
-    void stop();
+    void	stop()							;
 
   /** \brief Do servoing calculations for Cartesian twist commands. */
-    bool cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory);
+    bool	cartesianServoCalcs(twist_t& cmd,
+				    trajectory_t& joint_trajectory)	;
 
   /** \brief Do servoing calculations for direct commands to a joint. */
-    bool jointServoCalcs(const joint_jog_t& cmd, trajectory_t& joint_trajectory);
+    bool	jointServoCalcs(const joint_jog_t& cmd,
+				trajectory_t& joint_trajectory)		;
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
-    void updateJoints();
+    void	updateJoints()						;
 
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
    */
-    Eigen::VectorXd	scaleCartesianCommand(const twist_t& command) const;
+    vector_t	scaleCartesianCommand(const twist_t& command)	const	;
 
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
    */
-    Eigen::VectorXd	scaleJointCommand(const joint_jog_t& command) const;
+    vector_t	scaleJointCommand(const joint_jog_t& command)	const	;
 
-    bool		addJointIncrements(joint_state_t& output,
-					   const Eigen::VectorXd& increments) const;
+    bool	addJointIncrements(joint_state_t& output,
+				   const vector_t& increments)	const	;
 
   /** \brief Suddenly halt for a joint limit or other critical issue.
    * Is handled differently for position vs. velocity control.
    */
-    void		suddenHalt(trajectory_t& joint_trajectory)	;
+    void	suddenHalt(trajectory_t& joint_trajectory)		;
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
-    void		enforceVelLimits(Eigen::VectorXd& delta_theta)	;
+    void	enforceVelLimits(vector_t& delta_theta)			;
 
   /** \brief Avoid overshooting joint limits */
-    bool		enforcePositionLimits(joint_state_t& joint_state);
+    bool	enforcePositionLimits(joint_state_t& joint_state)	;
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
    */
-    double velocityScalingFactorForSingularity(const Eigen::VectorXd& commanded_velocity,
-					       const Eigen::JacobiSVD<Eigen::MatrixXd>& svd,
-					       const Eigen::MatrixXd& pseudo_inverse);
+    double	velocityScalingFactorForSingularity(
+			const vector_t& commanded_velocity,
+			const Eigen::JacobiSVD<matrix_t>& svd,
+			const matrix_t& pseudo_inverse)			;
 
   /**
    * Slow motion down if close to singularity or collision.
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    */
-    void	applyVelocityScaling(Eigen::VectorXd& delta_theta,
+    void	applyVelocityScaling(vector_t& delta_theta,
 				     double singularity_scale)		;
 
   /** \brief Compose the outgoing JointTrajectory message */
-    void	composeJointTrajMessage(const joint_state_t& joint_state,
-					trajectory_t& joint_trajectory) const;
+    void	composeJointTrajMessage(
+			const joint_state_t& joint_state,
+			trajectory_t& joint_trajectory)		const	;
 
   /** \brief Smooth position commands with a lowpass filter */
     void	lowPassFilterPositions(joint_state_t& joint_state)	;
@@ -205,12 +212,12 @@ class ServoCalcs
 #endif
   /** \brief Convert an incremental position command to joint velocity message */
     void	calculateJointVelocities(joint_state_t& joint_state,
-					 const Eigen::VectorXd& delta_theta);
+					 const vector_t& delta_theta)	;
 
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
    * This happens for joint commands and Cartesian commands.
    */
-    bool	convertDeltasToOutgoingCmd(const Eigen::VectorXd& delta_theta,
+    bool	convertDeltasToOutgoingCmd(const vector_t& delta_theta,
 					   trajectory_t& joint_trajectory);
 
   /** \brief Gazebo simulations have very strict message timestamp requirements.
@@ -226,14 +233,13 @@ class ServoCalcs
    * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
-    void	removeDimension(Eigen::MatrixXd& matrix,
-				Eigen::VectorXd& delta_x,
+    void	removeDimension(matrix_t& matrix, vector_t& delta_x,
 				unsigned int row_to_remove)		;
 
   /* \brief Command callbacks */
-    void twistStampedCB(const twist_cp& msg)				;
-    void jointCmdCB(const joint_jog_cp& msg)				;
-    void collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
+    void	twistStampedCB(const twist_cp& msg)			;
+    void	jointCmdCB(const joint_jog_cp& msg)			;
+    void	collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
 
   /**
    * Allow drift in certain dimensions. For example, may allow the wrist
@@ -244,16 +250,18 @@ class ServoCalcs
    * @param response the service response
    * @return true if the adjustment was made
    */
-    bool changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-			       moveit_msgs::ChangeDriftDimensions::Response& res);
+    bool	changeDriftDimensions(
+			moveit_msgs::ChangeDriftDimensions::Request& req,
+			moveit_msgs::ChangeDriftDimensions::Response& res);
 
   /** \brief Service callback for changing servoing dimensions (e.g. ignore rotation about X) */
-    bool changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
-				 moveit_msgs::ChangeControlDimensions::Response& res);
+    bool	changeControlDimensions(
+			moveit_msgs::ChangeControlDimensions::Request& req,
+			moveit_msgs::ChangeControlDimensions::Response& res);
 
   /** \brief Service callback to reset Servo status, e.g. so the arm can move again after a collision */
-    bool resetServoStatus(std_srvs::Empty::Request& req,
-			  std_srvs::Empty::Response& res);
+    bool	resetServoStatus(std_srvs::Empty::Request& req,
+				 std_srvs::Empty::Response& res)	;
 
   private:
     ros::NodeHandle				nh_;
