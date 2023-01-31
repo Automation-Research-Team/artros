@@ -152,13 +152,13 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 					     ROS_QUEUE_SIZE)),
    outgoing_cmd_pub_(
        parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
-       nh_.advertise<trajectory_msgs::JointTrajectory>(
+       nh_.advertise<trajectory_t>(
 	   parameters_.command_out_topic, ROS_QUEUE_SIZE) :
        nh_.advertise<std_msgs::Float64MultiArray>(
 	   parameters_.command_out_topic, ROS_QUEUE_SIZE)),
    outgoing_cmd_debug_pub_(
        parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
-       nh_.advertise<trajectory_msgs::JointTrajectory>(
+       nh_.advertise<trajectory_t>(
 	   parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE) :
        nh_.advertise<std_msgs::Float64MultiArray>(
 	   parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE)),
@@ -258,7 +258,7 @@ ServoCalcs::start()
     stop();
 
   // We will update last_sent_command_ every time we start servo
-    auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
+    auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_t>();
 
   // When a joint_trajectory_controller receives a new command,
   // a stamp of 0 indicates "begin immediately"
@@ -266,7 +266,7 @@ ServoCalcs::start()
     initial_joint_trajectory->header.stamp = ros::Time(0);
     initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
     initial_joint_trajectory->joint_names = internal_joint_state_.name;
-    trajectory_msgs::JointTrajectoryPoint point;
+    trajectory_point_t point;
     point.time_from_start = ros::Duration(parameters_.publish_period);
 
     if (parameters_.publish_joint_positions)
@@ -423,7 +423,7 @@ ServoCalcs::calculateSingleIteration()
   // Do servoing calculations only if the robot should move, for efficiency
   // Create new outgoing joint trajectory command message
     auto joint_trajectory = moveit::util::make_shared_from_pool<
-				trajectory_msgs::JointTrajectory>();
+				trajectory_t>();
 
   // Prioritize cartesian servoing above joint servoing
   // Only run commands if not stale and nonzero
@@ -529,8 +529,8 @@ ServoCalcs::calculateSingleIteration()
 
 // Perform the servoing calculations
 bool
-ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
-				trajectory_msgs::JointTrajectory& joint_trajectory)
+ServoCalcs::cartesianServoCalcs(twist_t& cmd,
+				trajectory_t& joint_trajectory)
 {
   // Check for nan's in the incoming command
     if (std::isnan(cmd.twist.linear.x)  ||
@@ -628,10 +628,10 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 	cmd.twist.angular.z = angular_vector(2);
     }
 
-    Eigen::VectorXd delta_x = scaleCartesianCommand(cmd);
+    auto	delta_x = scaleCartesianCommand(cmd);
 
   // Convert from cartesian commands to joint commands
-    Eigen::MatrixXd jacobian = current_state_->getJacobian(joint_model_group_);
+    auto	jacobian = current_state_->getJacobian(joint_model_group_);
 
   // May allow some dimensions to drift, based on drift_dimensions
   // i.e. take advantage of task redundancy.
@@ -642,29 +642,28 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 	if (drift_dimensions_[dimension] && jacobian.rows() > 1)
 	    removeDimension(jacobian, delta_x, dimension);
     
-    Eigen::JacobiSVD<Eigen::MatrixXd>
-	svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian,
-						Eigen::ComputeThinU |
-						Eigen::ComputeThinV);
-    Eigen::MatrixXd matrix_s	   = svd.singularValues().asDiagonal();
-    Eigen::MatrixXd pseudo_inverse = svd.matrixV() * matrix_s.inverse()
-				   * svd.matrixU().transpose();
+    const auto	svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian,
+							Eigen::ComputeThinU |
+							Eigen::ComputeThinV);
+    const auto	matrix_s	= svd.singularValues().asDiagonal();
+    const auto	pseudo_inverse	= svd.matrixV() * matrix_s.inverse()
+				* svd.matrixU().transpose();
 
-    delta_theta_ = pseudo_inverse * delta_x;
+    Eigen::VectorXd	delta_theta = pseudo_inverse * delta_x;
 
-    enforceVelLimits(delta_theta_);
+    enforceVelLimits(delta_theta);
 
   // If close to a collision or a singularity, decelerate
-    applyVelocityScaling(delta_theta_,
+    applyVelocityScaling(delta_theta,
 			 velocityScalingFactorForSingularity(delta_x, svd,
 							     pseudo_inverse));
 
-    return convertDeltasToOutgoingCmd(joint_trajectory);
+    return convertDeltasToOutgoingCmd(delta_theta, joint_trajectory);
 }
 
 bool
-ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd,
-			    trajectory_msgs::JointTrajectory& joint_trajectory)
+ServoCalcs::jointServoCalcs(const joint_jog_t& cmd,
+			    trajectory_t& joint_trajectory)
 {
   // Check for nan's
     for (double velocity : cmd.velocities)
@@ -677,29 +676,29 @@ ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd,
 	}
 
   // Apply user-defined scaling
-    delta_theta_ = scaleJointCommand(cmd);
+    auto	delta_theta = scaleJointCommand(cmd);
 
-    enforceVelLimits(delta_theta_);
+    enforceVelLimits(delta_theta);
 
   // If close to a collision, decelerate
-    applyVelocityScaling(delta_theta_, 1.0 /* scaling for singularities -- ignore for joint motions */);
+    applyVelocityScaling(delta_theta, 1.0 /* scaling for singularities -- ignore for joint motions */);
 
-    return convertDeltasToOutgoingCmd(joint_trajectory);
+    return convertDeltasToOutgoingCmd(delta_theta, joint_trajectory);
 }
 
 bool
-ServoCalcs::convertDeltasToOutgoingCmd(
-    trajectory_msgs::JointTrajectory& joint_trajectory)
+ServoCalcs::convertDeltasToOutgoingCmd(const Eigen::VectorXd& delta_theta,
+				       trajectory_t& joint_trajectory)
 {
     internal_joint_state_ = original_joint_state_;
-    if (!addJointIncrements(internal_joint_state_, delta_theta_))
+    if (!addJointIncrements(internal_joint_state_, delta_theta))
 	return false;
 
     lowPassFilterPositions(internal_joint_state_);
 
   // Calculate joint velocities here so that positions are filtered
   // and SRDF bounds still get checked
-    calculateJointVelocities(internal_joint_state_, delta_theta_);
+    calculateJointVelocities(internal_joint_state_, delta_theta);
 
     composeJointTrajMessage(internal_joint_state_, joint_trajectory);
 
@@ -722,7 +721,7 @@ ServoCalcs::convertDeltasToOutgoingCmd(
 // Needed for gazebo simulation.
 void
 ServoCalcs::insertRedundantPointsIntoTrajectory(
-    trajectory_msgs::JointTrajectory& joint_trajectory, int count) const
+    trajectory_t& joint_trajectory, int count) const
 {
     joint_trajectory.points.resize(count);
     auto point = joint_trajectory.points[0];
@@ -738,7 +737,7 @@ ServoCalcs::insertRedundantPointsIntoTrajectory(
 }
 
 void
-ServoCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
+ServoCalcs::lowPassFilterPositions(joint_state_t& joint_state)
 {
     for (size_t i = 0; i < position_filters_.size(); ++i)
 	joint_state.position[i] = position_filters_[i].filter(
@@ -748,7 +747,7 @@ ServoCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
 }
 
 void
-ServoCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
+ServoCalcs::resetLowPassFilters(const joint_state_t& joint_state)
 {
     for (size_t i = 0; i < position_filters_.size(); ++i)
 	position_filters_[i].reset(joint_state.position[i]);
@@ -789,16 +788,16 @@ ServoCalcs::initializeLowPassFilters(double coeff)
 #endif
 
 void
-ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state,
-				     const Eigen::ArrayXd& delta_theta)
+ServoCalcs::calculateJointVelocities(joint_state_t& joint_state,
+				     const Eigen::VectorXd& delta_theta)
 {
     for (int i = 0; i < delta_theta.size(); ++i)
 	joint_state.velocity[i] = delta_theta[i] / parameters_.publish_period;
 }
 
 void
-ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
-				    trajectory_msgs::JointTrajectory& joint_trajectory) const
+ServoCalcs::composeJointTrajMessage(const joint_state_t& joint_state,
+				    trajectory_t& joint_trajectory) const
 {
   // When a joint_trajectory_controller receives a new command,
   // a stamp of 0 indicates "begin immediately"
@@ -807,7 +806,7 @@ ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
     joint_trajectory.header.frame_id = parameters_.planning_frame;
     joint_trajectory.joint_names     = joint_state.name;
 
-    trajectory_msgs::JointTrajectoryPoint point;
+    trajectory_point_t	point;
     point.time_from_start = ros::Duration(parameters_.publish_period);
     if (parameters_.publish_joint_positions)
 	point.positions = joint_state.position;
@@ -826,7 +825,7 @@ ServoCalcs::composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
 
 // Apply velocity scaling for proximity of collisions and singularities.
 void
-ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta,
+ServoCalcs::applyVelocityScaling(Eigen::VectorXd& delta_theta,
 				 double singularity_scale)
 {
     double	collision_scale = collision_velocity_scale_;
@@ -845,7 +844,7 @@ ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta,
     if (status_ == StatusCode::HALT_FOR_COLLISION)
     {
 	ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
-	delta_theta_.setZero();
+	delta_theta.setZero();
     }
 }
 
@@ -932,20 +931,21 @@ ServoCalcs::velocityScalingFactorForSingularity(
 }
 
 void
-ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
+ServoCalcs::enforceVelLimits(Eigen::VectorXd& delta_theta)
 {
   // Convert to joint angle velocities for checking and applying joint
   // specific velocity limits.
-    Eigen::ArrayXd	velocity = delta_theta / parameters_.publish_period;
+    const auto	velocity = delta_theta / parameters_.publish_period;
+    double	velocity_scaling_factor = 1.0;
 
-    std::size_t		joint_delta_index = 0;
-    double		velocity_scaling_factor = 1.0;
+    size_t	i = 0;
     for (const auto joint : joint_model_group_->getActiveJointModels())
     {
 	const auto&	bounds = joint->getVariableBounds(joint->getName());
-	if (bounds.velocity_bounded_ && velocity(joint_delta_index) != 0.0)
+	const auto	unbounded_velocity = velocity(i);
+	
+	if (bounds.velocity_bounded_ && unbounded_velocity != 0.0)
 	{
-	    const auto	unbounded_velocity = velocity(joint_delta_index);
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
 	    const auto bounded_velocity
@@ -956,7 +956,7 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 	    	= std::min(velocity_scaling_factor,
 	    		   bounded_velocity / unbounded_velocity);
 	}
-	++joint_delta_index;
+	++i;
     }
 
   // Convert back to joint angle increments.
@@ -968,7 +968,7 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 }
 
 bool
-ServoCalcs::enforcePositionLimits(sensor_msgs::JointState& joint_state)
+ServoCalcs::enforcePositionLimits(joint_state_t& joint_state)
 {
     bool	halting = false;
 
@@ -978,13 +978,12 @@ ServoCalcs::enforcePositionLimits(sensor_msgs::JointState& joint_state)
       // even farther past
 	double	joint_angle = 0;
 	for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
-	{
 	    if (original_joint_state_.name[c] == joint->getName())
 	    {
 		joint_angle = original_joint_state_.position.at(c);
 		break;
 	    }
-	}
+
 	if (!current_state_->satisfiesPositionBounds(
 		joint, -parameters_.joint_limit_margin))
 	{
@@ -1025,13 +1024,12 @@ ServoCalcs::enforcePositionLimits(sensor_msgs::JointState& joint_state)
 // Suddenly halt for a joint limit or other critical issue.
 // Is handled differently for position vs. velocity control.
 void
-ServoCalcs::suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory)
+ServoCalcs::suddenHalt(trajectory_t& joint_trajectory)
 {
   // Prepare the joint trajectory message to stop the robot
     joint_trajectory.points.clear();
     joint_trajectory.points.emplace_back();
-    trajectory_msgs::JointTrajectoryPoint&
-	point = joint_trajectory.points.front();
+    auto&	point = joint_trajectory.points.front();
 
   // When sending out trajectory_msgs/JointTrajectory type messages,
   // the "trajectory" is just a single point.
@@ -1125,8 +1123,7 @@ ServoCalcs::updateJoints()
 }
 
 // Scale the incoming servo command
-Eigen::VectorXd ServoCalcs::scaleCartesianCommand(
-    const geometry_msgs::TwistStamped& command) const
+Eigen::VectorXd ServoCalcs::scaleCartesianCommand(const twist_t& command) const
 {
     Eigen::VectorXd result(6);
 
@@ -1164,7 +1161,7 @@ Eigen::VectorXd ServoCalcs::scaleCartesianCommand(
 }
 
 Eigen::VectorXd
-ServoCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
+ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
 {
     Eigen::VectorXd result(num_joints_);
     result.setZero();
@@ -1202,7 +1199,7 @@ ServoCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
 
 // Add the deltas to each joint
 bool
-ServoCalcs::addJointIncrements(sensor_msgs::JointState& output,
+ServoCalcs::addJointIncrements(joint_state_t& output,
 			       const Eigen::VectorXd& increments) const
 {
     for (size_t i = 0; i < increments.size(); ++i)
@@ -1237,6 +1234,7 @@ void ServoCalcs::removeDimension(Eigen::MatrixXd& jacobian,
 	delta_x.segment(row_to_remove, num_rows - row_to_remove) =
 	    delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
     }
+    
     jacobian.conservativeResize(num_rows, num_cols);
     delta_x.conservativeResize(num_rows);
 }
@@ -1298,7 +1296,7 @@ ServoCalcs::getFrameTransform(const std::string& frame)
 }
 
 void
-ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
+ServoCalcs::twistStampedCB(const twist_cp& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
     twist_stamped_cmd_ = *msg;
@@ -1309,7 +1307,7 @@ ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
 }
 
 void
-ServoCalcs::jointCmdCB(const control_msgs::JointJogConstPtr& msg)
+ServoCalcs::jointCmdCB(const joint_jog_cp& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
     joint_servo_cmd_ = *msg;

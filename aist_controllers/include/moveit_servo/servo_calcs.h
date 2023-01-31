@@ -74,11 +74,20 @@ namespace moveit_servo
 {
 class ServoCalcs
 {
+  private:
+    using twist_t	     = geometry_msgs::TwistStamped;
+    using twist_cp	     = geometry_msgs::TwistStampedConstPtr;
+    using joint_jog_t	     = control_msgs::JointJog;
+    using joint_jog_cp	     = control_msgs::JointJogConstPtr;
+    using trajectory_t	     = trajectory_msgs::JointTrajectory;
+    using trajectory_point_t = trajectory_msgs::JointTrajectoryPoint;
+    using joint_state_t	     = sensor_msgs::JointState;
+    
   public:
     ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 	       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
-    ~ServoCalcs();
+    ~ServoCalcs()							;
 
   /** \brief Start the timer where we do work and publish outputs */
     void start();
@@ -90,7 +99,7 @@ class ServoCalcs
    * @param transform the transform that will be calculated
    * @return true if a valid transform was available
    */
-    bool getCommandFrameTransform(Eigen::Isometry3d& transform);
+    bool getCommandFrameTransform(Eigen::Isometry3d& transform)		;
     bool getCommandFrameTransform(geometry_msgs::TransformStamped& transform);
 
   /**
@@ -104,10 +113,10 @@ class ServoCalcs
     bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
     Eigen::Isometry3d
-	 getFrameTransform(const std::string& frame);
+	 getFrameTransform(const std::string& frame)			;
 
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
-    void setPaused(bool paused);
+    void setPaused(bool paused)						;
 
   /** \brief Change the controlled link. Often, this is the end effector
    * This must be a link on the robot since MoveIt tracks the transform (not tf)
@@ -130,10 +139,10 @@ class ServoCalcs
     void stop();
 
   /** \brief Do servoing calculations for Cartesian twist commands. */
-    bool cartesianServoCalcs(geometry_msgs::TwistStamped& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
+    bool cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory);
 
   /** \brief Do servoing calculations for direct commands to a joint. */
-    bool jointServoCalcs(const control_msgs::JointJog& cmd, trajectory_msgs::JointTrajectory& joint_trajectory);
+    bool jointServoCalcs(const joint_jog_t& cmd, trajectory_t& joint_trajectory);
 
   /** \brief Parse the incoming joint msg for the joints of our MoveGroup */
     void updateJoints();
@@ -141,25 +150,26 @@ class ServoCalcs
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
    */
-    Eigen::VectorXd scaleCartesianCommand(const geometry_msgs::TwistStamped& command) const;
+    Eigen::VectorXd	scaleCartesianCommand(const twist_t& command) const;
 
   /** \brief If incoming velocity commands are from a unitless joystick, scale them to physical units.
    * Also, multiply by timestep to calculate a position change.
    */
-    Eigen::VectorXd scaleJointCommand(const control_msgs::JointJog& command) const;
+    Eigen::VectorXd	scaleJointCommand(const joint_jog_t& command) const;
 
-    bool addJointIncrements(sensor_msgs::JointState& output, const Eigen::VectorXd& increments) const;
+    bool		addJointIncrements(joint_state_t& output,
+					   const Eigen::VectorXd& increments) const;
 
   /** \brief Suddenly halt for a joint limit or other critical issue.
    * Is handled differently for position vs. velocity control.
    */
-    void suddenHalt(trajectory_msgs::JointTrajectory& joint_trajectory);
+    void		suddenHalt(trajectory_t& joint_trajectory)	;
 
   /** \brief  Scale the delta theta to match joint velocity/acceleration limits */
-    void enforceVelLimits(Eigen::ArrayXd& delta_theta);
+    void		enforceVelLimits(Eigen::VectorXd& delta_theta)	;
 
   /** \brief Avoid overshooting joint limits */
-    bool enforcePositionLimits(sensor_msgs::JointState& joint_state);
+    bool		enforcePositionLimits(joint_state_t& joint_state);
 
   /** \brief Possibly calculate a velocity scaling factor, due to proximity of
    * singularity and direction of motion
@@ -173,39 +183,41 @@ class ServoCalcs
    * @param delta_theta motion command, used in calculating new_joint_tray
    * @param singularity_scale tells how close we are to a singularity
    */
-    void applyVelocityScaling(Eigen::ArrayXd& delta_theta,
-			      double singularity_scale);
+    void	applyVelocityScaling(Eigen::VectorXd& delta_theta,
+				     double singularity_scale)		;
 
   /** \brief Compose the outgoing JointTrajectory message */
-    void composeJointTrajMessage(const sensor_msgs::JointState& joint_state,
-				 trajectory_msgs::JointTrajectory& joint_trajectory) const;
+    void	composeJointTrajMessage(const joint_state_t& joint_state,
+					trajectory_t& joint_trajectory) const;
 
   /** \brief Smooth position commands with a lowpass filter */
-    void lowPassFilterPositions(sensor_msgs::JointState& joint_state);
+    void	lowPassFilterPositions(joint_state_t& joint_state)	;
 
   /** \brief Set the filters to the specified values */
-    void resetLowPassFilters(const sensor_msgs::JointState& joint_state);
+    void	resetLowPassFilters(const joint_state_t& joint_state)	;
 
   /** \brief Change order and/or cutoff of filters */
 #if defined(BUTTERWORTH)
-    void initializeLowPassFilters(int half_order, double cutoff_frequency);
+    void	initializeLowPassFilters(int half_order,
+					 double cutoff_frequency)	;
 #else
-    void initializeLowPassFilters(double coeff);
+    void	initializeLowPassFilters(double coeff)			;
 #endif
   /** \brief Convert an incremental position command to joint velocity message */
-    void calculateJointVelocities(sensor_msgs::JointState& joint_state,
-				  const Eigen::ArrayXd& delta_theta);
+    void	calculateJointVelocities(joint_state_t& joint_state,
+					 const Eigen::VectorXd& delta_theta);
 
   /** \brief Convert joint deltas to an outgoing JointTrajectory command.
    * This happens for joint commands and Cartesian commands.
    */
-    bool convertDeltasToOutgoingCmd(trajectory_msgs::JointTrajectory& joint_trajectory);
+    bool	convertDeltasToOutgoingCmd(const Eigen::VectorXd& delta_theta,
+					   trajectory_t& joint_trajectory);
 
   /** \brief Gazebo simulations have very strict message timestamp requirements.
    * Satisfy Gazebo by stuffing multiple messages into one.
    */
-    void insertRedundantPointsIntoTrajectory(trajectory_msgs::JointTrajectory& joint_trajectory,
-					     int count) const;
+    void	insertRedundantPointsIntoTrajectory(
+			trajectory_t& joint_trajectory, int count) const;
 
   /**
    * Remove the Jacobian row and the delta-x element of one Cartesian dimension, to take advantage of task redundancy
@@ -214,15 +226,13 @@ class ServoCalcs
    * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
-    void removeDimension(Eigen::MatrixXd& matrix, Eigen::VectorXd& delta_x,
-			 unsigned int row_to_remove);
-
-  /* \brief Callback for joint subsription */
-    void jointStateCB(const sensor_msgs::JointStateConstPtr& msg);
+    void	removeDimension(Eigen::MatrixXd& matrix,
+				Eigen::VectorXd& delta_x,
+				unsigned int row_to_remove)		;
 
   /* \brief Command callbacks */
-    void twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg);
-    void jointCmdCB(const control_msgs::JointJogConstPtr& msg);
+    void twistStampedCB(const twist_cp& msg)				;
+    void jointCmdCB(const joint_jog_cp& msg)				;
     void collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
 
   /**
@@ -278,7 +288,7 @@ class ServoCalcs
   // relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_
   // except it only contains the joints the servo node acts on.
-    sensor_msgs::JointState			internal_joint_state_,
+    joint_state_t				internal_joint_state_,
 						original_joint_state_;
     std::map<std::string, std::size_t>		joint_state_name_map_;
 
@@ -315,9 +325,6 @@ class ServoCalcs
     std::atomic<bool>		paused_;
     double			collision_velocity_scale_ = 1.0;
 
-  // Use ArrayXd type to enable more coefficient-wise operations
-    Eigen::ArrayXd		delta_theta_;
-
     const int			gazebo_redundant_message_count_ = 30;
 
     uint			num_joints_;
@@ -334,8 +341,8 @@ class ServoCalcs
     mutable std::mutex		input_mutex_;
     Eigen::Isometry3d		tf_moveit_to_robot_cmd_frame_;
     Eigen::Isometry3d		tf_moveit_to_ee_frame_;
-    geometry_msgs::TwistStamped	twist_stamped_cmd_;
-    control_msgs::JointJog	joint_servo_cmd_;
+    twist_t			twist_stamped_cmd_;
+    joint_jog_t			joint_servo_cmd_;
 
   // input condition variable used for low latency mode
     std::condition_variable	input_cv_;
