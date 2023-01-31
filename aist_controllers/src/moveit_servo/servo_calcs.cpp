@@ -271,22 +271,20 @@ ServoCalcs::start()
     stop();
 
   // We will update last_sent_command_ every time we start servo
-    auto initial_joint_trajectory = moveit::util::make_shared_from_pool<
-					trajectory_msgs::JointTrajectory>();
+    auto initial_joint_trajectory = moveit::util::make_shared_from_pool<trajectory_msgs::JointTrajectory>();
 
   // When a joint_trajectory_controller receives a new command,
   // a stamp of 0 indicates "begin immediately"
   // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
-    initial_joint_trajectory->header.stamp    = ros::Time(0);
+    initial_joint_trajectory->header.stamp = ros::Time(0);
     initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
-    initial_joint_trajectory->joint_names     = internal_joint_state_.name;
+    initial_joint_trajectory->joint_names = internal_joint_state_.name;
     trajectory_msgs::JointTrajectoryPoint point;
     point.time_from_start = ros::Duration(parameters_.publish_period);
 
     if (parameters_.publish_joint_positions)
-	planning_scene_monitor_->getStateMonitor()->getCurrentState()
-			       ->copyJointGroupPositions(joint_model_group_,
-							 point.positions);
+	planning_scene_monitor_->getStateMonitor()->getCurrentState()->copyJointGroupPositions(joint_model_group_,
+											       point.positions);
     if (parameters_.publish_joint_velocities)
     {
 	std::vector<double> velocity(num_joints_);
@@ -402,16 +400,21 @@ ServoCalcs::calculateSingleIteration()
     // current_state_ = planning_scene_monitor_->getStateMonitor()
     // 					    ->getCurrentState();
 
-  // Check for stale cmds
-    const auto	twist_command_is_stale =
-		    (ros::Time::now() - twist_stamped_cmd_.header.stamp >=
-		     ros::Duration(parameters_.incoming_command_timeout));
-    const auto	joint_command_is_stale =
-		    (ros::Time::now() - joint_servo_cmd_.header.stamp >=
-		     ros::Duration(parameters_.incoming_command_timeout));
+    if (latest_twist_stamped_)
+	twist_stamped_cmd_ = *latest_twist_stamped_;
+    if (latest_joint_cmd_)
+	joint_servo_cmd_ = *latest_joint_cmd_;
 
-    const auto	have_nonzero_twist_stamped = isNonZero(twist_stamped_cmd_);
-    const auto	have_nonzero_joint_command = isNonZero(joint_servo_cmd_);
+  // Check for stale cmds
+    const auto twist_command_is_stale =
+	((ros::Time::now() - latest_twist_command_stamp_) >=
+	 ros::Duration(parameters_.incoming_command_timeout));
+    const auto joint_command_is_stale =
+	((ros::Time::now() - latest_joint_command_stamp_) >=
+	 ros::Duration(parameters_.incoming_command_timeout));
+
+    const auto	have_nonzero_twist_stamped = latest_nonzero_twist_stamped_;
+    const auto	have_nonzero_joint_command = latest_nonzero_joint_cmd_;
 
   // Get the transform from MoveIt planning frame to servoing command frame
   // Calculate this transform to ensure it is available via C++ API
@@ -429,6 +432,9 @@ ServoCalcs::calculateSingleIteration()
 	= current_state_->getGlobalLinkTransform(
 				parameters_.planning_frame).inverse()
 	* current_state_->getGlobalLinkTransform(parameters_.ee_frame_name);
+
+    const auto	have_nonzero_command =  have_nonzero_twist_stamped
+				     || have_nonzero_joint_command;
 
   // Don't end this function without updating the filters
     updated_filters_ = false;
@@ -489,8 +495,6 @@ ServoCalcs::calculateSingleIteration()
 				       "Try a larger 'incoming_command_timeout' parameter?");
     
   // If we should halt
-    const auto	have_nonzero_command =  have_nonzero_twist_stamped
-				     || have_nonzero_joint_command;
     if (!have_nonzero_command)
 	suddenHalt(*joint_trajectory);
 
@@ -1355,11 +1359,11 @@ void
 ServoCalcs::twistStampedCB(const geometry_msgs::TwistStampedConstPtr& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
-    twist_stamped_cmd_ = *msg;
-    // latest_nonzero_twist_stamped_ = isNonZero(*latest_twist_stamped_);
+    latest_twist_stamped_ = msg;
+    latest_nonzero_twist_stamped_ = isNonZero(*latest_twist_stamped_);
 
-    // if (msg->header.stamp != ros::Time(0.))
-    // 	latest_twist_command_stamp_ = msg->header.stamp;
+    if (msg->header.stamp != ros::Time(0.))
+	latest_twist_command_stamp_ = msg->header.stamp;
 
   // notify that we have a new input
     new_input_cmd_ = true;
@@ -1370,11 +1374,11 @@ void
 ServoCalcs::jointCmdCB(const control_msgs::JointJogConstPtr& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
-    joint_servo_cmd_ = *msg;
-    // latest_nonzero_joint_cmd_ = isNonZero(*latest_joint_cmd_);
+    latest_joint_cmd_ = msg;
+    latest_nonzero_joint_cmd_ = isNonZero(*latest_joint_cmd_);
 
-    // if (msg->header.stamp != ros::Time(0.))
-    // 	latest_joint_command_stamp_ = msg->header.stamp;
+    if (msg->header.stamp != ros::Time(0.))
+	latest_joint_command_stamp_ = msg->header.stamp;
 
   // notify that we have a new input
     new_input_cmd_ = true;
