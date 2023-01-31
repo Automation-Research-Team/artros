@@ -266,9 +266,6 @@ class ServoCalcs
     bool			updated_filters_ = false;
 
   // Incoming command messages
-    geometry_msgs::TwistStamped	twist_stamped_cmd_;
-    control_msgs::JointJog	joint_servo_cmd_;
-
     const moveit::core::JointModelGroup*
 				joint_model_group_;
 
@@ -334,12 +331,8 @@ class ServoCalcs
     mutable std::mutex			input_mutex_;
     Eigen::Isometry3d			tf_moveit_to_robot_cmd_frame_;
     Eigen::Isometry3d			tf_moveit_to_ee_frame_;
-    geometry_msgs::TwistStampedConstPtr	latest_twist_stamped_;
-    control_msgs::JointJogConstPtr	latest_joint_cmd_;
-    ros::Time				latest_twist_command_stamp_ = ros::Time(0.);
-    ros::Time				latest_joint_command_stamp_ = ros::Time(0.);
-    bool				latest_nonzero_twist_stamped_ = false;
-    bool				latest_nonzero_joint_cmd_ = false;
+    geometry_msgs::TwistStamped		twist_stamped_cmd_;
+    control_msgs::JointJog		joint_servo_cmd_;
 
   // input condition variable used for low latency mode
     std::condition_variable		input_cv_;
