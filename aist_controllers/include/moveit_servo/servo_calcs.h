@@ -278,17 +278,18 @@ class ServoCalcs
   // relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_
   // except it only contains the joints the servo node acts on.
-    sensor_msgs::JointState		internal_joint_state_,
-					original_joint_state_;
-    std::map<std::string, std::size_t>	joint_state_name_map_;
+    sensor_msgs::JointState			internal_joint_state_,
+						original_joint_state_;
+    std::map<std::string, std::size_t>		joint_state_name_map_;
 
 #if defined(BUTTERWORTH)
-    std::vector<aist_utility::ButterworthLPF<double> >	position_filters_;
+    std::vector<aist_utility::ButterworthLPF<double> >
+						position_filters_;
 #else
-    std::vector<LowPassFilter>				position_filters_;
+    std::vector<LowPassFilter>			position_filters_;
 #endif
 
-    trajectory_msgs::JointTrajectoryConstPtr		last_sent_command_;
+    trajectory_msgs::JointTrajectoryConstPtr	last_sent_command_;
 
   // ROS
     const ros::Subscriber			twist_stamped_sub_;
@@ -306,36 +307,38 @@ class ServoCalcs
     ddynamic_reconfigure::DDynamicReconfigure	ddr_;
 
   // Main tracking / result publisher loop
-    std::thread		thread_;
-    bool		stop_requested_;
+    std::thread			thread_;
+    bool			stop_requested_;
 
   // Status
-    StatusCode		status_ = StatusCode::NO_WARNING;
-    std::atomic<bool>	paused_;
-    double		collision_velocity_scale_ = 1.0;
+    StatusCode			status_ = StatusCode::NO_WARNING;
+    std::atomic<bool>		paused_;
+    double			collision_velocity_scale_ = 1.0;
 
   // Use ArrayXd type to enable more coefficient-wise operations
-    Eigen::ArrayXd	delta_theta_;
+    Eigen::ArrayXd		delta_theta_;
 
-    const int		gazebo_redundant_message_count_ = 30;
+    const int			gazebo_redundant_message_count_ = 30;
 
-    uint		num_joints_;
+    uint			num_joints_;
 
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6>	drift_dimensions_ = { { false, false, false, false, false, false } };
+    std::array<bool, 6>		drift_dimensions_ = {{false, false, false,
+						      false, false, false}};
 
   // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6>	control_dimensions_ = { { true, true, true, true, true, true } };
+    std::array<bool, 6>		control_dimensions_ = {{true, true, true,
+							true, true, true}};
 
   // input_mutex_ is used to protect the state below it
-    mutable std::mutex			input_mutex_;
-    Eigen::Isometry3d			tf_moveit_to_robot_cmd_frame_;
-    Eigen::Isometry3d			tf_moveit_to_ee_frame_;
-    geometry_msgs::TwistStamped		twist_stamped_cmd_;
-    control_msgs::JointJog		joint_servo_cmd_;
+    mutable std::mutex		input_mutex_;
+    Eigen::Isometry3d		tf_moveit_to_robot_cmd_frame_;
+    Eigen::Isometry3d		tf_moveit_to_ee_frame_;
+    geometry_msgs::TwistStamped	twist_stamped_cmd_;
+    control_msgs::JointJog	joint_servo_cmd_;
 
   // input condition variable used for low latency mode
-    std::condition_variable		input_cv_;
-    bool				new_input_cmd_ = false;
+    std::condition_variable	input_cv_;
+    bool			new_input_cmd_ = false;
 };
 }  // namespace moveit_servo

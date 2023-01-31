@@ -315,9 +315,7 @@ ServoCalcs::stop()
 
   // Join the thread
     if (thread_.joinable())
-    {
 	thread_.join();
-    }
 }
 
 void
@@ -333,11 +331,9 @@ ServoCalcs::mainCalcLoop()
       // low latency mode -- begin calculations as soon as a new command is
       // received.
 	if (parameters_.low_latency_mode)
-	{
 	    input_cv_.wait(input_lock, [this]
 			   { return (new_input_cmd_ || stop_requested_); });
-	}
-
+	
       // reset new_input_cmd_ flag
 	new_input_cmd_ = false;
 
@@ -348,14 +344,12 @@ ServoCalcs::mainCalcLoop()
 
       // Log warning when the run duration was longer than the period
 	if (run_duration.toSec() > parameters_.publish_period)
-	{
 	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 					   "run_duration: "
 					   << run_duration.toSec()
 					   << " ("
 					   << parameters_.publish_period
 					   << ")");
-	}
 
       // normal mode, unlock input mutex and wait for the period of the loop
 	if (!parameters_.low_latency_mode)
@@ -645,13 +639,9 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
   // in the vector drift_dimensions
   // Work backwards through the 6-vector so indices don't get out of order
     for (auto dimension = jacobian.rows() - 1; dimension >= 0; --dimension)
-    {
 	if (drift_dimensions_[dimension] && jacobian.rows() > 1)
-	{
 	    removeDimension(jacobian, delta_x, dimension);
-	}
-    }
-
+    
     Eigen::JacobiSVD<Eigen::MatrixXd>
 	svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian,
 						Eigen::ComputeThinU |
@@ -721,11 +711,9 @@ ServoCalcs::convertDeltasToOutgoingCmd(
 
   // done with calculations
     if (parameters_.use_gazebo)
-    {
 	insertRedundantPointsIntoTrajectory(joint_trajectory,
 					    gazebo_redundant_message_count_);
-    }
-
+    
     return true;
 }
 
@@ -850,9 +838,7 @@ ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta,
 				       SERVO_STATUS_CODE_MAP.at(status_));
     }
     else if (collision_scale == 0)
-    {
 	status_ = StatusCode::HALT_FOR_COLLISION;
-    }
 
     delta_theta = collision_scale * singularity_scale * delta_theta;
 
@@ -954,8 +940,7 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 
     std::size_t		joint_delta_index = 0;
     double		velocity_scaling_factor = 1.0;
-    for (const moveit::core::JointModel* joint
-	     : joint_model_group_->getActiveJointModels())
+    for (const auto joint : joint_model_group_->getActiveJointModels())
     {
 	const auto&	bounds = joint->getVariableBounds(joint->getName());
 	if (bounds.velocity_bounded_ && velocity(joint_delta_index) != 0.0)
@@ -985,13 +970,13 @@ ServoCalcs::enforceVelLimits(Eigen::ArrayXd& delta_theta)
 bool
 ServoCalcs::enforcePositionLimits(sensor_msgs::JointState& joint_state)
 {
-    bool halting = false;
+    bool	halting = false;
 
-    for (auto joint : joint_model_group_->getActiveJointModels())
+    for (const auto joint : joint_model_group_->getActiveJointModels())
     {
       // Halt if we're past a joint margin and joint velocity is moving
       // even farther past
-	double joint_angle = 0;
+	double	joint_angle = 0;
 	for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
 	{
 	    if (original_joint_state_.name[c] == joint->getName())
@@ -1103,18 +1088,17 @@ ServoCalcs::updateJoints()
 	double		accel_limit = 0;
 
       // Get acceleration limit for this joint
-	for (auto joint_model : joint_model_group_->getActiveJointModels())
-	    if (joint_model->getName() == joint_name)
+	for (const auto joint : joint_model_group_->getActiveJointModels())
+	    if (joint->getName() == joint_name)
 	    {
-		const auto& kinematic_bounds = joint_model->getVariableBounds();
+		const auto&	bounds = joint->getVariableBounds();
 	      // Some joints do not have acceleration limits
-		if (kinematic_bounds[0].acceleration_bounded_)
+		if (bounds[0].acceleration_bounded_)
 		{
 		  // Be conservative when calculating overall acceleration
 		  // limit from min and max limits
-		    accel_limit =
-			std::min(fabs(kinematic_bounds[0].min_acceleration_),
-				 fabs(kinematic_bounds[0].max_acceleration_));
+		    accel_limit = std::min(fabs(bounds[0].min_acceleration_),
+					   fabs(bounds[0].max_acceleration_));
 		}
 		else
 		{
@@ -1185,9 +1169,9 @@ ServoCalcs::scaleJointCommand(const control_msgs::JointJog& command) const
     Eigen::VectorXd result(num_joints_);
     result.setZero();
 
-    for (std::size_t m = 0; m < command.joint_names.size(); ++m)
+    for (size_t m = 0; m < command.joint_names.size(); ++m)
     {
-	std::size_t	c;
+	size_t	c;
 
 	try
 	{
@@ -1221,9 +1205,7 @@ bool
 ServoCalcs::addJointIncrements(sensor_msgs::JointState& output,
 			       const Eigen::VectorXd& increments) const
 {
-    for (std::size_t i = 0, size = static_cast<std::size_t>(increments.size());
-	 i < size; ++i)
-    {
+    for (size_t i = 0; i < increments.size(); ++i)
 	try
 	{
 	    output.position[i] += increments[i];
@@ -1236,8 +1218,7 @@ ServoCalcs::addJointIncrements(sensor_msgs::JointState& output,
 					    "increments do not match.");
 	    return false;
 	}
-    }
-
+    
     return true;
 }
 
@@ -1245,8 +1226,8 @@ void ServoCalcs::removeDimension(Eigen::MatrixXd& jacobian,
 				 Eigen::VectorXd& delta_x,
 				 unsigned int row_to_remove)
 {
-    unsigned int num_rows = jacobian.rows() - 1;
-    unsigned int num_cols = jacobian.cols();
+    const auto	num_rows = jacobian.rows() - 1;
+    const auto	num_cols = jacobian.cols();
 
     if (row_to_remove < num_rows)
     {
