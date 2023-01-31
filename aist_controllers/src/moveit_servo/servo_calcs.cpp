@@ -208,7 +208,9 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 
   // A map for the indices of incoming joint commands
     for (std::size_t i = 0; i < num_joints_; ++i)
+    {
 	joint_state_name_map_[internal_joint_state_.name[i]] = i;
+    }
 
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints_; ++i)
@@ -367,13 +369,15 @@ ServoCalcs::mainCalcLoop()
 
       // Log warning when the run duration was longer than the period
 	if (run_duration.toSec() > parameters_.publish_period)
+	{
 	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 					   "run_duration: "
 					   << run_duration.toSec()
 					   << " ("
 					   << parameters_.publish_period
 					   << ")");
-	
+	}
+
       // normal mode, unlock input mutex and wait for the period of the loop
 	if (!parameters_.low_latency_mode)
 	{
@@ -485,18 +489,24 @@ ServoCalcs::calculateSingleIteration()
       // so set it to the last positions and 0 velocity
 	*joint_trajectory = *last_sent_command_;
 	for (auto& point : joint_trajectory->points)
+	{
 	    point.velocities.assign(point.velocities.size(), 0);
+	}
     }
 
   // Print a warning to the user if both are stale
     if (twist_command_is_stale && joint_command_is_stale)
+    {
 	ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
 				       "Stale command. "
 				       "Try a larger 'incoming_command_timeout' parameter?");
-    
+    }
+
   // If we should halt
     if (!have_nonzero_command)
+    {
 	suddenHalt(*joint_trajectory);
+    }
 
   // Skip the servoing publication if all inputs have been zero
   // for several cycles in a row.
@@ -566,7 +576,9 @@ ServoCalcs::calculateSingleIteration()
 
   // Update the filters if we haven't yet
     if (!updated_filters_)
+    {
 	resetLowPassFilters(original_joint_state_);
+    }
 }
 // Perform the servoing calculations
 bool
@@ -574,9 +586,9 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 				trajectory_msgs::JointTrajectory& joint_trajectory)
 {
   // Check for nan's in the incoming command
-    if (std::isnan(cmd.twist.linear.x)  ||
-	std::isnan(cmd.twist.linear.y)  ||
-	std::isnan(cmd.twist.linear.z)  ||
+    if (std::isnan(cmd.twist.linear.x) ||
+	std::isnan(cmd.twist.linear.y) ||
+	std::isnan(cmd.twist.linear.z) ||
 	std::isnan(cmd.twist.angular.x) ||
 	std::isnan(cmd.twist.angular.y) ||
 	std::isnan(cmd.twist.angular.z))
@@ -590,9 +602,9 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
   // If incoming commands should be in the range [-1:1], check for |delta|>1
     if (parameters_.command_in_type == "unitless")
     {
-	if ((fabs(cmd.twist.linear.x) > 1)  ||
-	    (fabs(cmd.twist.linear.y) > 1)  ||
-	    (fabs(cmd.twist.linear.z) > 1)  ||
+	if ((fabs(cmd.twist.linear.x) > 1) ||
+	    (fabs(cmd.twist.linear.y) > 1) ||
+	    (fabs(cmd.twist.linear.z) > 1) ||
 	    (fabs(cmd.twist.angular.x) > 1) ||
 	    (fabs(cmd.twist.angular.y) > 1) ||
 	    (fabs(cmd.twist.angular.z) > 1))
@@ -663,9 +675,9 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
 
       // Put these components back into a TwistStamped
 	cmd.header.frame_id = parameters_.planning_frame;
-	cmd.twist.linear.x  = translation_vector(0);
-	cmd.twist.linear.y  = translation_vector(1);
-	cmd.twist.linear.z  = translation_vector(2);
+	cmd.twist.linear.x = translation_vector(0);
+	cmd.twist.linear.y = translation_vector(1);
+	cmd.twist.linear.z = translation_vector(2);
 	cmd.twist.angular.x = angular_vector(0);
 	cmd.twist.angular.y = angular_vector(1);
 	cmd.twist.angular.z = angular_vector(2);
@@ -682,9 +694,13 @@ ServoCalcs::cartesianServoCalcs(geometry_msgs::TwistStamped& cmd,
   // in the vector drift_dimensions
   // Work backwards through the 6-vector so indices don't get out of order
     for (auto dimension = jacobian.rows() - 1; dimension >= 0; --dimension)
+    {
 	if (drift_dimensions_[dimension] && jacobian.rows() > 1)
+	{
 	    removeDimension(jacobian, delta_x, dimension);
-    
+	}
+    }
+
     Eigen::JacobiSVD<Eigen::MatrixXd>
 	svd = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian,
 						Eigen::ComputeThinU |
@@ -711,6 +727,7 @@ ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd,
 {
   // Check for nan's
     for (double velocity : cmd.velocities)
+    {
 	if (std::isnan(velocity))
 	{
 	    ROS_WARN_STREAM_THROTTLE_NAMED(
@@ -718,7 +735,8 @@ ServoCalcs::jointServoCalcs(const control_msgs::JointJog& cmd,
 		"nan in incoming command. Skipping this datapoint.");
 	    return false;
 	}
-    
+    }
+
   // Apply user-defined scaling
     delta_theta_ = scaleJointCommand(cmd);
 
@@ -754,9 +772,11 @@ ServoCalcs::convertDeltasToOutgoingCmd(
 
   // done with calculations
     if (parameters_.use_gazebo)
+    {
 	insertRedundantPointsIntoTrajectory(joint_trajectory,
 					    gazebo_redundant_message_count_);
-    
+    }
+
     return true;
 }
 
@@ -784,9 +804,11 @@ void
 ServoCalcs::lowPassFilterPositions(sensor_msgs::JointState& joint_state)
 {
     for (size_t i = 0; i < position_filters_.size(); ++i)
+    {
 	joint_state.position[i] = position_filters_[i].filter(
 					joint_state.position[i]);
-    
+    }
+
     updated_filters_ = true;
 }
 
@@ -794,7 +816,9 @@ void
 ServoCalcs::resetLowPassFilters(const sensor_msgs::JointState& joint_state)
 {
     for (std::size_t i = 0; i < position_filters_.size(); ++i)
+    {
 	position_filters_[i].reset(joint_state.position[i]);
+    }
 
     updated_filters_ = true;
 }
@@ -809,11 +833,13 @@ ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
     parameters_.low_pass_filter_cutoff_frequency = cutoff_frequency;
 
     for (std::size_t i = 0; i < position_filters_.size(); ++i)
+    {
 	position_filters_[i].initialize(
 	    parameters_.low_pass_filter_half_order,
 	    parameters_.low_pass_filter_cutoff_frequency *
 	    parameters_.publish_period);
-    
+    }
+
     resetLowPassFilters(original_joint_state_);
 }
 #else
@@ -825,7 +851,9 @@ ServoCalcs::initializeLowPassFilters(double coeff)
     parameters_.low_pass_filter_coeff = coeff;
 
     for (std::size_t i = 0; i < position_filters_.size(); ++i)
+    {
 	position_filters_[i].initialize(parameters_.low_pass_filter_coeff);
+    }
 
     resetLowPassFilters(original_joint_state_);
 }
@@ -836,7 +864,9 @@ ServoCalcs::calculateJointVelocities(sensor_msgs::JointState& joint_state,
 				     const Eigen::ArrayXd& delta_theta)
 {
     for (int i = 0; i < delta_theta.size(); ++i)
+    {
 	joint_state.velocity[i] = delta_theta[i] / parameters_.publish_period;
+    }
 }
 
 void
@@ -881,7 +911,9 @@ ServoCalcs::applyVelocityScaling(Eigen::ArrayXd& delta_theta,
 				       SERVO_STATUS_CODE_MAP.at(status_));
     }
     else if (collision_scale == 0)
+    {
 	status_ = StatusCode::HALT_FOR_COLLISION;
+    }
 
     delta_theta = collision_scale * singularity_scale * delta_theta;
 
@@ -939,7 +971,9 @@ ServoCalcs::velocityScalingFactorForSingularity(
   // If new_condition < ini_condition, the singular vector does point
   // towards a singularity. Otherwise, flip its direction.
     if (ini_condition >= new_condition)
+    {
 	vector_toward_singularity *= -1;
+    }
 
   // If this dot product is positive, we're moving toward singularity
   // ==> decelerate
@@ -1178,8 +1212,7 @@ ServoCalcs::updateJoints()
 }
 
 // Scale the incoming servo command
-Eigen::VectorXd
-ServoCalcs::scaleCartesianCommand(
+Eigen::VectorXd ServoCalcs::scaleCartesianCommand(
     const geometry_msgs::TwistStamped& command) const
 {
     Eigen::VectorXd result(6);
@@ -1313,7 +1346,9 @@ ServoCalcs::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
     const std::lock_guard<std::mutex> lock(input_mutex_);
   // All zeros means the transform wasn't initialized, so return false
     if (tf_moveit_to_robot_cmd_frame_.matrix().isZero(0))
+    {
 	return false;
+    }
 
     transform = convertIsometryToTransform(tf_moveit_to_robot_cmd_frame_,
 					   parameters_.planning_frame,
@@ -1337,7 +1372,9 @@ ServoCalcs::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
     const std::lock_guard<std::mutex> lock(input_mutex_);
   // All zeros means the transform wasn't initialized, so return false
     if (tf_moveit_to_ee_frame_.matrix().isZero(0))
+    {
 	return false;
+    }
 
     transform = convertIsometryToTransform(tf_moveit_to_ee_frame_,
 					   parameters_.planning_frame,
