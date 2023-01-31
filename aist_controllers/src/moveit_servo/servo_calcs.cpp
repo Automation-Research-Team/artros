@@ -133,44 +133,53 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
   :nh_(nh),
    parameters_(parameters),
    planning_scene_monitor_(planning_scene_monitor),
+   zero_velocity_count_(0),
+   wait_for_servo_commands_(true),
+   updated_filters_(false),
+   current_state_(planning_scene_monitor_->getStateMonitor()
+					 ->getCurrentState()),
+   joint_model_group_(current_state_->getJointModelGroup(
+			  parameters_.move_group_name)),
+   twist_stamped_sub_(
+       nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
+		     &ServoCalcs::twistStampedCB, this,
+		     ros::TransportHints().reliable().tcpNoDelay(true))),
+   joint_cmd_sub_(
+       nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
+		     &ServoCalcs::jointCmdCB, this,
+		     ros::TransportHints().reliable().tcpNoDelay(true))),
+   status_pub_(nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
+					     ROS_QUEUE_SIZE)),
+   outgoing_cmd_pub_(
+       parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
+       nh_.advertise<trajectory_msgs::JointTrajectory>(
+	   parameters_.command_out_topic, ROS_QUEUE_SIZE) :
+       nh_.advertise<std_msgs::Float64MultiArray>(
+	   parameters_.command_out_topic, ROS_QUEUE_SIZE)),
+   outgoing_cmd_debug_pub_(
+       parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
+       nh_.advertise<trajectory_msgs::JointTrajectory>(
+	   parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE) :
+       nh_.advertise<std_msgs::Float64MultiArray>(
+	   parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE)),
+   durations_pub_(nh_.advertise<aist_controllers::DurationArray>("durations",
+								 1)),
+   drift_dimensions_srv_(
+       nh_.advertiseService(ros::names::append(nh_.getNamespace(),
+					       "change_drift_dimensions"),
+			    &ServoCalcs::changeDriftDimensions, this)),
+   control_dimensions_srv_(
+       nh_.advertiseService(ros::names::append(nh_.getNamespace(),
+					       "change_control_dimensions"),
+			    &ServoCalcs::changeControlDimensions, this)),
+   reset_servo_status_srv_(nh_.advertiseService(
+			       ros::names::append(nh_.getNamespace(),
+						  "reset_servo_status"),
+			       &ServoCalcs::resetServoStatus, this)),
    ddr_(nh_),
    stop_requested_(true),
    paused_(false)
 {
-  // MoveIt Setup
-    current_state_     = planning_scene_monitor_->getStateMonitor()
-						->getCurrentState();
-    joint_model_group_ = current_state_->getJointModelGroup(
-						parameters_.move_group_name);
-
-  // Subscribe to command topics
-    twist_stamped_sub_ =
-	nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
-		      &ServoCalcs::twistStampedCB, this,
-		      ros::TransportHints().reliable().tcpNoDelay(true));
-    joint_cmd_sub_ = nh_.subscribe(
-			parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
-			&ServoCalcs::jointCmdCB, this,
-			ros::TransportHints().reliable().tcpNoDelay(true));
-
-  // ROS Server for allowing drift in some dimensions
-    drift_dimensions_server_ = nh_.advertiseService(
-				ros::names::append(nh_.getNamespace(),
-						   "change_drift_dimensions"),
-				&ServoCalcs::changeDriftDimensions, this);
-
-  // ROS Server for changing the control dimensions
-    control_dimensions_server_ = nh_.advertiseService(
-				ros::names::append(nh_.getNamespace(),
-						   "change_control_dimensions"),
-				&ServoCalcs::changeControlDimensions, this);
-
-  // ROS Server to reset the status, e.g. so the arm can move again after a collision
-    reset_servo_status_ = nh_.advertiseService(
-				ros::names::append(nh_.getNamespace(),
-						   "reset_servo_status"),
-				&ServoCalcs::resetServoStatus, this);
-
   // Publish and Subscribe to internal namespace topics
     ros::NodeHandle internal_nh(nh_, "internal");
     collision_velocity_scale_sub_ =
@@ -178,28 +187,6 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 			      &ServoCalcs::collisionVelocityScaleCB, this);
     worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>(
 				    "worst_case_stop_time", ROS_QUEUE_SIZE);
-
-  // Publish freshly-calculated joints to the robot.
-  // Put the outgoing msg in the right format (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
-    if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
-    {
-	outgoing_cmd_pub_
-	    = nh_.advertise<trajectory_msgs::JointTrajectory>(
-		parameters_.command_out_topic, ROS_QUEUE_SIZE);
-	outgoing_cmd_debug_pub_
-	    = nh_.advertise<trajectory_msgs::JointTrajectory>(
-		parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE);
-    }
-    else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
-	outgoing_cmd_pub_
-	    = nh_.advertise<std_msgs::Float64MultiArray>(
-		parameters_.command_out_topic, ROS_QUEUE_SIZE);
-
-  // Publish status
-    status_pub_ = nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
-						ROS_QUEUE_SIZE);
-
-    durations_pub_ = nh_.advertise<aist_controllers::DurationArray>("durations", 1);
 
     internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
     num_joints_ = internal_joint_state_.name.size();

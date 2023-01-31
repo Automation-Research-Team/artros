@@ -246,29 +246,30 @@ class ServoCalcs
 			  std_srvs::Empty::Response& res);
 
   private:
-    ros::NodeHandle			nh_;
+    ros::NodeHandle				nh_;
 
   // Parameters from yaml
-    ServoParameters&			parameters_;
+    ServoParameters&				parameters_;
 
   // Pointer to the collision environment
     planning_scene_monitor::PlanningSceneMonitorPtr
-					planning_scene_monitor_;
+						planning_scene_monitor_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
-    int					zero_velocity_count_ = 0;
+    int						zero_velocity_count_;
 
   // Flag for staying inactive while there are no incoming commands
-    bool				wait_for_servo_commands_ = true;
+    bool					wait_for_servo_commands_;
 
   // Flag saying if the filters were updated during the timer callback
-    bool				updated_filters_ = false;
-
-  // Incoming command messages
-    const moveit::core::JointModelGroup*	joint_model_group_;
+    bool					updated_filters_;
 
     moveit::core::RobotStatePtr			current_state_;
+
+  // Incoming command messages
+    const moveit::core::JointModelGroup* const	joint_model_group_;
+
 
   // incoming_joint_state_ is the incoming message. It may contain passive
   // joints or other joints we don't care about.
@@ -290,17 +291,17 @@ class ServoCalcs
     trajectory_msgs::JointTrajectoryConstPtr		last_sent_command_;
 
   // ROS
-    ros::Subscriber				twist_stamped_sub_;
-    ros::Subscriber				joint_cmd_sub_;
+    const ros::Subscriber			twist_stamped_sub_;
+    const ros::Subscriber			joint_cmd_sub_;
     ros::Subscriber				collision_velocity_scale_sub_;
     ros::Publisher				status_pub_;
     ros::Publisher				worst_case_stop_time_pub_;
     ros::Publisher				outgoing_cmd_pub_;
     ros::Publisher				outgoing_cmd_debug_pub_;
     ros::Publisher				durations_pub_;
-    ros::ServiceServer				drift_dimensions_server_;
-    ros::ServiceServer				control_dimensions_server_;
-    ros::ServiceServer				reset_servo_status_;
+    const ros::ServiceServer			drift_dimensions_srv_;
+    const ros::ServiceServer			control_dimensions_srv_;
+    const ros::ServiceServer			reset_servo_status_srv_;
     aist_controllers::DurationArray		durations_;
     ddynamic_reconfigure::DDynamicReconfigure	ddr_;
 
