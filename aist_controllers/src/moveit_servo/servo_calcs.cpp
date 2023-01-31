@@ -423,21 +423,6 @@ ServoCalcs::calculateSingleIteration()
   // Calculate this transform to ensure it is available via C++ API
     tf_moveit_to_ee_frame_ = getFrameTransform(parameters_.ee_frame_name);
 
-    const auto	have_nonzero_command =  have_nonzero_twist_stamped
-				     || have_nonzero_joint_command;
-
-    const auto	have_nonzero_command =  have_nonzero_twist_stamped
-				     || have_nonzero_joint_command;
-
-    const auto	have_nonzero_command =  have_nonzero_twist_stamped
-				     || have_nonzero_joint_command;
-
-    const auto	have_nonzero_command =  have_nonzero_twist_stamped
-				     || have_nonzero_joint_command;
-
-    const auto	have_nonzero_command =  have_nonzero_twist_stamped
-				     || have_nonzero_joint_command;
-
   // Don't end this function without updating the filters
     updated_filters_ = false;
 
@@ -465,6 +450,9 @@ ServoCalcs::calculateSingleIteration()
 
   // Prioritize cartesian servoing above joint servoing
   // Only run commands if not stale and nonzero
+    const auto	have_nonzero_command =  have_nonzero_twist_stamped
+				     || have_nonzero_joint_command;
+
     if (have_nonzero_twist_stamped && !twist_command_is_stale)
     {
 	if (!cartesianServoCalcs(twist_stamped_cmd_, *joint_trajectory))
