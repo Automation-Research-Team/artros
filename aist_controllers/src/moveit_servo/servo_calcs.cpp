@@ -52,6 +52,9 @@ namespace moveit_servo
 {
 namespace
 {
+/************************************************************************
+*  static functions							*
+************************************************************************/
 std::ostream&
 operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
 {
@@ -107,9 +110,8 @@ isNonZero(const control_msgs::JointJog& msg)
 {
     bool all_zeros = true;
     for (double delta : msg.velocities)
-    {
 	all_zeros &= (delta == 0.0);
-    };
+
     return !all_zeros;
 }
 
@@ -119,7 +121,7 @@ convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
 			   const std::string& parent_frame,
 			   const std::string& child_frame)
 {
-    geometry_msgs::TransformStamped output = tf2::eigenToTransform(eigen_tf);
+    auto	output = tf2::eigenToTransform(eigen_tf);
     output.header.frame_id = parent_frame;
     output.child_frame_id = child_frame;
 
@@ -127,6 +129,12 @@ convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
 }
 }  // namespace
 
+/************************************************************************
+*  class ServoCalcs							*
+************************************************************************/
+/*
+ *  public member functions
+ */
 // Constructor for the class that handles servoing calculations
 ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
                        const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
@@ -199,8 +207,8 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
    control_dimensions_({true, true, true, true, true, true}),
     
    input_mutex_(),
-   tf_moveit_to_robot_cmd_frame_(),
-   tf_moveit_to_ee_frame_(),
+   tf_moveit_to_robot_cmd_frame_(Eigen::Matrix3d::Zero()),
+   tf_moveit_to_ee_frame_(Eigen::Matrix3d::Zero()),
    twist_stamped_cmd_(),
    joint_servo_cmd_(),
    
@@ -237,12 +245,6 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 #endif
     }
 
-  // A matrix of all zeros is used to check whether matrices have been initialized
-    Eigen::Matrix3d empty_matrix;
-    empty_matrix.setZero();
-    tf_moveit_to_ee_frame_ = empty_matrix;
-    tf_moveit_to_robot_cmd_frame_ = empty_matrix;
-
   // Setup dynamic reconfigure server
 #if defined(BUTTERWORTH)
     ddr_.registerVariable<int>("lowpass_filter_half_order",
@@ -276,6 +278,62 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 ServoCalcs::~ServoCalcs()
 {
     stop();
+}
+
+bool
+ServoCalcs::getCommandFrameTransform(isometry3_t& transform) const
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+    transform = tf_moveit_to_robot_cmd_frame_;
+
+  // All zeros means the transform wasn't initialized, so return false
+    return !transform.matrix().isZero(0);
+}
+
+bool
+ServoCalcs::getCommandFrameTransform(transform_t& transform) const
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+  // All zeros means the transform wasn't initialized, so return false
+    if (tf_moveit_to_robot_cmd_frame_.matrix().isZero(0))
+	return false;
+
+    transform = convertIsometryToTransform(tf_moveit_to_robot_cmd_frame_,
+					   parameters_.planning_frame,
+					   parameters_.robot_link_command_frame);
+    return true;
+}
+
+bool
+ServoCalcs::getEEFrameTransform(isometry3_t& transform) const
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+    transform = tf_moveit_to_ee_frame_;
+
+  // All zeros means the transform wasn't initialized, so return false
+    return !transform.matrix().isZero(0);
+}
+
+bool
+ServoCalcs::getEEFrameTransform(transform_t& transform) const
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+  // All zeros means the transform wasn't initialized, so return false
+    if (tf_moveit_to_ee_frame_.matrix().isZero(0))
+	return false;
+
+    transform = convertIsometryToTransform(tf_moveit_to_ee_frame_,
+					   parameters_.planning_frame,
+					   parameters_.ee_frame_name);
+    return true;
+}
+
+ServoCalcs::isometry3_t
+ServoCalcs::getFrameTransform(const std::string& frame) const
+{
+    return current_state_->getGlobalLinkTransform(parameters_.planning_frame)
+	  .inverse()
+	 * current_state_->getGlobalLinkTransform(frame);
 }
 
 void
@@ -321,10 +379,25 @@ ServoCalcs::start()
 	= getFrameTransform(parameters_.robot_link_command_frame);
 
     stop_requested_ = false;
-    thread_ = std::thread([this] { mainCalcLoop(); });
-    new_input_cmd_ = false;
+    thread_	    = std::thread([this] { mainCalcLoop(); });
+    new_input_cmd_  = false;
 }
 
+void
+ServoCalcs::setPaused(bool paused)
+{
+    paused_ = paused;
+}
+
+void
+ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
+{
+    parameters_.robot_link_command_frame = new_command_frame;
+}
+
+/*
+ *  private member functions
+ */
 void
 ServoCalcs::stop()
 {
@@ -554,10 +627,68 @@ ServoCalcs::calculateSingleIteration()
 	resetLowPassFilters(original_joint_state_);
 }
 
+// Parse the incoming joint msg for the joints of our MoveGroup
+void
+ServoCalcs::updateJoints()
+{
+  // Get the latest joint group positions
+    current_state_ = planning_scene_monitor_->getStateMonitor()
+					    ->getCurrentState();
+    current_state_->copyJointGroupPositions(joint_model_group_,
+					    internal_joint_state_.position);
+    current_state_->copyJointGroupVelocities(joint_model_group_,
+					     internal_joint_state_.velocity);
+
+  // Cache the original joints in case they need to be reset
+    original_joint_state_ = internal_joint_state_;
+
+  // Calculate worst case joint stop time, for collision checking
+    double	worst_case_stop_time = 0;
+    for (size_t i = 0; i < internal_joint_state_.velocity.size(); ++i)
+    {
+	const auto&	joint_name = internal_joint_state_.name[i];
+	double		accel_limit = 0;
+
+      // Get acceleration limit for this joint
+	for (const auto joint : joint_model_group_->getActiveJointModels())
+	    if (joint->getName() == joint_name)
+	    {
+		const auto&	bounds = joint->getVariableBounds();
+	      // Some joints do not have acceleration limits
+		if (bounds[0].acceleration_bounded_)
+		{
+		  // Be conservative when calculating overall acceleration
+		  // limit from min and max limits
+		    accel_limit = std::min(fabs(bounds[0].min_acceleration_),
+					   fabs(bounds[0].max_acceleration_));
+		}
+		else
+		{
+		    ROS_WARN_STREAM_THROTTLE_NAMED(
+			ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+			"An acceleration limit is not defined for this joint; minimum stop distance "
+			"should not be used for collision checking");
+		}
+		break;
+	    }
+
+      // Calculate worst case stop time
+	worst_case_stop_time = std::max(worst_case_stop_time,
+					fabs(internal_joint_state_.velocity[i]
+					     / accel_limit));
+    }
+
+  // publish message
+    {
+	auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
+	msg->data = worst_case_stop_time;
+	worst_case_stop_time_pub_.publish(msg);
+    }
+}
+
 // Perform the servoing calculations
 bool
-ServoCalcs::cartesianServoCalcs(twist_t& cmd,
-				trajectory_t& joint_trajectory)
+ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
 {
   // Check for nan's in the incoming command
     if (std::isnan(cmd.twist.linear.x)  ||
@@ -607,30 +738,28 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd,
   // Transform the command to the MoveGroup planning frame
     if (cmd.header.frame_id != parameters_.planning_frame)
     {
-	Eigen::Vector3d translation_vector(cmd.twist.linear.x,
-					   cmd.twist.linear.y,
-					   cmd.twist.linear.z);
-	Eigen::Vector3d angular_vector(cmd.twist.angular.x,
-				       cmd.twist.angular.y,
-				       cmd.twist.angular.z);
+	Eigen::Vector3d	translation(cmd.twist.linear.x,
+				    cmd.twist.linear.y,
+				    cmd.twist.linear.z);
+	Eigen::Vector3d angular(cmd.twist.angular.x,
+				cmd.twist.angular.y,
+				cmd.twist.angular.z);
 
       // If the incoming frame is empty or is the command frame,
       // we use the previously calculated tf
 	if (cmd.header.frame_id.empty() ||
 	    cmd.header.frame_id == parameters_.robot_link_command_frame)
 	{
-	    translation_vector = tf_moveit_to_robot_cmd_frame_.linear()
-			       * translation_vector;
-	    angular_vector = tf_moveit_to_robot_cmd_frame_.linear()
-			   * angular_vector;
+	    translation = tf_moveit_to_robot_cmd_frame_.linear()
+			* translation;
+	    angular	= tf_moveit_to_robot_cmd_frame_.linear() * angular;
 	}
 	else if (cmd.header.frame_id == parameters_.ee_frame_name)
 	{
 	  // If the frame is the EE frame,
 	  // we already have that transform as well
-	    translation_vector = tf_moveit_to_ee_frame_.linear()
-			       * translation_vector;
-	    angular_vector = tf_moveit_to_ee_frame_.linear() * angular_vector;
+	    translation = tf_moveit_to_ee_frame_.linear() * translation;
+	    angular	= tf_moveit_to_ee_frame_.linear() * angular;
 	}
 	else
 	{
@@ -639,20 +768,19 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd,
 	    const auto	tf_moveit_to_incoming_cmd_frame
 			    = getFrameTransform(cmd.header.frame_id);
 
-	    translation_vector = tf_moveit_to_incoming_cmd_frame.linear()
-			       * translation_vector;
-	    angular_vector = tf_moveit_to_incoming_cmd_frame.linear()
-			   * angular_vector;
+	    translation = tf_moveit_to_incoming_cmd_frame.linear()
+			* translation;
+	    angular	= tf_moveit_to_incoming_cmd_frame.linear() * angular;
 	}
 
       // Put these components back into a TwistStamped
 	cmd.header.frame_id = parameters_.planning_frame;
-	cmd.twist.linear.x  = translation_vector(0);
-	cmd.twist.linear.y  = translation_vector(1);
-	cmd.twist.linear.z  = translation_vector(2);
-	cmd.twist.angular.x = angular_vector(0);
-	cmd.twist.angular.y = angular_vector(1);
-	cmd.twist.angular.z = angular_vector(2);
+	cmd.twist.linear.x  = translation(0);
+	cmd.twist.linear.y  = translation(1);
+	cmd.twist.linear.z  = translation(2);
+	cmd.twist.angular.x = angular(0);
+	cmd.twist.angular.y = angular(1);
+	cmd.twist.angular.z = angular(2);
     }
 
     auto	delta_x = scaleCartesianCommand(cmd);
@@ -670,8 +798,8 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd,
 	    removeDimension(jacobian, delta_x, dimension);
     
     const auto	svd = Eigen::JacobiSVD<matrix_t>(jacobian,
-							Eigen::ComputeThinU |
-							Eigen::ComputeThinV);
+						 Eigen::ComputeThinU |
+						 Eigen::ComputeThinV);
     const auto	matrix_s	= svd.singularValues().asDiagonal();
     const auto	pseudo_inverse	= svd.matrixV() * matrix_s.inverse()
 				* svd.matrixU().transpose();
@@ -713,166 +841,41 @@ ServoCalcs::jointServoCalcs(const joint_jog_t& cmd,
     return convertDeltasToOutgoingCmd(delta_theta, joint_trajectory);
 }
 
-bool
-ServoCalcs::convertDeltasToOutgoingCmd(const vector_t& delta_theta,
-				       trajectory_t& joint_trajectory)
+void
+ServoCalcs::enforceVelLimits(vector_t& delta_theta) const
 {
-    internal_joint_state_ = original_joint_state_;
-    if (!addJointIncrements(internal_joint_state_, delta_theta))
-	return false;
+  // Convert to joint angle velocities for checking and applying joint
+  // specific velocity limits.
+    const auto	velocity = delta_theta / parameters_.publish_period;
+    double	velocity_scaling_factor = 1.0;
 
-    lowPassFilterPositions(internal_joint_state_);
-
-  // Calculate joint velocities here so that positions are filtered
-  // and SRDF bounds still get checked
-    calculateJointVelocities(internal_joint_state_, delta_theta);
-
-    composeJointTrajMessage(internal_joint_state_, joint_trajectory);
-
-    if (!enforcePositionLimits(internal_joint_state_))
+    size_t	i = 0;
+    for (const auto joint : joint_model_group_->getActiveJointModels())
     {
-	suddenHalt(joint_trajectory);
-	status_ = StatusCode::JOINT_BOUND;
+	const auto&	bounds = joint->getVariableBounds(joint->getName());
+	const auto	unbounded_velocity = velocity(i);
+	
+	if (bounds.velocity_bounded_ && unbounded_velocity != 0.0)
+	{
+	  // Clamp each joint velocity to a joint specific
+	  // [min_velocity, max_velocity] range.
+	    const auto bounded_velocity
+		= std::min(std::max(unbounded_velocity,
+				    16*bounds.min_velocity_),
+			   16*bounds.max_velocity_);
+	    velocity_scaling_factor
+	    	= std::min(velocity_scaling_factor,
+	    		   bounded_velocity / unbounded_velocity);
+	}
+	++i;
     }
 
-  // done with calculations
-    if (parameters_.use_gazebo)
-	insertRedundantPointsIntoTrajectory(joint_trajectory,
-					    gazebo_redundant_message_count_);
-    
-    return true;
-}
-
-// Spam several redundant points into the trajectory. The first few may be
-// skipped if the time stamp is in the past when it reaches the client.
-// Needed for gazebo simulation.
-void
-ServoCalcs::insertRedundantPointsIntoTrajectory(
-    trajectory_t& joint_trajectory, int count) const
-{
-    joint_trajectory.points.resize(count);
-    auto point = joint_trajectory.points[0];
-  // Start from 2nd point (i = 1) because we already have the first point.
-  // The timestamps are shifted up one period since first point is at
-  // 1 * publish_period, not 0.
-    for (int i = 1; i < count; ++i)
-    {
-	point.time_from_start = ros::Duration((i + 1)
-					      * parameters_.publish_period);
-	joint_trajectory.points[i] = point;
-    }
-}
-
-void
-ServoCalcs::lowPassFilterPositions(joint_state_t& joint_state)
-{
-    for (size_t i = 0; i < position_filters_.size(); ++i)
-	joint_state.position[i] = position_filters_[i].filter(
-					joint_state.position[i]);
-
-    updated_filters_ = true;
-}
-
-void
-ServoCalcs::resetLowPassFilters(const joint_state_t& joint_state)
-{
-    for (size_t i = 0; i < position_filters_.size(); ++i)
-	position_filters_[i].reset(joint_state.position[i]);
-
-    updated_filters_ = true;
-}
-
-#if defined(BUTTERWORTH)
-void
-ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-
-    parameters_.low_pass_filter_half_order	 = half_order;
-    parameters_.low_pass_filter_cutoff_frequency = cutoff_frequency;
-
-    for (auto&& position_filter : position_filters_)
-	position_filter.initialize(
-	    parameters_.low_pass_filter_half_order,
-	    parameters_.low_pass_filter_cutoff_frequency *
-	    parameters_.publish_period);
-    
-    resetLowPassFilters(original_joint_state_);
-}
-#else
-void
-ServoCalcs::initializeLowPassFilters(double coeff)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-
-    parameters_.low_pass_filter_coeff = coeff;
-
-    for (auto&& position_filter: position_filters_)
-	position_filter.initialize(parameters_.low_pass_filter_coeff);
-
-    resetLowPassFilters(original_joint_state_);
-}
-#endif
-
-void
-ServoCalcs::calculateJointVelocities(joint_state_t& joint_state,
-				     const vector_t& delta_theta)
-{
-    for (int i = 0; i < delta_theta.size(); ++i)
-	joint_state.velocity[i] = delta_theta[i] / parameters_.publish_period;
-}
-
-void
-ServoCalcs::composeJointTrajMessage(const joint_state_t& joint_state,
-				    trajectory_t& joint_trajectory) const
-{
-  // When a joint_trajectory_controller receives a new command,
-  // a stamp of 0 indicates "begin immediately"
-  // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
-    joint_trajectory.header.stamp    = ros::Time(0);
-    joint_trajectory.header.frame_id = parameters_.planning_frame;
-    joint_trajectory.joint_names     = joint_state.name;
-
-    trajectory_point_t	point;
-    point.time_from_start = ros::Duration(parameters_.publish_period);
-    if (parameters_.publish_joint_positions)
-	point.positions = joint_state.position;
-    if (parameters_.publish_joint_velocities)
-	point.velocities = joint_state.velocity;
-    if (parameters_.publish_joint_accelerations)
-    {
-      // I do not know of a robot that takes acceleration commands.
-      // However, some controllers check that this data is non-empty.
-      // Send all zeros, for now.
-	std::vector<double> acceleration(num_joints_);
-	point.accelerations = acceleration;
-    }
-    joint_trajectory.points.push_back(point);
-}
-
-// Apply velocity scaling for proximity of collisions and singularities.
-void
-ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
-				 double singularity_scale)
-{
-    double	collision_scale = collision_velocity_scale_;
-
-    if (collision_scale > 0 && collision_scale < 1)
-    {
-	status_ = StatusCode::DECELERATE_FOR_COLLISION;
-	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-				       SERVO_STATUS_CODE_MAP.at(status_));
-    }
-    else if (collision_scale == 0)
-	status_ = StatusCode::HALT_FOR_COLLISION;
-
-    delta_theta = collision_scale * singularity_scale * delta_theta;
-
-    if (status_ == StatusCode::HALT_FOR_COLLISION)
-    {
-	ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
-	delta_theta.setZero();
-    }
+  // Convert back to joint angle increments.
+    // if (velocity_scaling_factor < 1.0)
+    //   std::cerr << "*** velocity_scaling_factor="
+    // 		<< velocity_scaling_factor << std::endl;
+    delta_theta = velocity_scaling_factor * velocity
+    		* parameters_.publish_period;
 }
 
 // Possibly calculate a velocity scaling factor,
@@ -957,45 +960,121 @@ ServoCalcs::velocityScalingFactorForSingularity(
     return velocity_scale;
 }
 
+// Apply velocity scaling for proximity of collisions and singularities.
 void
-ServoCalcs::enforceVelLimits(vector_t& delta_theta)
+ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
+				 double singularity_scale)
 {
-  // Convert to joint angle velocities for checking and applying joint
-  // specific velocity limits.
-    const auto	velocity = delta_theta / parameters_.publish_period;
-    double	velocity_scaling_factor = 1.0;
+    double	collision_scale = collision_velocity_scale_;
 
-    size_t	i = 0;
-    for (const auto joint : joint_model_group_->getActiveJointModels())
+    if (collision_scale > 0 && collision_scale < 1)
     {
-	const auto&	bounds = joint->getVariableBounds(joint->getName());
-	const auto	unbounded_velocity = velocity(i);
-	
-	if (bounds.velocity_bounded_ && unbounded_velocity != 0.0)
-	{
-	  // Clamp each joint velocity to a joint specific
-	  // [min_velocity, max_velocity] range.
-	    const auto bounded_velocity
-		= std::min(std::max(unbounded_velocity,
-				    16*bounds.min_velocity_),
-			   16*bounds.max_velocity_);
-	    velocity_scaling_factor
-	    	= std::min(velocity_scaling_factor,
-	    		   bounded_velocity / unbounded_velocity);
-	}
-	++i;
+	status_ = StatusCode::DECELERATE_FOR_COLLISION;
+	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+				       SERVO_STATUS_CODE_MAP.at(status_));
     }
+    else if (collision_scale == 0)
+	status_ = StatusCode::HALT_FOR_COLLISION;
 
-  // Convert back to joint angle increments.
-    // if (velocity_scaling_factor < 1.0)
-    //   std::cerr << "*** velocity_scaling_factor="
-    // 		<< velocity_scaling_factor << std::endl;
-    delta_theta = velocity_scaling_factor * velocity
-    		* parameters_.publish_period;
+    delta_theta = collision_scale * singularity_scale * delta_theta;
+
+    if (status_ == StatusCode::HALT_FOR_COLLISION)
+    {
+	ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
+	delta_theta.setZero();
+    }
 }
 
 bool
-ServoCalcs::enforcePositionLimits(joint_state_t& joint_state)
+ServoCalcs::convertDeltasToOutgoingCmd(const vector_t& delta_theta,
+				       trajectory_t& joint_trajectory)
+{
+    internal_joint_state_ = original_joint_state_;
+    if (!addJointIncrements(internal_joint_state_, delta_theta))
+	return false;
+
+    lowPassFilterPositions(internal_joint_state_);
+
+  // Calculate joint velocities here so that positions are filtered
+  // and SRDF bounds still get checked
+    calculateJointVelocities(internal_joint_state_, delta_theta);
+
+    composeJointTrajMessage(internal_joint_state_, joint_trajectory);
+
+    if (!enforcePositionLimits(internal_joint_state_))
+    {
+	suddenHalt(joint_trajectory);
+	status_ = StatusCode::JOINT_BOUND;
+    }
+
+  // done with calculations
+    if (parameters_.use_gazebo)
+	insertRedundantPointsIntoTrajectory(joint_trajectory,
+					    gazebo_redundant_message_count_);
+    
+    return true;
+}
+
+// Add the deltas to each joint
+bool
+ServoCalcs::addJointIncrements(joint_state_t& output,
+			       const vector_t& delta_theta) const
+{
+    for (int i = 0; i < delta_theta.size(); ++i)
+	try
+	{
+	    output.position[i] += delta_theta[i];
+	}
+	catch (const std::out_of_range& e)
+	{
+	    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+					    ros::this_node::getName()
+					    << " Lengths of output and "
+					    "increments do not match.");
+	    return false;
+	}
+    
+    return true;
+}
+
+void
+ServoCalcs::calculateJointVelocities(joint_state_t& joint_state,
+				     const vector_t& delta_theta)
+{
+    for (int i = 0; i < delta_theta.size(); ++i)
+	joint_state.velocity[i] = delta_theta[i] / parameters_.publish_period;
+}
+
+void
+ServoCalcs::composeJointTrajMessage(const joint_state_t& joint_state,
+				    trajectory_t& joint_trajectory) const
+{
+  // When a joint_trajectory_controller receives a new command,
+  // a stamp of 0 indicates "begin immediately"
+  // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
+    joint_trajectory.header.stamp    = ros::Time(0);
+    joint_trajectory.header.frame_id = parameters_.planning_frame;
+    joint_trajectory.joint_names     = joint_state.name;
+
+    trajectory_point_t	point;
+    point.time_from_start = ros::Duration(parameters_.publish_period);
+    if (parameters_.publish_joint_positions)
+	point.positions = joint_state.position;
+    if (parameters_.publish_joint_velocities)
+	point.velocities = joint_state.velocity;
+    if (parameters_.publish_joint_accelerations)
+    {
+      // I do not know of a robot that takes acceleration commands.
+      // However, some controllers check that this data is non-empty.
+      // Send all zeros, for now.
+	std::vector<double> acceleration(num_joints_);
+	point.accelerations = acceleration;
+    }
+    joint_trajectory.points.push_back(point);
+}
+
+bool
+ServoCalcs::enforcePositionLimits(joint_state_t& joint_state) const
 {
     bool	halting = false;
 
@@ -1048,6 +1127,26 @@ ServoCalcs::enforcePositionLimits(joint_state_t& joint_state)
     return !halting;
 }
 
+// Spam several redundant points into the trajectory. The first few may be
+// skipped if the time stamp is in the past when it reaches the client.
+// Needed for gazebo simulation.
+void
+ServoCalcs::insertRedundantPointsIntoTrajectory(
+    trajectory_t& joint_trajectory, int count) const
+{
+    joint_trajectory.points.resize(count);
+    auto point = joint_trajectory.points[0];
+  // Start from 2nd point (i = 1) because we already have the first point.
+  // The timestamps are shifted up one period since first point is at
+  // 1 * publish_period, not 0.
+    for (int i = 1; i < count; ++i)
+    {
+	point.time_from_start = ros::Duration((i + 1)
+					      * parameters_.publish_period);
+	joint_trajectory.points[i] = point;
+    }
+}
+
 // Suddenly halt for a joint limit or other critical issue.
 // Is handled differently for position vs. velocity control.
 void
@@ -1090,66 +1189,29 @@ ServoCalcs::suddenHalt(trajectory_t& joint_trajectory)
     }
 }
 
-// Parse the incoming joint msg for the joints of our MoveGroup
 void
-ServoCalcs::updateJoints()
+ServoCalcs::removeDimension(matrix_t& jacobian,
+			    vector_t& delta_x, uint row_to_remove) const
 {
-  // Get the latest joint group positions
-    current_state_ = planning_scene_monitor_->getStateMonitor()
-					    ->getCurrentState();
-    current_state_->copyJointGroupPositions(joint_model_group_,
-					    internal_joint_state_.position);
-    current_state_->copyJointGroupVelocities(joint_model_group_,
-					     internal_joint_state_.velocity);
+    const auto	nrows = jacobian.rows() - 1;
+    const auto	ncols = jacobian.cols();
 
-  // Cache the original joints in case they need to be reset
-    original_joint_state_ = internal_joint_state_;
-
-  // Calculate worst case joint stop time, for collision checking
-    double	worst_case_stop_time = 0;
-    for (size_t i = 0; i < internal_joint_state_.velocity.size(); ++i)
+    if (row_to_remove < nrows)
     {
-	const auto&	joint_name = internal_joint_state_.name[i];
-	double		accel_limit = 0;
-
-      // Get acceleration limit for this joint
-	for (const auto joint : joint_model_group_->getActiveJointModels())
-	    if (joint->getName() == joint_name)
-	    {
-		const auto&	bounds = joint->getVariableBounds();
-	      // Some joints do not have acceleration limits
-		if (bounds[0].acceleration_bounded_)
-		{
-		  // Be conservative when calculating overall acceleration
-		  // limit from min and max limits
-		    accel_limit = std::min(fabs(bounds[0].min_acceleration_),
-					   fabs(bounds[0].max_acceleration_));
-		}
-		else
-		{
-		    ROS_WARN_STREAM_THROTTLE_NAMED(
-			ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-			"An acceleration limit is not defined for this joint; minimum stop distance "
-			"should not be used for collision checking");
-		}
-		break;
-	    }
-
-      // Calculate worst case stop time
-	worst_case_stop_time = std::max(worst_case_stop_time,
-					fabs(internal_joint_state_.velocity[i]
-					     / accel_limit));
+	jacobian.block(row_to_remove, 0, nrows - row_to_remove, ncols)
+	    = jacobian.block(row_to_remove + 1, 0,
+			     nrows - row_to_remove, ncols);
+	delta_x.segment(row_to_remove, nrows - row_to_remove)
+	    = delta_x.segment(row_to_remove + 1, nrows - row_to_remove);
     }
-
-  // publish message
-    {
-	auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
-	msg->data = worst_case_stop_time;
-	worst_case_stop_time_pub_.publish(msg);
-    }
+    
+    jacobian.conservativeResize(nrows, ncols);
+    delta_x.conservativeResize(nrows);
 }
 
-// Scale the incoming servo command
+/*
+ *  private member functions: incoming command scaling stuffs
+ */
 ServoCalcs::vector_t
 ServoCalcs::scaleCartesianCommand(const twist_t& command) const
 {
@@ -1225,104 +1287,63 @@ ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
     return result;
 }
 
-// Add the deltas to each joint
-bool
-ServoCalcs::addJointIncrements(joint_state_t& output,
-			       const vector_t& increments) const
+/*
+ *  private member functions: low-pass filter stuffs
+ */
+#if defined(BUTTERWORTH)
+void
+ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 {
-    for (int i = 0; i < increments.size(); ++i)
-	try
-	{
-	    output.position[i] += increments[i];
-	}
-	catch (const std::out_of_range& e)
-	{
-	    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-					    ros::this_node::getName()
-					    << " Lengths of output and "
-					    "increments do not match.");
-	    return false;
-	}
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    parameters_.low_pass_filter_half_order	 = half_order;
+    parameters_.low_pass_filter_cutoff_frequency = cutoff_frequency;
+
+    for (auto&& position_filter : position_filters_)
+	position_filter.initialize(
+	    parameters_.low_pass_filter_half_order,
+	    parameters_.low_pass_filter_cutoff_frequency *
+	    parameters_.publish_period);
     
-    return true;
+    resetLowPassFilters(original_joint_state_);
+}
+#else
+void
+ServoCalcs::initializeLowPassFilters(double coeff)
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    parameters_.low_pass_filter_coeff = coeff;
+
+    for (auto&& position_filter: position_filters_)
+	position_filter.initialize(parameters_.low_pass_filter_coeff);
+
+    resetLowPassFilters(original_joint_state_);
+}
+#endif
+
+void
+ServoCalcs::lowPassFilterPositions(joint_state_t& joint_state)
+{
+    for (size_t i = 0; i < position_filters_.size(); ++i)
+	joint_state.position[i] = position_filters_[i].filter(
+					joint_state.position[i]);
+
+    updated_filters_ = true;
 }
 
 void
-ServoCalcs::removeDimension(matrix_t& jacobian,
-			    vector_t& delta_x, uint row_to_remove)
+ServoCalcs::resetLowPassFilters(const joint_state_t& joint_state)
 {
-    const auto	num_rows = jacobian.rows() - 1;
-    const auto	num_cols = jacobian.cols();
+    for (size_t i = 0; i < position_filters_.size(); ++i)
+	position_filters_[i].reset(joint_state.position[i]);
 
-    if (row_to_remove < num_rows)
-    {
-	jacobian.block(row_to_remove, 0, num_rows - row_to_remove, num_cols) =
-	    jacobian.block(row_to_remove + 1, 0,
-			   num_rows - row_to_remove, num_cols);
-	delta_x.segment(row_to_remove, num_rows - row_to_remove) =
-	    delta_x.segment(row_to_remove + 1, num_rows - row_to_remove);
-    }
-    
-    jacobian.conservativeResize(num_rows, num_cols);
-    delta_x.conservativeResize(num_rows);
+    updated_filters_ = true;
 }
 
-bool
-ServoCalcs::getCommandFrameTransform(Eigen::Isometry3d& transform)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-    transform = tf_moveit_to_robot_cmd_frame_;
-
-  // All zeros means the transform wasn't initialized, so return false
-    return !transform.matrix().isZero(0);
-}
-
-bool
-ServoCalcs::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-  // All zeros means the transform wasn't initialized, so return false
-    if (tf_moveit_to_robot_cmd_frame_.matrix().isZero(0))
-	return false;
-
-    transform = convertIsometryToTransform(tf_moveit_to_robot_cmd_frame_,
-					   parameters_.planning_frame,
-					   parameters_.robot_link_command_frame);
-    return true;
-}
-
-bool
-ServoCalcs::getEEFrameTransform(Eigen::Isometry3d& transform)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-    transform = tf_moveit_to_ee_frame_;
-
-  // All zeros means the transform wasn't initialized, so return false
-    return !transform.matrix().isZero(0);
-}
-
-bool
-ServoCalcs::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-  // All zeros means the transform wasn't initialized, so return false
-    if (tf_moveit_to_ee_frame_.matrix().isZero(0))
-	return false;
-
-    transform = convertIsometryToTransform(tf_moveit_to_ee_frame_,
-					   parameters_.planning_frame,
-					   parameters_.ee_frame_name);
-    return true;
-}
-
-Eigen::Isometry3d
-ServoCalcs::getFrameTransform(const std::string& frame)
-{
-    return current_state_->getGlobalLinkTransform(parameters_.planning_frame)
-	  .inverse()
-	 * current_state_->getGlobalLinkTransform(frame);
-}
-
+/*
+ *  private member functions: callbacks
+ */
 void
 ServoCalcs::twistStampedCB(const twist_cp& msg)
 {
@@ -1352,8 +1373,9 @@ ServoCalcs::collisionVelocityScaleCB(const f64_cp& msg)
 }
 
 bool
-ServoCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& req,
-				  moveit_msgs::ChangeDriftDimensions::Response& res)
+ServoCalcs::changeDriftDimensions(
+		moveit_msgs::ChangeDriftDimensions::Request&  req,
+		moveit_msgs::ChangeDriftDimensions::Response& res)
 {
     drift_dimensions_[0] = req.drift_x_translation;
     drift_dimensions_[1] = req.drift_y_translation;
@@ -1367,8 +1389,9 @@ ServoCalcs::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request& r
 }
 
 bool
-ServoCalcs::changeControlDimensions(moveit_msgs::ChangeControlDimensions::Request& req,
-				    moveit_msgs::ChangeControlDimensions::Response& res)
+ServoCalcs::changeControlDimensions(
+		moveit_msgs::ChangeControlDimensions::Request&  req,
+		moveit_msgs::ChangeControlDimensions::Response& res)
 {
     control_dimensions_[0] = req.control_x_translation;
     control_dimensions_[1] = req.control_y_translation;
@@ -1387,18 +1410,6 @@ ServoCalcs::resetServoStatus(std_srvs::Empty::Request& /*req*/,
 {
     status_ = StatusCode::NO_WARNING;
     return true;
-}
-
-void
-ServoCalcs::setPaused(bool paused)
-{
-    paused_ = paused;
-}
-
-void
-ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
-{
-    parameters_.robot_link_command_frame = new_command_frame;
 }
 
 }  // namespace moveit_servo
