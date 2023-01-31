@@ -140,6 +140,14 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 					 ->getCurrentState()),
    joint_model_group_(current_state_->getJointModelGroup(
 			  parameters_.move_group_name)),
+
+   internal_joint_state_(),
+   original_joint_state_(),
+   joint_state_name_map_(),
+   
+   position_filters_(),
+   last_sent_command_(),
+   
    twist_stamped_sub_(
        nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
 		     &ServoCalcs::twistStampedCB, this,
@@ -177,8 +185,27 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 						  "reset_servo_status"),
 			       &ServoCalcs::resetServoStatus, this)),
    ddr_(nh_),
+
+   thread_(),
    stop_requested_(true),
-   paused_(false)
+
+   status_(StatusCode::NO_WARNING),
+   paused_(false),
+   collision_velocity_scale_(1.0),
+   gazebo_redundant_message_count_(30),
+   num_joints_(),
+   
+   drift_dimensions_({false, false, false, false, false, false}),
+   control_dimensions_({true, true, true, true, true, true}),
+    
+   input_mutex_(),
+   tf_moveit_to_robot_cmd_frame_(),
+   tf_moveit_to_ee_frame_(),
+   twist_stamped_cmd_(),
+   joint_servo_cmd_(),
+   
+   input_cv_(),
+   new_input_cmd_(false)
 {
   // Publish and Subscribe to internal namespace topics
     ros::NodeHandle internal_nh(nh_, "internal");
@@ -1221,8 +1248,8 @@ ServoCalcs::addJointIncrements(joint_state_t& output,
 }
 
 void
-ServoCalcs::removeDimension(matrix_t& jacobian, vector_t& delta_x,
-			    unsigned int row_to_remove)
+ServoCalcs::removeDimension(matrix_t& jacobian,
+			    vector_t& delta_x, uint row_to_remove)
 {
     const auto	num_rows = jacobian.rows() - 1;
     const auto	num_cols = jacobian.cols();
@@ -1319,7 +1346,7 @@ ServoCalcs::jointCmdCB(const joint_jog_cp& msg)
 }
 
 void
-ServoCalcs::collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg)
+ServoCalcs::collisionVelocityScaleCB(const f64_cp& msg)
 {
     collision_velocity_scale_ = msg->data;
 }

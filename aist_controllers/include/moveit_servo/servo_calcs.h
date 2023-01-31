@@ -82,7 +82,9 @@ class ServoCalcs
     using trajectory_t	     = trajectory_msgs::JointTrajectory;
     using trajectory_point_t = trajectory_msgs::JointTrajectoryPoint;
     using joint_state_t	     = sensor_msgs::JointState;
-
+    using f64_t		     = std_msgs::Float64;
+    using f64_cp	     = std_msgs::Float64ConstPtr;
+    
     using vector_t	     = Eigen::VectorXd;
     using matrix_t	     = Eigen::MatrixXd;
     
@@ -233,13 +235,13 @@ class ServoCalcs
    * @param delta_x Vector of Cartesian delta commands, should be the same size as matrix.rows()
    * @param row_to_remove Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
    */
-    void	removeDimension(matrix_t& matrix, vector_t& delta_x,
-				unsigned int row_to_remove)		;
+    void	removeDimension(matrix_t& matrix,
+				vector_t& delta_x, uint row_to_remove);
 
   /* \brief Command callbacks */
     void	twistStampedCB(const twist_cp& msg)			;
     void	jointCmdCB(const joint_jog_cp& msg)			;
-    void	collisionVelocityScaleCB(const std_msgs::Float64ConstPtr& msg);
+    void	collisionVelocityScaleCB(const f64_cp& msg)		;
 
   /**
    * Allow drift in certain dimensions. For example, may allow the wrist
@@ -329,21 +331,19 @@ class ServoCalcs
     bool			stop_requested_;
 
   // Status
-    StatusCode			status_ = StatusCode::NO_WARNING;
+    StatusCode			status_;
     std::atomic<bool>		paused_;
-    double			collision_velocity_scale_ = 1.0;
+    double			collision_velocity_scale_;
 
-    const int			gazebo_redundant_message_count_ = 30;
+    const int			gazebo_redundant_message_count_;
 
     uint			num_joints_;
 
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6>		drift_dimensions_ = {{false, false, false,
-						      false, false, false}};
+    std::array<bool, 6>		drift_dimensions_;
 
   // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6>		control_dimensions_ = {{true, true, true,
-							true, true, true}};
+    std::array<bool, 6>		control_dimensions_;
 
   // input_mutex_ is used to protect the state below it
     mutable std::mutex		input_mutex_;
@@ -354,6 +354,6 @@ class ServoCalcs
 
   // input condition variable used for low latency mode
     std::condition_variable	input_cv_;
-    bool			new_input_cmd_ = false;
+    bool			new_input_cmd_;
 };
 }  // namespace moveit_servo
