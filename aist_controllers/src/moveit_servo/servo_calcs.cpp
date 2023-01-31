@@ -431,6 +431,9 @@ ServoCalcs::calculateSingleIteration()
     const auto	have_nonzero_command =  have_nonzero_twist_stamped
 				     || have_nonzero_joint_command;
 
+    const auto	have_nonzero_command =  have_nonzero_twist_stamped
+				     || have_nonzero_joint_command;
+
   // Don't end this function without updating the filters
     updated_filters_ = false;
 
