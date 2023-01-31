@@ -294,7 +294,6 @@ class ServoCalcs
     trajectory_msgs::JointTrajectoryConstPtr		last_sent_command_;
 
   // ROS
-    ros::Subscriber				joint_state_sub_;
     ros::Subscriber				twist_stamped_sub_;
     ros::Subscriber				joint_cmd_sub_;
     ros::Subscriber				collision_velocity_scale_sub_;

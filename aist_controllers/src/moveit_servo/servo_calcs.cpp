@@ -208,9 +208,7 @@ ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
 
   // A map for the indices of incoming joint commands
     for (std::size_t i = 0; i < num_joints_; ++i)
-    {
 	joint_state_name_map_[internal_joint_state_.name[i]] = i;
-    }
 
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints_; ++i)
@@ -1351,8 +1349,6 @@ ServoCalcs::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
 Eigen::Isometry3d
 ServoCalcs::getFrameTransform(const std::string& frame)
 {
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-
     return current_state_->getGlobalLinkTransform(parameters_.planning_frame)
 	  .inverse()
 	 * current_state_->getGlobalLinkTransform(frame);
