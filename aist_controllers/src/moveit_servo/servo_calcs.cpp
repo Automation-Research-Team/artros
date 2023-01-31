@@ -1124,22 +1124,17 @@ ServoCalcs::updateJoints()
     original_joint_state_ = internal_joint_state_;
 
   // Calculate worst case joint stop time, for collision checking
-    std::string				joint_name = "";
-    moveit::core::JointModel::Bounds	kinematic_bounds;
-    double				accel_limit = 0;
-    double				joint_velocity = 0;
-    double				worst_case_stop_time = 0;
-    for (size_t jt_state_idx = 0;
-	 jt_state_idx < internal_joint_state_.velocity.size(); ++jt_state_idx)
+    double	worst_case_stop_time = 0;
+    for (size_t i = 0; i < internal_joint_state_.velocity.size(); ++i)
     {
-	joint_name = internal_joint_state_.name[jt_state_idx];
+	const auto&	joint_name = internal_joint_state_.name[i];
+	double		accel_limit = 0;
 
       // Get acceleration limit for this joint
 	for (auto joint_model : joint_model_group_->getActiveJointModels())
-	{
 	    if (joint_model->getName() == joint_name)
 	    {
-		kinematic_bounds = joint_model->getVariableBounds();
+		const auto& kinematic_bounds = joint_model->getVariableBounds();
 	      // Some joints do not have acceleration limits
 		if (kinematic_bounds[0].acceleration_bounded_)
 		{
@@ -1158,14 +1153,11 @@ ServoCalcs::updateJoints()
 		}
 		break;
 	    }
-	}
-
-      // Get the current joint velocity
-	joint_velocity = internal_joint_state_.velocity[jt_state_idx];
 
       // Calculate worst case stop time
 	worst_case_stop_time = std::max(worst_case_stop_time,
-					fabs(joint_velocity / accel_limit));
+					fabs(internal_joint_state_.velocity[i]
+					     / accel_limit));
     }
 
   // publish message
