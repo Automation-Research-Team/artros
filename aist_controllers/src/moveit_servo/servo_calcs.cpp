@@ -644,46 +644,35 @@ ServoCalcs::updateJoints()
 
   // Calculate worst case joint stop time, for collision checking
     double	worst_case_stop_time = 0;
-    for (size_t i = 0; i < internal_joint_state_.velocity.size(); ++i)
+    for (const auto joint : joint_model_group_->getActiveJointModels())
     {
-	const auto&	joint_name = internal_joint_state_.name[i];
-	double		accel_limit = 0;
+	const auto&	bound = joint->getVariableBounds()[0];
 
-      // Get acceleration limit for this joint
-	for (const auto joint : joint_model_group_->getActiveJointModels())
-	    if (joint->getName() == joint_name)
-	    {
-		const auto&	bounds = joint->getVariableBounds();
-	      // Some joints do not have acceleration limits
-		if (bounds[0].acceleration_bounded_)
-		{
-		  // Be conservative when calculating overall acceleration
-		  // limit from min and max limits
-		    accel_limit = std::min(fabs(bounds[0].min_acceleration_),
-					   fabs(bounds[0].max_acceleration_));
-		}
-		else
-		{
-		    ROS_WARN_STREAM_THROTTLE_NAMED(
-			ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-			"An acceleration limit is not defined for this joint; minimum stop distance "
-			"should not be used for collision checking");
-		}
-		break;
-	    }
+      // Some joints do not have acceleration limits
+	if (bound.acceleration_bounded_)
+	{
+	  // Be conservative when calculating overall acceleration
+	  // limit from min and max limits
+	    const auto	accel_limit = std::min(fabs(bound.min_acceleration_),
+					       fabs(bound.max_acceleration_));
+	    const auto	idx = joint_state_name_map_[joint->getName()];
 
-      // Calculate worst case stop time
-	worst_case_stop_time = std::max(worst_case_stop_time,
-					fabs(internal_joint_state_.velocity[i]
-					     / accel_limit));
+	    worst_case_stop_time
+		= std::max(worst_case_stop_time,
+			   fabs(internal_joint_state_.velocity[idx]
+				/ accel_limit));
+	}
+	else
+	    ROS_WARN_STREAM_THROTTLE_NAMED(
+		ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+		"An acceleration limit is not defined for this joint; minimum"
+		"stop distance should not be used for collision checking");
     }
 
   // publish message
-    {
-	auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
-	msg->data = worst_case_stop_time;
-	worst_case_stop_time_pub_.publish(msg);
-    }
+    auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
+    msg->data = worst_case_stop_time;
+    worst_case_stop_time_pub_.publish(msg);
 }
 
 // Perform the servoing calculations
@@ -707,9 +696,9 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
   // If incoming commands should be in the range [-1:1], check for |delta|>1
     if (parameters_.command_in_type == "unitless")
     {
-	if ((fabs(cmd.twist.linear.x) > 1)  ||
-	    (fabs(cmd.twist.linear.y) > 1)  ||
-	    (fabs(cmd.twist.linear.z) > 1)  ||
+	if ((fabs(cmd.twist.linear.x)  > 1) ||
+	    (fabs(cmd.twist.linear.y)  > 1) ||
+	    (fabs(cmd.twist.linear.z)  > 1) ||
 	    (fabs(cmd.twist.angular.x) > 1) ||
 	    (fabs(cmd.twist.angular.y) > 1) ||
 	    (fabs(cmd.twist.angular.z) > 1))
@@ -854,7 +843,7 @@ ServoCalcs::enforceVelLimits(vector_t& delta_theta) const
     {
 	const auto&	bounds = joint->getVariableBounds(joint->getName());
 	const auto	unbounded_velocity = velocity(i);
-	
+
 	if (bounds.velocity_bounded_ && unbounded_velocity != 0.0)
 	{
 	  // Clamp each joint velocity to a joint specific
@@ -1020,19 +1009,17 @@ bool
 ServoCalcs::addJointIncrements(joint_state_t& output,
 			       const vector_t& delta_theta) const
 {
+    if (output.position.size() != delta_theta.size())
+    {
+	ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+					ros::this_node::getName()
+					<< " Lengths of output and "
+					"increments do not match.");
+	return false;
+    }
+	
     for (int i = 0; i < delta_theta.size(); ++i)
-	try
-	{
-	    output.position[i] += delta_theta[i];
-	}
-	catch (const std::out_of_range& e)
-	{
-	    ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-					    ros::this_node::getName()
-					    << " Lengths of output and "
-					    "increments do not match.");
-	    return false;
-	}
+	output.position[i] += delta_theta[i];
     
     return true;
 }
@@ -1093,8 +1080,7 @@ ServoCalcs::enforcePositionLimits(joint_state_t& joint_state) const
 	if (!current_state_->satisfiesPositionBounds(
 		joint, -parameters_.joint_limit_margin))
 	{
-	    const std::vector<moveit_msgs::JointLimits>&
-		limits = joint->getVariableBoundsMsg();
+	    const auto&	limits = joint->getVariableBoundsMsg();
 
 	  // Joint limits are not defined for some joints. Skip them.
 	    if (!limits.empty())
@@ -1234,7 +1220,7 @@ ServoCalcs::scaleCartesianCommand(const twist_t& command) const
 		  * command.twist.angular.z;
     }
   // Otherwise, commands are in m/s and rad/s
-    else if (parameters_.command_in_type == "speed_units")
+    else
     {
 	result[0] = command.twist.linear.x  * parameters_.publish_period;
 	result[1] = command.twist.linear.y  * parameters_.publish_period;
@@ -1243,9 +1229,6 @@ ServoCalcs::scaleCartesianCommand(const twist_t& command) const
 	result[4] = command.twist.angular.y * parameters_.publish_period;
 	result[5] = command.twist.angular.z * parameters_.publish_period;
     }
-    else
-	ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-					"Unexpected command_in_type");
 
     return result;
 }
@@ -1256,34 +1239,24 @@ ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
     vector_t result(num_joints_);
     result.setZero();
 
-    for (size_t m = 0; m < command.joint_names.size(); ++m)
-    {
-	size_t	c;
+    const auto	k = (parameters_.command_in_type == "unitless" ?
+		     parameters_.joint_scale : 1.0)
+		  * parameters_.publish_period;
 
+    for (size_t m = 0; m < command.joint_names.size(); ++m)
 	try
 	{
-	    c = joint_state_name_map_.at(command.joint_names[m]);
+	    const auto	c = joint_state_name_map_.at(command.joint_names[m]);
+
+	    result[c] = k * command.velocities[m];
 	}
 	catch (const std::out_of_range& e)
 	{
 	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 					   "Ignoring joint "
 					   << command.joint_names[m]);
-	    continue;
 	}
-      // Apply user-defined scaling if inputs are unitless [-1:1]
-	if (parameters_.command_in_type == "unitless")
-	    result[c] = command.velocities[m] * parameters_.joint_scale
-					      * parameters_.publish_period;
-      // Otherwise, commands are in m/s and rad/s
-	else if (parameters_.command_in_type == "speed_units")
-	    result[c] = command.velocities[m] * parameters_.publish_period;
-	else
-	    ROS_ERROR_STREAM_THROTTLE_NAMED(
-		ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-		"Unexpected command_in_type, check yaml file.");
-    }
-
+    
     return result;
 }
 

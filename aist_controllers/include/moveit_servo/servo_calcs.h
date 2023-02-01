@@ -120,7 +120,6 @@ class ServoCalcs
    */
     bool	getEEFrameTransform(isometry3_t& transform)	const	;
     bool	getEEFrameTransform(transform_t& transform)	const	;
-
     isometry3_t	getFrameTransform(const std::string& frame)	const	;
 
   /** \brief Start the timer where we do work and publish outputs */
