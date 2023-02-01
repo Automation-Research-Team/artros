@@ -58,9 +58,9 @@ namespace
 std::ostream&
 operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
 {
-    return out << pose.position.x << ' '
-	       << pose.position.y << ' '
-	       << pose.position.z << ';'
+    return out << pose.position.x    << ' '
+	       << pose.position.y    << ' '
+	       << pose.position.z    << ';'
 	       << pose.orientation.x << ' '
 	       << pose.orientation.y << ' '
 	       << pose.orientation.z << ' '
@@ -84,9 +84,9 @@ operator <<(std::ostream& out, const Eigen::Isometry3d& transform)
 std::ostream&
 operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 {
-    return out << twist.linear.x << ' '
-	       << twist.linear.y << ' '
-	       << twist.linear.z << ';'
+    return out << twist.linear.x  << ' '
+	       << twist.linear.y  << ' '
+	       << twist.linear.z  << ';'
 	       << twist.angular.x << ' '
 	       << twist.angular.y << ' '
 	       << twist.angular.z;
@@ -96,9 +96,9 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 bool
 isNonZero(const geometry_msgs::TwistStamped& msg)
 {
-    return msg.twist.linear.x != 0.0 ||
-	   msg.twist.linear.y != 0.0 ||
-	   msg.twist.linear.z != 0.0 ||
+    return msg.twist.linear.x  != 0.0 ||
+	   msg.twist.linear.y  != 0.0 ||
+	   msg.twist.linear.z  != 0.0 ||
            msg.twist.angular.x != 0.0 ||
 	   msg.twist.angular.y != 0.0 ||
 	   msg.twist.angular.z != 0.0;
@@ -123,7 +123,7 @@ convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
 {
     auto	output = tf2::eigenToTransform(eigen_tf);
     output.header.frame_id = parent_frame;
-    output.child_frame_id = child_frame;
+    output.child_frame_id  = child_frame;
 
     return output;
 }
@@ -136,8 +136,8 @@ convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
  *  public member functions
  */
 // Constructor for the class that handles servoing calculations
-ServoCalcs::ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
-                       const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
+                       const planning_scene_monitor_p& planning_scene_monitor)
   :nh_(nh),
    parameters_(parameters),
    planning_scene_monitor_(planning_scene_monitor),

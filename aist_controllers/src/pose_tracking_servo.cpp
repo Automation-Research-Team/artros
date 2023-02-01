@@ -229,15 +229,12 @@ class PoseTrackingServo
     std::unique_ptr<moveit_servo::Servo>	servo_;
     servo_status_t				servo_status_;
 
-    std::string					move_group_name_;
-    const moveit::core::JointModelGroup*	joint_model_group_;
-
     ros::ServiceClient				reset_servo_status_;
     ros::Subscriber				servo_status_sub_;
     ros::Subscriber				target_pose_sub_;
     ros::Publisher				twist_stamped_pub_;
-    ros::Publisher				target_pose_pub_;  // for debug
-    ros::Publisher				ee_pose_pub_;	   // for debug
+    ros::Publisher				target_pose_debug_pub_;
+    ros::Publisher				ee_pose_debug_pub_;
     ros::Rate					loop_rate_;
     DurationArray&				durations_;
 
@@ -276,19 +273,16 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      servo_(new moveit_servo::Servo(nh_, planning_scene_monitor_)),
      servo_status_(servo_status_t::INVALID),
 
-     move_group_name_(),
-     joint_model_group_(nullptr),
-
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
      servo_status_sub_(nh_.subscribe(servo_->getParameters().status_topic, 1,
 				     &PoseTrackingServo::servoStatusCB, this)),
      target_pose_sub_(),
      twist_stamped_pub_(),
-     target_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
-			  "target_pose_debug", 1)),
-     ee_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
-		      "ee_pose_debug", 1)),
+     target_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+				"target_pose_debug", 1)),
+     ee_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+			    "ee_pose_debug", 1)),
      loop_rate_(DEFAULT_LOOP_RATE),
      durations_(servo_->durations()),
 
@@ -547,10 +541,10 @@ PoseTrackingServo::tick()
 			    durations_.header.stamp).toSec();
 
   // For debugging
-    ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					ee_frame_transform_,
-					ee_frame_transform_stamp_,
-					planning_frame_)));
+    ee_pose_debug_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					      ee_frame_transform_,
+					      ee_frame_transform_stamp_,
+					      planning_frame_)));
 }
 
 const ros::Rate&
@@ -616,15 +610,17 @@ PoseTrackingServo::readROSParams()
 
     error += !rosparam_shortcuts::get(LOGNAME, nh,
 				      "planning_frame", planning_frame_);
+
+    std::string	move_group_name;
     error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "move_group_name", move_group_name_);
+				      "move_group_name", move_group_name);
     if (!planning_scene_monitor_->getRobotModel()
-				->hasJointModelGroup(move_group_name_))
+				->hasJointModelGroup(move_group_name))
     {
 	++error;
 	ROS_ERROR_STREAM_NAMED(
 	    LOGNAME, "Unable to find the specified joint model group: "
-	    << move_group_name_);
+	    << move_group_name);
     }
 
   // Setup loop_rate_
@@ -828,7 +824,7 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
     tf2::toMsg(target_transform * offset_transform, target_pose.pose);
 
   // Publish corrected pose for debugging
-    target_pose_pub_.publish(target_pose);
+    target_pose_debug_pub_.publish(target_pose);
 
   // Compute errors
     positional_error(0) = target_pose.pose.position.x

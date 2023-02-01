@@ -78,6 +78,8 @@ namespace moveit_servo
 class ServoCalcs
 {
   private:
+    using planning_scene_monitor_p
+			     = planning_scene_monitor::PlanningSceneMonitorPtr;
     using twist_t	     = geometry_msgs::TwistStamped;
     using twist_cp	     = geometry_msgs::TwistStampedConstPtr;
     using transform_t	     = geometry_msgs::TransformStamped;
@@ -94,9 +96,9 @@ class ServoCalcs
     using isometry3_t	     = Eigen::Isometry3d;
     
   public:
-		ServoCalcs(ros::NodeHandle& nh, ServoParameters& parameters,
-			   const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
-
+		ServoCalcs(const ros::NodeHandle& nh,
+			   ServoParameters& parameters,
+			   const planning_scene_monitor_p& monitor)	;
 		~ServoCalcs()						;
 
   /**
@@ -278,8 +280,7 @@ class ServoCalcs
     ServoParameters&				parameters_;
 
   // Pointer to the collision environment
-    planning_scene_monitor::PlanningSceneMonitorPtr
-						planning_scene_monitor_;
+    planning_scene_monitor_p			planning_scene_monitor_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
@@ -295,7 +296,6 @@ class ServoCalcs
 
   // Incoming command messages
     const moveit::core::JointModelGroup* const	joint_model_group_;
-
 
   // incoming_joint_state_ is the incoming message. It may contain passive
   // joints or other joints we don't care about.
