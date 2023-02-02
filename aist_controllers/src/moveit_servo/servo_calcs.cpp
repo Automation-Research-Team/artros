@@ -139,6 +139,7 @@ convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
 ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
                        const planning_scene_monitor_p& planning_scene_monitor)
   :nh_(nh),
+   internal_nh_(nh, "internal"),
    parameters_(parameters),
    planning_scene_monitor_(planning_scene_monitor),
    zero_velocity_count_(0),
@@ -164,8 +165,15 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
        nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
 		     &ServoCalcs::jointCmdCB, this,
 		     ros::TransportHints().reliable().tcpNoDelay(true))),
+   collision_velocity_scale_sub_(
+       internal_nh_.subscribe(
+	   "collision_velocity_scale", ROS_QUEUE_SIZE,
+	   &ServoCalcs::collisionVelocityScaleCB, this,
+	   ros::TransportHints().reliable().tcpNoDelay(true))),
    status_pub_(nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
 					     ROS_QUEUE_SIZE)),
+   worst_case_stop_time_pub_(internal_nh_.advertise<std_msgs::Float64>(
+				 "worst_case_stop_time", ROS_QUEUE_SIZE)),
    outgoing_cmd_pub_(
        parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
        nh_.advertise<trajectory_t>(
@@ -213,14 +221,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    input_cv_(),
    new_input_cmd_(false)
 {
-  // Publish and Subscribe to internal namespace topics
-    ros::NodeHandle internal_nh(nh_, "internal");
-    collision_velocity_scale_sub_ =
-	internal_nh.subscribe("collision_velocity_scale", ROS_QUEUE_SIZE,
-			      &ServoCalcs::collisionVelocityScaleCB, this);
-    worst_case_stop_time_pub_ = internal_nh.advertise<std_msgs::Float64>(
-				    "worst_case_stop_time", ROS_QUEUE_SIZE);
-
     internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
     num_joints_ = internal_joint_state_.name.size();
     internal_joint_state_.position.resize(num_joints_);
@@ -640,11 +640,11 @@ ServoCalcs::updateJoints()
 	  // limit from min and max limits
 	    const auto	accel_limit = std::min(fabs(bound.min_acceleration_),
 					       fabs(bound.max_acceleration_));
-	    const auto	idx = joint_state_name_map_[joint->getName()];
+	    const auto	i = joint_state_name_map_[joint->getName()];
 
 	    worst_case_stop_time
 		= std::max(worst_case_stop_time,
-			   fabs(internal_joint_state_.velocity[idx]
+			   fabs(internal_joint_state_.velocity[i]
 				/ accel_limit));
 	}
 	else
@@ -655,7 +655,7 @@ ServoCalcs::updateJoints()
     }
 
   // publish message
-    auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
+    auto msg = moveit::util::make_shared_from_pool<flt64_t>();
     msg->data = worst_case_stop_time;
     worst_case_stop_time_pub_.publish(msg);
 }
@@ -774,7 +774,7 @@ ServoCalcs::jointServoCalcs(const joint_jog_t& cmd,
 			    trajectory_t& joint_trajectory)
 {
   // Check for nan's
-    for (double velocity : cmd.velocities)
+    for (auto velocity : cmd.velocities)
 	if (std::isnan(velocity))
 	{
 	    ROS_WARN_STREAM_THROTTLE_NAMED(
@@ -891,10 +891,10 @@ ServoCalcs::velocityScalingFactorForSingularity(
 	if ((ini_condition > parameters_.lower_singularity_threshold) &&
 	    (ini_condition < parameters_.hard_stop_singularity_threshold))
 	{
-	    velocity_scale = 1. - (ini_condition -
-				   parameters_.lower_singularity_threshold) /
-				  (parameters_.hard_stop_singularity_threshold -
-				   parameters_.lower_singularity_threshold);
+	    velocity_scale = 1 - (ini_condition -
+				  parameters_.lower_singularity_threshold)
+			       / (parameters_.hard_stop_singularity_threshold -
+				  parameters_.lower_singularity_threshold);
 	    status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
 	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 					   SERVO_STATUS_CODE_MAP.at(status_));
@@ -918,24 +918,19 @@ void
 ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
 				 double singularity_scale)
 {
-    double	collision_scale = collision_velocity_scale_;
-
-    if (collision_scale > 0 && collision_scale < 1)
+    if (collision_velocity_scale_ == 0)
+    {
+	status_ = StatusCode::HALT_FOR_COLLISION;
+	ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
+    }
+    else if (0 < collision_velocity_scale_ && collision_velocity_scale_ < 1)
     {
 	status_ = StatusCode::DECELERATE_FOR_COLLISION;
 	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 				       SERVO_STATUS_CODE_MAP.at(status_));
     }
-    else if (collision_scale == 0)
-	status_ = StatusCode::HALT_FOR_COLLISION;
 
-    delta_theta = collision_scale * singularity_scale * delta_theta;
-
-    if (status_ == StatusCode::HALT_FOR_COLLISION)
-    {
-	ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
-	delta_theta.setZero();
-    }
+    delta_theta *= (collision_velocity_scale_ * singularity_scale);
 }
 
 bool
@@ -1030,50 +1025,40 @@ ServoCalcs::enforcePositionLimits(joint_state_t& joint_state) const
     bool	halting = false;
 
     for (const auto joint : joint_model_group_->getActiveJointModels())
-    {
-      // Halt if we're past a joint margin and joint velocity is moving
-      // even farther past
-	double	joint_angle = 0;
-	for (std::size_t c = 0; c < original_joint_state_.name.size(); ++c)
-	    if (original_joint_state_.name[c] == joint->getName())
-	    {
-		joint_angle = original_joint_state_.position.at(c);
-		break;
-	    }
-
-	if (!current_state_->satisfiesPositionBounds(
-		joint, -parameters_.joint_limit_margin))
+	if (const auto&	limits = joint->getVariableBoundsMsg();
+	    !current_state_->satisfiesPositionBounds(
+		joint, -parameters_.joint_limit_margin) &&
+	    !limits.empty())
 	{
-	    const auto&	limits = joint->getVariableBoundsMsg();
-
-	  // Joint limits are not defined for some joints. Skip them.
-	    if (!limits.empty())
-	    {
-	      // Check if pending velocity command is moving in the right
-	      // direction
-		auto joint_itr = std::find(joint_state.name.begin(),
-					   joint_state.name.end(),
-					   joint->getName());
-		auto joint_idx = std::distance(joint_state.name.begin(),
-					       joint_itr);
-
-		if ((joint_state.velocity.at(joint_idx) < 0 &&
-		     joint_angle < (limits[0].min_position +
-				    parameters_.joint_limit_margin)) ||
-		    (joint_state.velocity.at(joint_idx) > 0 &&
-		     joint_angle > (limits[0].max_position -
-				    parameters_.joint_limit_margin)))
+	    double	joint_angle = 0;
+	    for (std::size_t i = 0; i < original_joint_state_.name.size(); ++i)
+		if (original_joint_state_.name[i] == joint->getName())
 		{
-		    ROS_WARN_STREAM_THROTTLE_NAMED(
-			ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-			ros::this_node::getName()
-			<< " " << joint->getName()
-			<< " close to a position limit. Halting.");
-		    halting = true;
+		    joint_angle = original_joint_state_.position[i];
+		    break;
 		}
+
+	  // Check if pending velocity command is moving in the right
+	  // direction
+	    const auto	velocity = joint_state.velocity[joint_state_name_map_
+							.at(joint->getName())];
+
+	    if ((velocity < 0 &&
+		 joint_angle < (limits[0].min_position +
+				parameters_.joint_limit_margin)) ||
+		(velocity > 0 &&
+		 joint_angle > (limits[0].max_position -
+				parameters_.joint_limit_margin)))
+	    {
+		ROS_WARN_STREAM_THROTTLE_NAMED(
+		    ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+		    ros::this_node::getName()
+		    << " " << joint->getName()
+		    << " close to a position limit. Halting.");
+		halting = true;
 	    }
 	}
-    }
+
     return !halting;
 }
 
@@ -1210,9 +1195,9 @@ ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
     for (size_t m = 0; m < command.joint_names.size(); ++m)
 	try
 	{
-	    const auto	c = joint_state_name_map_.at(command.joint_names[m]);
+	    const auto	i = joint_state_name_map_.at(command.joint_names[m]);
 
-	    result[c] = k * command.velocities[m];
+	    result[i] = k * command.velocities[m];
 	}
 	catch (const std::out_of_range& e)
 	{
@@ -1285,6 +1270,7 @@ void
 ServoCalcs::twistStampedCB(const twist_cp& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
+
     twist_stamped_cmd_ = *msg;
 
   // notify that we have a new input
@@ -1296,6 +1282,7 @@ void
 ServoCalcs::jointCmdCB(const joint_jog_cp& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
+
     joint_servo_cmd_ = *msg;
 
   // notify that we have a new input
@@ -1304,8 +1291,10 @@ ServoCalcs::jointCmdCB(const joint_jog_cp& msg)
 }
 
 void
-ServoCalcs::collisionVelocityScaleCB(const f64_cp& msg)
+ServoCalcs::collisionVelocityScaleCB(const flt64_cp& msg)
 {
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
     collision_velocity_scale_ = msg->data;
 }
 
@@ -1314,6 +1303,8 @@ ServoCalcs::changeDriftDimensions(
 		moveit_msgs::ChangeDriftDimensions::Request&  req,
 		moveit_msgs::ChangeDriftDimensions::Response& res)
 {
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
     drift_dimensions_[0] = req.drift_x_translation;
     drift_dimensions_[1] = req.drift_y_translation;
     drift_dimensions_[2] = req.drift_z_translation;
@@ -1322,6 +1313,7 @@ ServoCalcs::changeDriftDimensions(
     drift_dimensions_[5] = req.drift_z_rotation;
 
     res.success = true;
+
     return true;
 }
 
@@ -1330,6 +1322,8 @@ ServoCalcs::changeControlDimensions(
 		moveit_msgs::ChangeControlDimensions::Request&  req,
 		moveit_msgs::ChangeControlDimensions::Response& res)
 {
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
     control_dimensions_[0] = req.control_x_translation;
     control_dimensions_[1] = req.control_y_translation;
     control_dimensions_[2] = req.control_z_translation;
@@ -1338,6 +1332,7 @@ ServoCalcs::changeControlDimensions(
     control_dimensions_[5] = req.control_z_rotation;
 
     res.success = true;
+
     return true;
 }
 
