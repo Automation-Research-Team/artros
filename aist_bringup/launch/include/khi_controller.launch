@@ -14,8 +14,8 @@
   	pkg="controller_manager" type="spawner"	respawn="false" output="screen"
 	args="$(arg prefix)controller"/>
 
-  <node name="$(arg prefix)stopped_spawner"
-	pkg="controller_manager" type="spawner"	respawn="false" output="screen"
-    	args="--stopped $(arg prefix)joint_group_controller" />
+  <!-- <node name="$(arg prefix)stopped_spawner" -->
+  <!-- 	pkg="controller_manager" type="spawner"	respawn="false" output="screen" -->
+  <!--   	args="-\-stopped $(arg prefix)joint_group_controller" /> -->
 
 </launch>

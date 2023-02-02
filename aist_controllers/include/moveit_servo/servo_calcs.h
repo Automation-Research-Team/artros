@@ -352,8 +352,6 @@ class ServoCalcs
 
   // input_mutex_ is used to protect the state below it
     mutable std::mutex		input_mutex_;
-    isometry3_t			tf_moveit_to_robot_cmd_frame_;
-    isometry3_t			tf_moveit_to_ee_frame_;
     twist_t			twist_stamped_cmd_;
     joint_jog_t			joint_servo_cmd_;
 
