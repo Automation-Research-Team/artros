@@ -55,12 +55,7 @@
   <!-- Add PhoXi 3D scanner -->
   <xacro:include filename="$(find aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
   <xacro:phoxi_m_camera name="b_phoxi_m_camera" parent="ground">
-    <origin xyz="0.547941636523
-		 -0.00827443204237
-		 1.67030171767"
-	    rpy="${-151.493605482*pi/180}
-		 ${0.698490882792*pi/180}
-		 ${85.0482907121*pi/180}"/>
+    <origin xyz="0.5 0.0 1.67" rpy="0.0 1.1 3.14"/>
   </xacro:phoxi_m_camera>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
