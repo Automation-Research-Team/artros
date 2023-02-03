@@ -148,6 +148,8 @@ class ServoCalcs
     friend class ServoFixture;
 
   private:
+    uint	num_joints()					const	;
+    
   /** \brief Stop the currently running thread */
     void	stop()							;
 
@@ -306,11 +308,11 @@ class ServoCalcs
   // incoming_joint_state_ is the incoming message. It may contain passive
   // joints or other joints we don't care about.
   // (mutex protected below)
-  // internal_joint_state_ is used in servo calculations. It shouldn't be
+  // joint_state_ is used in servo calculations. It shouldn't be
   // relied on to be accurate.
   // original_joint_state_ is the same as incoming_joint_state_
   // except it only contains the joints the servo node acts on.
-    joint_state_t				internal_joint_state_,
+    joint_state_t				joint_state_,
 						original_joint_state_;
     std::map<std::string, std::size_t>		joint_state_name_map_;
 
@@ -343,8 +345,6 @@ class ServoCalcs
     double			collision_velocity_scale_;
 
     const int			gazebo_redundant_message_count_;
-
-    uint			num_joints_;
 
   // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
     std::array<bool, 6>		drift_dimensions_;

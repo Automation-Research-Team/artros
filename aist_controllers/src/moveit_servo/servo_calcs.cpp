@@ -117,15 +117,17 @@ isNonZero(const control_msgs::JointJog& msg)
 
 // Helper function for converting Eigen::Isometry3d to geometry_msgs/TransformStamped
 geometry_msgs::TransformStamped
-convertIsometryToTransform(const Eigen::Isometry3d& eigen_tf,
+convertIsometryToTransform(const Eigen::Isometry3d& isometry,
+			   const ros::Time& stamp,
 			   const std::string& parent_frame,
 			   const std::string& child_frame)
 {
-    auto	output = tf2::eigenToTransform(eigen_tf);
-    output.header.frame_id = parent_frame;
-    output.child_frame_id  = child_frame;
+    auto	transform = tf2::eigenToTransform(isometry);
+    transform.header.stamp    = stamp;
+    transform.header.frame_id = parent_frame;
+    transform.child_frame_id  = child_frame;
 
-    return output;
+    return transform;
 }
 }  // namespace
 
@@ -150,7 +152,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    joint_model_group_(current_state_->getJointModelGroup(
 			  parameters_.move_group_name)),
 
-   internal_joint_state_(),
+   joint_state_(),
    original_joint_state_(),
    joint_state_name_map_(),
    
@@ -209,7 +211,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    paused_(false),
    collision_velocity_scale_(1.0),
    gazebo_redundant_message_count_(30),
-   num_joints_(),
    
    drift_dimensions_({false, false, false, false, false, false}),
    control_dimensions_({true, true, true, true, true, true}),
@@ -221,17 +222,16 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    input_cv_(),
    new_input_cmd_(false)
 {
-    internal_joint_state_.name = joint_model_group_->getActiveJointModelNames();
-    num_joints_ = internal_joint_state_.name.size();
-    internal_joint_state_.position.resize(num_joints_);
-    internal_joint_state_.velocity.resize(num_joints_);
+    joint_state_.name = joint_model_group_->getActiveJointModelNames();
+    joint_state_.position.resize(num_joints());
+    joint_state_.velocity.resize(num_joints());
 
   // A map for the indices of incoming joint commands
-    for (std::size_t i = 0; i < num_joints_; ++i)
-	joint_state_name_map_[internal_joint_state_.name[i]] = i;
+    for (std::size_t i = 0; i < num_joints(); ++i)
+	joint_state_name_map_[joint_state_.name[i]] = i;
 
   // Low-pass filters for the joint positions
-    for (size_t i = 0; i < num_joints_; ++i)
+    for (size_t i = 0; i < num_joints(); ++i)
     {
 #if defined(BUTTERWORTH)
 	position_filters_.emplace_back(
@@ -297,6 +297,7 @@ ServoCalcs::getCommandFrameTransform(transform_t& transform) const
 	return false;
 
     transform = convertIsometryToTransform(isometry,
+					   joint_state_.header.stamp,
 					   parameters_.planning_frame,
 					   parameters_.robot_link_command_frame);
     return true;
@@ -321,6 +322,7 @@ ServoCalcs::getEEFrameTransform(transform_t& transform) const
 	return false;
 
     transform = convertIsometryToTransform(isometry,
+					   joint_state_.header.stamp,
 					   parameters_.planning_frame,
 					   parameters_.ee_frame_name);
     return true;
@@ -348,7 +350,7 @@ ServoCalcs::start()
   // See http://wiki.ros.org/joint_trajectory_controller#Trajectory_replacement
     initial_joint_trajectory->header.stamp = ros::Time(0);
     initial_joint_trajectory->header.frame_id = parameters_.planning_frame;
-    initial_joint_trajectory->joint_names = internal_joint_state_.name;
+    initial_joint_trajectory->joint_names = joint_state_.name;
     trajectory_point_t point;
     point.time_from_start = ros::Duration(parameters_.publish_period);
 
@@ -358,7 +360,7 @@ ServoCalcs::start()
 							 point.positions);
     if (parameters_.publish_joint_velocities)
     {
-	std::vector<double> velocity(num_joints_);
+	std::vector<double> velocity(num_joints());
 	point.velocities = velocity;
     }
     if (parameters_.publish_joint_accelerations)
@@ -366,7 +368,7 @@ ServoCalcs::start()
       // I do not know of a robot that takes acceleration commands.
       // However, some controllers check that this data is non-empty.
       // Send all zeros, for now.
-	point.accelerations.resize(num_joints_);
+	point.accelerations.resize(num_joints());
     }
     initial_joint_trajectory->points.push_back(point);
     last_sent_command_ = initial_joint_trajectory;
@@ -394,6 +396,12 @@ ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
 /*
  *  private member functions
  */
+uint
+ServoCalcs::num_joints() const
+{
+    return joint_state_.name.size();
+}
+    
 void
 ServoCalcs::stop()
 {
@@ -620,12 +628,13 @@ ServoCalcs::updateJoints()
     current_state_ = planning_scene_monitor_->getStateMonitor()
 					    ->getCurrentState();
     current_state_->copyJointGroupPositions(joint_model_group_,
-					    internal_joint_state_.position);
+					    joint_state_.position);
     current_state_->copyJointGroupVelocities(joint_model_group_,
-					     internal_joint_state_.velocity);
-
+					     joint_state_.velocity);
+    joint_state_.header.stamp = ros::Time::now();
+    
   // Cache the original joints in case they need to be reset
-    original_joint_state_ = internal_joint_state_;
+    original_joint_state_ = joint_state_;
 
   // Calculate worst case joint stop time, for collision checking
     double	worst_case_stop_time = 0;
@@ -644,7 +653,7 @@ ServoCalcs::updateJoints()
 
 	    worst_case_stop_time
 		= std::max(worst_case_stop_time,
-			   fabs(internal_joint_state_.velocity[i]
+			   fabs(joint_state_.velocity[i]
 				/ accel_limit));
 	}
 	else
@@ -937,19 +946,19 @@ bool
 ServoCalcs::convertDeltasToOutgoingCmd(const vector_t& delta_theta,
 				       trajectory_t& joint_trajectory)
 {
-    internal_joint_state_ = original_joint_state_;
-    if (!addJointIncrements(internal_joint_state_, delta_theta))
+    joint_state_ = original_joint_state_;
+    if (!addJointIncrements(joint_state_, delta_theta))
 	return false;
 
-    lowPassFilterPositions(internal_joint_state_);
+    lowPassFilterPositions(joint_state_);
 
   // Calculate joint velocities here so that positions are filtered
   // and SRDF bounds still get checked
-    calculateJointVelocities(internal_joint_state_, delta_theta);
+    calculateJointVelocities(joint_state_, delta_theta);
 
-    composeJointTrajMessage(internal_joint_state_, joint_trajectory);
+    composeJointTrajMessage(joint_state_, joint_trajectory);
 
-    if (!enforcePositionLimits(internal_joint_state_))
+    if (!enforcePositionLimits(joint_state_))
     {
 	suddenHalt(joint_trajectory);
 	status_ = StatusCode::JOINT_BOUND;
@@ -1013,7 +1022,7 @@ ServoCalcs::composeJointTrajMessage(const joint_state_t& joint_state,
       // I do not know of a robot that takes acceleration commands.
       // However, some controllers check that this data is non-empty.
       // Send all zeros, for now.
-	std::vector<double> acceleration(num_joints_);
+	std::vector<double> acceleration(num_joints());
 	point.accelerations = acceleration;
     }
     joint_trajectory.points.push_back(point);
@@ -1103,15 +1112,15 @@ ServoCalcs::suddenHalt(trajectory_t& joint_trajectory)
     point.time_from_start.fromNSec(1);
 
     if (parameters_.publish_joint_positions)
-	point.positions.resize(num_joints_);
+	point.positions.resize(num_joints());
     if (parameters_.publish_joint_velocities)
-	point.velocities.resize(num_joints_);
+	point.velocities.resize(num_joints());
 
   // Assert the following loop is safe to execute
-    assert(original_joint_state_.position.size() >= num_joints_);
+    assert(original_joint_state_.position.size() >= num_joints());
 
   // Set the positions and velocities vectors
-    for (std::size_t i = 0; i < num_joints_; ++i)
+    for (std::size_t i = 0; i < num_joints(); ++i)
     {
       // For position-controlled robots, can reset the joints to a known,
       // good state
@@ -1185,7 +1194,7 @@ ServoCalcs::scaleCartesianCommand(const twist_t& command) const
 ServoCalcs::vector_t
 ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
 {
-    vector_t result(num_joints_);
+    vector_t result(num_joints());
     result.setZero();
 
     const auto	k = (parameters_.command_in_type == "unitless" ?
