@@ -974,10 +974,10 @@ ServoCalcs::convertDeltasToOutgoingCmd(const vector_t& delta_theta,
 
 // Add the deltas to each joint
 bool
-ServoCalcs::addJointIncrements(joint_state_t& output,
+ServoCalcs::addJointIncrements(joint_state_t& joint_state,
 			       const vector_t& delta_theta) const
 {
-    if (output.position.size() != delta_theta.size())
+    if (joint_state.position.size() != delta_theta.size())
     {
 	ROS_ERROR_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 					ros::this_node::getName()
@@ -987,7 +987,7 @@ ServoCalcs::addJointIncrements(joint_state_t& output,
     }
 	
     for (int i = 0; i < delta_theta.size(); ++i)
-	output.position[i] += delta_theta[i];
+	joint_state.position[i] += delta_theta[i];
     
     return true;
 }
