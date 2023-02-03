@@ -278,6 +278,13 @@ ServoCalcs::~ServoCalcs()
     stop();
 }
 
+//!  Get the MoveIt planning link transform.
+/*!
+  The transform from the MoveIt planning frame to robot_link_command_frame
+
+  \param	transform that will be calculated
+  \return	true if a valid transform was available
+*/
 bool
 ServoCalcs::getCommandFrameTransform(isometry3_t& transform) const
 {
@@ -303,6 +310,13 @@ ServoCalcs::getCommandFrameTransform(transform_t& transform) const
     return true;
 }
 
+//! Get the End Effector link transform.
+/*!
+  The transform from the MoveIt planning frame to EE link
+
+  \param	transform that will be calculated
+  \return	true if a valid transform was available
+*/
 bool
 ServoCalcs::getEEFrameTransform(isometry3_t& transform) const
 {
@@ -336,6 +350,7 @@ ServoCalcs::getFrameTransform(const std::string& frame) const
 	 * current_state_->getGlobalLinkTransform(frame);
 }
 
+//! Start the timer where we do work and publish outputs
 void
 ServoCalcs::start()
 {
@@ -381,12 +396,17 @@ ServoCalcs::start()
     new_input_cmd_  = false;
 }
 
+//! Pause or unpause processing servo commands while keeping the timers alive
 void
 ServoCalcs::setPaused(bool paused)
 {
     paused_ = paused;
 }
 
+//! Change the controlled link. Often, this is the end effector
+/*!
+  This must be a link on the robot since MoveIt tracks the transform (not tf)
+*/
 void
 ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
 {
@@ -402,6 +422,7 @@ ServoCalcs::num_joints() const
     return joint_state_.name.size();
 }
     
+//! Stop the currently running thread
 void
 ServoCalcs::stop()
 {
@@ -422,6 +443,7 @@ ServoCalcs::stop()
 	thread_.join();
 }
 
+//! Run the main calculation loop
 void
 ServoCalcs::mainCalcLoop()
 {
@@ -463,7 +485,8 @@ ServoCalcs::mainCalcLoop()
 	}
     }
 }
-
+    
+//! Do calculations for a single iteration and publish one outgoing command
 void
 ServoCalcs::calculateSingleIteration()
 {
@@ -620,7 +643,7 @@ ServoCalcs::calculateSingleIteration()
 	resetLowPassFilters(original_joint_state_);
 }
 
-// Parse the incoming joint msg for the joints of our MoveGroup
+//! Parse the incoming joint msg for the joints of our MoveGroup
 void
 ServoCalcs::updateJoints()
 {
@@ -669,7 +692,7 @@ ServoCalcs::updateJoints()
     worst_case_stop_time_pub_.publish(msg);
 }
 
-// Perform the servoing calculations
+//! Do servoing calculations for Cartesian twist commands
 bool
 ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
 {
@@ -778,6 +801,7 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
     return convertDeltasToOutgoingCmd(delta_theta, joint_trajectory);
 }
 
+//! Do servoing calculations for direct commands to a joint
 bool
 ServoCalcs::jointServoCalcs(const joint_jog_t& cmd,
 			    trajectory_t& joint_trajectory)
@@ -803,6 +827,7 @@ ServoCalcs::jointServoCalcs(const joint_jog_t& cmd,
     return convertDeltasToOutgoingCmd(delta_theta, joint_trajectory);
 }
 
+//! Scale the delta theta to match joint velocity/acceleration limits
 void
 ServoCalcs::enforceVelLimits(vector_t& delta_theta) const
 {
@@ -840,8 +865,10 @@ ServoCalcs::enforceVelLimits(vector_t& delta_theta) const
     		* parameters_.publish_period;
 }
 
-// Possibly calculate a velocity scaling factor,
-// due to proximity of singularity and direction of motion
+//! Calculate a velocity scaling factor
+/*!
+  Possibly due to proximity of singularity and direction of motion
+*/
 double
 ServoCalcs::velocityScalingFactorForSingularity(
     const vector_t& commanded_velocity,
@@ -922,7 +949,14 @@ ServoCalcs::velocityScalingFactorForSingularity(
     return velocity_scale;
 }
 
-// Apply velocity scaling for proximity of collisions and singularities.
+
+//! Apply velocity scaling for proximity of collisions and singularities
+/*!
+ Slow motion down if close to singularity or collision.
+
+ \param delta_theta	  motion command, used in calculating new_joint_tray
+ \param singularity_scale tells how close we are to a singularity
+*/
 void
 ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
 				 double singularity_scale)
@@ -942,6 +976,8 @@ ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
     delta_theta *= (collision_velocity_scale_ * singularity_scale);
 }
 
+
+//! Convert joint deltas to an outgoing JointTrajectory command
 bool
 ServoCalcs::convertDeltasToOutgoingCmd(const vector_t& delta_theta,
 				       trajectory_t& joint_trajectory)
@@ -972,7 +1008,7 @@ ServoCalcs::convertDeltasToOutgoingCmd(const vector_t& delta_theta,
     return true;
 }
 
-// Add the deltas to each joint
+//! Add the deltas to each joint
 bool
 ServoCalcs::addJointIncrements(joint_state_t& joint_state,
 			       const vector_t& delta_theta) const
@@ -992,6 +1028,7 @@ ServoCalcs::addJointIncrements(joint_state_t& joint_state,
     return true;
 }
 
+//! Convert an incremental position command to joint velocity message
 void
 ServoCalcs::calculateJointVelocities(joint_state_t& joint_state,
 				     const vector_t& delta_theta)
@@ -1000,6 +1037,7 @@ ServoCalcs::calculateJointVelocities(joint_state_t& joint_state,
 	joint_state.velocity[i] = delta_theta[i] / parameters_.publish_period;
 }
 
+//! Compose the outgoing JointTrajectory message
 void
 ServoCalcs::composeJointTrajMessage(const joint_state_t& joint_state,
 				    trajectory_t& joint_trajectory) const
@@ -1028,6 +1066,7 @@ ServoCalcs::composeJointTrajMessage(const joint_state_t& joint_state,
     joint_trajectory.points.push_back(point);
 }
 
+//! Avoid overshooting joint limits
 bool
 ServoCalcs::enforcePositionLimits(joint_state_t& joint_state) const
 {
@@ -1071,9 +1110,13 @@ ServoCalcs::enforcePositionLimits(joint_state_t& joint_state) const
     return !halting;
 }
 
-// Spam several redundant points into the trajectory. The first few may be
-// skipped if the time stamp is in the past when it reaches the client.
-// Needed for gazebo simulation.
+//! Satisfy Gazebo by stuffing multiple messages into one
+/*!
+  Gazebo simulations have very strict message timestamp requirements
+  Spam several redundant points into the trajectory. The first few may be
+  skipped if the time stamp is in the past when it reaches the client.
+  Needed for gazebo simulation.
+*/
 void
 ServoCalcs::insertRedundantPointsIntoTrajectory(
     trajectory_t& joint_trajectory, int count) const
@@ -1091,8 +1134,12 @@ ServoCalcs::insertRedundantPointsIntoTrajectory(
     }
 }
 
-// Suddenly halt for a joint limit or other critical issue.
-// Is handled differently for position vs. velocity control.
+//! Suddenly halt for a joint limit or other critical issue.
+/*!
+  Is handled differently for position vs. velocity control.
+  Suddenly halt for a joint limit or other critical issue.
+  Is handled differently for position vs. velocity control.
+*/
 void
 ServoCalcs::suddenHalt(trajectory_t& joint_trajectory)
 {
@@ -1133,6 +1180,14 @@ ServoCalcs::suddenHalt(trajectory_t& joint_trajectory)
     }
 }
 
+//! Remove the Jacobian row and the delta-x element of one Cartesian dimension
+/*!
+  Take advantage of task redundancy
+
+  \param matrix		The Jacobian matrix.
+  \param delta_x	Vector of Cartesian delta commands, should be the same size as matrix.rows()
+  \param row_to_remove	Dimension that will be allowed to drift, e.g. row_to_remove = 2 allows z-translation drift.
+*/
 void
 ServoCalcs::removeDimension(matrix_t& jacobian,
 			    vector_t& delta_x, uint row_to_remove) const
@@ -1156,6 +1211,11 @@ ServoCalcs::removeDimension(matrix_t& jacobian,
 /*
  *  private member functions: incoming command scaling stuffs
  */
+//! Scale them to physical units.
+/*!
+  Do it if incoming velocity commands are from a unitless joystick.
+  Also, multiply by timestep to calculate a position change.
+*/
 ServoCalcs::vector_t
 ServoCalcs::scaleCartesianCommand(const twist_t& command) const
 {
@@ -1191,6 +1251,11 @@ ServoCalcs::scaleCartesianCommand(const twist_t& command) const
     return result;
 }
 
+//! Scale them to physical units.
+/*!
+  Do it if incoming velocity commands are from a unitless joystick,
+  Also, multiply by timestep to calculate a position change.
+*/
 ServoCalcs::vector_t
 ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
 {
@@ -1221,6 +1286,7 @@ ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
 /*
  *  private member functions: low-pass filter stuffs
  */
+//! Change order and/or cutoff of filters
 #if defined(BUTTERWORTH)
 void
 ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
@@ -1253,6 +1319,7 @@ ServoCalcs::initializeLowPassFilters(double coeff)
 }
 #endif
 
+//! Smooth position commands with a lowpass filter
 void
 ServoCalcs::lowPassFilterPositions(joint_state_t& joint_state)
 {
@@ -1263,6 +1330,7 @@ ServoCalcs::lowPassFilterPositions(joint_state_t& joint_state)
     updated_filters_ = true;
 }
 
+//! Set the filters to the specified values
 void
 ServoCalcs::resetLowPassFilters(const joint_state_t& joint_state)
 {
@@ -1307,6 +1375,15 @@ ServoCalcs::collisionVelocityScaleCB(const flt64_cp& msg)
     collision_velocity_scale_ = msg->data;
 }
 
+//! Allow drift in certain dimensions
+/*!
+  For example, may allow the wrist to rotate freely.
+  This can help avoid singularities.
+
+  \param request	the service request
+  \param response	the service response
+  \return		true if the adjustment was made
+*/
 bool
 ServoCalcs::changeDriftDimensions(
 		moveit_msgs::ChangeDriftDimensions::Request&  req,
@@ -1326,6 +1403,10 @@ ServoCalcs::changeDriftDimensions(
     return true;
 }
 
+//! Service callback for changing servoing dimensions
+/*!
+  e.g. ignore rotation about X
+*/
 bool
 ServoCalcs::changeControlDimensions(
 		moveit_msgs::ChangeControlDimensions::Request&  req,
@@ -1345,6 +1426,10 @@ ServoCalcs::changeControlDimensions(
     return true;
 }
 
+//! Service callback to reset servo status
+/*!
+  e.g. so the arm can move again after a collision
+*/
 bool
 ServoCalcs::resetServoStatus(std_srvs::Empty::Request& /*req*/,
 			     std_srvs::Empty::Response& /*res*/)

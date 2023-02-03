@@ -479,7 +479,8 @@ PoseTrackingServo::tick()
     }
 
   // Attempt to update robot pose.
-    servo_->getEEFrameTransform(ee_frame_transform_);
+    if (servo_->getEEFrameTransform(ee_frame_transform_))
+	ee_frame_transform_.header.stamp = ros::Time::now();
 
     durations_.ee_frame_in = (ee_frame_transform_.header.stamp -
 			      durations_.header.stamp).toSec();
