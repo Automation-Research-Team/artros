@@ -79,29 +79,29 @@ class ServoCalcs
 {
   private:
     using planning_scene_monitor_p
-			     = planning_scene_monitor::PlanningSceneMonitorPtr;
-    using twist_t	     = geometry_msgs::TwistStamped;
-    using twist_cp	     = geometry_msgs::TwistStampedConstPtr;
-    using transform_t	     = geometry_msgs::TransformStamped;
-    using joint_jog_t	     = control_msgs::JointJog;
-    using joint_jog_cp	     = control_msgs::JointJogConstPtr;
-    using trajectory_t	     = trajectory_msgs::JointTrajectory;
-    using trajectory_cp	     = trajectory_msgs::JointTrajectoryConstPtr;
-    using trajectory_point_t = trajectory_msgs::JointTrajectoryPoint;
-    using joint_state_t	     = sensor_msgs::JointState;
-    using flt64_t	     = std_msgs::Float64;
-    using flt64_cp	     = std_msgs::Float64ConstPtr;
+			= planning_scene_monitor::PlanningSceneMonitorPtr;
+    using joint_group_cp= const moveit::core::JointModelGroup*;
+    using transform_t	= geometry_msgs::TransformStamped;
+    using twist_t	= geometry_msgs::TwistStamped;
+    using twist_cp	= geometry_msgs::TwistStampedConstPtr;
+    using joint_jog_t	= control_msgs::JointJog;
+    using joint_jog_cp	= control_msgs::JointJogConstPtr;
+    using trajectory_t	= trajectory_msgs::JointTrajectory;
+    using trajectory_cp	= trajectory_msgs::JointTrajectoryConstPtr;
+    using joint_state_t	= sensor_msgs::JointState;
+    using flt64_t	= std_msgs::Float64;
+    using flt64_cp	= std_msgs::Float64ConstPtr;
     
-    using vector_t	     = Eigen::VectorXd;
-    using matrix_t	     = Eigen::MatrixXd;
-    using isometry3_t	     = Eigen::Isometry3d;
-    
+    using vector_t	= Eigen::VectorXd;
+    using matrix_t	= Eigen::MatrixXd;
+    using isometry3_t	= Eigen::Isometry3d;
 #if defined(BUTTERWORTH)
-    using lpf_t		     = aist_utility::ButterworthLPF<double>;
+    using lpf_t		= aist_utility::ButterworthLPF<double>;
 #else
-    using lpf_t		     = LowPassFilter;
+    using lpf_t		= LowPassFilter;
 #endif
-
+    using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
+    
   public:
 		ServoCalcs(const ros::NodeHandle& nh,
 			   ServoParameters& parameters,
@@ -127,48 +127,44 @@ class ServoCalcs
 
   private:
     uint	num_joints()					const	;
+    joint_group_cp
+		joint_group()					const	;
+    template <class MSG>
+    bool	isStale(const MSG& msg)				const	;
+    bool	isValid(const twist_t& msg)			const	;
+    static bool	isValid(const joint_jog_t& msg)				;
     
     void	stop()							;
 
     void	mainCalcLoop()						;
     void	calculateSingleIteration()				;
-    void	updateJoints()						;
-    bool	cartesianServoCalcs(twist_t& cmd,
-				    trajectory_t& joint_trajectory)	;
-    bool	jointServoCalcs(const joint_jog_t& cmd,
-				trajectory_t& joint_trajectory)		;
 
+    void	updateJoints()						;
+    void	setCartesianServoTrajectory(twist_t& cmd)		;
+    void	setJointServoTrajectory(const joint_jog_t& cmd)		;
+
+    vector_t	scaleCartesianCommand(const twist_t& cmd)	const	;
+
+    vector_t	scaleJointCommand(const joint_jog_t& cmd)	const	;
     void	enforceVelLimits(vector_t& delta_theta)		const	;
     double	velocityScalingFactorForSingularity(
 			const vector_t& commanded_velocity,
 			const Eigen::JacobiSVD<matrix_t>& svd,
 			const matrix_t& pseudo_inverse)			;
     void	applyVelocityScaling(vector_t& delta_theta,
-				     double singularity_scale)		;
-    bool	convertDeltasToOutgoingCmd(const vector_t& delta_theta,
-					   trajectory_t& joint_trajectory);
+				     double singularity_scale=1.0)	;
 
-    bool	addJointIncrements(joint_state_t& output,
-				   const vector_t& delta_theta)	const	;
+    void	convertDeltasToTrajectory(const vector_t& delta_theta)	;
 
-    void	calculateJointVelocities(joint_state_t& joint_state,
-					 const vector_t& delta_theta)	;
-
-    void	composeJointTrajMessage(
-			const joint_state_t& joint_state,
-			trajectory_t& joint_trajectory)		const	;
-    bool	enforcePositionLimits(joint_state_t& joint_state) const	;
-
-    void	insertRedundantPointsIntoTrajectory(
-			trajectory_t& joint_trajectory, int count) const;
-    void	suddenHalt(trajectory_t& joint_trajectory)		;
+    bool	checkPositionLimits(const vector_t& positions,
+				    const vector_t& delta_theta) const	;
+    void	insertPointsIntoTrajectory(const vector_t& positions,
+					   const vector_t& delta_theta,
+					   bool sudden=false)		;
 
     void	removeDimension(matrix_t& matrix, vector_t& delta_x,
 				uint row_to_remove)		const	;
 
-    vector_t	scaleCartesianCommand(const twist_t& command)	const	;
-
-    vector_t	scaleJointCommand(const joint_jog_t& command)	const	;
 
 #if defined(BUTTERWORTH)
     void	initializeLowPassFilters(int half_order,
@@ -176,10 +172,9 @@ class ServoCalcs
 #else
     void	initializeLowPassFilters(double coeff)			;
 #endif
+    void	lowPassFilterPositions(vector_t& positions)		;
 
-    void	lowPassFilterPositions(joint_state_t& joint_state)	;
-
-    void	resetLowPassFilters(const joint_state_t& joint_state)	;
+    void	resetLowPassFilters()					;
 
     void	twistStampedCB(const twist_cp& msg)			;
     void	jointCmdCB(const joint_jog_cp& msg)			;
@@ -193,84 +188,90 @@ class ServoCalcs
 			moveit_msgs::ChangeControlDimensions::Request& req,
 			moveit_msgs::ChangeControlDimensions::Response& res);
 
-    bool	resetServoStatus(std_srvs::Empty::Request& req,
-				 std_srvs::Empty::Response& res)	;
+  // Servo status stuffs
+    void	publishStatus()					const	;
+    bool	resetStatus(std_srvs::Empty::Request&,
+			    std_srvs::Empty::Response&)			;
 
+  // Worst case stop time stuffs
+    void	publishWorstCaseStopTime()			const	;
+    
   private:
-    ros::NodeHandle				nh_;
-    ros::NodeHandle				internal_nh_;
-
-    ServoParameters&				parameters_;
-    const planning_scene_monitor_p		planning_scene_monitor_;
+    ServoParameters&			parameters_;
+    const planning_scene_monitor_p	planning_scene_monitor_;
+    
+  // ROS
+    ros::NodeHandle			nh_;
+    ros::NodeHandle			internal_nh_;
+    const ros::Subscriber		twist_cmd_sub_;
+    const ros::Subscriber		joint_cmd_sub_;
+    const ros::Subscriber		collision_velocity_scale_sub_;
+    ros::Publisher			status_pub_;
+    ros::Publisher			worst_case_stop_time_pub_;
+    ros::Publisher			outgoing_cmd_pub_;
+    ros::Publisher			outgoing_cmd_debug_pub_;
+    ros::Publisher			durations_pub_;
+    const ros::ServiceServer		drift_dimensions_srv_;
+    const ros::ServiceServer		control_dimensions_srv_;
+    const ros::ServiceServer		reset_status_srv_;
+    aist_controllers::DurationArray	durations_;
+    ddr_t				ddr_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
-    int						zero_velocity_count_;
+    int					invalid_command_count_;
 
   // Flag for staying inactive while there are no incoming commands
-    bool					wait_for_servo_commands_;
-
-  // Flag saying if the filters were updated during the timer callback
-    bool					updated_filters_;
+    bool				wait_for_servo_commands_;
 
   // Incoming command messages
-    moveit::core::RobotStatePtr			current_state_;
-    const moveit::core::JointModelGroup* const	joint_model_group_;
+    moveit::core::RobotStatePtr		robot_state_;
+    ros::Time				robot_state_stamp_;
+    vector_t				actual_positions_;
+    vector_t				actual_velocities_;
 
-  // incoming_joint_state_ is the incoming message. It may contain passive
-  // joints or other joints we don't care about.
-  // (mutex protected below)
-  // joint_state_ is used in servo calculations. It shouldn't be
-  // relied on to be accurate.
-  // original_joint_state_ is the same as incoming_joint_state_
-  // except it only contains the joints the servo node acts on.
-    joint_state_t				joint_state_,
-						original_joint_state_;
-    std::map<std::string, std::size_t>		joint_state_name_map_;
+  // Low-pass filters
+    std::vector<lpf_t>			position_filters_;
 
-    std::vector<lpf_t>				position_filters_;
-
-    trajectory_cp				last_sent_command_;
-
-  // ROS
-    const ros::Subscriber			twist_stamped_sub_;
-    const ros::Subscriber			joint_cmd_sub_;
-    const ros::Subscriber			collision_velocity_scale_sub_;
-    ros::Publisher				status_pub_;
-    ros::Publisher				worst_case_stop_time_pub_;
-    ros::Publisher				outgoing_cmd_pub_;
-    ros::Publisher				outgoing_cmd_debug_pub_;
-    ros::Publisher				durations_pub_;
-    const ros::ServiceServer			drift_dimensions_srv_;
-    const ros::ServiceServer			control_dimensions_srv_;
-    const ros::ServiceServer			reset_servo_status_srv_;
-    aist_controllers::DurationArray		durations_;
-    ddynamic_reconfigure::DDynamicReconfigure	ddr_;
+  // Output command
+    trajectory_t			joint_trajectory_;
+    std::map<std::string, std::size_t>	joint_indices_;
 
   // Main tracking / result publisher loop
-    std::thread			thread_;
-    bool			stop_requested_;
+    std::thread				thread_;
+    bool				stop_requested_;
 
   // Status
-    StatusCode			status_;
-    std::atomic<bool>		paused_;
-    double			collision_velocity_scale_;
+    StatusCode				status_;
+    std::atomic<bool>			paused_;
+    double				collision_velocity_scale_;
 
-    const int			gazebo_redundant_message_count_;
+  // Allow drift in [x, y, z, roll, pitch, yaw] in the command frame
+    std::array<bool, 6>			drift_dimensions_;
 
-  // True -> allow drift in this dimension. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6>		drift_dimensions_;
-
-  // The dimesions to control. In the command frame. [x, y, z, roll, pitch, yaw]
-    std::array<bool, 6>		control_dimensions_;
+  // Control [x, y, z, roll, pitch, yaw] in the command frame
+    std::array<bool, 6>			control_dimensions_;
 
   // input_mutex_ is used to protect the state below it
-    mutable std::mutex		input_mutex_;
-    twist_t			twist_stamped_cmd_;
-    joint_jog_t			joint_servo_cmd_;
+    mutable std::mutex			input_mutex_;
+    twist_t				twist_cmd_;
+    joint_jog_t				joint_cmd_;
 
   // input condition variable used for low latency mode
-    std::condition_variable	input_cv_;
-    bool			new_input_cmd_;
+    std::condition_variable		input_cv_;
+    bool				new_input_cmd_;
 };
+
+inline uint
+ServoCalcs::num_joints() const
+{
+    return joint_trajectory_.joint_names.size();
+}
+    
+inline ServoCalcs::joint_group_cp
+ServoCalcs::joint_group() const
+{
+    return robot_state_->getJointModelGroup(parameters_.move_group_name);
+}
+    
 }  // namespace moveit_servo
