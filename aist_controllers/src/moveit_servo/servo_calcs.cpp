@@ -614,7 +614,7 @@ ServoCalcs::setCartesianServoTrajectory(twist_t& cmd)
 	if (cmd.header.frame_id.empty())
 	    cmd.header.frame_id = parameters_.robot_link_command_frame;
 
-	const auto	Tpc = getFrameTransform(cmd.header.frame_id);
+	const auto	Tpc = getFrameTransformUnlocked(cmd.header.frame_id);
 	Eigen::Vector3d	translation(cmd.twist.linear.x,
 				    cmd.twist.linear.y,
 				    cmd.twist.linear.z);
