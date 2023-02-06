@@ -86,15 +86,22 @@ class ServoCalcs
     using joint_jog_t	     = control_msgs::JointJog;
     using joint_jog_cp	     = control_msgs::JointJogConstPtr;
     using trajectory_t	     = trajectory_msgs::JointTrajectory;
+    using trajectory_cp	     = trajectory_msgs::JointTrajectoryConstPtr;
     using trajectory_point_t = trajectory_msgs::JointTrajectoryPoint;
     using joint_state_t	     = sensor_msgs::JointState;
-    using f64_t		     = std_msgs::Float64;
-    using f64_cp	     = std_msgs::Float64ConstPtr;
+    using flt64_t	     = std_msgs::Float64;
+    using flt64_cp	     = std_msgs::Float64ConstPtr;
     
     using vector_t	     = Eigen::VectorXd;
     using matrix_t	     = Eigen::MatrixXd;
     using isometry3_t	     = Eigen::Isometry3d;
     
+#if defined(BUTTERWORTH)
+    using lpf_t		     = aist_utility::ButterworthLPF<double>;
+#else
+    using lpf_t		     = LowPassFilter;
+#endif
+
   public:
 		ServoCalcs(const ros::NodeHandle& nh,
 			   ServoParameters& parameters,
@@ -251,7 +258,7 @@ class ServoCalcs
   /* \brief Command callbacks */
     void	twistStampedCB(const twist_cp& msg)			;
     void	jointCmdCB(const joint_jog_cp& msg)			;
-    void	collisionVelocityScaleCB(const f64_cp& msg)		;
+    void	collisionVelocityScaleCB(const flt64_cp& msg)		;
 
   /**
    * Allow drift in certain dimensions. For example, may allow the wrist
@@ -277,12 +284,13 @@ class ServoCalcs
 
   private:
     ros::NodeHandle				nh_;
+    ros::NodeHandle				internal_nh_;
 
   // Parameters from yaml
     ServoParameters&				parameters_;
 
   // Pointer to the collision environment
-    planning_scene_monitor_p			planning_scene_monitor_;
+    const planning_scene_monitor_p		planning_scene_monitor_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
@@ -294,9 +302,8 @@ class ServoCalcs
   // Flag saying if the filters were updated during the timer callback
     bool					updated_filters_;
 
-    moveit::core::RobotStatePtr			current_state_;
-
   // Incoming command messages
+    moveit::core::RobotStatePtr			current_state_;
     const moveit::core::JointModelGroup* const	joint_model_group_;
 
   // incoming_joint_state_ is the incoming message. It may contain passive
@@ -310,19 +317,14 @@ class ServoCalcs
 						original_joint_state_;
     std::map<std::string, std::size_t>		joint_state_name_map_;
 
-#if defined(BUTTERWORTH)
-    std::vector<aist_utility::ButterworthLPF<double> >
-						position_filters_;
-#else
-    std::vector<LowPassFilter>			position_filters_;
-#endif
+    std::vector<lpf_t>				position_filters_;
 
-    trajectory_msgs::JointTrajectoryConstPtr	last_sent_command_;
+    trajectory_cp				last_sent_command_;
 
   // ROS
     const ros::Subscriber			twist_stamped_sub_;
     const ros::Subscriber			joint_cmd_sub_;
-    ros::Subscriber				collision_velocity_scale_sub_;
+    const ros::Subscriber			collision_velocity_scale_sub_;
     ros::Publisher				status_pub_;
     ros::Publisher				worst_case_stop_time_pub_;
     ros::Publisher				outgoing_cmd_pub_;
