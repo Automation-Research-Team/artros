@@ -195,6 +195,15 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    input_cv_(),
    new_input_cmd_(false)
 {
+  // Setup joint_trajectory command to be published.
+    joint_trajectory_.header.frame_id = parameters_.planning_frame;
+    joint_trajectory_.header.stamp    = ros::Time(0);
+    joint_trajectory_.joint_names = joint_group()->getActiveJointModelNames();
+    
+  // Setup a map from joint names to there indices for buffers of actual state.
+    for (size_t i = 0; i < num_joints(); ++i)
+	joint_indices_[joint_trajectory_.joint_names[i]] = i;
+
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints(); ++i)
     {
@@ -207,15 +216,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 	position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
 #endif
     }
-
-  // Setup joint_trajectory command to be published.
-    joint_trajectory_.header.frame_id = parameters_.planning_frame;
-    joint_trajectory_.header.stamp    = ros::Time(0);
-    joint_trajectory_.joint_names = joint_group()->getActiveJointModelNames();
-    
-  // Setup a map from joint names to there indices for buffers of actual state.
-    for (size_t i = 0; i < num_joints(); ++i)
-	joint_indices_[joint_trajectory_.joint_names[i]] = i;
 
   // Initialize buffer for incoming twist command.
     twist_cmd_.header.stamp    = ros::Time(0);
