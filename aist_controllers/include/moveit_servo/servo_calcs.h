@@ -77,6 +77,9 @@ namespace moveit_servo
 ************************************************************************/
 class ServoCalcs
 {
+  public:
+    using isometry3_t	= Eigen::Isometry3d;
+    
   private:
     using planning_scene_monitor_p
 			= planning_scene_monitor::PlanningSceneMonitorPtr;
@@ -94,7 +97,6 @@ class ServoCalcs
     
     using vector_t	= Eigen::VectorXd;
     using matrix_t	= Eigen::MatrixXd;
-    using isometry3_t	= Eigen::Isometry3d;
 #if defined(BUTTERWORTH)
     using lpf_t		= aist_utility::ButterworthLPF<double>;
 #else
@@ -110,8 +112,10 @@ class ServoCalcs
 
     bool	getCommandFrameTransform(isometry3_t& transform) const	;
     bool	getCommandFrameTransform(transform_t& transform) const	;
+    isometry3_t	getCommandFrameTransform()			 const	;
     bool	getEEFrameTransform(isometry3_t& transform)	 const	;
     bool	getEEFrameTransform(transform_t& transform)	 const	;
+    isometry3_t	getEEFrameTransform()				 const	;
     isometry3_t	getFrameTransform(const std::string& frame)	 const	;
 
     void	start()							;
@@ -267,17 +271,29 @@ class ServoCalcs
 inline bool
 ServoCalcs::getCommandFrameTransform(isometry3_t& isometry) const
 {
-    isometry = getFrameTransform(parameters_.robot_link_command_frame);
+    isometry = getCommandFrameTransform();
 
     return !isometry.matrix().isZero(0);
+}
+
+inline ServoCalcs::isometry3_t
+ServoCalcs::getCommandFrameTransform() const
+{
+    return getFrameTransform(parameters_.robot_link_command_frame);
 }
 
 inline bool
 ServoCalcs::getEEFrameTransform(isometry3_t& isometry) const
 {
-    isometry = getFrameTransform(parameters_.ee_frame_name);
+    isometry = getEEFrameTransform();
 
     return !isometry.matrix().isZero(0);
+}
+
+inline ServoCalcs::isometry3_t
+ServoCalcs::getEEFrameTransform() const
+{
+    return getFrameTransform(parameters_.ee_frame_name);
 }
 
 inline ServoCalcs::isometry3_t
