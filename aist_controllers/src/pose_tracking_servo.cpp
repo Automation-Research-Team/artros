@@ -219,9 +219,6 @@ class PoseTrackingServo
     void	resetTargetPose()					;
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
-  // End-effector pose stuffs
-    bool	haveRecentEndEffectorPose(const ros::Duration& timeout)	const;
-
   private:
     ros::NodeHandle				nh_;
 
@@ -261,8 +258,6 @@ class PoseTrackingServo
 
   // Transforms w.r.t. planning_frame_
     std::string					planning_frame_;
-    Eigen::Isometry3d				ee_frame_transform_;
-    ros::Time					ee_frame_transform_stamp_;
     geometry_msgs::PoseStamped			target_pose_;
     mutable std::mutex				target_pose_mtx_;
 };
@@ -303,8 +298,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      z_pid_config_(),
 
      planning_frame_(),
-     ee_frame_transform_(),
-     ee_frame_transform_stamp_(),
      target_pose_(),
      target_pose_mtx_()
 {
@@ -479,26 +472,6 @@ PoseTrackingServo::tick()
     	return;
     }
 
-  // Attempt to update robot pose.
-    if (servo_->getEEFrameTransform(ee_frame_transform_))
-	ee_frame_transform_stamp_ = ros::Time::now();
-
-    durations_.ee_frame_in = (ee_frame_transform_stamp_ -
-			      durations_.header.stamp).toSec();
-
-  // Check that end-effector pose (command frame transform) is recent enough.
-    if (!haveRecentEndEffectorPose(current_goal_->timeout))
-    {
-	doPostMotionReset();
-	PoseTrackingResult	result;
-	result.status = PoseTrackingResult::INPUT_TIMEOUT;
-    	tracker_srv_.setAborted(result);
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
-			       << "The end effector pose was not updated in time.]");
-
-	return;
-    }
-
   // Compute positional and angular errors.
     Eigen::Vector3d	positional_error;
     Eigen::AngleAxisd	angular_error;
@@ -539,12 +512,6 @@ PoseTrackingServo::tick()
 
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
-
-  // For debugging
-    ee_pose_debug_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					      ee_frame_transform_,
-					      ee_frame_transform_stamp_,
-					      planning_frame_)));
 }
 
 const ros::Rate&
@@ -757,8 +724,7 @@ PoseTrackingServo::goalCB()
 	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
 	 ros::Duration(0.001).sleep())
     {
-	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
-	    haveRecentEndEffectorPose(DEFAULT_INPUT_TIMEOUT))
+	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(target_pose_.pose);
 
@@ -775,9 +741,6 @@ PoseTrackingServo::goalCB()
 
 	    return;
 	}
-
-	if (servo_->getEEFrameTransform(ee_frame_transform_))
-	    ee_frame_transform_stamp_ = ros::Time::now();
     }
 
   // No target pose available recently.
@@ -827,18 +790,19 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
     target_pose_debug_pub_.publish(target_pose);
 
   // Compute errors
-    positional_error(0) = target_pose.pose.position.x
-			- ee_frame_transform_.translation()(0);
-    positional_error(1) = target_pose.pose.position.y
-			- ee_frame_transform_.translation()(1);
-    positional_error(2) = target_pose.pose.position.z
-			- ee_frame_transform_.translation()(2);
+    const auto	Tpe = servo_->getEEFrameTransform();
+    positional_error(0) = target_pose.pose.position.x - Tpe.translation()(0);
+    positional_error(1) = target_pose.pose.position.y - Tpe.translation()(1);
+    positional_error(2) = target_pose.pose.position.z - Tpe.translation()(2);
 
     Eigen::Quaterniond	q_desired;
     tf2::convert(target_pose.pose.orientation, q_desired);
-    angular_error = q_desired
-		  * Eigen::Quaterniond(ee_frame_transform_.rotation())
-			.inverse();
+    angular_error = q_desired * Eigen::Quaterniond(Tpe.rotation()).inverse();
+
+  // For debugging
+    ee_pose_debug_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					      Tpe, ros::Time::now(),
+					      planning_frame_)));
 }
 
 geometry_msgs::TwistStampedConstPtr
@@ -997,13 +961,6 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
 }
 
-// End-effector pose stuffs
-bool
-PoseTrackingServo::haveRecentEndEffectorPose(
-			const ros::Duration& timeout) const
-{
-    return (ros::Time::now() - ee_frame_transform_stamp_ < timeout);
-}
 }	// namespace aist_controllers
 
 /************************************************************************

@@ -86,7 +86,19 @@ class Servo
     bool getEEFrameTransform(geometry_msgs::TransformStamped& transform);
 
     Eigen::Isometry3d
-	 getFrameTransform(const std::string& frame)
+	 getCommandFrameTransform() const
+	 {
+	     return servo_calcs_->getCommandFrameTransform();
+	 }
+    
+    Eigen::Isometry3d
+	 getEEFrameTransform() const
+	 {
+	     return servo_calcs_->getEEFrameTransform();
+	 }
+    
+    Eigen::Isometry3d
+	 getFrameTransform(const std::string& frame) const
 	 {
 	     return servo_calcs_->getFrameTransform(frame);
 	 }
