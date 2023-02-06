@@ -124,7 +124,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    internal_nh_(nh, "internal"),
    twist_cmd_sub_(
        nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
-		     &ServoCalcs::twistStampedCB, this,
+		     &ServoCalcs::twistCmdCB, this,
 		     ros::TransportHints().reliable().tcpNoDelay(true))),
    joint_cmd_sub_(
        nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
@@ -137,7 +137,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 	   ros::TransportHints().reliable().tcpNoDelay(true))),
    status_pub_(nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
 					     ROS_QUEUE_SIZE)),
-   worst_case_stop_time_pub_(internal_nh_.advertise<std_msgs::Float64>(
+   worst_case_stop_time_pub_(internal_nh_.advertise<flt64_t>(
 				 "worst_case_stop_time", ROS_QUEUE_SIZE)),
    outgoing_cmd_pub_(
        parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
@@ -173,10 +173,10 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    actual_positions_(),
    actual_velocities_(),
 
-   position_filters_(),
-
    joint_trajectory_(),
    joint_indices_(),
+
+   position_filters_(),
 
    thread_(),
    stop_requested_(true),
@@ -265,55 +265,6 @@ ServoCalcs::~ServoCalcs()
     stop();
 }
 
-//!  Get the MoveIt planning link transform.
-/*!
-  The transform from the MoveIt planning frame to robot_link_command_frame
-
-  \param isometry	transform that will be calculated
-  \return		true if a valid transform was available
-*/
-bool
-ServoCalcs::getCommandFrameTransform(isometry3_t& isometry) const
-{
-    const std::lock_guard<std::mutex>	lock(input_mutex_);
-
-    isometry = getFrameTransform(parameters_.robot_link_command_frame);
-
-  // All zeros means the isometry wasn't initialized, so return false
-    return !isometry.matrix().isZero(0);
-}
-
-bool
-ServoCalcs::getCommandFrameTransform(transform_t& transform) const
-{
-    isometry3_t	isometry;
-    if (!getCommandFrameTransform(isometry))
-	return false;
-
-    transform = convertIsometryToTransform(isometry, robot_state_stamp_,
-					   parameters_.planning_frame,
-					   parameters_.robot_link_command_frame);
-    return true;
-}
-
-//! Get the End Effector link transform.
-/*!
-  The transform from the MoveIt planning frame to EE link
-
-  \param isometry	transform that will be calculated
-  \return		true if a valid transform was available
-*/
-bool
-ServoCalcs::getEEFrameTransform(isometry3_t& isometry) const
-{
-    const std::lock_guard<std::mutex>	lock(input_mutex_);
-
-    isometry = getFrameTransform(parameters_.ee_frame_name);
-
-  // All zeros means the transform wasn't initialized, so return false
-    return !isometry.matrix().isZero(0);
-}
-
 bool
 ServoCalcs::getEEFrameTransform(transform_t& transform) const
 {
@@ -327,12 +278,17 @@ ServoCalcs::getEEFrameTransform(transform_t& transform) const
     return true;
 }
 
-ServoCalcs::isometry3_t
-ServoCalcs::getFrameTransform(const std::string& frame) const
+bool
+ServoCalcs::getCommandFrameTransform(transform_t& transform) const
 {
-    return robot_state_->getGlobalLinkTransform(parameters_.planning_frame)
-	  .inverse()
-	 * robot_state_->getGlobalLinkTransform(frame);
+    isometry3_t	isometry;
+    if (!getCommandFrameTransform(isometry))
+	return false;
+
+    transform = convertIsometryToTransform(isometry, robot_state_stamp_,
+					   parameters_.planning_frame,
+					   parameters_.robot_link_command_frame);
+    return true;
 }
 
 //! Start the timer where we do work and publish outputs
@@ -525,10 +481,6 @@ ServoCalcs::calculateSingleIteration()
 	return;
     }
 
-  // Check for stale commands.
-    const auto	is_stale_twist_command = isStale(twist_cmd_);
-    const auto	is_stale_joint_command = isStale(joint_cmd_);
-
   // Prioritize cartesian servoing above joint servoing.
     if (isValid(twist_cmd_))
     {
@@ -538,6 +490,11 @@ ServoCalcs::calculateSingleIteration()
 	{
 	    zeroVelocitiesInTrajectory();
 	    resetLowPassFilters();
+
+	    ROS_WARN_STREAM_THROTTLE_NAMED(
+		10, LOGNAME,
+		"Stale twist command. "
+		"Try a larger 'incoming_command_timeout' parameter?");
 	}
 	else
 	    setCartesianServoTrajectory(twist_cmd_);
@@ -550,6 +507,11 @@ ServoCalcs::calculateSingleIteration()
 	{
 	    zeroVelocitiesInTrajectory();
 	    resetLowPassFilters();
+
+	    ROS_WARN_STREAM_THROTTLE_NAMED(
+		10, LOGNAME,
+		"Stale joint command. "
+		"Try a larger 'incoming_command_timeout' parameter?");
 	}
 	else
 	    setJointServoTrajectory(joint_cmd_);
@@ -577,14 +539,6 @@ ServoCalcs::calculateSingleIteration()
 	}
     }
 
-  // Print a warning to the user if both are stale
-    if (is_stale_twist_command && is_stale_joint_command)
-    {
-	ROS_WARN_STREAM_THROTTLE_NAMED(10, LOGNAME,
-				       "Stale command. "
-				       "Try a larger 'incoming_command_timeout' parameter?");
-    }
-    
   // Put the outgoing msg in the right format
   // (trajectory_msgs/JointTrajectory or std_msgs/Float64MultiArray).
     if (parameters_.command_out_type == "trajectory_msgs/JointTrajectory")
@@ -977,7 +931,7 @@ ServoCalcs::setPointsToTrajectory(const vector_t& positions,
     if (parameters_.publish_joint_positions)
     {
 	front.positions.resize(positions.size());
-	for (size_t i = 0; i < front.velocities.size(); ++i)
+	for (size_t i = 0; i < front.positions.size(); ++i)
 	    front.positions[i] = positions[i];
     }
     if (parameters_.publish_joint_velocities)
@@ -1115,7 +1069,7 @@ ServoCalcs::resetLowPassFilters()
  *  private member functions: callbacks
  */
 void
-ServoCalcs::twistStampedCB(const twist_cp& msg)
+ServoCalcs::twistCmdCB(const twist_cp& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 

@@ -126,6 +126,8 @@ class ServoCalcs
     friend class ServoFixture;
 
   private:
+    isometry3_t	getFrameTransformUnlocked(const std::string& frame)
+								const	;
     uint	num_joints()					const	;
     joint_group_cp
 		joint_group()					const	;
@@ -176,7 +178,7 @@ class ServoCalcs
 
     void	resetLowPassFilters()					;
 
-    void	twistStampedCB(const twist_cp& msg)			;
+    void	twistCmdCB(const twist_cp& msg)				;
     void	jointCmdCB(const joint_jog_cp& msg)			;
     void	collisionVelocityScaleCB(const flt64_cp& msg)		;
 
@@ -230,12 +232,12 @@ class ServoCalcs
     vector_t				actual_positions_;
     vector_t				actual_velocities_;
 
-  // Low-pass filters
-    std::vector<lpf_t>			position_filters_;
-
   // Output command
     trajectory_t			joint_trajectory_;
-    std::map<std::string, std::size_t>	joint_indices_;
+    std::map<std::string, size_t>	joint_indices_;
+
+  // Low-pass filters
+    std::vector<lpf_t>			position_filters_;
 
   // Main tracking / result publisher loop
     std::thread				thread_;
@@ -261,6 +263,38 @@ class ServoCalcs
     std::condition_variable		input_cv_;
     bool				new_input_cmd_;
 };
+
+inline bool
+ServoCalcs::getCommandFrameTransform(isometry3_t& isometry) const
+{
+    isometry = getFrameTransform(parameters_.robot_link_command_frame);
+
+    return !isometry.matrix().isZero(0);
+}
+
+inline bool
+ServoCalcs::getEEFrameTransform(isometry3_t& isometry) const
+{
+    isometry = getFrameTransform(parameters_.ee_frame_name);
+
+    return !isometry.matrix().isZero(0);
+}
+
+inline ServoCalcs::isometry3_t
+ServoCalcs::getFrameTransform(const std::string& frame) const
+{
+    const std::lock_guard<std::mutex>	lock(input_mutex_);
+
+    return getFrameTransformUnlocked(frame);
+}
+
+inline ServoCalcs::isometry3_t
+ServoCalcs::getFrameTransformUnlocked(const std::string& frame) const
+{
+    return robot_state_->getGlobalLinkTransform(parameters_.planning_frame)
+	  .inverse()
+	 * robot_state_->getGlobalLinkTransform(frame);
+}
 
 inline uint
 ServoCalcs::num_joints() const

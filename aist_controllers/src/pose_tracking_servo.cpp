@@ -47,7 +47,6 @@
 #include <actionlib/server/simple_action_server.h>
 #include <aist_controllers/PoseTrackingAction.h>
 #include <aist_utility/butterworth_lpf.h>
-#include <aist_utility/geometry_msgs.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -262,7 +261,8 @@ class PoseTrackingServo
 
   // Transforms w.r.t. planning_frame_
     std::string					planning_frame_;
-    geometry_msgs::TransformStamped		ee_frame_transform_;
+    Eigen::Isometry3d				ee_frame_transform_;
+    ros::Time					ee_frame_transform_stamp_;
     geometry_msgs::PoseStamped			target_pose_;
     mutable std::mutex				target_pose_mtx_;
 };
@@ -304,6 +304,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 
      planning_frame_(),
      ee_frame_transform_(),
+     ee_frame_transform_stamp_(),
      target_pose_(),
      target_pose_mtx_()
 {
@@ -480,9 +481,9 @@ PoseTrackingServo::tick()
 
   // Attempt to update robot pose.
     if (servo_->getEEFrameTransform(ee_frame_transform_))
-	ee_frame_transform_.header.stamp = ros::Time::now();
+	ee_frame_transform_stamp_ = ros::Time::now();
 
-    durations_.ee_frame_in = (ee_frame_transform_.header.stamp -
+    durations_.ee_frame_in = (ee_frame_transform_stamp_ -
 			      durations_.header.stamp).toSec();
 
   // Check that end-effector pose (command frame transform) is recent enough.
@@ -540,7 +541,10 @@ PoseTrackingServo::tick()
 			    durations_.header.stamp).toSec();
 
   // For debugging
-    ee_pose_debug_pub_.publish(aist_utility::toPose(ee_frame_transform_));
+    ee_pose_debug_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					      ee_frame_transform_,
+					      ee_frame_transform_stamp_,
+					      planning_frame_)));
 }
 
 const ros::Rate&
@@ -730,11 +734,11 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 
   // If the target pose is defined in planning frame, it's OK as is.
     if (target_pose_.header.frame_id == planning_frame_)
-    	return;
+	return;
 
   // Otherwise, transform it to planning frame.
     auto Tpt = tf2::eigenToTransform(servo_->getFrameTransform(
-    					 target_pose_.header.frame_id));
+					 target_pose_.header.frame_id));
     Tpt.header.stamp    = target_pose_.header.stamp;
     Tpt.header.frame_id = planning_frame_;
     Tpt.child_frame_id  = target_pose_.header.frame_id;
@@ -772,7 +776,8 @@ PoseTrackingServo::goalCB()
 	    return;
 	}
 
-	servo_->getEEFrameTransform(ee_frame_transform_);
+	if (servo_->getEEFrameTransform(ee_frame_transform_))
+	    ee_frame_transform_stamp_ = ros::Time::now();
     }
 
   // No target pose available recently.
@@ -823,17 +828,17 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
 
   // Compute errors
     positional_error(0) = target_pose.pose.position.x
-			- ee_frame_transform_.transform.translation.x;
+			- ee_frame_transform_.translation()(0);
     positional_error(1) = target_pose.pose.position.y
-			- ee_frame_transform_.transform.translation.y;
+			- ee_frame_transform_.translation()(1);
     positional_error(2) = target_pose.pose.position.z
-			- ee_frame_transform_.transform.translation.z;
+			- ee_frame_transform_.translation()(2);
 
     Eigen::Quaterniond	q_desired;
     tf2::convert(target_pose.pose.orientation, q_desired);
-    Eigen::Quaterniond	q_current;
-    tf2::convert(ee_frame_transform_.transform.rotation, q_current);
-    angular_error = q_desired * q_current.inverse();
+    angular_error = q_desired
+		  * Eigen::Quaterniond(ee_frame_transform_.rotation())
+			.inverse();
 }
 
 geometry_msgs::TwistStampedConstPtr
@@ -997,7 +1002,7 @@ bool
 PoseTrackingServo::haveRecentEndEffectorPose(
 			const ros::Duration& timeout) const
 {
-    return (ros::Time::now() - ee_frame_transform_.header.stamp < timeout);
+    return (ros::Time::now() - ee_frame_transform_stamp_ < timeout);
 }
 }	// namespace aist_controllers
 
