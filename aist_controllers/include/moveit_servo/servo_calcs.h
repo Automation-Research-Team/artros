@@ -155,13 +155,13 @@ class ServoCalcs
 				     double singularity_scale=1.0)	;
 
     void	convertDeltasToTrajectory(const vector_t& delta_theta)	;
-
+    void	setPointsToTrajectory(const vector_t& positions,
+				      const vector_t& delta_theta,
+				      bool sudden=false)		;
+    void	zeroVelocitiesInTrajectory()				;
+    
     bool	checkPositionLimits(const vector_t& positions,
 				    const vector_t& delta_theta) const	;
-    void	insertPointsIntoTrajectory(const vector_t& positions,
-					   const vector_t& delta_theta,
-					   bool sudden=false)		;
-
     void	removeDimension(matrix_t& matrix, vector_t& delta_x,
 				uint row_to_remove)		const	;
 
