@@ -207,8 +207,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    control_dimensions_({true, true, true, true, true, true}),
     
    input_mutex_(),
-   tf_moveit_to_robot_cmd_frame_(Eigen::Matrix3d::Zero()),
-   tf_moveit_to_ee_frame_(Eigen::Matrix3d::Zero()),
    twist_stamped_cmd_(),
    joint_servo_cmd_(),
    
@@ -281,48 +279,44 @@ ServoCalcs::~ServoCalcs()
 }
 
 bool
-ServoCalcs::getCommandFrameTransform(isometry3_t& transform) const
+ServoCalcs::getCommandFrameTransform(isometry3_t& isometry) const
 {
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-    transform = tf_moveit_to_robot_cmd_frame_;
+    isometry = getFrameTransform(parameters_.robot_link_command_frame);
 
-  // All zeros means the transform wasn't initialized, so return false
-    return !transform.matrix().isZero(0);
+  // All zeros means the isometry wasn't initialized, so return false
+    return !isometry.matrix().isZero(0);
 }
 
 bool
 ServoCalcs::getCommandFrameTransform(transform_t& transform) const
 {
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-  // All zeros means the transform wasn't initialized, so return false
-    if (tf_moveit_to_robot_cmd_frame_.matrix().isZero(0))
+    isometry3_t	isometry;
+    if (!getCommandFrameTransform(isometry))
 	return false;
 
-    transform = convertIsometryToTransform(tf_moveit_to_robot_cmd_frame_,
+    transform = convertIsometryToTransform(isometry,
 					   parameters_.planning_frame,
 					   parameters_.robot_link_command_frame);
     return true;
 }
 
 bool
-ServoCalcs::getEEFrameTransform(isometry3_t& transform) const
+ServoCalcs::getEEFrameTransform(isometry3_t& isometry) const
 {
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-    transform = tf_moveit_to_ee_frame_;
+   isometry = getFrameTransform(parameters_.ee_frame_name);
 
   // All zeros means the transform wasn't initialized, so return false
-    return !transform.matrix().isZero(0);
+    return !isometry.matrix().isZero(0);
 }
 
 bool
 ServoCalcs::getEEFrameTransform(transform_t& transform) const
 {
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-  // All zeros means the transform wasn't initialized, so return false
-    if (tf_moveit_to_ee_frame_.matrix().isZero(0))
+   isometry3_t	isometry;
+    if (!getEEFrameTransform(isometry))
 	return false;
 
-    transform = convertIsometryToTransform(tf_moveit_to_ee_frame_,
+    transform = convertIsometryToTransform(isometry,
 					   parameters_.planning_frame,
 					   parameters_.ee_frame_name);
     return true;
@@ -330,6 +324,14 @@ ServoCalcs::getEEFrameTransform(transform_t& transform) const
 
 ServoCalcs::isometry3_t
 ServoCalcs::getFrameTransform(const std::string& frame) const
+{
+    const std::lock_guard<std::mutex>	lock(input_mutex_);
+    
+    return getFrameTransformUnlocked(frame);
+}
+
+ServoCalcs::isometry3_t
+ServoCalcs::getFrameTransformUnlocked(const std::string& frame) const
 {
     return current_state_->getGlobalLinkTransform(parameters_.planning_frame)
 	  .inverse()
@@ -374,10 +376,6 @@ ServoCalcs::start()
 
     current_state_ = planning_scene_monitor_->getStateMonitor()
 					    ->getCurrentState();
-    tf_moveit_to_ee_frame_ = getFrameTransform(parameters_.ee_frame_name);
-    tf_moveit_to_robot_cmd_frame_
-	= getFrameTransform(parameters_.robot_link_command_frame);
-
     stop_requested_ = false;
     thread_	    = std::thread([this] { mainCalcLoop(); });
     new_input_cmd_  = false;
@@ -476,17 +474,6 @@ ServoCalcs::calculateSingleIteration()
   // Update from latest state
     // current_state_ = planning_scene_monitor_->getStateMonitor()
     // 					    ->getCurrentState();
-
-  // Get the transform from MoveIt planning frame to servoing command frame
-  // Calculate this transform to ensure it is available via C++ API
-  // We solve (planning_frame -> base -> robot_link_command_frame)
-  // by computing (base->planning_frame)^-1 * (base->robot_link_command_frame)
-    tf_moveit_to_robot_cmd_frame_
-	= getFrameTransform(parameters_.robot_link_command_frame);
-
-  // Calculate the transform from MoveIt planning frame to End Effector frame
-  // Calculate this transform to ensure it is available via C++ API
-    tf_moveit_to_ee_frame_ = getFrameTransform(parameters_.ee_frame_name);
 
   // Don't end this function without updating the filters
     updated_filters_ = false;
@@ -727,6 +714,10 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
   // Transform the command to the MoveGroup planning frame
     if (cmd.header.frame_id != parameters_.planning_frame)
     {
+	if (cmd.header.frame_id.empty())
+	    cmd.header.frame_id = parameters_.robot_link_command_frame;
+
+	const auto	Tpc = getFrameTransformUnlocked(cmd.header.frame_id);
 	Eigen::Vector3d	translation(cmd.twist.linear.x,
 				    cmd.twist.linear.y,
 				    cmd.twist.linear.z);
@@ -734,33 +725,8 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
 				cmd.twist.angular.y,
 				cmd.twist.angular.z);
 
-      // If the incoming frame is empty or is the command frame,
-      // we use the previously calculated tf
-	if (cmd.header.frame_id.empty() ||
-	    cmd.header.frame_id == parameters_.robot_link_command_frame)
-	{
-	    translation = tf_moveit_to_robot_cmd_frame_.linear()
-			* translation;
-	    angular	= tf_moveit_to_robot_cmd_frame_.linear() * angular;
-	}
-	else if (cmd.header.frame_id == parameters_.ee_frame_name)
-	{
-	  // If the frame is the EE frame,
-	  // we already have that transform as well
-	    translation = tf_moveit_to_ee_frame_.linear() * translation;
-	    angular	= tf_moveit_to_ee_frame_.linear() * angular;
-	}
-	else
-	{
-	  // We solve (planning_frame -> base -> cmd.header.frame_id)
-	  // by computing (base->planning_frame)^-1 * (base->cmd.header.frame_id)
-	    const auto	tf_moveit_to_incoming_cmd_frame
-			    = getFrameTransform(cmd.header.frame_id);
-
-	    translation = tf_moveit_to_incoming_cmd_frame.linear()
-			* translation;
-	    angular	= tf_moveit_to_incoming_cmd_frame.linear() * angular;
-	}
+	translation = Tpc.linear() * translation;
+	angular	    = Tpc.linear() * angular;
 
       // Put these components back into a TwistStamped
 	cmd.header.frame_id = parameters_.planning_frame;
