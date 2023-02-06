@@ -47,6 +47,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <aist_controllers/PoseTrackingAction.h>
 #include <aist_utility/butterworth_lpf.h>
+#include <aist_utility/spline_extrapolator.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -77,6 +78,36 @@ operator +(const Pose& a, const Pose& b)
 }
 
 Pose
+operator -(const Pose& a, const Pose& b)
+{
+    Pose	ret;
+    ret.position.x    = a.position.x	- b.position.x;
+    ret.position.y    = a.position.y	- b.position.y;
+    ret.position.z    = a.position.z	- b.position.z;
+    ret.orientation.x = a.orientation.x	- b.orientation.x;
+    ret.orientation.y = a.orientation.y	- b.orientation.y;
+    ret.orientation.z = a.orientation.z	- b.orientation.z;
+    ret.orientation.w = a.orientation.w	- b.orientation.w;
+
+    return ret;
+}
+
+Pose
+operator -(const Pose& a)
+{
+    Pose	ret;
+    ret.position.x    = -a.position.x;
+    ret.position.y    = -a.position.y;
+    ret.position.z    = -a.position.z;
+    ret.orientation.x = -a.orientation.x;
+    ret.orientation.y = -a.orientation.y;
+    ret.orientation.z = -a.orientation.z;
+    ret.orientation.w = -a.orientation.w;
+
+    return ret;
+}
+
+Pose
 operator *(double c, const Pose& a)
 {
     Pose	ret;
@@ -90,6 +121,22 @@ operator *(double c, const Pose& a)
 
     return ret;
 }
+
+Pose
+zero(Pose)
+{
+    Pose	ret;
+    ret.position.x    = 0;
+    ret.position.y    = 0;
+    ret.position.z    = 0;
+    ret.orientation.x = 0;
+    ret.orientation.y = 0;
+    ret.orientation.z = 0;
+    ret.orientation.w = 1;
+
+    return ret;
+}
+    
 }	// namespace geometry_msgs
 
 namespace aist_controllers
@@ -248,6 +295,10 @@ class PoseTrackingServo
     aist_utility::ButterworthLPF<double, geometry_msgs::Pose>
 				input_low_pass_filter_;
 
+  // Spline extrapolator
+    aist_utility::SplineExtrapolator<geometry_msgs::Pose, 3>
+						input_extrapolator_;
+
   // PIDs
     std::vector<control_toolbox::Pid>		cartesian_position_pids_;
     std::vector<control_toolbox::Pid>		cartesian_orientation_pids_;
@@ -291,6 +342,8 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 			    input_low_pass_filter_cutoff_frequency_ *
 			    loop_rate_.expectedCycleTime().toSec()),
 
+     input_extrapolator_(),
+     
      cartesian_position_pids_(),
      cartesian_orientation_pids_(),
      x_pid_config_(),
@@ -699,17 +752,18 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
     durations_.target_pose_in = (ros::Time::now() -
 				 durations_.header.stamp).toSec();
 
-  // If the target pose is defined in planning frame, it's OK as is.
-    if (target_pose_.header.frame_id == planning_frame_)
-	return;
+  // If the target pose is not defined in planning frame, transform it.
+    if (target_pose_.header.frame_id != planning_frame_)
+    {
+	auto Tpt = tf2::eigenToTransform(servo_->getFrameTransform(
+					     target_pose_.header.frame_id));
+	Tpt.header.stamp    = target_pose_.header.stamp;
+	Tpt.header.frame_id = planning_frame_;
+	Tpt.child_frame_id  = target_pose_.header.frame_id;
+	tf2::doTransform(target_pose_, target_pose_, Tpt);
+    }
 
-  // Otherwise, transform it to planning frame.
-    auto Tpt = tf2::eigenToTransform(servo_->getFrameTransform(
-					 target_pose_.header.frame_id));
-    Tpt.header.stamp    = target_pose_.header.stamp;
-    Tpt.header.frame_id = planning_frame_;
-    Tpt.child_frame_id  = target_pose_.header.frame_id;
-    tf2::doTransform(target_pose_, target_pose_, Tpt);
+    input_extrapolator_.update(target_pose_.header.stamp, target_pose_.pose);
 }
 
 void
@@ -775,7 +829,10 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
 	target_pose = target_pose_;
     }
 
-  // Applly input low-pass filter
+  // Apply input extrapolator
+    target_pose.pose = input_extrapolator_.pos(ros::Time::now());
+
+  // Apply input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
     normalize(target_pose.pose.orientation);
 
