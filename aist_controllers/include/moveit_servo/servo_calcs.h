@@ -178,7 +178,7 @@ class ServoCalcs
 
     void	resetLowPassFilters()					;
 
-    void	twistStampedCB(const twist_cp& msg)			;
+    void	twistCmdCB(const twist_cp& msg)				;
     void	jointCmdCB(const joint_jog_cp& msg)			;
     void	collisionVelocityScaleCB(const flt64_cp& msg)		;
 
@@ -232,12 +232,12 @@ class ServoCalcs
     vector_t				actual_positions_;
     vector_t				actual_velocities_;
 
-  // Low-pass filters
-    std::vector<lpf_t>			position_filters_;
-
   // Output command
     trajectory_t			joint_trajectory_;
-    std::map<std::string, std::size_t>	joint_indices_;
+    std::map<std::string, size_t>	joint_indices_;
+
+  // Low-pass filters
+    std::vector<lpf_t>			position_filters_;
 
   // Main tracking / result publisher loop
     std::thread				thread_;

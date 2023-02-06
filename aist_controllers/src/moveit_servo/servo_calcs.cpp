@@ -124,7 +124,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    internal_nh_(nh, "internal"),
    twist_cmd_sub_(
        nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
-		     &ServoCalcs::twistStampedCB, this,
+		     &ServoCalcs::twistCmdCB, this,
 		     ros::TransportHints().reliable().tcpNoDelay(true))),
    joint_cmd_sub_(
        nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
@@ -137,7 +137,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 	   ros::TransportHints().reliable().tcpNoDelay(true))),
    status_pub_(nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
 					     ROS_QUEUE_SIZE)),
-   worst_case_stop_time_pub_(internal_nh_.advertise<std_msgs::Float64>(
+   worst_case_stop_time_pub_(internal_nh_.advertise<flt64_t>(
 				 "worst_case_stop_time", ROS_QUEUE_SIZE)),
    outgoing_cmd_pub_(
        parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
@@ -173,10 +173,10 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    actual_positions_(),
    actual_velocities_(),
 
-   position_filters_(),
-
    joint_trajectory_(),
    joint_indices_(),
+
+   position_filters_(),
 
    thread_(),
    stop_requested_(true),
@@ -1069,7 +1069,7 @@ ServoCalcs::resetLowPassFilters()
  *  private member functions: callbacks
  */
 void
-ServoCalcs::twistStampedCB(const twist_cp& msg)
+ServoCalcs::twistCmdCB(const twist_cp& msg)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
