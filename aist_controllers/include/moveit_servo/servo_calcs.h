@@ -79,28 +79,31 @@ class ServoCalcs
 {
   private:
     using planning_scene_monitor_p
-			     = planning_scene_monitor::PlanningSceneMonitorPtr;
-    using twist_t	     = geometry_msgs::TwistStamped;
-    using twist_cp	     = geometry_msgs::TwistStampedConstPtr;
-    using transform_t	     = geometry_msgs::TransformStamped;
-    using joint_jog_t	     = control_msgs::JointJog;
-    using joint_jog_cp	     = control_msgs::JointJogConstPtr;
-    using trajectory_t	     = trajectory_msgs::JointTrajectory;
-    using trajectory_cp	     = trajectory_msgs::JointTrajectoryConstPtr;
+			= planning_scene_monitor::PlanningSceneMonitorPtr;
+    using joint_group_cp= const moveit::core::JointModelGroup*;
+    using transform_t	= geometry_msgs::TransformStamped;
+    using twist_t	= geometry_msgs::TwistStamped;
+    using twist_cp	= geometry_msgs::TwistStampedConstPtr;
+    using joint_jog_t	= control_msgs::JointJog;
+    using joint_jog_cp	= control_msgs::JointJogConstPtr;
+    using trajectory_t	= trajectory_msgs::JointTrajectory;
+    using trajectory_cp	= trajectory_msgs::JointTrajectoryConstPtr;
+
     using trajectory_point_t = trajectory_msgs::JointTrajectoryPoint;
-    using joint_state_t	     = sensor_msgs::JointState;
-    using flt64_t	     = std_msgs::Float64;
-    using flt64_cp	     = std_msgs::Float64ConstPtr;
     
-    using vector_t	     = Eigen::VectorXd;
-    using matrix_t	     = Eigen::MatrixXd;
-    using isometry3_t	     = Eigen::Isometry3d;
+    using joint_state_t	= sensor_msgs::JointState;
+    using flt64_t	= std_msgs::Float64;
+    using flt64_cp	= std_msgs::Float64ConstPtr;
     
+    using vector_t	= Eigen::VectorXd;
+    using matrix_t	= Eigen::MatrixXd;
+    using isometry3_t	= Eigen::Isometry3d;
 #if defined(BUTTERWORTH)
-    using lpf_t		     = aist_utility::ButterworthLPF<double>;
+    using lpf_t		= aist_utility::ButterworthLPF<double>;
 #else
-    using lpf_t		     = LowPassFilter;
+    using lpf_t		= LowPassFilter;
 #endif
+    using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
 
   public:
 		ServoCalcs(const ros::NodeHandle& nh,
@@ -130,6 +133,8 @@ class ServoCalcs
 								const	;
 
     uint	num_joints()					const	;
+    joint_group_cp
+		joint_group()					const	;
     
     void	stop()							;
 
@@ -141,7 +146,9 @@ class ServoCalcs
     bool	jointServoCalcs(const joint_jog_t& cmd,
 				trajectory_t& joint_trajectory)		;
 
-    void	enforceVelLimits(vector_t& delta_theta)		const	;
+    vector_t	scaleCartesianCommand(const twist_t& command)	const	;
+    vector_t	scaleJointCommand(const joint_jog_t& command)	const	;
+
     double	velocityScalingFactorForSingularity(
 			const vector_t& commanded_velocity,
 			const Eigen::JacobiSVD<matrix_t>& svd,
@@ -169,10 +176,6 @@ class ServoCalcs
     void	removeDimension(matrix_t& matrix, vector_t& delta_x,
 				uint row_to_remove)		const	;
 
-    vector_t	scaleCartesianCommand(const twist_t& command)	const	;
-
-    vector_t	scaleJointCommand(const joint_jog_t& command)	const	;
-
 #if defined(BUTTERWORTH)
     void	initializeLowPassFilters(int half_order,
 					 double cutoff_frequency)	;
@@ -196,9 +199,14 @@ class ServoCalcs
 			moveit_msgs::ChangeControlDimensions::Request& req,
 			moveit_msgs::ChangeControlDimensions::Response& res);
 
-    bool	resetServoStatus(std_srvs::Empty::Request& req,
-				 std_srvs::Empty::Response& res)	;
+  // Servo status stuffs
+    void	publishStatus()					const	;
+    bool	resetStatus(std_srvs::Empty::Request&,
+			    std_srvs::Empty::Response&)			;
 
+  // Worst case stop time stuffs
+    void	publishWorstCaseStopTime()			const	;
+    
   private:
     ros::NodeHandle				nh_;
     ros::NodeHandle				internal_nh_;
@@ -217,8 +225,7 @@ class ServoCalcs
     bool					updated_filters_;
 
   // Incoming command messages
-    moveit::core::RobotStatePtr			current_state_;
-    const moveit::core::JointModelGroup* const	joint_model_group_;
+    moveit::core::RobotStatePtr			robot_state_;
 
   // incoming_joint_state_ is the incoming message. It may contain passive
   // joints or other joints we don't care about.
@@ -229,7 +236,7 @@ class ServoCalcs
   // except it only contains the joints the servo node acts on.
     joint_state_t				joint_state_,
 						original_joint_state_;
-    std::map<std::string, std::size_t>		joint_state_name_map_;
+    std::map<std::string, std::size_t>		joint_indices_;
 
     std::vector<lpf_t>				position_filters_;
 
@@ -276,4 +283,16 @@ class ServoCalcs
     std::condition_variable	input_cv_;
     bool			new_input_cmd_;
 };
+
+inline uint
+ServoCalcs::num_joints() const
+{
+    return joint_state_.name.size();
+}
+    
+inline ServoCalcs::joint_group_cp
+ServoCalcs::joint_group() const
+{
+    return robot_state_->getJointModelGroup(parameters_.move_group_name);
+}
 }  // namespace moveit_servo

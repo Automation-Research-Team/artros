@@ -147,14 +147,12 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    zero_velocity_count_(0),
    wait_for_servo_commands_(true),
    updated_filters_(false),
-   current_state_(planning_scene_monitor_->getStateMonitor()
+   robot_state_(planning_scene_monitor_->getStateMonitor()
 					 ->getCurrentState()),
-   joint_model_group_(current_state_->getJointModelGroup(
-			  parameters_.move_group_name)),
 
    joint_state_(),
    original_joint_state_(),
-   joint_state_name_map_(),
+   joint_indices_(),
    
    position_filters_(),
    last_sent_command_(),
@@ -201,7 +199,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    reset_servo_status_srv_(nh_.advertiseService(
 			       ros::names::append(nh_.getNamespace(),
 						  "reset_servo_status"),
-			       &ServoCalcs::resetServoStatus, this)),
+			       &ServoCalcs::resetStatus, this)),
    ddr_(nh_),
 
    thread_(),
@@ -222,13 +220,13 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    input_cv_(),
    new_input_cmd_(false)
 {
-    joint_state_.name = joint_model_group_->getActiveJointModelNames();
+    joint_state_.name = joint_group()->getActiveJointModelNames();
     joint_state_.position.resize(num_joints());
     joint_state_.velocity.resize(num_joints());
 
   // A map for the indices of incoming joint commands
     for (std::size_t i = 0; i < num_joints(); ++i)
-	joint_state_name_map_[joint_state_.name[i]] = i;
+	joint_indices_[joint_state_.name[i]] = i;
 
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints(); ++i)
@@ -349,9 +347,9 @@ ServoCalcs::getFrameTransform(const std::string& frame) const
 ServoCalcs::isometry3_t
 ServoCalcs::getFrameTransformUnlocked(const std::string& frame) const
 {
-    return current_state_->getGlobalLinkTransform(parameters_.planning_frame)
+    return robot_state_->getGlobalLinkTransform(parameters_.planning_frame)
 	  .inverse()
-	 * current_state_->getGlobalLinkTransform(frame);
+	 * robot_state_->getGlobalLinkTransform(frame);
 }
 
 //! Start the timer where we do work and publish outputs
@@ -375,7 +373,7 @@ ServoCalcs::start()
 
     if (parameters_.publish_joint_positions)
 	planning_scene_monitor_->getStateMonitor()->getCurrentState()
-			       ->copyJointGroupPositions(joint_model_group_,
+			       ->copyJointGroupPositions(joint_group(),
 							 point.positions);
     if (parameters_.publish_joint_velocities)
     {
@@ -392,7 +390,7 @@ ServoCalcs::start()
     initial_joint_trajectory->points.push_back(point);
     last_sent_command_ = initial_joint_trajectory;
 
-    current_state_ = planning_scene_monitor_->getStateMonitor()
+    robot_state_ = planning_scene_monitor_->getStateMonitor()
 					    ->getCurrentState();
     stop_requested_ = false;
     thread_	    = std::thread([this] { mainCalcLoop(); });
@@ -419,12 +417,6 @@ ServoCalcs::changeRobotLinkCommandFrame(const std::string& new_command_frame)
 /*
  *  private member functions
  */
-uint
-ServoCalcs::num_joints() const
-{
-    return joint_state_.name.size();
-}
-    
 //! Stop the currently running thread
 void
 ServoCalcs::stop()
@@ -493,18 +485,17 @@ ServoCalcs::mainCalcLoop()
 void
 ServoCalcs::calculateSingleIteration()
 {
-  // Publish status each loop iteration
-    auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
-    status_msg->data = static_cast<int8_t>(status_);
-    status_pub_.publish(status_msg);
+    publishStatus();
 
   // Always update the joints and end-effector transform for 2 reasons:
   // 1) in case the getCommandFrameTransform() method is being used
   // 2) so the low-pass filters are up to date and don't cause a jump
     updateJoints();
 
+    publishWorstCaseStopTime();
+
   // Update from latest state
-    // current_state_ = planning_scene_monitor_->getStateMonitor()
+    // robot_state_ = planning_scene_monitor_->getStateMonitor()
     // 					    ->getCurrentState();
 
   // Don't end this function without updating the filters
@@ -651,11 +642,11 @@ void
 ServoCalcs::updateJoints()
 {
   // Get the latest joint group positions
-    current_state_ = planning_scene_monitor_->getStateMonitor()
+    robot_state_ = planning_scene_monitor_->getStateMonitor()
 					    ->getCurrentState();
-    current_state_->copyJointGroupPositions(joint_model_group_,
+    robot_state_->copyJointGroupPositions(joint_group(),
 					    joint_state_.position);
-    current_state_->copyJointGroupVelocities(joint_model_group_,
+    robot_state_->copyJointGroupVelocities(joint_group(),
 					     joint_state_.velocity);
     joint_state_.header.stamp = ros::Time::now();
     
@@ -664,7 +655,7 @@ ServoCalcs::updateJoints()
 
   // Calculate worst case joint stop time, for collision checking
     double	worst_case_stop_time = 0;
-    for (const auto joint : joint_model_group_->getActiveJointModels())
+    for (const auto joint : joint_group()->getActiveJointModels())
     {
 	const auto&	bound = joint->getVariableBounds()[0];
 
@@ -675,7 +666,7 @@ ServoCalcs::updateJoints()
 	  // limit from min and max limits
 	    const auto	accel_limit = std::min(fabs(bound.min_acceleration_),
 					       fabs(bound.max_acceleration_));
-	    const auto	i = joint_state_name_map_[joint->getName()];
+	    const auto	i = joint_indices_[joint->getName()];
 
 	    worst_case_stop_time
 		= std::max(worst_case_stop_time,
@@ -774,7 +765,7 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
     auto	delta_x = scaleCartesianCommand(cmd);
 
   // Convert from cartesian commands to joint commands
-    auto	jacobian = current_state_->getJacobian(joint_model_group_);
+    auto	jacobian = robot_state_->getJacobian(joint_group());
 
   // May allow some dimensions to drift, based on drift_dimensions
   // i.e. take advantage of task redundancy.
@@ -793,8 +784,6 @@ ServoCalcs::cartesianServoCalcs(twist_t& cmd, trajectory_t& joint_trajectory)
 				* svd.matrixU().transpose();
 
     vector_t	delta_theta = pseudo_inverse * delta_x;
-
-    enforceVelLimits(delta_theta);
 
   // If close to a collision or a singularity, decelerate
     applyVelocityScaling(delta_theta,
@@ -822,50 +811,71 @@ ServoCalcs::jointServoCalcs(const joint_jog_t& cmd,
   // Apply user-defined scaling
     auto	delta_theta = scaleJointCommand(cmd);
 
-    enforceVelLimits(delta_theta);
-
   // If close to a collision, decelerate
     applyVelocityScaling(delta_theta, 1.0 /* scaling for singularities -- ignore for joint motions */);
 
     return convertDeltasToOutgoingCmd(delta_theta, joint_trajectory);
 }
 
-//! Scale the delta theta to match joint velocity/acceleration limits
-void
-ServoCalcs::enforceVelLimits(vector_t& delta_theta) const
+/*
+ *  private member functions: incoming command scaling stuffs
+ */
+//! Scale them to physical units.
+/*!
+  Do it if incoming velocity commands are from a unitless joystick.
+  Also, multiply by timestep to calculate a position change.
+*/
+ServoCalcs::vector_t
+ServoCalcs::scaleCartesianCommand(const twist_t& cmd) const
 {
-  // Convert to joint angle velocities for checking and applying joint
-  // specific velocity limits.
-    const auto	velocity = delta_theta / parameters_.publish_period;
-    double	velocity_scaling_factor = 1.0;
+  // Apply user-defined scaling if inputs are unitless [-1:1]
+    const auto	linear_scale	 = (parameters_.command_in_type == "unitless" ?
+				    parameters_.linear_scale : 1.0)
+				 * parameters_.publish_period;
+    const auto	rotational_scale = (parameters_.command_in_type == "unitless" ?
+				    parameters_.rotational_scale : 1.0)
+				 * parameters_.publish_period;
+    vector_t	delta_x(6);
+    delta_x[0] = linear_scale	  * cmd.twist.linear.x;
+    delta_x[1] = linear_scale	  * cmd.twist.linear.y;
+    delta_x[2] = linear_scale	  * cmd.twist.linear.z;
+    delta_x[3] = rotational_scale * cmd.twist.angular.x;
+    delta_x[4] = rotational_scale * cmd.twist.angular.y;
+    delta_x[5] = rotational_scale * cmd.twist.angular.z;
 
-    size_t	i = 0;
-    for (const auto joint : joint_model_group_->getActiveJointModels())
-    {
-	const auto&	bounds = joint->getVariableBounds(joint->getName());
-	const auto	unbounded_velocity = velocity(i);
+    return delta_x;
+}
 
-	if (bounds.velocity_bounded_ && unbounded_velocity != 0.0)
+//! Scale them to physical units.
+/*!
+  Do it if incoming velocity commands are from a unitless joystick,
+  Also, multiply by timestep to calculate a position change.
+*/
+ServoCalcs::vector_t
+ServoCalcs::scaleJointCommand(const joint_jog_t& cmd) const
+{
+    vector_t	delta_theta(num_joints());
+    delta_theta.setZero();
+
+    const auto joint_scale = (parameters_.command_in_type == "unitless" ?
+			      parameters_.joint_scale : 1.0)
+			   * parameters_.publish_period;
+
+    for (size_t i = 0; i < cmd.joint_names.size(); ++i)
+	try
 	{
-	  // Clamp each joint velocity to a joint specific
-	  // [min_velocity, max_velocity] range.
-	    const auto bounded_velocity
-		= std::min(std::max(unbounded_velocity,
-				    16*bounds.min_velocity_),
-			   16*bounds.max_velocity_);
-	    velocity_scaling_factor
-	    	= std::min(velocity_scaling_factor,
-	    		   bounded_velocity / unbounded_velocity);
-	}
-	++i;
-    }
+	    const auto	j = joint_indices_.at(cmd.joint_names[i]);
 
-  // Convert back to joint angle increments.
-    // if (velocity_scaling_factor < 1.0)
-    //   std::cerr << "*** velocity_scaling_factor="
-    // 		<< velocity_scaling_factor << std::endl;
-    delta_theta = velocity_scaling_factor * velocity
-    		* parameters_.publish_period;
+	    delta_theta[j] = joint_scale * cmd.velocities[i];
+	}
+	catch (const std::out_of_range& e)
+	{
+	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+					   "Ignoring joint "
+					   << cmd.joint_names[i]);
+	}
+    
+    return delta_theta;
 }
 
 //! Calculate a velocity scaling factor
@@ -903,11 +913,11 @@ ServoCalcs::velocityScalingFactorForSingularity(
 
   // Calculate a small change in joints
     vector_t	new_theta;
-    current_state_->copyJointGroupPositions(joint_model_group_, new_theta);
+    robot_state_->copyJointGroupPositions(joint_group(), new_theta);
     new_theta += pseudo_inverse * delta_x;
-    current_state_->setJointGroupPositions(joint_model_group_, new_theta);
-    matrix_t	new_jacobian = current_state_->getJacobian(
-					joint_model_group_);
+    robot_state_->setJointGroupPositions(joint_group(), new_theta);
+    matrix_t	new_jacobian = robot_state_->getJacobian(
+					joint_group());
 
     Eigen::JacobiSVD<matrix_t>	new_svd(new_jacobian);
     const auto	new_condition = new_svd.singularValues()(0)
@@ -952,7 +962,6 @@ ServoCalcs::velocityScalingFactorForSingularity(
     return velocity_scale;
 }
 
-
 //! Apply velocity scaling for proximity of collisions and singularities
 /*!
  Slow motion down if close to singularity or collision.
@@ -964,21 +973,49 @@ void
 ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
 				 double singularity_scale)
 {
-    if (collision_velocity_scale_ == 0)
+  // Convert to joint angle velocities for checking and applying joint
+  // specific velocity limits.
+    double	bounding_scale = 1.0;
+
+    for (const auto joint : joint_group()->getActiveJointModels())
+    {
+	const auto&	bounds	 = joint->getVariableBounds(joint->getName());
+	const auto	i	 = joint_indices_.at(joint->getName());
+	const auto	velocity = delta_theta[i] / parameters_.publish_period;
+
+	if (bounds.velocity_bounded_ && velocity != 0.0)
+	{
+	  // Clamp each joint velocity to a joint specific
+	  // [min_velocity, max_velocity] range.
+	    const auto	bounded_velocity = std::clamp(velocity,
+						      16*bounds.min_velocity_,
+						      16*bounds.max_velocity_);
+	    bounding_scale = std::min(bounding_scale,
+				      bounded_velocity / velocity);
+	}
+    }
+
+  // Convert back to joint angle increments.
+    // if (bound_scaling < 1.0)
+    //   std::cerr << "*** bound_scaling="
+    // 		<< bound_scaling << std::endl;
+    delta_theta *= (bounding_scale *
+		    collision_velocity_scale_ * singularity_scale);
+    
+    if (collision_velocity_scale_ <= 0)
     {
 	status_ = StatusCode::HALT_FOR_COLLISION;
+
 	ROS_WARN_STREAM_THROTTLE_NAMED(3, LOGNAME, "Halting for collision!");
     }
-    else if (0 < collision_velocity_scale_ && collision_velocity_scale_ < 1)
+    else if (collision_velocity_scale_ < 1)
     {
 	status_ = StatusCode::DECELERATE_FOR_COLLISION;
+
 	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 				       SERVO_STATUS_CODE_MAP.at(status_));
     }
-
-    delta_theta *= (collision_velocity_scale_ * singularity_scale);
 }
-
 
 //! Convert joint deltas to an outgoing JointTrajectory command
 bool
@@ -1075,9 +1112,9 @@ ServoCalcs::enforcePositionLimits(joint_state_t& joint_state) const
 {
     bool	halting = false;
 
-    for (const auto joint : joint_model_group_->getActiveJointModels())
+    for (const auto joint : joint_group()->getActiveJointModels())
 	if (const auto&	limits = joint->getVariableBoundsMsg();
-	    !current_state_->satisfiesPositionBounds(
+	    !robot_state_->satisfiesPositionBounds(
 		joint, -parameters_.joint_limit_margin) &&
 	    !limits.empty())
 	{
@@ -1091,7 +1128,7 @@ ServoCalcs::enforcePositionLimits(joint_state_t& joint_state) const
 
 	  // Check if pending velocity command is moving in the right
 	  // direction
-	    const auto	velocity = joint_state.velocity[joint_state_name_map_
+	    const auto	velocity = joint_state.velocity[joint_indices_
 							.at(joint->getName())];
 
 	    if ((velocity < 0 &&
@@ -1209,81 +1246,6 @@ ServoCalcs::removeDimension(matrix_t& jacobian,
     
     jacobian.conservativeResize(nrows, ncols);
     delta_x.conservativeResize(nrows);
-}
-
-/*
- *  private member functions: incoming command scaling stuffs
- */
-//! Scale them to physical units.
-/*!
-  Do it if incoming velocity commands are from a unitless joystick.
-  Also, multiply by timestep to calculate a position change.
-*/
-ServoCalcs::vector_t
-ServoCalcs::scaleCartesianCommand(const twist_t& command) const
-{
-    vector_t result(6);
-
-  // Apply user-defined scaling if inputs are unitless [-1:1]
-    if (parameters_.command_in_type == "unitless")
-    {
-	result[0] = parameters_.linear_scale * parameters_.publish_period
-		  * command.twist.linear.x;
-	result[1] = parameters_.linear_scale * parameters_.publish_period
-		  * command.twist.linear.y;
-	result[2] = parameters_.linear_scale * parameters_.publish_period
-		  * command.twist.linear.z;
-	result[3] = parameters_.rotational_scale * parameters_.publish_period
-		  * command.twist.angular.x;
-	result[4] = parameters_.rotational_scale * parameters_.publish_period
-		  * command.twist.angular.y;
-	result[5] = parameters_.rotational_scale * parameters_.publish_period
-		  * command.twist.angular.z;
-    }
-  // Otherwise, commands are in m/s and rad/s
-    else
-    {
-	result[0] = command.twist.linear.x  * parameters_.publish_period;
-	result[1] = command.twist.linear.y  * parameters_.publish_period;
-	result[2] = command.twist.linear.z  * parameters_.publish_period;
-	result[3] = command.twist.angular.x * parameters_.publish_period;
-	result[4] = command.twist.angular.y * parameters_.publish_period;
-	result[5] = command.twist.angular.z * parameters_.publish_period;
-    }
-
-    return result;
-}
-
-//! Scale them to physical units.
-/*!
-  Do it if incoming velocity commands are from a unitless joystick,
-  Also, multiply by timestep to calculate a position change.
-*/
-ServoCalcs::vector_t
-ServoCalcs::scaleJointCommand(const joint_jog_t& command) const
-{
-    vector_t result(num_joints());
-    result.setZero();
-
-    const auto	k = (parameters_.command_in_type == "unitless" ?
-		     parameters_.joint_scale : 1.0)
-		  * parameters_.publish_period;
-
-    for (size_t m = 0; m < command.joint_names.size(); ++m)
-	try
-	{
-	    const auto	i = joint_state_name_map_.at(command.joint_names[m]);
-
-	    result[i] = k * command.velocities[m];
-	}
-	catch (const std::out_of_range& e)
-	{
-	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-					   "Ignoring joint "
-					   << command.joint_names[m]);
-	}
-    
-    return result;
 }
 
 /*
@@ -1429,16 +1391,61 @@ ServoCalcs::changeControlDimensions(
     return true;
 }
 
-//! Service callback to reset servo status
-/*!
-  e.g. so the arm can move again after a collision
-*/
+/*
+ *  Servo status stuffs
+ */
+void
+ServoCalcs::publishStatus() const
+{
+    auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
+    status_msg->data = static_cast<int8_t>(status_);
+    status_pub_.publish(status_msg);
+}
+
 bool
-ServoCalcs::resetServoStatus(std_srvs::Empty::Request& /*req*/,
-			     std_srvs::Empty::Response& /*res*/)
+ServoCalcs::resetStatus(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
     status_ = StatusCode::NO_WARNING;
     return true;
+}
+
+/*
+ *  Worst case stop time stuffs
+ */
+void
+ServoCalcs::publishWorstCaseStopTime() const
+{
+  // Calculate worst case joint stop time, for collision checking
+    double	worst_case_stop_time = 0;
+    for (const auto joint : joint_group()->getActiveJointModels())
+    {
+	const auto&	bound = joint->getVariableBounds()[0];
+
+      // Some joints do not have acceleration limits
+	if (bound.acceleration_bounded_)
+	{
+	  // Be conservative when calculating overall acceleration
+	  // limit from min and max limits
+	    const auto	accel_limit = std::min(fabs(bound.min_acceleration_),
+					       fabs(bound.max_acceleration_));
+	    const auto	i = joint_indices_.at(joint->getName());
+
+	    worst_case_stop_time = std::max(worst_case_stop_time,
+					  //fabs(actual_velocities_[i]
+					    fabs(original_joint_state_.velocity[i]
+						 / accel_limit));
+	}
+	else
+	    ROS_WARN_STREAM_THROTTLE_NAMED(
+		ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+		"An acceleration limit is not defined for this joint; minimum"
+		"stop distance should not be used for collision checking");
+    }
+
+  // publish message
+    auto	msg = moveit::util::make_shared_from_pool<flt64_t>();
+    msg->data = worst_case_stop_time;
+    worst_case_stop_time_pub_.publish(msg);
 }
 
 }  // namespace moveit_servo
