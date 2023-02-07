@@ -79,20 +79,8 @@ class Multiplexer
 	ros::Subscriber			_camera_info_sub;
     };
 
-    using subscribers_cp = std::shared_ptr<const Subscribers>;
-
-    struct ddynamic_reconfigure_t : ddynamic_reconfigure::DDynamicReconfigure
-    {
-	using super	= ddynamic_reconfigure::DDynamicReconfigure;
-
-	ddynamic_reconfigure_t(const ros::NodeHandle& nh) :super(nh)	{}
-
-	void	publishServicesTopics()
-		{
-		    super::publishServicesTopics();
-		    super::updateConfigData(generateConfig());
-		}
-    };
+    using subscribers_cp	 = std::shared_ptr<const Subscribers>;
+    using ddynamic_reconfigure_t = ddynamic_reconfigure::DDynamicReconfigure;
 
   public:
     Multiplexer(const ros::NodeHandle& nh)				;
