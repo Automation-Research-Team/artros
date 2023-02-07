@@ -93,21 +93,6 @@ operator -(const Pose& a, const Pose& b)
 }
 
 Pose
-operator -(const Pose& a)
-{
-    Pose	ret;
-    ret.position.x    = -a.position.x;
-    ret.position.y    = -a.position.y;
-    ret.position.z    = -a.position.z;
-    ret.orientation.x = -a.orientation.x;
-    ret.orientation.y = -a.orientation.y;
-    ret.orientation.z = -a.orientation.z;
-    ret.orientation.w = -a.orientation.w;
-
-    return ret;
-}
-
-Pose
 operator *(double c, const Pose& a)
 {
     Pose	ret;
@@ -132,7 +117,51 @@ zero(Pose)
     ret.orientation.x = 0;
     ret.orientation.y = 0;
     ret.orientation.z = 0;
-    ret.orientation.w = 1;
+    ret.orientation.w = 0;
+
+    return ret;
+}
+    
+Point
+operator +(const Point& a, const Point& b)
+{
+    Point	ret;
+    ret.x = a.x	+ b.x;
+    ret.y = a.y	+ b.y;
+    ret.z = a.z	+ b.z;
+
+    return ret;
+}
+
+Point
+operator -(const Point& a, const Point& b)
+{
+    Point	ret;
+    ret.x = a.x - b.x;
+    ret.y = a.y - b.y;
+    ret.z = a.z - b.z;
+
+    return ret;
+}
+
+Point
+operator *(double c, const Point& a)
+{
+    Point	ret;
+    ret.x = c * a.x;
+    ret.y = c * a.y;
+    ret.z = c * a.z;
+
+    return ret;
+}
+
+Point
+zero(Point)
+{
+    Point	ret;
+    ret.x = 0;
+    ret.y = 0;
+    ret.z = 0;
 
     return ret;
 }
@@ -296,7 +325,9 @@ class PoseTrackingServo
 				input_low_pass_filter_;
 
   // Spline extrapolator
-    aist_utility::SplineExtrapolator<geometry_msgs::Pose, 3>
+    // aist_utility::SplineExtrapolator<geometry_msgs::Pose, 3>
+    // 						input_extrapolator_;
+    aist_utility::SplineExtrapolator<geometry_msgs::Point, 3>
 						input_extrapolator_;
 
   // PIDs
@@ -763,7 +794,8 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	tf2::doTransform(target_pose_, target_pose_, Tpt);
     }
 
-    input_extrapolator_.update(target_pose_.header.stamp, target_pose_.pose);
+  //input_extrapolator_.update(ros::Time::now(), target_pose_.pose);
+    input_extrapolator_.update(ros::Time::now(), target_pose_.pose.position);
 }
 
 void
@@ -830,7 +862,9 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
     }
 
   // Apply input extrapolator
-    target_pose.pose = input_extrapolator_.pos(ros::Time::now());
+    // target_pose.pose = input_extrapolator_.pos(ros::Time::now());
+    // normalize(target_pose.pose.orientation);
+  //target_pose.pose.position = input_extrapolator_.pos(ros::Time::now());
 
   // Apply input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
