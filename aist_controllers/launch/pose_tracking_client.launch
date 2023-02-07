@@ -2,9 +2,9 @@
 <launch>
 
   <!-- offset for realsense -->
-  <!-- <arg name="target_offset"	default="[0.1, 0.05, 0.10, -90, 90, 0]"/> -->
+  <arg name="target_offset"	default="[0.1, 0.05, 0.05, -90, 90, 0]"/>
   <!-- offset for phoxi -->
-  <arg name="target_offset"	default="[0.1, 0.15, 0.35, -90, 90, 0]"/>
+  <!-- <arg name="target_offset"	default="[0.1, 0.15, 0.35, -90, 90, 0]"/> -->
   <arg name="plot"		default="durations"/>
 
   <!-- Spawn client -->
@@ -46,7 +46,14 @@
   	      /arm_controller/state/actual/positions[0]
   	      /arm_controller/state/actual/positions[4]"/>
   <arg if="$(eval plot == 'durations')"
-       name="plot_args"	value="/pose_tracking_servo/durations"/>
+       name="plot_args"
+       value="/pose_tracking_servo/durations/target_pose_in
+	      /pose_tracking_servo/durations/twist_out
+	      /pose_tracking_servo/durations/cmd_out
+	      /pose_tracking_servo/desired_pose/pose/position/x
+	      /pose_tracking_servo/desired_pose/pose/position/y
+	      /pose_tracking_servo/actual_pose/pose/position/x
+	      /pose_tracking_servo/actual_pose/pose/position/y"/>
 
   <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
 	args="$(arg plot_args)"/>
