@@ -20,8 +20,6 @@ find_package(catkin REQUIRED
   COMPONENTS
     roscpp
     rospy
-    genmsg
-    message_generation
     tf_conversions
     tf2_geometry_msgs
     ddynamic_reconfigure
@@ -36,6 +34,7 @@ find_package(catkin REQUIRED
     rosparam_shortcuts
     control_toolbox
     aist_utility
+    message_generation
 )
 
 catkin_python_setup()
@@ -62,18 +61,22 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS
     roscpp
-    message_runtime
     trajectory_msgs
     control_msgs
     moveit_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts
     control_toolbox
+    message_runtime
+  INCLUDE_DIRS
+    include
+  LIBRARIES
+    ${PROJECT_NAME}
 )
 
 include_directories(
   include
-  ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${orocos_kdl_INCLUDE_DIRS}
 )
 
 #
@@ -152,6 +155,7 @@ target_link_libraries(
 
 add_dependencies(
   ${SERVO_LIB_NAME}
+  ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 

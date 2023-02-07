@@ -20,12 +20,11 @@ find_package(
   COMPONENTS
     roscpp
     rospy
-    genmsg
-    message_generation
     sensor_msgs
     geometry_msgs
     tf
     ddynamic_reconfigure
+    message_generation
 )
 
 find_package(OpenCV REQUIRED)
@@ -52,6 +51,7 @@ catkin_package(
     rospy
     sensor_msgs
     geometry_msgs
+    message_runtime
   INCLUDE_DIRS
     include
     ${OpenCV_INCLUDE_DIRS}
@@ -149,6 +149,7 @@ target_link_libraries(
 
 add_dependencies(
   spline_extrapolator_test
+  ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 

@@ -112,8 +112,8 @@ class SplineExtrapolator
 		    const auto	vp  = rdt*dx;
 
 		    _a[0] = pos(std::integral_constant<size_t, 0>(), dt);
-		    _a[1] =      -vp + 2*rdt*(_xp - _a[0]);
-		    _a[2] = rdt*( vp -	 rdt*(_xp - _a[0]));
+		    _a[1] = 2*rdt*(_xp - _a[0]) - vp;
+		    _a[2] = rdt*(vp - rdt*(_xp - _a[0]));
 		}
     void	update(std::integral_constant<size_t, 3>,
 		       double dt, const value_type& dx)
@@ -123,8 +123,8 @@ class SplineExtrapolator
 
 		    _a[0] = pos(std::integral_constant<size_t, 0>(), dt);
 		    _a[1] = vel(std::integral_constant<size_t, 1>(), dt);
-		    _a[2] =	rdt*(-(vp + 2*_a[1]) + 3*rdt*(_xp - _a[0]));
-		    _a[3] = rdt*rdt*(( vp +   _a[1]) - 2*rdt*(_xp - _a[0]));
+		    _a[2] =	rdt*(3*rdt*(_xp - _a[0]) - (vp + 2*_a[1]));
+		    _a[3] = rdt*rdt*((vp + _a[1]) - 2*rdt*(_xp - _a[0]));
 		}
     void	update(std::integral_constant<size_t, 4>,
 		       double dt, const value_type& dx)
@@ -135,10 +135,10 @@ class SplineExtrapolator
 		    _a[0] = pos(std::integral_constant<size_t, 0>(), dt);
 		    _a[1] = vel(std::integral_constant<size_t, 1>(), dt);
 		    _a[2] = vel(std::integral_constant<size_t, 2>(), dt);
-		    _a[3] =	rdt*(-2*_a[2] + rdt*(-(vp + 3*_a[1])
-						     + 4*rdt*(_xp - _a[0])));
-		    _a[4] = rdt*rdt*(   _a[2] + rdt*( (vp + 2*_a[1])
-						     - 3*rdt*(_xp - _a[0])));
+		    _a[3] =	rdt*(rdt*(4*rdt*(_xp - _a[0]) - (vp + 3*_a[1]))
+				     - 2*_a[2]);
+		    _a[4] = rdt*rdt*(_a[2] + rdt*((vp + 2*_a[1])
+						  - 3*rdt*(_xp - _a[0])));
 		}
 
     template <size_t N_>

@@ -383,11 +383,11 @@ JointTrajectoryServo::createPlanningSceneMonitor(
 	exit(EXIT_FAILURE);
     }
 
-    monitor->startSceneMonitor();
-    monitor->startWorldGeometryMonitor(
-	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-	false /* skip octomap monitor */);
+    // monitor->startSceneMonitor();
+    // monitor->startWorldGeometryMonitor(
+    // 	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+    // 	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+    // 	false /* skip octomap monitor */);
     monitor->startStateMonitor();
 
   // Confirm the planning scene monitor is ready to be used
@@ -466,19 +466,22 @@ JointTrajectoryServo::tick()
 	return;
     }
 
-  // Set joint positions to trajectory and publish.
+  // Set current joint positions.
     std::cerr << "*** OK4" << std::endl;
-    _state->copyJointGroupPositions(_joint_model_group,
-				    _joint_trajectory.points[0].positions);
+    std::vector<double>	positions(_joint_trajectory.points[0].positions.size());
+    _state->copyJointGroupPositions(_joint_model_group, positions);
     std::cerr << "current:";
-    for (const auto& pos : _joint_trajectory.points[0].positions)
+    for (const auto& pos : positions)
 	std::cerr << ' ' << pos;
+
+  // Set joint positions for target pose.
     state.copyJointGroupPositions(_joint_model_group,
 				  _joint_trajectory.points[0].positions);
     std::cerr << "\ntarget: ";
     for (const auto& pos : _joint_trajectory.points[0].positions)
 	std::cerr << ' ' << pos;
     std::cerr << std::endl;
+
   //_command_pub.publish(_joint_trajectory);
     
   // Get current transform from end-effector frame to planning frame.
@@ -590,25 +593,69 @@ JointTrajectoryServo::getFrameTransform(const std::string& frame) const
 {
     std::lock_guard<std::mutex>	lock(_state_mutex);
 
-    // auto transform = tf2::eigenToTransform(
-    // 			_state->getGlobalLinkTransform(planning_frame())
-    // 			.inverse() *
-    // 			_state->getGlobalLinkTransform(frame));
+  // auto transform = tf2::eigenToTransform(
+  // 			_state->getGlobalLinkTransform(planning_frame())
+  // 			.inverse() *
+  // 			_state->getGlobalLinkTransform(frame));
   //transform.header.frame_id = planning_frame();
     auto transform = tf2::eigenToTransform(
-			_state->getGlobalLinkTransform(frame));
+	_state->getGlobalLinkTransform(frame));
     transform.header.frame_id = root_frame();
     transform.header.stamp    = _state_stamp;
     transform.child_frame_id  = frame;
 
     return transform;
 }
+/*
+void
+JointTrajectoryServo::enforceVelLimits(std::vector<double>& positions)
+{
+    std::vector<double>	current_positions(positions.size());
+    _state->copyJointGroupPositions(_joint_model_group, current_positions);
+    
+    for (const auto& pos : positions)
+    {
+    }
+    
+  // Convert to joint angle velocities for checking and applying joint
+  // specific velocity limits.
+    Eigen::ArrayXd	velocity = delta_theta / parameters_.publish_period;
 
+    std::size_t		joint_delta_index = 0;
+    double		velocity_scaling_factor = 1.0;
+    for (const moveit::core::JointModel* joint
+	     : joint_model_group_->getActiveJointModels())
+    {
+	const auto&	bounds = joint->getVariableBounds(joint->getName());
+	if (bounds.velocity_bounded_ && velocity(joint_delta_index) != 0.0)
+	{
+	    const auto	unbounded_velocity = velocity(joint_delta_index);
+	  // Clamp each joint velocity to a joint specific
+	  // [min_velocity, max_velocity] range.
+	    const auto bounded_velocity
+		= std::min(std::max(unbounded_velocity,
+				    16*bounds.min_velocity_),
+			   16*bounds.max_velocity_);
+	    velocity_scaling_factor
+	    	= std::min(velocity_scaling_factor,
+	    		   bounded_velocity / unbounded_velocity);
+	}
+	++joint_delta_index;
+    }
+
+  // Convert back to joint angle increments.
+    // if (velocity_scaling_factor < 1.0)
+    //   std::cerr << "*** velocity_scaling_factor="
+    // 		<< velocity_scaling_factor << std::endl;
+    delta_theta = velocity_scaling_factor * velocity
+    		* parameters_.publish_period;
+}
+*/
 }	// namespace aist_controllers
 
 /************************************************************************
-*  main function							*
-************************************************************************/
+ *  main function							*
+ ************************************************************************/
 int
 main(int argc, char* argv[])
 {

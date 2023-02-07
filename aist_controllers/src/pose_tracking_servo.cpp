@@ -47,6 +47,7 @@
 #include <actionlib/server/simple_action_server.h>
 #include <aist_controllers/PoseTrackingAction.h>
 #include <aist_utility/butterworth_lpf.h>
+#include <aist_utility/spline_extrapolator.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -77,6 +78,21 @@ operator +(const Pose& a, const Pose& b)
 }
 
 Pose
+operator -(const Pose& a, const Pose& b)
+{
+    Pose	ret;
+    ret.position.x    = a.position.x	- b.position.x;
+    ret.position.y    = a.position.y	- b.position.y;
+    ret.position.z    = a.position.z	- b.position.z;
+    ret.orientation.x = a.orientation.x	- b.orientation.x;
+    ret.orientation.y = a.orientation.y	- b.orientation.y;
+    ret.orientation.z = a.orientation.z	- b.orientation.z;
+    ret.orientation.w = a.orientation.w	- b.orientation.w;
+
+    return ret;
+}
+
+Pose
 operator *(double c, const Pose& a)
 {
     Pose	ret;
@@ -90,6 +106,66 @@ operator *(double c, const Pose& a)
 
     return ret;
 }
+
+Pose
+zero(Pose)
+{
+    Pose	ret;
+    ret.position.x    = 0;
+    ret.position.y    = 0;
+    ret.position.z    = 0;
+    ret.orientation.x = 0;
+    ret.orientation.y = 0;
+    ret.orientation.z = 0;
+    ret.orientation.w = 0;
+
+    return ret;
+}
+    
+Point
+operator +(const Point& a, const Point& b)
+{
+    Point	ret;
+    ret.x = a.x	+ b.x;
+    ret.y = a.y	+ b.y;
+    ret.z = a.z	+ b.z;
+
+    return ret;
+}
+
+Point
+operator -(const Point& a, const Point& b)
+{
+    Point	ret;
+    ret.x = a.x - b.x;
+    ret.y = a.y - b.y;
+    ret.z = a.z - b.z;
+
+    return ret;
+}
+
+Point
+operator *(double c, const Point& a)
+{
+    Point	ret;
+    ret.x = c * a.x;
+    ret.y = c * a.y;
+    ret.z = c * a.z;
+
+    return ret;
+}
+
+Point
+zero(Point)
+{
+    Point	ret;
+    ret.x = 0;
+    ret.y = 0;
+    ret.z = 0;
+
+    return ret;
+}
+    
 }	// namespace geometry_msgs
 
 namespace aist_controllers
@@ -219,9 +295,6 @@ class PoseTrackingServo
     void	resetTargetPose()					;
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
-  // End-effector pose stuffs
-    bool	haveRecentEndEffectorPose(const ros::Duration& timeout)	const;
-
   private:
     ros::NodeHandle				nh_;
 
@@ -229,15 +302,12 @@ class PoseTrackingServo
     std::unique_ptr<moveit_servo::Servo>	servo_;
     servo_status_t				servo_status_;
 
-    std::string					move_group_name_;
-    const moveit::core::JointModelGroup*	joint_model_group_;
-
     ros::ServiceClient				reset_servo_status_;
     ros::Subscriber				servo_status_sub_;
     ros::Subscriber				target_pose_sub_;
     ros::Publisher				twist_stamped_pub_;
-    ros::Publisher				target_pose_pub_;  // for debug
-    ros::Publisher				ee_pose_pub_;	   // for debug
+    ros::Publisher				target_pose_debug_pub_;
+    ros::Publisher				ee_pose_debug_pub_;
     ros::Rate					loop_rate_;
     DurationArray&				durations_;
 
@@ -254,6 +324,12 @@ class PoseTrackingServo
     aist_utility::ButterworthLPF<double, geometry_msgs::Pose>
 				input_low_pass_filter_;
 
+  // Spline extrapolator
+    // aist_utility::SplineExtrapolator<geometry_msgs::Pose, 3>
+    // 						input_extrapolator_;
+    aist_utility::SplineExtrapolator<geometry_msgs::Point, 3>
+						input_extrapolator_;
+
   // PIDs
     std::vector<control_toolbox::Pid>		cartesian_position_pids_;
     std::vector<control_toolbox::Pid>		cartesian_orientation_pids_;
@@ -264,8 +340,6 @@ class PoseTrackingServo
 
   // Transforms w.r.t. planning_frame_
     std::string					planning_frame_;
-    Eigen::Isometry3d				ee_frame_transform_;
-    ros::Time					ee_frame_transform_stamp_;
     geometry_msgs::PoseStamped			target_pose_;
     mutable std::mutex				target_pose_mtx_;
 };
@@ -276,19 +350,16 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      servo_(new moveit_servo::Servo(nh_, planning_scene_monitor_)),
      servo_status_(servo_status_t::INVALID),
 
-     move_group_name_(),
-     joint_model_group_(nullptr),
-
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
      servo_status_sub_(nh_.subscribe(servo_->getParameters().status_topic, 1,
 				     &PoseTrackingServo::servoStatusCB, this)),
      target_pose_sub_(),
      twist_stamped_pub_(),
-     target_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
-			  "target_pose_debug", 1)),
-     ee_pose_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
-		      "ee_pose_debug", 1)),
+     target_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+				"desired_pose", 1)),
+     ee_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+			    "actual_pose", 1)),
      loop_rate_(DEFAULT_LOOP_RATE),
      durations_(servo_->durations()),
 
@@ -302,6 +373,8 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 			    input_low_pass_filter_cutoff_frequency_ *
 			    loop_rate_.expectedCycleTime().toSec()),
 
+     input_extrapolator_(),
+     
      cartesian_position_pids_(),
      cartesian_orientation_pids_(),
      x_pid_config_(),
@@ -309,8 +382,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      z_pid_config_(),
 
      planning_frame_(),
-     ee_frame_transform_(),
-     ee_frame_transform_stamp_(),
      target_pose_(),
      target_pose_mtx_()
 {
@@ -485,26 +556,6 @@ PoseTrackingServo::tick()
     	return;
     }
 
-  // Attempt to update robot pose.
-    if (servo_->getEEFrameTransform(ee_frame_transform_))
-	ee_frame_transform_stamp_ = ros::Time::now();
-
-    durations_.ee_frame_in = (ee_frame_transform_stamp_ -
-			      durations_.header.stamp).toSec();
-
-  // Check that end-effector pose (command frame transform) is recent enough.
-    if (!haveRecentEndEffectorPose(current_goal_->timeout))
-    {
-	doPostMotionReset();
-	PoseTrackingResult	result;
-	result.status = PoseTrackingResult::INPUT_TIMEOUT;
-    	tracker_srv_.setAborted(result);
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
-			       << "The end effector pose was not updated in time.]");
-
-	return;
-    }
-
   // Compute positional and angular errors.
     Eigen::Vector3d	positional_error;
     Eigen::AngleAxisd	angular_error;
@@ -545,12 +596,6 @@ PoseTrackingServo::tick()
 
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
-
-  // For debugging
-    ee_pose_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					ee_frame_transform_,
-					ee_frame_transform_stamp_,
-					planning_frame_)));
 }
 
 const ros::Rate&
@@ -616,15 +661,17 @@ PoseTrackingServo::readROSParams()
 
     error += !rosparam_shortcuts::get(LOGNAME, nh,
 				      "planning_frame", planning_frame_);
+
+    std::string	move_group_name;
     error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "move_group_name", move_group_name_);
+				      "move_group_name", move_group_name);
     if (!planning_scene_monitor_->getRobotModel()
-				->hasJointModelGroup(move_group_name_))
+				->hasJointModelGroup(move_group_name))
     {
 	++error;
 	ROS_ERROR_STREAM_NAMED(
 	    LOGNAME, "Unable to find the specified joint model group: "
-	    << move_group_name_);
+	    << move_group_name);
     }
 
   // Setup loop_rate_
@@ -736,17 +783,19 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
     durations_.target_pose_in = (ros::Time::now() -
 				 durations_.header.stamp).toSec();
 
-  // If the target pose is defined in planning frame, it's OK as is.
-    if (target_pose_.header.frame_id == planning_frame_)
-	return;
+  // If the target pose is not defined in planning frame, transform it.
+    if (target_pose_.header.frame_id != planning_frame_)
+    {
+	auto Tpt = tf2::eigenToTransform(servo_->getFrameTransform(
+					     target_pose_.header.frame_id));
+	Tpt.header.stamp    = target_pose_.header.stamp;
+	Tpt.header.frame_id = planning_frame_;
+	Tpt.child_frame_id  = target_pose_.header.frame_id;
+	tf2::doTransform(target_pose_, target_pose_, Tpt);
+    }
 
-  // Otherwise, transform it to planning frame.
-    auto Tpt = tf2::eigenToTransform(servo_->getFrameTransform(
-					 target_pose_.header.frame_id));
-    Tpt.header.stamp    = target_pose_.header.stamp;
-    Tpt.header.frame_id = planning_frame_;
-    Tpt.child_frame_id  = target_pose_.header.frame_id;
-    tf2::doTransform(target_pose_, target_pose_, Tpt);
+  //input_extrapolator_.update(ros::Time::now(), target_pose_.pose);
+    input_extrapolator_.update(ros::Time::now(), target_pose_.pose.position);
 }
 
 void
@@ -761,8 +810,7 @@ PoseTrackingServo::goalCB()
 	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
 	 ros::Duration(0.001).sleep())
     {
-	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
-	    haveRecentEndEffectorPose(DEFAULT_INPUT_TIMEOUT))
+	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(target_pose_.pose);
 
@@ -779,9 +827,6 @@ PoseTrackingServo::goalCB()
 
 	    return;
 	}
-
-	if (servo_->getEEFrameTransform(ee_frame_transform_))
-	    ee_frame_transform_stamp_ = ros::Time::now();
     }
 
   // No target pose available recently.
@@ -816,7 +861,12 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
 	target_pose = target_pose_;
     }
 
-  // Applly input low-pass filter
+  // Apply input extrapolator
+    // target_pose.pose = input_extrapolator_.pos(ros::Time::now());
+    // normalize(target_pose.pose.orientation);
+  //target_pose.pose.position = input_extrapolator_.pos(ros::Time::now());
+
+  // Apply input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
     normalize(target_pose.pose.orientation);
 
@@ -828,21 +878,22 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
     tf2::toMsg(target_transform * offset_transform, target_pose.pose);
 
   // Publish corrected pose for debugging
-    target_pose_pub_.publish(target_pose);
+    target_pose_debug_pub_.publish(target_pose);
 
   // Compute errors
-    positional_error(0) = target_pose.pose.position.x
-			- ee_frame_transform_.translation()(0);
-    positional_error(1) = target_pose.pose.position.y
-			- ee_frame_transform_.translation()(1);
-    positional_error(2) = target_pose.pose.position.z
-			- ee_frame_transform_.translation()(2);
+    const auto	Tpe = servo_->getEEFrameTransform();
+    positional_error(0) = target_pose.pose.position.x - Tpe.translation()(0);
+    positional_error(1) = target_pose.pose.position.y - Tpe.translation()(1);
+    positional_error(2) = target_pose.pose.position.z - Tpe.translation()(2);
 
     Eigen::Quaterniond	q_desired;
     tf2::convert(target_pose.pose.orientation, q_desired);
-    angular_error = q_desired
-		  * Eigen::Quaterniond(ee_frame_transform_.rotation())
-			.inverse();
+    angular_error = q_desired * Eigen::Quaterniond(Tpe.rotation()).inverse();
+
+  // For debugging
+    ee_pose_debug_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					      Tpe, ros::Time::now(),
+					      planning_frame_)));
 }
 
 geometry_msgs::TwistStampedConstPtr
@@ -1001,13 +1052,6 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
 }
 
-// End-effector pose stuffs
-bool
-PoseTrackingServo::haveRecentEndEffectorPose(
-			const ros::Duration& timeout) const
-{
-    return (ros::Time::now() - ee_frame_transform_stamp_ < timeout);
-}
 }	// namespace aist_controllers
 
 /************************************************************************
