@@ -357,9 +357,9 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      target_pose_sub_(),
      twist_stamped_pub_(),
      target_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
-				"target_pose_debug", 1)),
+				"desired_pose", 1)),
      ee_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
-			    "ee_pose_debug", 1)),
+			    "actual_pose", 1)),
      loop_rate_(DEFAULT_LOOP_RATE),
      durations_(servo_->durations()),
 
