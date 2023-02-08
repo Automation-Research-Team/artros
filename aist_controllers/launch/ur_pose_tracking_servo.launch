@@ -20,11 +20,15 @@
   </node>
 
   <!-- Launch pose_tracking_servo -->
+  <arg if="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
+       name="publish_period"	value="0.008"/>
+  <arg unless="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
+       name="publish_period"	value="0.002"/>
+
   <arg if="$(arg traj)"
        name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
   <arg unless="$(arg traj)"
        name="command_out_type"	value="std_msgs/Float64MultiArray"/>
-
 
   <arg if="$(eval traj and not velocity_control)"
        name="controller"	value="scaled_pos_joint_traj_controller"/>
