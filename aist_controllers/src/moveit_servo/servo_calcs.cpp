@@ -217,6 +217,9 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 #endif
     }
 
+  // Initialize position buffer so that low-pass filters can be reset anytime.
+    updateJoints();
+    
   // Initialize buffer for incoming twist command.
     twist_cmd_.header.stamp    = ros::Time(0);
     twist_cmd_.twist.linear.x  = 0.0;

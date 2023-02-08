@@ -106,19 +106,7 @@ class ForceTorqueSensorController
 	using quaternion_t	= Eigen::Quaterniond;
 	using ft_t		= Eigen::Matrix<double, 6, 1>;
 	using filter_t		= aist_utility::ButterworthLPF<double, ft_t>;
-
-	struct ddr_t : ddynamic_reconfigure::DDynamicReconfigure
-	{
-	    using super	= ddynamic_reconfigure::DDynamicReconfigure;
-
-			ddr_t(const ros::NodeHandle& nh) :super(nh)	{}
-
-	    void	publishServicesTopics()
-			{
-			    super::publishServicesTopics();
-			    super::updateConfigData(generateConfig());
-			}
-	};
+	using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
 
 	constexpr static double	G = 9.80665;
 
@@ -476,7 +464,7 @@ ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
     _ddr.registerVariable<bool>(
 	"compensate_gravity", &_compensate_gravity,
 	"Compensate gravity if true", false, true);
-    _ddr.publishServicesTopics();
+    _ddr.publishServicesTopicsAndUpdateConfigData();
 
     ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor[" << name << ']');
 }

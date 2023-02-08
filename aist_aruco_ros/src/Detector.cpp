@@ -186,7 +186,7 @@ Detector::Detector(const ros::NodeHandle& nh)
     	0.0005, 0.05);
 
   // Pulish ddynamic_reconfigure service.
-    _ddr.publishServicesTopics();
+    _ddr.publishServicesTopicsAndUpdateConfigData();
 
   // Register callback for marker detection.
     _depth_sync.registerCallback(&Detector::detect_marker_from_depth_cb, this);

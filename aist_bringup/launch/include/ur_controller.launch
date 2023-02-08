@@ -43,7 +43,8 @@
 		joint_group_pos_controller joint_group_vel_controller"/>
 
     <node name="controller_stopper"
-	  pkg="controller_stopper" type="node" respawn="false" output="screen">
+	  pkg="ur_robot_driver" type="controller_stopper_node"
+	  respawn="false" output="screen">
       <remap from="robot_running"
 	     to="ur_hardware_interface/robot_program_running"/>
       <rosparam param="consistent_controllers" subst_value="true">

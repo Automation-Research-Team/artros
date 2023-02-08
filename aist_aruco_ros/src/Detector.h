@@ -27,36 +27,24 @@ namespace aist_aruco_ros
 class Detector
 {
   private:
-    using camera_info_t	= sensor_msgs::CameraInfo;
-    using camera_info_p	= sensor_msgs::CameraInfoConstPtr;
-    using image_t	= sensor_msgs::Image;
-    using image_p	= sensor_msgs::ImageConstPtr;
-    using cloud_t	= sensor_msgs::PointCloud2;
-    using cloud_p	= sensor_msgs::PointCloud2ConstPtr;
-    using depth_sync_t	= message_filters::TimeSynchronizer<
-				image_t, image_t, camera_info_t>;
-    using cloud_sync_t	= message_filters::TimeSynchronizer<
+    using camera_info_t		= sensor_msgs::CameraInfo;
+    using camera_info_p		= sensor_msgs::CameraInfoConstPtr;
+    using image_t		= sensor_msgs::Image;
+    using image_p		= sensor_msgs::ImageConstPtr;
+    using cloud_t		= sensor_msgs::PointCloud2;
+    using cloud_p		= sensor_msgs::PointCloud2ConstPtr;
+    using depth_sync_t		= message_filters::TimeSynchronizer<
+					image_t, image_t, camera_info_t>;
+    using cloud_sync_t		= message_filters::TimeSynchronizer<
 				cloud_t, camera_info_t>;
-    using mdetector_t	= aruco::MarkerDetector;
-    using mparams_t	= mdetector_t::Params;
-    using marker_info_t	= aruco::Marker3DInfo;
-    using marker_map_t	= aruco::MarkerMap;
-    using point3_t	= cv::Vec<float, 3>;
+    using mdetector_t		= aruco::MarkerDetector;
+    using mparams_t		= mdetector_t::Params;
+    using marker_info_t		= aruco::Marker3DInfo;
+    using marker_map_t		= aruco::MarkerMap;
+    using point3_t		= cv::Vec<float, 3>;
+    using ddynamic_reconfigure_t= ddynamic_reconfigure::DDynamicReconfigure;
 
-    struct rgb_t	{ uint8_t r, g, b; };
-
-    struct ddynamic_reconfigure_t : ddynamic_reconfigure::DDynamicReconfigure
-    {
-	using super	= ddynamic_reconfigure::DDynamicReconfigure;
-
-	ddynamic_reconfigure_t(const ros::NodeHandle& nh) :super(nh)	{}
-
-	void	publishServicesTopics()
-		{
-		    super::publishServicesTopics();
-		    super::updateConfigData(generateConfig());
-		}
-    };
+    struct rgb_t		{ uint8_t r, g, b; };
 
   public:
 		Detector(const ros::NodeHandle& nh)			;

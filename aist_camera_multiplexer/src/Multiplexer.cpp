@@ -114,7 +114,7 @@ Multiplexer::Multiplexer(const ros::NodeHandle& nh)
 	"active_camera", _subscribers[_camera_number]->camera_name(),
 	boost::bind(&Multiplexer::activate_camera, this, _1),
 	"Currently active camera", enum_cameras);
-    _ddr.publishServicesTopics();
+    _ddr.publishServicesTopicsAndUpdateConfigData();
 }
 
 void
