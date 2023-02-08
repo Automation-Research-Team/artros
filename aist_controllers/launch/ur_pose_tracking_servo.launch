@@ -19,7 +19,7 @@
   		    )/config/aist/$(arg camera_name).yaml"/>
   </node>
 
-  <!-- Launch pose_tracking_servo -->
+  <!-- Set parameters for pose_trakcing_servo -->
   <arg if="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
        name="publish_period"	value="0.008"/>
   <arg unless="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
@@ -39,10 +39,6 @@
   <arg if="$(eval not traj and velocity_control)"
        name="controller"	value="joint_group_vel_controller"/>
 
-  <node unless="$(arg traj)"
-  	name="rqt_controller_manager"
-        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
-
   <arg if="$(arg unitless)"
        name="command_in_type"	value="unitless"/>
   <arg unless="$(arg unitless)"
@@ -51,6 +47,12 @@
   <arg name="pub_pos"		value="$(eval not velocity_control)"/>
   <arg name="pub_vel"		value="$(eval velocity_control)"/>
   
+  <!-- Spawn controller manager if non-default controller is required -->
+  <node unless="$(controller == 'scaled_pos_joint_traj_controller')"
+  	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <!-- Spawn pose_tracking_servo -->
   <node name="pose_tracking_servo"
   	pkg="aist_controllers" type="pose_tracking_servo" output="screen">
     <rosparam file="$(dirname)/../config/ur_servo_server.yaml"

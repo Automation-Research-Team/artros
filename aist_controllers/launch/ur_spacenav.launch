@@ -38,21 +38,29 @@
   <arg unless="$(arg traj)"
        name="command_out_type"	value="std_msgs/Float64MultiArray"/>
 
-  <arg if="$(arg traj)"
-       name="controller"	value="arm_controller"/>
-  <arg unless="$(arg traj)"
-       name="controller"	value="arm_joint_group_controller"/>
-
-  <node unless="$(arg traj)"
-	name="rqt_controller_manager"
-        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+  <arg if="$(eval traj and not velocity_control)"
+       name="controller"	value="scaled_pos_joint_traj_controller"/>
+  <arg if="$(eval traj and velocity_control)"
+       name="controller"	value="scaled_vel_joint_traj_controller"/>
+  <arg if="$(eval not traj and not velocity_control)"
+       name="controller"	value="joint_group_pos_controller"/>
+  <arg if="$(eval not traj and velocity_control)"
+       name="controller"	value="joint_group_vel_controller"/>
 
   <arg if="$(arg unitless)"
        name="command_in_type"	value="unitless"/>
   <arg unless="$(arg unitless)"
        name="command_in_type"	value="speed_units"/>
 
-  <!-- Spawn servo server -->
+  <arg name="pub_pos"		value="$(eval not velocity_control)"/>
+  <arg name="pub_vel"		value="$(eval velocity_control)"/>
+
+  <!-- Spawn controller manager if non-default controller is required -->
+  <node unless="$(controller == 'scaled_pos_joint_traj_controller')"
+  	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <!-- Spawn servo_server -->
   <node name="servo_server"
 	pkg="aist_controllers" type="servo_server" output="screen">
     <rosparam file="$(dirname)/../config/ur_servo_server.yaml"
