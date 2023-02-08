@@ -464,7 +464,7 @@ ForceTorqueSensorController::Sensor::Sensor(interface_t* hw,
     _ddr.registerVariable<bool>(
 	"compensate_gravity", &_compensate_gravity,
 	"Compensate gravity if true", false, true);
-    _ddr.publishServicesTopics();
+    _ddr.publishServicesTopicsAndUpdateConfigData();
 
     ROS_INFO_STREAM("(aist_ftsensor_controller) got sensor[" << name << ']');
 }
