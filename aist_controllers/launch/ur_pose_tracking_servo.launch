@@ -48,7 +48,7 @@
   <arg name="pub_vel"		value="$(eval velocity_control)"/>
   
   <!-- Spawn controller manager if non-default controller is required -->
-  <node unless="$(controller == 'scaled_pos_joint_traj_controller')"
+  <node unless="$(eval controller == 'scaled_pos_joint_traj_controller')"
   	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
