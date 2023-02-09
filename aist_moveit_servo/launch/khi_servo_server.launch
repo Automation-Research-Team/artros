@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim"			 default="false"/>
+  <arg name="traj"			 default="true"/>
+  <arg name="unitless"			 default="false"/>
+  <arg name="cartesian_command_in_topic" default="delta_twist_cmds"/>
+
+  <arg if="$(arg traj)"
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
+  <arg unless="$(arg traj)"
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
+
+  <arg if="$(arg traj)"
+       name="controller"	value="arm_controller"/>
+  <arg unless="$(arg traj)"
+       name="controller"	value="arm_joint_group_controller"/>
+
+  <node unless="$(arg traj)"
+	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <arg if="$(arg unitless)"
+       name="command_in_type"	value="unitless"/>
+  <arg unless="$(arg unitless)"
+       name="command_in_type"	value="speed_units"/>
+
+  <node name="servo_server"
+	pkg="aist_moveit_servo" type="servo_server" output="screen">
+    <rosparam file="$(dirname)/../config/khi_servo_server.yaml"
+	      subst_value="true"/>
+  </node>
+
+</launch>

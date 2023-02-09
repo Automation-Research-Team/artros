@@ -1,8 +1,8 @@
 /*******************************************************************************
- *      Title     : status_codes.h
- *      Project   : moveit_servo
- *      Created   : 2/25/2019
- *      Author    : Andy Zelenak
+ *      Title     : servo_parameters.h
+ *      Project   : aist_moveit_servo
+ *      Created   : 1/11/2019
+ *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
  * BSD 3-Clause License
  *
@@ -38,28 +38,53 @@
 
 #pragma once
 
-#include <string>
-#include <unordered_map>
+namespace aist_moveit_servo
+{
+// Size of queues used in ros pub/sub/service
+constexpr size_t ROS_QUEUE_SIZE = 2;
 
-namespace moveit_servo
+// ROS params to be read. See the yaml file in /config for a description of each.
+struct ServoParameters
 {
-enum class StatusCode : int8_t
-{
-  INVALID = -1,
-  NO_WARNING = 0,
-  DECELERATE_FOR_SINGULARITY = 1,
-  HALT_FOR_SINGULARITY = 2,
-  DECELERATE_FOR_COLLISION = 3,
-  HALT_FOR_COLLISION = 4,
-  JOINT_BOUND = 5
+  std::string move_group_name;
+  std::string joint_topic;
+  std::string cartesian_command_in_topic;
+  std::string robot_link_command_frame;
+  std::string command_out_topic;
+  std::string planning_frame;
+  std::string ee_frame_name;
+  std::string status_topic;
+  std::string joint_command_in_topic;
+  std::string command_in_type;
+  std::string command_out_type;
+  double linear_scale;
+  double rotational_scale;
+  double joint_scale;
+  double lower_singularity_threshold;
+  double hard_stop_singularity_threshold;
+#if defined(BUTTERWORTH)
+  int    low_pass_filter_half_order;
+  double low_pass_filter_cutoff_frequency;
+#else
+  double low_pass_filter_coeff;
+#endif
+  double publish_period;
+  double incoming_command_timeout;
+  double joint_limit_margin;
+  int num_outgoing_halt_msgs_to_publish;
+  bool use_gazebo;
+  bool publish_joint_positions;
+  bool publish_joint_velocities;
+  bool publish_joint_accelerations;
+  bool low_latency_mode;
+  // Collision checking
+  bool check_collisions;
+  std::string collision_check_type;
+  double collision_check_rate;
+  double scene_collision_proximity_threshold;
+  double self_collision_proximity_threshold;
+  double collision_distance_safety_factor;
+  double min_allowable_collision_distance;
 };
 
-const std::unordered_map<StatusCode, std::string>
-    SERVO_STATUS_CODE_MAP({ { StatusCode::INVALID, "Invalid" },
-                            { StatusCode::NO_WARNING, "No warnings" },
-                            { StatusCode::DECELERATE_FOR_SINGULARITY, "Close to a singularity, decelerating" },
-                            { StatusCode::HALT_FOR_SINGULARITY, "Very close to a singularity, emergency stop" },
-                            { StatusCode::DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
-                            { StatusCode::HALT_FOR_COLLISION, "Collision detected, emergency stop" },
-                            { StatusCode::JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
-}  // namespace moveit_servo
+}  // namespace aist_moveit_servo

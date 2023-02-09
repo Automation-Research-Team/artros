@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : servo.h
- *      Project   : moveit_servo
+ *      Project   : aist_moveit_servo
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -42,11 +42,11 @@
 #include <memory>
 
 // MoveIt
-#include <moveit_servo/collision_check.h>
-#include <moveit_servo/servo_parameters.h>
-#include <moveit_servo/servo_calcs.h>
+#include <aist_moveit_servo/collision_check.h>
+#include <aist_moveit_servo/servo_parameters.h>
+#include <aist_moveit_servo/servo_calcs.h>
 
-namespace moveit_servo
+namespace aist_moveit_servo
 {
 /**
  * Class Servo - Jacobian based robot control with collision avoidance.
@@ -90,19 +90,19 @@ class Servo
 	 {
 	     return servo_calcs_->getCommandFrameTransform();
 	 }
-    
+
     Eigen::Isometry3d
 	 getEEFrameTransform() const
 	 {
 	     return servo_calcs_->getEEFrameTransform();
 	 }
-    
+
     Eigen::Isometry3d
 	 getFrameTransform(const std::string& frame) const
 	 {
 	     return servo_calcs_->getFrameTransform(frame);
 	 }
-    
+
   /** \brief Get the parameters used by servo node. */
     const ServoParameters& getParameters() const;
 
@@ -117,7 +117,7 @@ class Servo
   // Give test access to private/protected methods
     friend class ServoFixture;
 
-    aist_controllers::DurationArray&
+    aist_moveit_servo::DurationArray&
 	 durations()
 	 {
 	     return servo_calcs_->durations();
@@ -142,4 +142,4 @@ class Servo
 // ServoPtr using alias
 using ServoPtr = std::shared_ptr<Servo>;
 
-}  // namespace moveit_servo
+}  // namespace aist_moveit_servo

@@ -32,19 +32,19 @@
  *******************************************************************************/
 
 /*      Title     : servo.cpp
- *      Project   : moveit_servo
+ *      Project   : aist_moveit_servo
  *      Created   : 3/9/2017
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
 
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
-#include <moveit_servo/make_shared_from_pool.h>
-#include <moveit_servo/servo.h>
+#include <aist_moveit_servo/make_shared_from_pool.h>
+#include <aist_moveit_servo/servo.h>
 
 static const std::string LOGNAME = "servo_node";
 
-namespace moveit_servo
+namespace aist_moveit_servo
 {
 namespace
 {
@@ -425,4 +425,4 @@ Servo::getParameters() const
     return parameters_;
 }
 
-}  // namespace moveit_servo
+}  // namespace aist_moveit_servo

@@ -33,19 +33,19 @@
  *********************************************************************/
 /*
  *  \file	pose_tracking_servo.cpp
- *  \brief	ROS pose tracker of aist_controllers::PoseTracking type
+ *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
  */
 #include <atomic>
 #include <boost/optional.hpp>
 #include <control_toolbox/pid.h>
-#include <moveit_servo/make_shared_from_pool.h>
-#include <moveit_servo/servo.h>
-#include <moveit_servo/status_codes.h>
+#include <aist_moveit_servo/make_shared_from_pool.h>
+#include <aist_moveit_servo/servo.h>
+#include <aist_moveit_servo/status_codes.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
-#include <aist_controllers/PoseTrackingAction.h>
+#include <aist_moveit_servo/PoseTrackingAction.h>
 #include <aist_utility/butterworth_lpf.h>
 #include <aist_utility/spline_extrapolator.h>
 
@@ -121,7 +121,7 @@ zero(Pose)
 
     return ret;
 }
-    
+
 Point
 operator +(const Point& a, const Point& b)
 {
@@ -165,10 +165,10 @@ zero(Point)
 
     return ret;
 }
-    
+
 }	// namespace geometry_msgs
 
-namespace aist_controllers
+namespace aist_moveit_servo
 {
 namespace
 {
@@ -235,7 +235,7 @@ class PoseTrackingServo
     using planning_scene_monitor_p
 			 = planning_scene_monitor::PlanningSceneMonitorPtr;
     using server_t	 = actionlib::SimpleActionServer<PoseTrackingAction>;
-    using servo_status_t = moveit_servo::StatusCode;
+    using servo_status_t = aist_moveit_servo::StatusCode;
 
     struct PIDConfig
     {
@@ -299,7 +299,7 @@ class PoseTrackingServo
     ros::NodeHandle				nh_;
 
     planning_scene_monitor_p			planning_scene_monitor_;
-    std::unique_ptr<moveit_servo::Servo>	servo_;
+    std::unique_ptr<aist_moveit_servo::Servo>	servo_;
     servo_status_t				servo_status_;
 
     ros::ServiceClient				reset_servo_status_;
@@ -347,7 +347,7 @@ class PoseTrackingServo
 PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     :nh_(nh),
      planning_scene_monitor_(createPlanningSceneMonitor("robot_description")),
-     servo_(new moveit_servo::Servo(nh_, planning_scene_monitor_)),
+     servo_(new aist_moveit_servo::Servo(nh_, planning_scene_monitor_)),
      servo_status_(servo_status_t::INVALID),
 
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
@@ -374,7 +374,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 			    loop_rate_.expectedCycleTime().toSec()),
 
      input_extrapolator_(),
-     
+
      cartesian_position_pids_(),
      cartesian_orientation_pids_(),
      x_pid_config_(),
@@ -533,7 +533,7 @@ PoseTrackingServo::tick()
 	tracker_srv_.setAborted(result);
 	ROS_ERROR_STREAM_NAMED(
 	    LOGNAME, "(PoseTrackingServo) goal ABORTED["
-	    << moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
+	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
 	    << ']');
 	return;
       }
@@ -747,7 +747,7 @@ PoseTrackingServo::servoStatusCB(const std_msgs::Int8ConstPtr& msg)
       case servo_status_t::DECELERATE_FOR_COLLISION:
 	ROS_WARN_STREAM_NAMED(
 	    LOGNAME, "(PoseTrackingServo) Servo status["
-	    << moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
+	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
 	    << ']');
 	break;
       case servo_status_t::HALT_FOR_SINGULARITY:
@@ -755,13 +755,13 @@ PoseTrackingServo::servoStatusCB(const std_msgs::Int8ConstPtr& msg)
       case servo_status_t::JOINT_BOUND:
 	ROS_ERROR_STREAM_NAMED(
 	    LOGNAME, "(PoseTrackingServo) Servo status["
-	    << moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
+	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
 	    << ']');
 	break;
       default:
 	ROS_INFO_STREAM_NAMED(
 	    LOGNAME, "(PoseTrackingServo) Servo status["
-	    << moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
+	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
 	    << ']');
 	break;
     }
@@ -1052,7 +1052,7 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
 }
 
-}	// namespace aist_controllers
+}	// namespace aist_moveit_servo
 
 /************************************************************************
 *  main function							*
@@ -1063,7 +1063,7 @@ main(int argc, char* argv[])
     ros::init(argc, argv, LOGNAME);
 
     ros::NodeHandle	nh("~");
-    aist_controllers::PoseTrackingServo	servo(nh);
+    aist_moveit_servo::PoseTrackingServo	servo(nh);
     servo.run();
 
     return 0;

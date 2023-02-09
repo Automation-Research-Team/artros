@@ -1,4 +1,9 @@
 /*******************************************************************************
+ *      Title     : status_codes.h
+ *      Project   : aist_moveit_servo
+ *      Created   : 2/25/2019
+ *      Author    : Andy Zelenak
+ *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -31,57 +36,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-/*      Title     : servo_server.cpp
- *      Project   : moveit_servo
- *      Created   : 12/31/2018
- *      Author    : Andy Zelenak
- */
+#pragma once
 
-#include <moveit_servo/servo.h>
+#include <string>
+#include <unordered_map>
 
-namespace
+namespace aist_moveit_servo
 {
-constexpr char LOGNAME[] = "servo_server";
-constexpr char ROS_THREADS = 8;
-
-}  // namespace
-
-int
-main(int argc, char** argv)
+enum class StatusCode : int8_t
 {
-    ros::init(argc, argv, LOGNAME);
-    ros::AsyncSpinner spinner(ROS_THREADS);
-    spinner.start();
+  INVALID = -1,
+  NO_WARNING = 0,
+  DECELERATE_FOR_SINGULARITY = 1,
+  HALT_FOR_SINGULARITY = 2,
+  DECELERATE_FOR_COLLISION = 3,
+  HALT_FOR_COLLISION = 4,
+  JOINT_BOUND = 5
+};
 
-    ros::NodeHandle nh("~");
-
-  // Load the planning scene monitor
-    auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
-    if (!planning_scene_monitor->getPlanningScene())
-    {
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
-	exit(EXIT_FAILURE);
-    }
-
-  // Start the planning scene monitor
-    planning_scene_monitor->startSceneMonitor();
-    planning_scene_monitor->startWorldGeometryMonitor(
-	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-	false /* skip octomap monitor */);
-    planning_scene_monitor->startStateMonitor();
-
-  // Create the servo server
-    moveit_servo::Servo servo(nh, planning_scene_monitor);
-
-  // Start the servo server (runs in the ros spinner)
-    servo.start();
-
-  // Wait for ros to shutdown
-    ros::waitForShutdown();
-
-  // Stop the servo server
-    servo.setPaused(true);
-
-    return 0;
-}
+const std::unordered_map<StatusCode, std::string>
+    SERVO_STATUS_CODE_MAP({ { StatusCode::INVALID, "Invalid" },
+                            { StatusCode::NO_WARNING, "No warnings" },
+                            { StatusCode::DECELERATE_FOR_SINGULARITY, "Close to a singularity, decelerating" },
+                            { StatusCode::HALT_FOR_SINGULARITY, "Very close to a singularity, emergency stop" },
+                            { StatusCode::DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
+                            { StatusCode::HALT_FOR_COLLISION, "Collision detected, emergency stop" },
+                            { StatusCode::JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
+}  // namespace aist_moveit_servo

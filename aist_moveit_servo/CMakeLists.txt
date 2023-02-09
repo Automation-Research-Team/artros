@@ -1,6 +1,6 @@
 # http://ros.org/doc/groovy/api/catkin/html/user_guide/supposed.html
 cmake_minimum_required(VERSION 2.8.3)
-project(aist_controllers)
+project(aist_moveit_servo)
 
 set(CMAKE_CXX_STANDARD		17)
 set(CMAKE_CXX_STANDARD_REQUIRED	ON)
@@ -10,10 +10,7 @@ set(CMAKE_CXX_FLAGS		"-Wall -O3 -DNDEBUG -DBUTTERWORTH")
 set(CMAKE_CXX_FLAGS_DEBUG	"-g")
 set(CMAKE_CXX_BUILD_TYPE	Release)
 
-set(SERVO_LIB_NAME moveit_servo_cpp_api)
-
 # Load catkin and all dependencies required for this package
-find_package(orocos_kdl REQUIRED)
 find_package(Boost REQUIRED COMPONENTS thread)
 
 find_package(catkin REQUIRED
@@ -26,8 +23,10 @@ find_package(catkin REQUIRED
     trajectory_msgs
     control_msgs
     actionlib
-    kdl_parser
     trac_ik_lib
+    moveit_msgs
+    moveit_ros_planning_interface
+    rosparam_shortcuts
     control_toolbox
     aist_utility
     message_generation
@@ -37,7 +36,12 @@ catkin_python_setup()
 
 add_action_files(
   FILES
-    PoseHead.action
+    PoseTracking.action
+)
+
+add_message_files(
+  FILES
+    DurationArray.msg
 )
 
 generate_messages(
@@ -53,6 +57,9 @@ catkin_package(
     roscpp
     trajectory_msgs
     control_msgs
+    moveit_msgs
+    moveit_ros_planning_interface
+    rosparam_shortcuts
     control_toolbox
     message_runtime
   INCLUDE_DIRS
@@ -67,63 +74,69 @@ include_directories(
 )
 
 #
-#  point_head_tracker
+#  libaist_moveit_servo
 #
-add_executable(
-  point_head_tracker
-  src/point_head_tracker.cpp
+add_library(
+  ${PROJECT_NAME}
+  src/collision_check.cpp
+  src/servo.cpp
+  src/servo_calcs.cpp
 )
 
 target_link_libraries(
-  point_head_tracker
-  ${Boost_LIBRARIES} ${orocos_kdl_LIBRARIES} ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${Eigen_LIBRARIES}
+  ${Boost_LIBRARIES}
 )
 
 add_dependencies(
-  point_head_tracker
-  ${catkin_EXPORTED_TARGETS}
-)
-
-#
-#  pose_head_tracker
-#
-add_executable(
-  pose_head_tracker
-  src/pose_head_tracker.cpp
-)
-
-target_link_libraries(
-  pose_head_tracker
-  ${Boost_LIBRARIES} ${orocos_kdl_LIBRARIES} ${catkin_LIBRARIES}
-)
-
-add_dependencies(
-  pose_head_tracker
+  ${PROJECT_NAME}
   ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 
 #
-#  pose_group_tracker
+#  servo_server
 #
 add_executable(
-  pose_group_tracker
-  src/pose_group_tracker.cpp
+  servo_server
+  src/servo_server.cpp
 )
 
 target_link_libraries(
-  pose_group_tracker
-  ${Boost_LIBRARIES} ${orocos_kdl_LIBRARIES} ${catkin_LIBRARIES}
+  servo_server
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
 )
 
 add_dependencies(
-  pose_group_tracker
+  servo_server
+  ${catkin_EXPORTED_TARGETS}
+)
+
+#
+#  pose_tracking_servo
+#
+add_executable(
+  pose_tracking_servo
+  src/pose_tracking_servo.cpp
+)
+
+target_link_libraries(
+  pose_tracking_servo
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+add_dependencies(
+  pose_tracking_servo
   ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 
 install(
-  TARGETS point_head_tracker pose_head_tracker pose_group_tracker
+  TARGETS servo_server pose_tracking_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
