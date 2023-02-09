@@ -40,6 +40,7 @@
     <node name="stopped_spawner" pkg="controller_manager" type="spawner"
     	  respawn="false" output="screen"
     	  args="--stopped
+		scaled_vel_joint_traj_controller
 		joint_group_pos_controller joint_group_vel_controller"/>
 
     <node name="controller_stopper"

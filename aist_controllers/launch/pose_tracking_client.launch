@@ -1,11 +1,16 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!-- offset for realsense -->
-  <arg name="target_offset"	default="[0.1, 0.05, 0.05, -90, 90, 0]"/>
-  <!-- offset for phoxi -->
-  <!-- <arg name="target_offset"	default="[0.1, 0.15, 0.35, -90, 90, 0]"/> -->
+  <arg name="camera_name"	default="realsense"/>
   <arg name="plot"		default="durations"/>
+
+  <!-- Set target offset pose -->
+  <arg if="$(eval camera_name=='realsense')"
+       name="target_offset"	default="[0.1, 0.05, 0.05, -90, 90, 0]"/>
+  <arg if="$(eval camera_name=='phoxi')"
+       name="target_offset"	default="[0.1, 0.15, 0.35, -90, 90, 0]"/>
+  <arg if="$(eval camera_name=='a_bot_inside_camera')"
+       name="target_offset"	default="[0.0, 0.0, 0.15, -90, 90, 0]"/>
 
   <!-- Spawn client -->
   <node name="pose_tracking_client"

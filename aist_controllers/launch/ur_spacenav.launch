@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim"		default="false"/>
+  <arg name="robot_name"	default="a_bot"/>
+  <arg name="traj"		default="true"/>
+  <arg name="velocity_control"	default="false"/>
+  <arg name="unitless"		default="false"/>
+  <arg name="teleop_tools"	default="false"/>
+       
+  <!-- Spawn spacenav driver -->
+  <node name="spacenav_node" pkg="spacenav_node" type="spacenav_node"/>
+
+  <!-- Spawn relay node -->
+  <node unless="$(arg teleop_tools)"
+	name="spacenav_to_twist"
+	pkg="moveit_servo" type="spacenav_to_twist" output="screen"/>
+
+  <!-- Spawn joy -->
+  <group if="$(arg teleop_tools)">
+    <rosparam file="$(find moveit_servo
+		    )/config/spacenav_via_teleop_tools.yaml"/>
+
+    <node name="joy_teleop" pkg="joy_teleop" type="joy_teleop.py">
+      <remap from="cmd_vel"	to="spacenav/joy"/>
+      <remap from="joy"		to="spacenav/joy"/>
+    </node>
+  </group>
+
+  <!-- Set parameters for servo_server -->
+  <arg if="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
+       name="publish_period"	value="0.008"/>
+  <arg unless="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
+       name="publish_period"	value="0.002"/>
+
+  <arg if="$(arg traj)"
+       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
+  <arg unless="$(arg traj)"
+       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
+
+  <arg if="$(eval traj and not velocity_control)"
+       name="controller"	value="scaled_pos_joint_traj_controller"/>
+  <arg if="$(eval traj and velocity_control)"
+       name="controller"	value="scaled_vel_joint_traj_controller"/>
+  <arg if="$(eval not traj and not velocity_control)"
+       name="controller"	value="joint_group_pos_controller"/>
+  <arg if="$(eval not traj and velocity_control)"
+       name="controller"	value="joint_group_vel_controller"/>
+
+  <arg if="$(arg unitless)"
+       name="command_in_type"	value="unitless"/>
+  <arg unless="$(arg unitless)"
+       name="command_in_type"	value="speed_units"/>
+
+  <arg name="pub_pos"		value="$(eval not velocity_control)"/>
+  <arg name="pub_vel"		value="$(eval velocity_control)"/>
+
+  <!-- Spawn controller manager if non-default controller is required -->
+  <node unless="$(eval controller == 'scaled_pos_joint_traj_controller')"
+  	name="rqt_controller_manager"
+        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
+
+  <!-- Spawn servo_server -->
+  <node name="servo_server"
+	pkg="aist_controllers" type="servo_server" output="screen">
+    <rosparam file="$(dirname)/../config/ur_servo_server.yaml"
+	      subst_value="true"/>
+  </node>
+
+</launch>

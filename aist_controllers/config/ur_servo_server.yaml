@@ -13,6 +13,8 @@ scale:
   joint:      0.01
 
 low_pass_filter_coeff: 2.
+low_pass_filter_half_order: 3
+low_pass_filter_cutoff_frequency: 10.0
 
 ## Properties of outgoing commands
 publish_period:   $(arg publish_period)
@@ -27,7 +29,7 @@ publish_joint_accelerations: false
 ## MoveIt properties
 move_group_name:           $(arg robot_name)
 planning_frame:            $(arg robot_name)_base_link
-ee_frame_name:             $(arg robot_name)_flange
+ee_frame_name:             $(arg robot_name)_gripper_tip_link
 robot_link_command_frame:  $(arg robot_name)_base_link
 
 ## Stopping behaviour
