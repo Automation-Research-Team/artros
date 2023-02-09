@@ -207,14 +207,10 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints(); ++i)
     {
-#if defined(BUTTERWORTH)
 	position_filters_.emplace_back(
 	    parameters_.low_pass_filter_half_order,
 	    parameters_.low_pass_filter_cutoff_frequency *
 	    parameters_.publish_period);
-#else
-	position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
-#endif
     }
 
   // Initialize position buffer so that low-pass filters can be reset anytime.
@@ -234,7 +230,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
     joint_cmd_.velocities.resize(num_joints(), 0.0);
 
   // Setup dynamic reconfigure server
-#if defined(BUTTERWORTH)
     ddr_.registerVariable<int>("lowpass_filter_half_order",
 			       parameters_.low_pass_filter_half_order,
 			       boost::bind(
@@ -251,15 +246,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 				      _1),
 				  "Cutoff frequency of low pass filter",
 				  0.5, 100.0);
-#else
-    ddr_.registerVariable<double>("lowpass_filter_coeff",
-				  parameters_.low_pass_filter_coeff,
-				  boost::bind(
-				      &ServoCalcs::initializeLowPassFilters,
-				      this, _1),
-				  "Cutoff frequency of low pass filter",
-				  1.0, 100.0);
-#endif
     ddr_.publishServicesTopics();
 }
 
@@ -1020,7 +1006,6 @@ ServoCalcs::removeDimension(matrix_t& jacobian,
  *  private member functions: low-pass filter stuffs
  */
 //! Change order and/or cutoff of filters
-#if defined(BUTTERWORTH)
 void
 ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 {
@@ -1037,20 +1022,6 @@ ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 
     resetLowPassFilters();
 }
-#else
-void
-ServoCalcs::initializeLowPassFilters(double coeff)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-
-    parameters_.low_pass_filter_coeff = coeff;
-
-    for (auto&& position_filter: position_filters_)
-	position_filter.initialize(parameters_.low_pass_filter_coeff);
-
-    resetLowPassFilters();
-}
-#endif
 
 //! Smooth position commands with a lowpass filter
 void

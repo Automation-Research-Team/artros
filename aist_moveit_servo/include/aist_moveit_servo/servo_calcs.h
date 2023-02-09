@@ -164,12 +164,8 @@ class ServoCalcs
 				uint row_to_remove)		const	;
 
 
-#if defined(BUTTERWORTH)
     void	initializeLowPassFilters(int half_order,
 					 double cutoff_frequency)	;
-#else
-    void	initializeLowPassFilters(double coeff)			;
-#endif
     void	lowPassFilterPositions(vector_t& positions)		;
 
     void	resetLowPassFilters()					;
