@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : make_shared_from_pool.h
- *      Project   : moveit_servo
+ *      Project   : aist_moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Tyler Weaver
  *

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
 
-  <name>aist_controllers</name>
+  <name>aist_moveit_servo</name>
   <version>0.0.1</version>
   <description>The head action is a node that provides an action interface for
   pointing the head of the configured robot. It passes trajectory goals to the
@@ -30,10 +30,9 @@
   <depend>control_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>orocos_kdl</depend>
-  <depend>kdl_parser</depend>
-  <depend>trak_ik_lib</depend>
-  <depend>nlopt</depend>
+  <depend>moveit_msgs</depend>
+  <depend>moveit_ros_planning_interface</depend>
+  <depend>rosparam_shortcuts</depend>
   <depend>control_toolbox</depend>
   <depend>ddynamic_reconfigure</depend>
   <depend>aist_utility</depend>

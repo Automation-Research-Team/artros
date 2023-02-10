@@ -1,9 +1,4 @@
 /*******************************************************************************
- *      Title     : servo_parameters.h
- *      Project   : moveit_servo
- *      Created   : 1/11/2019
- *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
- *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -36,55 +31,57 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#pragma once
+/*      Title     : servo_server.cpp
+ *      Project   : aist_moveit_servo
+ *      Created   : 12/31/2018
+ *      Author    : Andy Zelenak
+ */
 
-namespace moveit_servo
+#include <aist_moveit_servo/servo.h>
+
+namespace
 {
-// Size of queues used in ros pub/sub/service
-constexpr size_t ROS_QUEUE_SIZE = 2;
+constexpr char LOGNAME[] = "servo_server";
+constexpr char ROS_THREADS = 8;
 
-// ROS params to be read. See the yaml file in /config for a description of each.
-struct ServoParameters
+}  // namespace
+
+int
+main(int argc, char** argv)
 {
-  std::string move_group_name;
-  std::string joint_topic;
-  std::string cartesian_command_in_topic;
-  std::string robot_link_command_frame;
-  std::string command_out_topic;
-  std::string planning_frame;
-  std::string ee_frame_name;
-  std::string status_topic;
-  std::string joint_command_in_topic;
-  std::string command_in_type;
-  std::string command_out_type;
-  double linear_scale;
-  double rotational_scale;
-  double joint_scale;
-  double lower_singularity_threshold;
-  double hard_stop_singularity_threshold;
-#if defined(BUTTERWORTH)
-  int    low_pass_filter_half_order;
-  double low_pass_filter_cutoff_frequency;
-#else
-  double low_pass_filter_coeff;
-#endif
-  double publish_period;
-  double incoming_command_timeout;
-  double joint_limit_margin;
-  int num_outgoing_halt_msgs_to_publish;
-  bool use_gazebo;
-  bool publish_joint_positions;
-  bool publish_joint_velocities;
-  bool publish_joint_accelerations;
-  bool low_latency_mode;
-  // Collision checking
-  bool check_collisions;
-  std::string collision_check_type;
-  double collision_check_rate;
-  double scene_collision_proximity_threshold;
-  double self_collision_proximity_threshold;
-  double collision_distance_safety_factor;
-  double min_allowable_collision_distance;
-};
+    ros::init(argc, argv, LOGNAME);
+    ros::AsyncSpinner spinner(ROS_THREADS);
+    spinner.start();
 
-}  // namespace moveit_servo
+    ros::NodeHandle nh("~");
+
+  // Load the planning scene monitor
+    auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
+    if (!planning_scene_monitor->getPlanningScene())
+    {
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
+	exit(EXIT_FAILURE);
+    }
+
+  // Start the planning scene monitor
+    planning_scene_monitor->startSceneMonitor();
+    planning_scene_monitor->startWorldGeometryMonitor(
+	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+	false /* skip octomap monitor */);
+    planning_scene_monitor->startStateMonitor();
+
+  // Create the servo server
+    aist_moveit_servo::Servo servo(nh, planning_scene_monitor);
+
+  // Start the servo server (runs in the ros spinner)
+    servo.start();
+
+  // Wait for ros to shutdown
+    ros::waitForShutdown();
+
+  // Stop the servo server
+    servo.setPaused(true);
+
+    return 0;
+}

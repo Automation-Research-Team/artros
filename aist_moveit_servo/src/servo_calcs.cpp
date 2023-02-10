@@ -32,7 +32,7 @@
  *******************************************************************************/
 
 /*      Title     : servo_calcs.cpp
- *      Project   : moveit_servo
+ *      Project   : aist_moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
@@ -42,13 +42,13 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
 
-#include <moveit_servo/make_shared_from_pool.h>
-#include <moveit_servo/servo_calcs.h>
+#include <aist_moveit_servo/make_shared_from_pool.h>
+#include <aist_moveit_servo/servo_calcs.h>
 
 static const std::string LOGNAME = "servo_calcs";
 constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
-namespace moveit_servo
+namespace aist_moveit_servo
 {
 namespace
 {
@@ -152,7 +152,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
        nh_.advertise<std_msgs::Float64MultiArray>(
 	   parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE)),
    durations_pub_(
-       nh_.advertise<aist_controllers::DurationArray>("durations", 1)),
+       nh_.advertise<aist_moveit_servo::DurationArray>("durations", 1)),
    drift_dimensions_srv_(
        nh_.advertiseService(ros::names::append(nh_.getNamespace(),
 					       "change_drift_dimensions"),
@@ -166,7 +166,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 					       "reset_servo_status"),
 			    &ServoCalcs::resetStatus, this)),
    ddr_(nh_),
-   
+
    invalid_command_count_(0),
    robot_state_(planning_scene_monitor_->getStateMonitor()->getCurrentState()),
    robot_state_stamp_(ros::Time(0)),
@@ -184,14 +184,14 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    status_(StatusCode::NO_WARNING),
    paused_(false),
    collision_velocity_scale_(1.0),
-   
+
    drift_dimensions_({false, false, false, false, false, false}),
    control_dimensions_({true, true, true, true, true, true}),
-    
+
    input_mutex_(),
    twist_cmd_(),
    joint_cmd_(),
-   
+
    input_cv_(),
    new_input_cmd_(false)
 {
@@ -199,7 +199,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
     joint_trajectory_.header.frame_id = parameters_.planning_frame;
     joint_trajectory_.header.stamp    = ros::Time(0);
     joint_trajectory_.joint_names = joint_group()->getActiveJointModelNames();
-    
+
   // Setup a map from joint names to there indices for buffers of actual state.
     for (size_t i = 0; i < num_joints(); ++i)
 	joint_indices_[joint_trajectory_.joint_names[i]] = i;
@@ -207,19 +207,15 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
   // Low-pass filters for the joint positions
     for (size_t i = 0; i < num_joints(); ++i)
     {
-#if defined(BUTTERWORTH)
 	position_filters_.emplace_back(
 	    parameters_.low_pass_filter_half_order,
 	    parameters_.low_pass_filter_cutoff_frequency *
 	    parameters_.publish_period);
-#else
-	position_filters_.emplace_back(parameters_.low_pass_filter_coeff);
-#endif
     }
 
   // Initialize position buffer so that low-pass filters can be reset anytime.
     updateJoints();
-    
+
   // Initialize buffer for incoming twist command.
     twist_cmd_.header.stamp    = ros::Time(0);
     twist_cmd_.twist.linear.x  = 0.0;
@@ -232,9 +228,8 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
   // Initialize buffer for incoming joint command.
     joint_cmd_.header.stamp = ros::Time(0);
     joint_cmd_.velocities.resize(num_joints(), 0.0);
-    
+
   // Setup dynamic reconfigure server
-#if defined(BUTTERWORTH)
     ddr_.registerVariable<int>("lowpass_filter_half_order",
 			       parameters_.low_pass_filter_half_order,
 			       boost::bind(
@@ -251,15 +246,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 				      _1),
 				  "Cutoff frequency of low pass filter",
 				  0.5, 100.0);
-#else
-    ddr_.registerVariable<double>("lowpass_filter_coeff",
-				  parameters_.low_pass_filter_coeff,
-				  boost::bind(
-				      &ServoCalcs::initializeLowPassFilters,
-				      this, _1),
-				  "Cutoff frequency of low pass filter",
-				  1.0, 100.0);
-#endif
     ddr_.publishServicesTopics();
 }
 
@@ -368,7 +354,7 @@ ServoCalcs::isValid(const geometry_msgs::TwistStamped& msg) const
 
 	return false;
     }
-    
+
     return msg.twist.linear.x  != 0.0 ||
 	   msg.twist.linear.y  != 0.0 ||
 	   msg.twist.linear.z  != 0.0 ||
@@ -434,7 +420,7 @@ ServoCalcs::mainCalcLoop()
 	if (parameters_.low_latency_mode)
 	    input_cv_.wait(input_lock, [this]
 			   { return (new_input_cmd_ || stop_requested_); });
-	
+
       // reset new_input_cmd_ flag
 	new_input_cmd_ = false;
 
@@ -460,7 +446,7 @@ ServoCalcs::mainCalcLoop()
 	}
     }
 }
-    
+
 //! Do calculations for a single iteration and publish one outgoing command
 void
 ServoCalcs::calculateSingleIteration()
@@ -468,7 +454,7 @@ ServoCalcs::calculateSingleIteration()
     publishStatus();			// Publish servo status.
     updateJoints();			// Read robot status.
     publishWorstCaseStopTime();
-    
+
   // If paused or while waiting for initial servo commands,
   // just keep the low-pass filters up to date with current
   // joints so a jump doesn't occur when restarting
@@ -527,7 +513,7 @@ ServoCalcs::calculateSingleIteration()
 	setPointsToTrajectory(actual_positions_,
 			      vector_t::Zero(num_joints()), true);
 	resetLowPassFilters();
-	
+
       // Skip the servoing publication if all inputs have been zero
       // for several cycles in a row.
       // num_outgoing_halt_msgs_to_publish == 0 signifies that we should keep
@@ -649,7 +635,7 @@ ServoCalcs::setCartesianServoTrajectory(twist_t& cmd)
     for (auto dimension = jacobian.rows() - 1; dimension >= 0; --dimension)
 	if (drift_dimensions_[dimension] && jacobian.rows() > 1)
 	    removeDimension(jacobian, delta_x, dimension);
-    
+
     const auto	svd = Eigen::JacobiSVD<matrix_t>(jacobian,
 						 Eigen::ComputeThinU |
 						 Eigen::ComputeThinV);
@@ -728,7 +714,7 @@ ServoCalcs::scaleJointCommand(const joint_jog_t& cmd) const
 					   "Ignoring joint "
 					   << cmd.joint_names[i]);
 	}
-    
+
     return delta_theta;
 }
 
@@ -854,7 +840,7 @@ ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
     // 		<< bound_scaling << std::endl;
     delta_theta *= (bounding_scale *
 		    collision_velocity_scale_ * singularity_scale);
-    
+
     if (collision_velocity_scale_ <= 0)
     {
 	status_ = StatusCode::HALT_FOR_COLLISION;
@@ -1011,7 +997,7 @@ ServoCalcs::removeDimension(matrix_t& jacobian,
 	delta_x.segment(row_to_remove, nrows - row_to_remove)
 	    = delta_x.segment(row_to_remove + 1, nrows - row_to_remove);
     }
-    
+
     jacobian.conservativeResize(nrows, ncols);
     delta_x.conservativeResize(nrows);
 }
@@ -1020,7 +1006,6 @@ ServoCalcs::removeDimension(matrix_t& jacobian,
  *  private member functions: low-pass filter stuffs
  */
 //! Change order and/or cutoff of filters
-#if defined(BUTTERWORTH)
 void
 ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 {
@@ -1034,23 +1019,9 @@ ServoCalcs::initializeLowPassFilters(int half_order, double cutoff_frequency)
 	    parameters_.low_pass_filter_half_order,
 	    parameters_.low_pass_filter_cutoff_frequency *
 	    parameters_.publish_period);
-    
-    resetLowPassFilters();
-}
-#else
-void
-ServoCalcs::initializeLowPassFilters(double coeff)
-{
-    const std::lock_guard<std::mutex> lock(input_mutex_);
-
-    parameters_.low_pass_filter_coeff = coeff;
-
-    for (auto&& position_filter: position_filters_)
-	position_filter.initialize(parameters_.low_pass_filter_coeff);
 
     resetLowPassFilters();
 }
-#endif
 
 //! Smooth position commands with a lowpass filter
 void
@@ -1210,4 +1181,4 @@ ServoCalcs::publishWorstCaseStopTime() const
     worst_case_stop_time_pub_.publish(msg);
 }
 
-}  // namespace moveit_servo
+}  // namespace aist_moveit_servo

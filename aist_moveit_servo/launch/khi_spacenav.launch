@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim"		default="false"/>
+  <arg name="traj"		default="true"/>
+  <arg name="teleop_tools"	default="false"/>
+       
+  <node name="spacenav_node" pkg="spacenav_node" type="spacenav_node"/>
+
+  <node unless="$(arg teleop_tools)"
+	name="spacenav_to_twist"
+	pkg="moveit_servo" type="spacenav_to_twist" output="screen"/>
+
+  <group if="$(arg teleop_tools)">
+    <rosparam file="$(find moveit_servo
+		    )/config/spacenav_via_teleop_tools.yaml"/>
+
+    <node name="joy_teleop" pkg="joy_teleop" type="joy_teleop.py">
+      <remap from="cmd_vel"	to="spacenav/joy"/>
+      <remap from="joy"		to="spacenav/joy"/>
+    </node>
+  </group>
+
+  <include file="$(dirname)/khi_servo_server.launch">
+    <arg name="sim"		value="$(arg sim)"/>
+    <arg name="traj"		value="$(arg traj)"/>
+    <arg name="unitless"	value="true"/>
+  </include>	
+
+</launch>

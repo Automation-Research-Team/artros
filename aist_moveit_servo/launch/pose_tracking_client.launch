@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="camera_name"	default="realsense"/>
+  <arg name="plot"		default="durations"/>
+
+  <!-- Set target offset pose -->
+  <arg if="$(eval camera_name=='realsense')"
+       name="target_offset"	default="[0.1, 0.05, 0.05, -90, 90, 0]"/>
+  <arg if="$(eval camera_name=='phoxi')"
+       name="target_offset"	default="[0.1, 0.15, 0.35, -90, 90, 0]"/>
+  <arg if="$(eval camera_name=='a_bot_inside_camera')"
+       name="target_offset"	default="[0.0, 0.0, 0.15, -90, 90, 0]"/>
+
+  <!-- Spawn client -->
+  <node name="pose_tracking_client"
+        pkg="aist_moveit_servo" type="pose_tracking_client.py"
+        output="screen" respawn="false">
+    <rosparam param="target_offset"
+	      subst_value="true">$(arg target_offset)</rosparam>
+  </node>
+
+  <include file="$(find aist_utility)/launch/joint_state_extractor.launch">
+    <arg name="joint_names"	value="['arm_joint1', 'arm_joint2',
+					'arm_joint3', 'arm_joint4',
+					'arm_joint5', 'arm_joint6']"/>
+  </include>
+
+  <arg if="$(eval plot == 'positions')"
+       name="plot_args"
+       value="/arm_controller/command_debug/points[0]/positions[0]
+  	      /arm_controller/command_debug/points[0]/positions[1]
+  	      /arm_controller/command_debug/points[0]/positions[2]
+  	      /arm_controller/command_debug/points[0]/positions[3]
+  	      /arm_controller/command_debug/points[0]/positions[4]
+  	      /arm_controller/command_debug/points[0]/positions[5]
+  	      /arm_controller/state/actual/positions[0]
+  	      /arm_controller/state/actual/positions[1]
+  	      /arm_controller/state/actual/positions[2]
+  	      /arm_controller/state/actual/positions[3]
+  	      /arm_controller/state/actual/positions[4]
+  	      /arm_controller/state/actual/positions[5]"/>
+  <arg if="$(eval plot == 'joints')"
+       name="plot_args"
+       value="/pose_tracking_servo/target_pose_debug/pose/position/x
+  	      /pose_tracking_servo/target_pose_debug/pose/position/y
+  	      /pose_tracking_servo/ee_pose_debug/pose/position/x
+  	      /pose_tracking_servo/ee_pose_debug/pose/position/y
+  	      /arm_controller/command_debug/points[0]/positions[0]
+  	      /arm_controller/command_debug/points[0]/positions[4]
+  	      /arm_controller/state/actual/positions[0]
+  	      /arm_controller/state/actual/positions[4]"/>
+  <arg if="$(eval plot == 'durations')"
+       name="plot_args"
+       value="/pose_tracking_servo/durations/target_pose_in
+	      /pose_tracking_servo/durations/twist_out
+	      /pose_tracking_servo/durations/cmd_out
+	      /pose_tracking_servo/desired_pose/pose/position/x
+	      /pose_tracking_servo/desired_pose/pose/position/y
+	      /pose_tracking_servo/actual_pose/pose/position/x
+	      /pose_tracking_servo/actual_pose/pose/position/y"/>
+
+  <node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+	args="$(arg plot_args)"/>
+
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
+
+</launch>

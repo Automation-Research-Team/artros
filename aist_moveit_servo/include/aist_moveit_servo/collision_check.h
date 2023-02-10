@@ -1,6 +1,6 @@
 /*******************************************************************************
  * Title     : collision_check.h
- * Project   : moveit_servo
+ * Project   : aist_moveit_servo
  * Created   : 1/11/2019
  * Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -44,10 +44,9 @@
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 
-#include <moveit_servo/servo_parameters.h>
-#include <moveit_servo/low_pass_filter.h>
+#include <aist_moveit_servo/servo_parameters.h>
 
-namespace moveit_servo
+namespace aist_moveit_servo
 {
 enum CollisionCheckType
 {
@@ -59,11 +58,11 @@ class CollisionCheck
 {
 public:
   /** \brief Constructor
-   *  \param parameters: common settings of moveit_servo
+   *  \param parameters: common settings of aist_moveit_servo
    *  \param planning_scene_monitor: PSM should have scene monitor and state monitor
    *                                 already started when passed into this class
    */
-  CollisionCheck(ros::NodeHandle& nh, const moveit_servo::ServoParameters& parameters,
+  CollisionCheck(ros::NodeHandle& nh, const aist_moveit_servo::ServoParameters& parameters,
                  const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor);
 
   ~CollisionCheck()
@@ -131,4 +130,4 @@ private:
   ros::Publisher collision_velocity_scale_pub_;
   ros::Subscriber worst_case_stop_time_sub_;
 };
-}  // namespace moveit_servo
+}  // namespace aist_moveit_servo

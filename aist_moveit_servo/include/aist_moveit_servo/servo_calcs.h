@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : servo_calcs.h
- *      Project   : moveit_servo
+ *      Project   : aist_moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  *
@@ -59,18 +59,14 @@
 #include <tf2_eigen/tf2_eigen.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
-#include <aist_controllers/DurationArray.h>
+#include <aist_moveit_servo/DurationArray.h>
 
-// moveit_servo
-#include <moveit_servo/servo_parameters.h>
-#include <moveit_servo/status_codes.h>
-#if defined(BUTTERWORTH)
-#  include <aist_utility/butterworth_lpf.h>
-#else
-#  include <moveit_servo/low_pass_filter.h>
-#endif
+// aist_moveit_servo
+#include <aist_moveit_servo/servo_parameters.h>
+#include <aist_moveit_servo/status_codes.h>
+#include <aist_utility/butterworth_lpf.h>
 
-namespace moveit_servo
+namespace aist_moveit_servo
 {
 /************************************************************************
 *  class ServoCalcs							*
@@ -79,7 +75,7 @@ class ServoCalcs
 {
   public:
     using isometry3_t	= Eigen::Isometry3d;
-    
+
   private:
     using planning_scene_monitor_p
 			= planning_scene_monitor::PlanningSceneMonitorPtr;
@@ -94,16 +90,12 @@ class ServoCalcs
     using joint_state_t	= sensor_msgs::JointState;
     using flt64_t	= std_msgs::Float64;
     using flt64_cp	= std_msgs::Float64ConstPtr;
-    
+
     using vector_t	= Eigen::VectorXd;
     using matrix_t	= Eigen::MatrixXd;
-#if defined(BUTTERWORTH)
     using lpf_t		= aist_utility::ButterworthLPF<double>;
-#else
-    using lpf_t		= LowPassFilter;
-#endif
     using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
-    
+
   public:
 		ServoCalcs(const ros::NodeHandle& nh,
 			   ServoParameters& parameters,
@@ -123,7 +115,7 @@ class ServoCalcs
     void	changeRobotLinkCommandFrame(
 			const std::string& new_command_frame)		;
 
-    aist_controllers::DurationArray&
+    aist_moveit_servo::DurationArray&
 		durations()				{ return durations_; }
 
   // Give test access to private/protected methods
@@ -139,7 +131,7 @@ class ServoCalcs
     bool	isStale(const MSG& msg)				const	;
     bool	isValid(const twist_t& msg)			const	;
     static bool	isValid(const joint_jog_t& msg)				;
-    
+
     void	stop()							;
 
     void	mainCalcLoop()						;
@@ -165,19 +157,15 @@ class ServoCalcs
 				      const vector_t& delta_theta,
 				      bool sudden=false)		;
     void	zeroVelocitiesInTrajectory()				;
-    
+
     bool	checkPositionLimits(const vector_t& positions,
 				    const vector_t& delta_theta) const	;
     void	removeDimension(matrix_t& matrix, vector_t& delta_x,
 				uint row_to_remove)		const	;
 
 
-#if defined(BUTTERWORTH)
     void	initializeLowPassFilters(int half_order,
 					 double cutoff_frequency)	;
-#else
-    void	initializeLowPassFilters(double coeff)			;
-#endif
     void	lowPassFilterPositions(vector_t& positions)		;
 
     void	resetLowPassFilters()					;
@@ -201,11 +189,11 @@ class ServoCalcs
 
   // Worst case stop time stuffs
     void	publishWorstCaseStopTime()			const	;
-    
+
   private:
     ServoParameters&			parameters_;
     const planning_scene_monitor_p	planning_scene_monitor_;
-    
+
   // ROS
     ros::NodeHandle			nh_;
     ros::NodeHandle			internal_nh_;
@@ -220,7 +208,7 @@ class ServoCalcs
     const ros::ServiceServer		drift_dimensions_srv_;
     const ros::ServiceServer		control_dimensions_srv_;
     const ros::ServiceServer		reset_status_srv_;
-    aist_controllers::DurationArray	durations_;
+    aist_moveit_servo::DurationArray	durations_;
     ddr_t				ddr_;
 
   // Track the number of cycles during which motion has not occurred.
@@ -317,11 +305,11 @@ ServoCalcs::num_joints() const
 {
     return joint_trajectory_.joint_names.size();
 }
-    
+
 inline ServoCalcs::joint_group_cp
 ServoCalcs::joint_group() const
 {
     return robot_state_->getJointModelGroup(parameters_.move_group_name);
 }
-    
-}  // namespace moveit_servo
+
+}  // namespace aist_moveit_servo

@@ -1,6 +1,6 @@
 /*******************************************************************************
  *      Title     : status_codes.h
- *      Project   : moveit_servo
+ *      Project   : aist_moveit_servo
  *      Created   : 2/25/2019
  *      Author    : Andy Zelenak
  *
@@ -41,7 +41,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace moveit_servo
+namespace aist_moveit_servo
 {
 enum class StatusCode : int8_t
 {
@@ -62,4 +62,4 @@ const std::unordered_map<StatusCode, std::string>
                             { StatusCode::DECELERATE_FOR_COLLISION, "Close to a collision, decelerating" },
                             { StatusCode::HALT_FOR_COLLISION, "Collision detected, emergency stop" },
                             { StatusCode::JOINT_BOUND, "Close to a joint bound (position or velocity), halting" } });
-}  // namespace moveit_servo
+}  // namespace aist_moveit_servo
