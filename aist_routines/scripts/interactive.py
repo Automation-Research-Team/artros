@@ -62,6 +62,7 @@ class InteractiveRoutines(AISTBaseRoutines):
         'b_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
         'c_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians( 90)],
         'd_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
+        'e_bot': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
         'a_khi': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians( 90)],
         'b_khi': [0.00, 0.00, 0.3, radians(  0), radians( 90), radians(-90)],
     }
