@@ -34,54 +34,31 @@
 /*      Title     : servo_server.cpp
  *      Project   : aist_moveit_servo
  *      Created   : 12/31/2018
- *      Author    : Andy Zelenak
+ *      Author    : Andy Zelenak, Toshio Ueshiba
  */
-
 #include <aist_moveit_servo/servo.h>
 
 namespace
 {
-constexpr char LOGNAME[] = "servo_server";
+constexpr char LOGNAME[]   = "servo_server";
 constexpr char ROS_THREADS = 8;
-
 }  // namespace
 
 int
 main(int argc, char** argv)
 {
     ros::init(argc, argv, LOGNAME);
-    ros::AsyncSpinner spinner(ROS_THREADS);
+    ros::AsyncSpinner	spinner(ROS_THREADS);
     spinner.start();
 
-    ros::NodeHandle nh("~");
+    aist_moveit_servo::Servo
+	servo(ros::NodeHandle("~"),
+	      aist_moveit_servo::createPlanningSceneMonitor(
+		  "robot_description"));
 
-  // Load the planning scene monitor
-    auto planning_scene_monitor = std::make_shared<planning_scene_monitor::PlanningSceneMonitor>("robot_description");
-    if (!planning_scene_monitor->getPlanningScene())
-    {
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "Error in setting up the PlanningSceneMonitor.");
-	exit(EXIT_FAILURE);
-    }
-
-  // Start the planning scene monitor
-    planning_scene_monitor->startSceneMonitor();
-    planning_scene_monitor->startWorldGeometryMonitor(
-	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-	planning_scene_monitor::PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-	false /* skip octomap monitor */);
-    planning_scene_monitor->startStateMonitor();
-
-  // Create the servo server
-    aist_moveit_servo::Servo servo(nh, planning_scene_monitor);
-
-  // Start the servo server (runs in the ros spinner)
-    servo.start();
-
-  // Wait for ros to shutdown
-    ros::waitForShutdown();
-
-  // Stop the servo server
-    servo.setPaused(true);
+    servo.start();		// Start the servo server in the ros spinner
+    ros::waitForShutdown();	// Wait for ros to shutdown
+    servo.setPaused(true);	// Stop the servo server
 
     return 0;
 }

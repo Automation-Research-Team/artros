@@ -257,9 +257,6 @@ class PoseTrackingServo
 		loop_rate()					const	;
 
   private:
-    static planning_scene_monitor_p
-		createPlanningSceneMonitor(
-		    const std::string& robot_description)		;
     void	readROSParams()						;
     void	servoStatusCB(const std_msgs::Int8ConstPtr& msg)	;
     void	targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg);
@@ -607,32 +604,6 @@ PoseTrackingServo::loop_rate() const
 /*
  *  private member functions
  */
-planning_scene_monitor::PlanningSceneMonitorPtr
-PoseTrackingServo::createPlanningSceneMonitor(
-    const std::string& robot_description)
-{
-    using	namespace planning_scene_monitor;
-
-    const auto	monitor = std::make_shared<planning_scene_monitor_t>(
-				robot_description);
-    if (!monitor->getPlanningScene())
-    {
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "Failed to get PlanningSceneMonitor");
-	exit(EXIT_FAILURE);
-    }
-
-    monitor->startSceneMonitor();
-    monitor->startWorldGeometryMonitor(
-	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
-	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
-	false /* skip octomap monitor */);
-    monitor->startStateMonitor();
-
-    ROS_INFO_STREAM_NAMED(LOGNAME, "PlanningSceneMonitor started");
-
-    return monitor;
-}
-
 void
 PoseTrackingServo::readROSParams()
 {

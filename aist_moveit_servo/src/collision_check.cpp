@@ -42,23 +42,66 @@
 #include <aist_moveit_servo/collision_check.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
 
-static const char LOGNAME[] = "collision_check";
-static const double MIN_RECOMMENDED_COLLISION_RATE = 10;
-constexpr double EPSILON = 1e-6;                // For very small numeric comparisons
-constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
+static const char	LOGNAME[] = "collision_check";
+static const double	MIN_RECOMMENDED_COLLISION_RATE = 10;
+constexpr double	EPSILON = 1e-6;                // For very small numeric comparisons
+constexpr size_t	ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
 namespace aist_moveit_servo
 {
-// Constructor for the class that handles collision checking
+/************************************************************************
+*  class CollisionCheck							*
+************************************************************************/
+//! Constructor for the class that handles collision checking
+/*!
+  \param parameters		common settings of aist_moveit_servo
+  \param planning_scene_monitor	PSM should have scene monitor and state monitor
+				already started when passed into this class
+*/
 CollisionCheck::CollisionCheck(ros::NodeHandle& nh,
-			       const aist_moveit_servo::ServoParameters& parameters,
+			       const ServoParameters& parameters,
                                const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
-    :nh_(nh),
-     parameters_(parameters),
+    :parameters_(parameters),
      planning_scene_monitor_(planning_scene_monitor),
-     self_velocity_scale_coefficient_(-log(0.001) / parameters.self_collision_proximity_threshold),
-     scene_velocity_scale_coefficient_(-log(0.001) / parameters.scene_collision_proximity_threshold),
-     period_(1. / parameters_.collision_check_rate)
+
+     current_state_(planning_scene_monitor_->getStateMonitor()
+					   ->getCurrentState()),
+     acm_(getLockedPlanningSceneRO()->getAllowedCollisionMatrix()),
+
+     collision_check_type_(
+	 parameters_.collision_check_type == "threshold_distance" ?
+	 K_THRESHOLD_DISTANCE : K_STOP_DISTANCE),
+     velocity_scale_(1),
+     self_collision_distance_(0),
+     scene_collision_distance_(0),
+     collision_detected_(false),
+     paused_(false),
+
+     current_collision_distance_(0),
+     derivative_of_collision_distance_(0),
+     prev_collision_distance_(0),
+     est_time_to_collision_(0),
+     safety_factor_(parameters_.collision_distance_safety_factor),
+     worst_case_stop_time_(std::numeric_limits<double>::max()),
+     
+     self_velocity_scale_coefficient_(
+	 -log(0.001) / parameters.self_collision_proximity_threshold),
+     scene_velocity_scale_coefficient_(
+	 -log(0.001) / parameters.scene_collision_proximity_threshold),
+
+     collision_request_(),
+     collision_result_(),
+
+     nh_(nh),
+     nh_internal_(nh_, "internal"),
+     worst_case_stop_time_sub_(
+	 nh_internal_.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE,
+				&CollisionCheck::worstCaseStopTimeCB, this)),
+     collision_velocity_scale_pub_(
+	 nh_internal_.advertise<std_msgs::Float64>("collision_velocity_scale",
+						   ROS_QUEUE_SIZE)),
+     period_(1.0/parameters_.collision_check_rate),
+     timer_()
 {
   // Init collision request
     collision_request_.group_name = parameters_.move_group_name;
@@ -66,59 +109,29 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh,
     collision_request_.contacts = true;  // Record the names of collision pairs
 
     if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
-	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-				       "Collision check rate is low, increase it in yaml file if CPU allows");
-
-    collision_check_type_ =
-	(parameters_.collision_check_type == "threshold_distance" ? K_THRESHOLD_DISTANCE : K_STOP_DISTANCE);
-    safety_factor_ = parameters_.collision_distance_safety_factor;
-
-  // Internal namespace
-    ros::NodeHandle internal_nh(nh_, "internal");
-    collision_velocity_scale_pub_
-	= internal_nh.advertise<std_msgs::Float64>("collision_velocity_scale",
-						   ROS_QUEUE_SIZE);
-    worst_case_stop_time_sub_ =
-	internal_nh.subscribe("worst_case_stop_time",
-			      ROS_QUEUE_SIZE,
-			      &CollisionCheck::worstCaseStopTimeCB, this);
-
-    current_state_
-	= planning_scene_monitor_->getStateMonitor()->getCurrentState();
-
-    acm_ = getLockedPlanningSceneRO()->getAllowedCollisionMatrix();
+	ROS_WARN_STREAM_THROTTLE_NAMED(
+	    ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+	    "Collision check rate is low, increase it in yaml file if CPU allows");
 }
 
-planning_scene_monitor::LockedPlanningSceneRO
-CollisionCheck::getLockedPlanningSceneRO() const
-{
-    return planning_scene_monitor::LockedPlanningSceneRO(planning_scene_monitor_);
-}
-
-void
-CollisionCheck::start()
-{
-    timer_ = nh_.createTimer(period_, &CollisionCheck::run, this);
-}
-
+/*
+ *  private member functions
+ */
+//! Run one iteration of collision checking
 void
 CollisionCheck::run(const ros::TimerEvent& timer_event)
 {
   // Log warning when the last loop duration was longer than the period
     if (timer_event.profile.last_duration.toSec() > period_.toSec())
-    {
 	ROS_WARN_STREAM_THROTTLE_NAMED(
 	    ROS_LOG_THROTTLE_PERIOD, LOGNAME,
 	    "last_duration: "
 	    << timer_event.profile.last_duration.toSec()
 	    << " ("
 	    << period_.toSec() << ")");
-    }
-
+    
     if (paused_)
-    {
 	return;
-    }
 
   // Update to the latest current state
     current_state_
@@ -128,7 +141,7 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 
   // Do a thread-safe distance-based collision detection
     {  // Lock PlanningScene
-	auto scene_ro = getLockedPlanningSceneRO();
+	auto	scene_ro = getLockedPlanningSceneRO();
 
 	collision_result_.clear();
 	scene_ro->getCollisionWorld()->checkRobotCollision(
@@ -138,14 +151,15 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 	scene_collision_distance_ = collision_result_.distance;
 	collision_detected_ |= collision_result_.collision;
 
+      // Self-collisions and scene collisions are checked separately
+      // so different thresholds can be used
 	collision_result_.clear();
-      // Self-collisions and scene collisions are checked separately so different thresholds can be used
 	scene_ro->getCollisionRobotUnpadded()->checkSelfCollision(
 	    collision_request_, collision_result_, *current_state_, acm_);
     }  // Unlock PlanningScene
 
     self_collision_distance_ = collision_result_.distance;
-    collision_detected_ |= collision_result_.collision;
+    collision_detected_	    |= collision_result_.collision;
     collision_result_.print();
 
     velocity_scale_ = 1;
@@ -230,16 +244,19 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
     }
 }
 
+//! Callback for stopping time, from the thread that is aware of velocity and acceleration
 void
 CollisionCheck::worstCaseStopTimeCB(const std_msgs::Float64ConstPtr& msg)
 {
     worst_case_stop_time_ = msg->data;
 }
 
-void
-CollisionCheck::setPaused(bool paused)
+//! Get a read-only copy of the planning scene
+planning_scene_monitor::LockedPlanningSceneRO
+CollisionCheck::getLockedPlanningSceneRO() const
 {
-    paused_ = paused;
+    return planning_scene_monitor::LockedPlanningSceneRO(
+		planning_scene_monitor_);
 }
 
 }  // namespace aist_moveit_servo
