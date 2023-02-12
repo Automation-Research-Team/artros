@@ -79,48 +79,15 @@ class Servo
   /** \brief Pause or unpause processing servo commands while keeping the timers alive */
     void	setPaused(bool paused)					;
 
-  /**
-   * Get the MoveIt planning link transform.
-   * The transform from the MoveIt planning frame to robot_link_command_frame
-   *
-   * @param transform the transform that will be calculated
-   * @return true if a valid transform was available
-   */
-    bool	getCommandFrameTransform(isometry3_t& transform)
-		{
-		    return servo_calcs_->getCommandFrameTransform(transform);
-		}
-    bool	getCommandFrameTransform(
-			geometry_msgs::TransformStamped& transform)
-		{
-		    return servo_calcs_->getCommandFrameTransform(transform);
-		}
-
-  /**
-   * Get the End Effector link transform.
-   * The transform from the MoveIt planning frame to EE link
-   *
-   * @param transform the transform that will be calculated
-   * @return true if a valid transform was available
-   */
-    bool	getEEFrameTransform(isometry3_t& transform)
-		{
-		    return servo_calcs_->getEEFrameTransform(transform);
-		}
-    bool	getEEFrameTransform(
-			geometry_msgs::TransformStamped& transform)
-		{
-		    return servo_calcs_->getEEFrameTransform(transform);
-		}
-
     isometry3_t	getCommandFrameTransform() const
 		{
-		    return servo_calcs_->getCommandFrameTransform();
+		    return getFrameTransform(parameters_
+					     .robot_link_command_frame);
 		}
 
     isometry3_t	getEEFrameTransform() const
 		{
-		    return servo_calcs_->getEEFrameTransform();
+		    return getFrameTransform(parameters_.ee_frame_name);
 		}
 
     isometry3_t	getFrameTransform(const std::string& frame) const
@@ -158,16 +125,16 @@ class Servo
     bool	readParameters()	;
 
   private:
-    ros::NodeHandle					nh_;
+    ros::NodeHandle			nh_;
 
   // Pointer to the collision environment
-    planning_scene_monitor::PlanningSceneMonitorPtr	planning_scene_monitor_;
+    const planning_scene_monitor_p	planning_scene_monitor_;
 
   // Store the parameters that were read from ROS server
-    ServoParameters					parameters_;
+    ServoParameters			parameters_;
 
-    std::unique_ptr<ServoCalcs>				servo_calcs_;
-    std::unique_ptr<CollisionCheck>			collision_checker_;
+    std::unique_ptr<ServoCalcs>		servo_calcs_;
+    std::unique_ptr<CollisionCheck>	collision_checker_;
 };
 
 // ServoPtr using alias

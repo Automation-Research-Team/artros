@@ -92,20 +92,6 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 	       << twist.angular.z;
 }
 
-// Helper function for converting Eigen::Isometry3d to geometry_msgs/TransformStamped
-geometry_msgs::TransformStamped
-convertIsometryToTransform(const Eigen::Isometry3d& isometry,
-			   const ros::Time& stamp,
-			   const std::string& parent_frame,
-			   const std::string& child_frame)
-{
-    auto	transform = tf2::eigenToTransform(isometry);
-    transform.header.stamp    = stamp;
-    transform.header.frame_id = parent_frame;
-    transform.child_frame_id  = child_frame;
-
-    return transform;
-}
 }  // namespace
 
 /************************************************************************
@@ -252,32 +238,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 ServoCalcs::~ServoCalcs()
 {
     stop();
-}
-
-bool
-ServoCalcs::getEEFrameTransform(transform_t& transform) const
-{
-    isometry3_t	isometry;
-    if (!getEEFrameTransform(isometry))
-	return false;
-
-    transform = convertIsometryToTransform(isometry, robot_state_stamp_,
-					   parameters_.planning_frame,
-					   parameters_.ee_frame_name);
-    return true;
-}
-
-bool
-ServoCalcs::getCommandFrameTransform(transform_t& transform) const
-{
-    isometry3_t	isometry;
-    if (!getCommandFrameTransform(isometry))
-	return false;
-
-    transform = convertIsometryToTransform(isometry, robot_state_stamp_,
-					   parameters_.planning_frame,
-					   parameters_.robot_link_command_frame);
-    return true;
 }
 
 //! Start the timer where we do work and publish outputs

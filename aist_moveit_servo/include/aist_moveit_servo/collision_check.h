@@ -61,12 +61,13 @@ class CollisionCheck
 {
   private:
     using planning_scene_monitor_p
-		= planning_scene_monitor::PlanningSceneMonitorPtr;
-    using collision_matrix_t	= collision_detection::AllowedCollisionMatrix;
+			     = planning_scene_monitor::PlanningSceneMonitorPtr;
+    using collision_matrix_t = collision_detection::AllowedCollisionMatrix;
     
   public:
 		CollisionCheck(
-		    ros::NodeHandle& nh, const ServoParameters& parameters,
+		    const ros::NodeHandle& nh,
+		    const ServoParameters& parameters,
 		    const planning_scene_monitor_p& planning_scene_monitor);
 		~CollisionCheck()
 		{
@@ -106,7 +107,7 @@ class CollisionCheck
 
   // ROS
     const ros::NodeHandle		nh_;
-    ros::NodeHandle			nh_internal_;
+    ros::NodeHandle			internal_nh_;
     const ros::Subscriber		worst_case_stop_time_sub_;
     const ros::Publisher		collision_velocity_scale_pub_;
     const ros::Duration			period_;

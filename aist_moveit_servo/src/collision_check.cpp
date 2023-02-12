@@ -58,9 +58,9 @@ namespace aist_moveit_servo
   \param planning_scene_monitor	PSM should have scene monitor and state monitor
 				already started when passed into this class
 */
-CollisionCheck::CollisionCheck(ros::NodeHandle& nh,
+CollisionCheck::CollisionCheck(const ros::NodeHandle& nh,
 			       const ServoParameters& parameters,
-                               const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+                               const planning_scene_monitor_p& planning_scene_monitor)
     :parameters_(parameters),
      planning_scene_monitor_(planning_scene_monitor),
      acm_(getLockedPlanningSceneRO()->getAllowedCollisionMatrix()),
@@ -77,12 +77,12 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh,
      paused_(false),
 
      nh_(nh),
-     nh_internal_(nh_, "internal"),
+     internal_nh_(nh_, "internal"),
      worst_case_stop_time_sub_(
-	 nh_internal_.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE,
+	 internal_nh_.subscribe("worst_case_stop_time", ROS_QUEUE_SIZE,
 				&CollisionCheck::worstCaseStopTimeCB, this)),
      collision_velocity_scale_pub_(
-	 nh_internal_.advertise<std_msgs::Float64>("collision_velocity_scale",
+	 internal_nh_.advertise<std_msgs::Float64>("collision_velocity_scale",
 						   ROS_QUEUE_SIZE)),
      period_(1.0/parameters_.collision_check_rate),
      timer_()
