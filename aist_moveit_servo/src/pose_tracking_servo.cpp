@@ -283,10 +283,8 @@ class PoseTrackingServo
 				   double value)			;
     void	updateOrientationPID(double PIDConfig::* field,
 				     double value)			;
-    void	getPIDErrors(double& x_error,
-			     double& y_error,
-			     double& z_error,
-			     double& orientation_error)			;
+    void	getPIDErrors(double& x_error, double& y_error,
+			     double& z_error, double& orientation_error);
 
   // Target pose stuffs
     void	resetTargetPose()					;
@@ -295,16 +293,16 @@ class PoseTrackingServo
   private:
     ros::NodeHandle				nh_;
 
-    planning_scene_monitor_p			planning_scene_monitor_;
-    std::unique_ptr<aist_moveit_servo::Servo>	servo_;
+    const planning_scene_monitor_p		planning_scene_monitor_;
+    const std::unique_ptr<Servo>		servo_;
     servo_status_t				servo_status_;
 
     ros::ServiceClient				reset_servo_status_;
     ros::Subscriber				servo_status_sub_;
     ros::Subscriber				target_pose_sub_;
-    ros::Publisher				twist_stamped_pub_;
-    ros::Publisher				target_pose_debug_pub_;
-    ros::Publisher				ee_pose_debug_pub_;
+    ros::Publisher				twist_pub_;
+    const ros::Publisher			target_pose_debug_pub_;
+    const ros::Publisher			ee_pose_debug_pub_;
     ros::Rate					loop_rate_;
     DurationArray&				durations_;
 
@@ -344,7 +342,7 @@ class PoseTrackingServo
 PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     :nh_(nh),
      planning_scene_monitor_(createPlanningSceneMonitor("robot_description")),
-     servo_(new aist_moveit_servo::Servo(nh_, planning_scene_monitor_)),
+     servo_(new Servo(nh_, planning_scene_monitor_)),
      servo_status_(servo_status_t::INVALID),
 
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
@@ -352,7 +350,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      servo_status_sub_(nh_.subscribe(servo_->getParameters().status_topic, 1,
 				     &PoseTrackingServo::servoStatusCB, this)),
      target_pose_sub_(),
-     twist_stamped_pub_(),
+     twist_pub_(),
      target_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
 				"desired_pose", 1)),
      ee_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
@@ -402,9 +400,8 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     			ros::TransportHints().reliable().tcpNoDelay(true));
 
   // Publish outgoing twist commands to the Servo object
-    twist_stamped_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(
-    			   servo_->getParameters().cartesian_command_in_topic,
-    			   1);
+    twist_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(
+    			servo_->getParameters().cartesian_command_in_topic, 1);
 
   // Setup action server
     tracker_srv_.registerGoalCallback(boost::bind(&PoseTrackingServo::goalCB,
@@ -528,10 +525,9 @@ PoseTrackingServo::tick()
 	PoseTrackingResult	result;
 	result.status = static_cast<int8_t>(servo_status_);
 	tracker_srv_.setAborted(result);
-	ROS_ERROR_STREAM_NAMED(
-	    LOGNAME, "(PoseTrackingServo) goal ABORTED["
-	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status_)
-	    << ']');
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
+			       << SERVO_STATUS_CODE_MAP.at(servo_status_)
+			       << ']');
 	return;
       }
 
@@ -588,8 +584,7 @@ PoseTrackingServo::tick()
 
   // Compute servo command from PID controller output and send it
   // to the Servo object, for execution
-    twist_stamped_pub_.publish(calculateTwistCommand(positional_error,
-						     angular_error));
+    twist_pub_.publish(calculateTwistCommand(positional_error, angular_error));
 
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
@@ -716,24 +711,21 @@ PoseTrackingServo::servoStatusCB(const std_msgs::Int8ConstPtr& msg)
     {
       case servo_status_t::DECELERATE_FOR_SINGULARITY:
       case servo_status_t::DECELERATE_FOR_COLLISION:
-	ROS_WARN_STREAM_NAMED(
-	    LOGNAME, "(PoseTrackingServo) Servo status["
-	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
-	    << ']');
+	ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Servo status["
+			      << SERVO_STATUS_CODE_MAP.at(servo_status)
+			      << ']');
 	break;
       case servo_status_t::HALT_FOR_SINGULARITY:
       case servo_status_t::HALT_FOR_COLLISION:
       case servo_status_t::JOINT_BOUND:
-	ROS_ERROR_STREAM_NAMED(
-	    LOGNAME, "(PoseTrackingServo) Servo status["
-	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
-	    << ']');
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Servo status["
+			       << SERVO_STATUS_CODE_MAP.at(servo_status)
+			       << ']');
 	break;
       default:
-	ROS_INFO_STREAM_NAMED(
-	    LOGNAME, "(PoseTrackingServo) Servo status["
-	    << aist_moveit_servo::SERVO_STATUS_CODE_MAP.at(servo_status)
-	    << ']');
+	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Servo status["
+			      << SERVO_STATUS_CODE_MAP.at(servo_status)
+			      << ']');
 	break;
     }
 }
@@ -931,7 +923,7 @@ PoseTrackingServo::stopMotion()
 	msg->header.frame_id = target_pose_.header.frame_id;
     }
     msg->header.stamp = ros::Time::now();
-    twist_stamped_pub_.publish(msg);
+    twist_pub_.publish(msg);
 }
 
 // Low-pass filter stuffs
@@ -981,7 +973,7 @@ void
 PoseTrackingServo::initializePID(const PIDConfig& pid_config,
 				 std::vector<control_toolbox::Pid>& pid_vector)
 {
-    bool use_anti_windup = true;
+    bool	use_anti_windup = true;
     pid_vector.push_back(control_toolbox::Pid(pid_config.k_p,
 					      pid_config.k_i,
 					      pid_config.k_d,
@@ -994,7 +986,7 @@ void
 PoseTrackingServo::getPIDErrors(double& x_error, double& y_error,
 				double& z_error, double& orientation_error)
 {
-    double dummy1, dummy2;
+    double	dummy1, dummy2;
     cartesian_position_pids_.at(0).getCurrentPIDErrors(&x_error,
 						       &dummy1, &dummy2);
     cartesian_position_pids_.at(1).getCurrentPIDErrors(&y_error,

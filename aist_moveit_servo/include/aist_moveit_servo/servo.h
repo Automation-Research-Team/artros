@@ -62,8 +62,6 @@ class Servo
 {
   public:
     using isometry3_t	= Eigen::Isometry3d;
-
-  private:
     using planning_scene_monitor_p
 			= planning_scene_monitor::PlanningSceneMonitorPtr;
 
