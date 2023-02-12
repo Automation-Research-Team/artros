@@ -62,6 +62,7 @@ class CollisionCheck
   private:
     using planning_scene_monitor_p
 		= planning_scene_monitor::PlanningSceneMonitorPtr;
+    using collision_matrix_t	= collision_detection::AllowedCollisionMatrix;
     
   public:
 		CollisionCheck(
@@ -92,40 +93,16 @@ class CollisionCheck
 		getLockedPlanningSceneRO()			const	;
 
   private:
-  // Parameters from yaml
-    const ServoParameters&			parameters_;
-
-  // Pointer to the collision environment
-    const planning_scene_monitor_p		planning_scene_monitor_;
-
-  // Robot state and collision matrix from planning scene
-    std::shared_ptr<moveit::core::RobotState>	current_state_;
-    collision_detection::AllowedCollisionMatrix	acm_;
-
-  // Scale robot velocity according to collision proximity and user-defined thresholds.
-  // I scaled exponentially (cubic power) so velocity drops off quickly after the threshold.
-  // Proximity decreasing --> decelerate
+    const ServoParameters&		parameters_;
+    const planning_scene_monitor_p	planning_scene_monitor_;
+    const collision_matrix_t		acm_;
     const CollisionCheckType		collision_check_type_;
-    double				velocity_scale_;
-    double				self_collision_distance_;
-    double				scene_collision_distance_;
-    bool				collision_detected_;
-    bool				paused_;
-
-  // Variables for stop-distance-based collision checking
-    double				current_collision_distance_;
-    double				derivative_of_collision_distance_;
-    double				prev_collision_distance_;
-    double				est_time_to_collision_;
-    double				safety_factor_;
-    double				worst_case_stop_time_;
-    
     const double			self_velocity_scale_coefficient_;
     const double			scene_velocity_scale_coefficient_;
 
-  // collision request
-    collision_detection::CollisionRequest	collision_request_;
-    collision_detection::CollisionResult	collision_result_;
+    double				prev_collision_distance_;
+    double				worst_case_stop_time_;
+    bool				paused_;
 
   // ROS
     const ros::NodeHandle		nh_;

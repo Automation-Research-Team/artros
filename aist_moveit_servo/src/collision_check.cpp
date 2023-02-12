@@ -63,34 +63,18 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh,
                                const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
     :parameters_(parameters),
      planning_scene_monitor_(planning_scene_monitor),
-
-     current_state_(planning_scene_monitor_->getStateMonitor()
-					   ->getCurrentState()),
      acm_(getLockedPlanningSceneRO()->getAllowedCollisionMatrix()),
-
      collision_check_type_(
 	 parameters_.collision_check_type == "threshold_distance" ?
 	 K_THRESHOLD_DISTANCE : K_STOP_DISTANCE),
-     velocity_scale_(1),
-     self_collision_distance_(0),
-     scene_collision_distance_(0),
-     collision_detected_(false),
-     paused_(false),
-
-     current_collision_distance_(0),
-     derivative_of_collision_distance_(0),
-     prev_collision_distance_(0),
-     est_time_to_collision_(0),
-     safety_factor_(parameters_.collision_distance_safety_factor),
-     worst_case_stop_time_(std::numeric_limits<double>::max()),
-     
      self_velocity_scale_coefficient_(
 	 -log(0.001) / parameters.self_collision_proximity_threshold),
      scene_velocity_scale_coefficient_(
 	 -log(0.001) / parameters.scene_collision_proximity_threshold),
 
-     collision_request_(),
-     collision_result_(),
+     prev_collision_distance_(0),
+     worst_case_stop_time_(std::numeric_limits<double>::max()),
+     paused_(false),
 
      nh_(nh),
      nh_internal_(nh_, "internal"),
@@ -104,9 +88,6 @@ CollisionCheck::CollisionCheck(ros::NodeHandle& nh,
      timer_()
 {
   // Init collision request
-    collision_request_.group_name = parameters_.move_group_name;
-    collision_request_.distance = true;  // enable distance-based collision checking
-    collision_request_.contacts = true;  // Record the names of collision pairs
 
     if (parameters_.collision_check_rate < MIN_RECOMMENDED_COLLISION_RATE)
 	ROS_WARN_STREAM_THROTTLE_NAMED(
@@ -134,114 +115,138 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 	return;
 
   // Update to the latest current state
-    current_state_
-	= planning_scene_monitor_->getStateMonitor()->getCurrentState();
-    current_state_->updateCollisionBodyTransforms();
-    collision_detected_ = false;
+    const auto	current_state = planning_scene_monitor_->getStateMonitor()
+						       ->getCurrentState();
+    current_state->updateCollisionBodyTransforms();
+
+    bool	collision_detected	 = false;
+    double	scene_collision_distance = 0;
+    double	self_collision_distance	 = 0;
 
   // Do a thread-safe distance-based collision detection
     {  // Lock PlanningScene
-	auto	scene_ro = getLockedPlanningSceneRO();
+	const auto	scene_ro = getLockedPlanningSceneRO();
 
-	collision_result_.clear();
-	scene_ro->getCollisionWorld()->checkRobotCollision(
-	    collision_request_, collision_result_,
-	    *scene_ro->getCollisionRobot(), *current_state_, acm_);
+      // Enable distance-based collision checking
+      // and record the names of collision pairs
+	collision_detection::CollisionRequest	collision_request;
+	collision_request.group_name = parameters_.move_group_name;
+	collision_request.distance   = true;
+	collision_request.contacts   = true;
 
-	scene_collision_distance_ = collision_result_.distance;
-	collision_detected_ |= collision_result_.collision;
+	collision_detection::CollisionResult	collision_result;
+	collision_result.clear();
+	scene_ro->getCollisionWorld()
+		->checkRobotCollision(collision_request, collision_result,
+				      *scene_ro->getCollisionRobot(),
+				      *current_state, acm_);
+	collision_detected	|= collision_result.collision;
+	scene_collision_distance = collision_result.distance;
 
       // Self-collisions and scene collisions are checked separately
       // so different thresholds can be used
-	collision_result_.clear();
-	scene_ro->getCollisionRobotUnpadded()->checkSelfCollision(
-	    collision_request_, collision_result_, *current_state_, acm_);
+	collision_result.clear();
+	scene_ro->getCollisionRobotUnpadded()
+		->checkSelfCollision(collision_request, collision_result,
+				     *current_state, acm_);
+	collision_detected	|= collision_result.collision;
+	self_collision_distance  = collision_result.distance;
+
+	collision_result.print();
     }  // Unlock PlanningScene
 
-    self_collision_distance_ = collision_result_.distance;
-    collision_detected_	    |= collision_result_.collision;
-    collision_result_.print();
+  // Scale robot velocity according to collision proximity
+  // and user-defined thresholds.
+  // I scaled exponentially (cubic power) so velocity drops off quickly
+  // after the threshold.
+  // Proximity decreasing --> decelerate
+    double	velocity_scale = 1;
 
-    velocity_scale_ = 1;
   // If we're definitely in collision, stop immediately
-    if (collision_detected_)
+    if (collision_detected)
     {
-	velocity_scale_ = 0;
+	velocity_scale = 0;
     }
   // If threshold distances were specified
     else if (collision_check_type_ == K_THRESHOLD_DISTANCE)
     {
       // If we are far from a collision, velocity_scale should be 1.
       // If we are very close to a collision, velocity_scale should be ~zero.
-      // When scene_collision_proximity_threshold is breached, start decelerating exponentially.
-	if (scene_collision_distance_ <
+      // When scene_collision_proximity_threshold is breached,
+      // start decelerating exponentially.
+	if (scene_collision_distance <
 	    parameters_.scene_collision_proximity_threshold)
 	{
 	  // velocity_scale = e ^ k * (collision_distance - threshold)
 	  // k = - ln(0.001) / collision_proximity_threshold
-	  // velocity_scale should equal one when collision_distance is at collision_proximity_threshold.
-	  // velocity_scale should equal 0.001 when collision_distance is at zero.
-	    velocity_scale_ =
-		std::min(velocity_scale_,
+	  // 
+	  // velocity_scale should equal one
+	  // when collision_distance is at collision_proximity_threshold.
+	  // velocity_scale should equal 0.001
+	  // when collision_distance is at zero.
+	    velocity_scale =
+		std::min(velocity_scale,
 			 exp(scene_velocity_scale_coefficient_ *
-			     (scene_collision_distance_ -
+			     (scene_collision_distance -
 			      parameters_.scene_collision_proximity_threshold)));
 	}
 
-	if (self_collision_distance_ <
+	if (self_collision_distance <
 	    parameters_.self_collision_proximity_threshold)
 	{
-	    velocity_scale_ =
-		std::min(velocity_scale_,
+	    velocity_scale =
+		std::min(velocity_scale,
 			 exp(self_velocity_scale_coefficient_ *
-			     (self_collision_distance_ -
+			     (self_collision_distance -
 			      parameters_.self_collision_proximity_threshold)));
 	}
     }
   // Else, we stop based on worst-case stopping distance
     else
     {
-      // Retrieve the worst-case time to stop, based on current joint velocities
+      // Retrieve the worst-case time to stop,
+      // based on current joint velocities
 
       // Calculate rate of change of distance to nearest collision
-	current_collision_distance_
-	    = std::min(scene_collision_distance_, self_collision_distance_);
-	derivative_of_collision_distance_
-	    = (current_collision_distance_ - prev_collision_distance_)
-	    / period_.toSec();
+	const auto	collision_distance = std::min(scene_collision_distance,
+						      self_collision_distance);
+	const auto	derivative_of_collision_distance
+			    = (collision_distance - prev_collision_distance_)
+			    / period_.toSec();
 
-	if (current_collision_distance_ <
+	if (collision_distance <
 	    parameters_.min_allowable_collision_distance &&
-	    derivative_of_collision_distance_ <= 0)
+	    derivative_of_collision_distance <= 0)
 	{
-	    velocity_scale_ = 0;
+	    velocity_scale = 0;
 	}
-      // Only bother doing calculations if we are moving toward the nearest collision
-	else if (derivative_of_collision_distance_ < -EPSILON)
+      // Only bother doing calculations
+      // if we are moving toward the nearest collision
+	else if (derivative_of_collision_distance < -EPSILON)
 	{
-	  // At the rate the collision distance is decreasing, how long until we collide?
-	    est_time_to_collision_
-		= fabs(current_collision_distance_ /
-		       derivative_of_collision_distance_);
+	  // At the rate the collision distance is decreasing,
+	  // how long until we collide?
+	    const auto	est_time_to_collision
+			    = fabs(collision_distance /
+				   derivative_of_collision_distance);
 
 	  // halt if we can't stop fast enough (including the safety factor)
-	    if (est_time_to_collision_ <
-		(safety_factor_ * worst_case_stop_time_))
+	    if (est_time_to_collision <
+		(parameters_.collision_distance_safety_factor *
+		 worst_case_stop_time_))
 	    {
-		velocity_scale_ = 0;
+		velocity_scale = 0;
 	    }
 	}
 
       // Update for the next iteration
-	prev_collision_distance_ = current_collision_distance_;
+	prev_collision_distance_ = collision_distance;
     }
 
   // publish message
-    {
-	auto msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
-	msg->data = velocity_scale_;
-	collision_velocity_scale_pub_.publish(msg);
-    }
+    auto	msg = moveit::util::make_shared_from_pool<std_msgs::Float64>();
+    msg->data = velocity_scale;
+    collision_velocity_scale_pub_.publish(msg);
 }
 
 //! Callback for stopping time, from the thread that is aware of velocity and acceleration
