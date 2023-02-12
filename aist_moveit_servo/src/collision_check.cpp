@@ -36,16 +36,13 @@
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
-
-#include <std_msgs/Float64.h>
-
 #include <aist_moveit_servo/collision_check.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
 
 static const char	LOGNAME[] = "collision_check";
 static const double	MIN_RECOMMENDED_COLLISION_RATE = 10;
-constexpr double	EPSILON = 1e-6;                // For very small numeric comparisons
-constexpr size_t	ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
+static constexpr double	EPSILON = 1e-6;                // For very small numeric comparisons
+static constexpr size_t	ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
 namespace aist_moveit_servo
 {

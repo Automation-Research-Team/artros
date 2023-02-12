@@ -30,27 +30,20 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
 /*      Title     : servo.cpp
  *      Project   : aist_moveit_servo
  *      Created   : 3/9/2017
- *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+ *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson, Toshio Ueshiba
  */
-
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
-
 #include <aist_moveit_servo/make_shared_from_pool.h>
 #include <aist_moveit_servo/servo.h>
 
-static const std::string LOGNAME = "servo_node";
+static const std::string LOGNAME		= "servo_node";
+static constexpr double	 ROBOT_STATE_WAIT_TIME	= 10.0;  // seconds
 
 namespace aist_moveit_servo
 {
-namespace
-{
-constexpr double ROBOT_STATE_WAIT_TIME = 10.0;  // seconds
-}  // namespace
-
 /************************************************************************
 *  global functions							*
 ************************************************************************/

@@ -30,7 +30,6 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
 /*      Title     : servo_server.cpp
  *      Project   : aist_moveit_servo
  *      Created   : 12/31/2018
@@ -55,8 +54,8 @@ main(int argc, char** argv)
 	servo(ros::NodeHandle("~"),
 	      aist_moveit_servo::createPlanningSceneMonitor(
 		  "robot_description"));
-
     servo.start();		// Start the servo server in the ros spinner
+
     ros::waitForShutdown();	// Wait for ros to shutdown
     servo.setPaused(true);	// Stop the servo server
 

@@ -30,23 +30,18 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
 /*      Title     : servo_calcs.cpp
  *      Project   : aist_moveit_servo
  *      Created   : 1/11/2019
- *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+ *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson, Toshio Ueshiba
  */
-
 #include <cassert>
-
-#include <std_msgs/Bool.h>
 #include <std_msgs/Float64MultiArray.h>
-
 #include <aist_moveit_servo/make_shared_from_pool.h>
 #include <aist_moveit_servo/servo_calcs.h>
 
 static const std::string LOGNAME = "servo_calcs";
-constexpr size_t ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
+constexpr size_t	 ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
 
 namespace aist_moveit_servo
 {

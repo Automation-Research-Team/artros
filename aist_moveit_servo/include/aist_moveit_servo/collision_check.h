@@ -35,23 +35,19 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
 #pragma once
 
 #include <moveit/collision_detection/collision_common.h>
-#include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
-
 #include <aist_moveit_servo/servo_parameters.h>
 
 namespace aist_moveit_servo
 {
 enum CollisionCheckType
 {
-  K_THRESHOLD_DISTANCE = 1,
-  K_STOP_DISTANCE = 2
+    K_THRESHOLD_DISTANCE = 1,
+    K_STOP_DISTANCE	 = 2
 };
 
 /************************************************************************
