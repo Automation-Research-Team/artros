@@ -18,6 +18,7 @@ find_package(catkin REQUIRED
     rospy
     tf_conversions
     tf2_geometry_msgs
+    nav_msgs
     ddynamic_reconfigure
     trajectory_msgs
     control_msgs
