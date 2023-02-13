@@ -306,6 +306,10 @@ class PoseTrackingServo
     void	resetTargetPose()					;
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
+  // Odometry stuffs
+    void	resetOdometry()						;
+    bool	haveRecentOdometry(const ros::Duration& timeout) const	;
+
   private:
     ros::NodeHandle			nh_;
 
@@ -548,7 +552,8 @@ PoseTrackingServo::tick()
     }
 
   // Check that target pose is recent enough.
-    if (!haveRecentTargetPose(current_goal_->timeout))
+    if (!haveRecentTargetPose(current_goal_->timeout) ||
+	!haveRecentOdometry(current_goal_->timeout))
     {
     	doPostMotionReset();
 	PoseTrackingResult	result;
@@ -778,13 +783,24 @@ PoseTrackingServo::odometryCB(const odom_cp& msg)
     std::lock_guard<std::mutex>	lock(input_mtx_);
 
     odom_ = *msg;
+
+    if (odom_.header.stamp == ros::Time(0))
+	odom_.header.stamp = ros::Time::now();
+
+    auto Tpb = tf2::eigenToTransform(servo_->getFrameTransform(
+					     odom_.child_frame_id));
+    Tpb.header.stamp	= odom_.header.stamp;
+    Tpb.header.frame_id	= planning_frame_;
+    Tpb.child_frame_id	= odom_.child_frame_id;
+    
 }
 
 void
 PoseTrackingServo::goalCB()
 {
     resetTargetPose();
-
+    resetOdometry();
+    
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
@@ -1026,6 +1042,24 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
     std::lock_guard<std::mutex> lock(input_mtx_);
 
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
+}
+
+// Odometry stuffs
+void
+PoseTrackingServo::resetOdometry()
+{
+    std::lock_guard<std::mutex>	lock(input_mtx_);
+
+    odom_	       = odom_t();
+    odom_.header.stamp = ros::Time(0);
+}
+
+bool
+PoseTrackingServo::haveRecentOdometry(const ros::Duration& timeout) const
+{
+    std::lock_guard<std::mutex> lock(input_mtx_);
+
+    return (ros::Time::now() - odom_.header.stamp < timeout);
 }
 
 }	// namespace aist_moveit_servo
