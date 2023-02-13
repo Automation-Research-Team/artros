@@ -102,14 +102,7 @@ class ServoCalcs
 			   const planning_scene_monitor_p& monitor)	;
 		~ServoCalcs()						;
 
-    bool	getCommandFrameTransform(isometry3_t& transform) const	;
-    bool	getCommandFrameTransform(transform_t& transform) const	;
-    isometry3_t	getCommandFrameTransform()			 const	;
-    bool	getEEFrameTransform(isometry3_t& transform)	 const	;
-    bool	getEEFrameTransform(transform_t& transform)	 const	;
-    isometry3_t	getEEFrameTransform()				 const	;
     isometry3_t	getFrameTransform(const std::string& frame)	 const	;
-
     void	start()							;
     void	setPaused(bool paused)					;
     void	changeRobotLinkCommandFrame(
@@ -255,34 +248,6 @@ class ServoCalcs
     std::condition_variable		input_cv_;
     bool				new_input_cmd_;
 };
-
-inline bool
-ServoCalcs::getCommandFrameTransform(isometry3_t& isometry) const
-{
-    isometry = getCommandFrameTransform();
-
-    return !isometry.matrix().isZero(0);
-}
-
-inline ServoCalcs::isometry3_t
-ServoCalcs::getCommandFrameTransform() const
-{
-    return getFrameTransform(parameters_.robot_link_command_frame);
-}
-
-inline bool
-ServoCalcs::getEEFrameTransform(isometry3_t& isometry) const
-{
-    isometry = getEEFrameTransform();
-
-    return !isometry.matrix().isZero(0);
-}
-
-inline ServoCalcs::isometry3_t
-ServoCalcs::getEEFrameTransform() const
-{
-    return getFrameTransform(parameters_.ee_frame_name);
-}
 
 inline ServoCalcs::isometry3_t
 ServoCalcs::getFrameTransform(const std::string& frame) const

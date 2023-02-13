@@ -24,6 +24,7 @@ joint_state_controller:
   publish_rate: 50
 controller_list:
   - name: /a_bot/scaled_pos_joint_traj_controller
+#  - name: /a_bot/scaled_vel_joint_traj_controller
     action_ns: follow_joint_trajectory
     default: True
     type: FollowJointTrajectory

@@ -30,29 +30,53 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
 /*      Title     : servo.cpp
  *      Project   : aist_moveit_servo
  *      Created   : 3/9/2017
- *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
+ *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson, Toshio Ueshiba
  */
-
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
-
 #include <aist_moveit_servo/make_shared_from_pool.h>
 #include <aist_moveit_servo/servo.h>
 
-static const std::string LOGNAME = "servo_node";
+static const std::string LOGNAME		= "servo_node";
+static constexpr double	 ROBOT_STATE_WAIT_TIME	= 10.0;  // seconds
 
 namespace aist_moveit_servo
 {
-namespace
+/************************************************************************
+*  global functions							*
+************************************************************************/
+planning_scene_monitor::PlanningSceneMonitorPtr
+createPlanningSceneMonitor(const std::string& robot_description)
 {
-constexpr double ROBOT_STATE_WAIT_TIME = 10.0;  // seconds
-}  // namespace
+    using	namespace planning_scene_monitor;
 
+    const auto	monitor = std::make_shared<PlanningSceneMonitor>(
+				robot_description);
+    if (!monitor->getPlanningScene())
+    {
+	ROS_ERROR_STREAM_NAMED(LOGNAME, "Failed to get PlanningSceneMonitor");
+	exit(EXIT_FAILURE);
+    }
+
+    monitor->startSceneMonitor();
+    monitor->startWorldGeometryMonitor(
+	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
+	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
+	false /* skip octomap monitor */);
+    monitor->startStateMonitor();
+
+    ROS_INFO_STREAM_NAMED(LOGNAME, "PlanningSceneMonitor started");
+
+    return monitor;
+}
+    
+/************************************************************************
+*  class Servo								*
+************************************************************************/
 Servo::Servo(const ros::NodeHandle& nh,
-	     const planning_scene_monitor::PlanningSceneMonitorPtr& planning_scene_monitor)
+	     const planning_scene_monitor_p& planning_scene_monitor)
     :nh_(nh), planning_scene_monitor_(planning_scene_monitor)
 {
   // Read ROS parameters, typically from YAML file
@@ -378,36 +402,6 @@ Servo::setPaused(bool paused)
 {
     servo_calcs_->setPaused(paused);
     collision_checker_->setPaused(paused);
-}
-
-bool
-Servo::getCommandFrameTransform(Eigen::Isometry3d& transform)
-{
-    return servo_calcs_->getCommandFrameTransform(transform);
-}
-
-bool
-Servo::getCommandFrameTransform(geometry_msgs::TransformStamped& transform)
-{
-    return servo_calcs_->getCommandFrameTransform(transform);
-}
-
-bool
-Servo::getEEFrameTransform(Eigen::Isometry3d& transform)
-{
-    return servo_calcs_->getEEFrameTransform(transform);
-}
-
-bool
-Servo::getEEFrameTransform(geometry_msgs::TransformStamped& transform)
-{
-    return servo_calcs_->getEEFrameTransform(transform);
-}
-
-const ServoParameters&
-Servo::getParameters() const
-{
-    return parameters_;
 }
 
 }  // namespace aist_moveit_servo
