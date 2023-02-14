@@ -12,9 +12,9 @@ scale:
   rotational: 3.0
   joint:      0.1
 
-low_pass_filter_coeff: 40.
+low_pass_filter_coeff: 40.0
 low_pass_filter_half_order: 3
-low_pass_filter_cutoff_frequency: 7.
+low_pass_filter_cutoff_frequency: 15.0
 
 ## Properties of outgoing commands
 publish_period:   0.002

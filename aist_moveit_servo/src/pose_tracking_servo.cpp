@@ -792,7 +792,6 @@ PoseTrackingServo::odometryCB(const odom_cp& msg)
     Tpb.header.stamp	= odom_.header.stamp;
     Tpb.header.frame_id	= planning_frame_;
     Tpb.child_frame_id	= odom_.child_frame_id;
-    
 }
 
 void
