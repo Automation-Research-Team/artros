@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="speed"		default="5.0"/>
+  <arg name="turn"		default="5.0"/>
+  <arg name="repeat_rate"	default="10.0"/>
+  <arg name="robot_name"	default="a_bot"/>
+  <arg name="sim"		default="false"/>
+  <arg name="unitless"		default="true"/>
+  <arg name="traj"		default="true"/>
+  <arg name="velocity_control"	default="false"/>
+
+  <!-- Spawn teleop_twist_keyboard -->
+  <node name="teleop_twist_keyboard"
+	pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py"
+	output="screen">
+    <param name="speed"		value="$(arg speed)"/>
+    <param name="turn"		value="$(arg turn)"/>
+    <param name="repeat_rate"	value="$(arg repeat_rate)"/>
+    <param name="stamped"	value="true"/>
+    <param name="frame_id"	value="$(arg robot_name)_base_link"/>
+    <remap from="/cmd_vel"	to="/servo_server/delta_twist_cmds"/>
+  </node>
+
+  <!-- Spawn servo_server -->
+  <include file="$(dirname)/include/ur_servo_server.launch">
+    <arg name="server"			value="servo_server"/>
+    <arg name="robot_name"		value="$(arg robot_name)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="unitless"		value="$(arg unitless)"/>
+    <arg name="traj"			value="$(arg traj)"/>
+    <arg name="velocity_control"	value="$(arg velocity_control)"/>
+  </include>
+
+</launch>

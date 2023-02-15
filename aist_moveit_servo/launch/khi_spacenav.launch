@@ -2,15 +2,19 @@
 <launch>
 
   <arg name="sim"		default="false"/>
+  <arg name="unitless"		default="true"/>
   <arg name="traj"		default="true"/>
   <arg name="teleop_tools"	default="false"/>
        
+  <!-- Spawn spacenav driver -->
   <node name="spacenav_node" pkg="spacenav_node" type="spacenav_node"/>
 
+  <!-- Spawn relay node -->
   <node unless="$(arg teleop_tools)"
 	name="spacenav_to_twist"
 	pkg="moveit_servo" type="spacenav_to_twist" output="screen"/>
 
+  <!-- Spawn joy -->
   <group if="$(arg teleop_tools)">
     <rosparam file="$(find moveit_servo
 		    )/config/spacenav_via_teleop_tools.yaml"/>
@@ -21,10 +25,12 @@
     </node>
   </group>
 
-  <include file="$(dirname)/khi_servo_server.launch">
+  <!-- Launch servo_server -->
+  <include file="$(dirname)/include/khi_servo_server.launch">
+    <arg name="server"		value="servo_server"/>
     <arg name="sim"		value="$(arg sim)"/>
+    <arg name="unitless"	value="$(arg unitless)"/>
     <arg name="traj"		value="$(arg traj)"/>
-    <arg name="unitless"	value="true"/>
   </include>	
 
 </launch>

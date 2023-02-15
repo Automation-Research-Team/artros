@@ -2,12 +2,14 @@
 <launch>
 
   <arg name="sim"		default="false"/>
+  <arg name="unitless"		default="true"/>
   <arg name="traj"		default="true"/>
   <arg name="speed"		default="13.0"/>
   <arg name="turn"		default="13.0"/>
   <arg name="repeat_rate"	default="100.0"/>
 
-  <node ns="servo_server" name="teleop_twist_keyboard"
+  <!-- Spawn teleop_twist_keyboard -->
+  <node name="teleop_twist_keyboard"
 	pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py"
 	output="screen">
     <param name="speed"		value="$(arg speed)"/>
@@ -15,13 +17,15 @@
     <param name="repeat_rate"	value="$(arg repeat_rate)"/>
     <param name="stamped"	value="true"/>
     <param name="frame_id"	value="arm_base_link"/>
+    <remap from="/cmd_vel"	to="/servo_server/delta_twist_cmds"/>
   </node>
 
-  <!-- <include file="$(dirname)/khi_servo_server.launch"> -->
-  <!--   <arg name="sim"				value="$(arg sim)"/> -->
-  <!--   <arg name="traj"				value="$(arg traj)"/> -->
-  <!--   <arg name="cartesian_command_in_topic"	value="cmd_vel"/> -->
-  <!--   <arg name="unitless"			value="false"/> -->
-  <!-- </include>	 -->
+  <!-- Spawn servo_server -->
+  <include file="$(dirname)/khi_servo_server.launch">
+    <arg name="server"		value="servo_server"/>
+    <arg name="sim"		value="$(arg sim)"/>
+    <arg name="unitless"	value="$(arg unitless)"/>
+    <arg name="traj"		value="$(arg traj)"/>
+  </include>
 
 </launch>
