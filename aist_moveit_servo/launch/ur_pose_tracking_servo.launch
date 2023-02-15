@@ -29,7 +29,7 @@
 
   <!-- Spawn pose_tracking_servo -->
   <include file="$(dirname)/include/ur_servo_server.launch">
-    <arg name="server"			value="pose_tracking_servo"/>
+    <arg name="target_pose_topic"	value="/aruco_detector/pose"/>
     <arg name="robot_name"		value="$(arg robot_name)"/>
     <arg name="sim"			value="$(arg sim)"/>
     <arg name="unitless"		value="false"/>

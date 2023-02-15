@@ -1,11 +1,18 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="server"	default="servo_server"/>
-  <arg name="sim"	default="false"/>
-  <arg name="unitless"	default="false"/>
-  <arg name="traj"	default="true"/>
+  <arg name="target_pose_topic"	default=""/>
+  <arg name="sim"		default="false"/>
+  <arg name="unitless"		default="false"/>
+  <arg name="traj"		default="true"/>
 
+  <!-- Select server type -->
+  <arg if="$(eval target_pose_topic == '')"
+       name="server"		value="servo_server"/>
+  <arg unless="$(eval target_pose_topic == '')"
+       name="server"		value="pose_tracking_servo"/>
+  
+  <!-- Set parameters for servo_server or pose_tracking_servo -->
   <arg if="$(arg unitless)"
        name="command_in_type"	value="unitless"/>
   <arg unless="$(arg unitless)"
@@ -25,13 +32,16 @@
 	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
+  <!-- Spawn servo_server or pose_tracking_servo -->
   <node name="$(arg server)"
 	pkg="aist_moveit_servo" type="$(arg server)" output="screen">
     <rosparam file="$(dirname)/../../config/khi_servo_server.yaml"
 	      subst_value="true"/>
-    <rosparam if="$(eval server=='pose_tracking_servo')"
+    <rosparam if="$(eval server == 'pose_tracking_servo')"
 	      file="$(dirname)/../../config/khi_pose_tracking_servo.yaml"
 	      subst_value="true"/>
+    <remap if="$(eval server == 'pose_tracking_servo')"
+	   from="/target_pose" to="$(arg target_pose_topic)"/>
   </node>
 
 </launch>

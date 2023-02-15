@@ -36,12 +36,12 @@
   		    )/config/toyota1/$(arg camera_name).yaml"/>
   </node>
 
-  <!-- Launch pose_tracking_servo -->
+  <!-- Spawn pose_tracking_servo -->
   <include file="$(dirname)/include/khi_servo_server.launch">
-    <arg name="server"		value="pose_tracking_servo"/>
-    <arg name="sim"		value="$(arg sim)"/>
-    <arg name="unitless"	value="false"/>
-    <arg name="traj"		value="$(arg traj)"/>
+    <arg name="target_pose_topic"	value="/aruco_detector/pose"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="unitless"		value="false"/>
+    <arg name="traj"			value="$(arg traj)"/>
   </include>	
 
 </launch>

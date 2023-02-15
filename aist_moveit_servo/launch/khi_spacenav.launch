@@ -26,7 +26,6 @@
 
   <!-- Launch servo_server -->
   <include file="$(dirname)/include/khi_servo_server.launch">
-    <arg name="server"		value="servo_server"/>
     <arg name="sim"		value="$(arg sim)"/>
     <arg name="unitless"	value="true"/>
     <arg name="traj"		value="$(arg traj)"/>

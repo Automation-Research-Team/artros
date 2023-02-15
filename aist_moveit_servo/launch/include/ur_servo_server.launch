@@ -1,14 +1,20 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="server"		default="servo_server"/>
+  <arg name="target_pose_topic"	default=""/>
   <arg name="robot_name"	default="a_bot"/>
   <arg name="sim"		default="false"/>
   <arg name="unitless"		default="false"/>
   <arg name="traj"		default="true"/>
   <arg name="velocity_control"	default="false"/>
 
-  <!-- Set parameters for servo_server -->
+  <!-- Select server type -->
+  <arg if="$(eval target_pose_topic == '')"
+       name="server"		value="servo_server"/>
+  <arg unless="$(eval target_pose_topic == '')"
+       name="server"		value="pose_tracking_servo"/>
+  
+  <!-- Set parameters for servo_server or pose_tracking_servo -->
   <arg if="$(eval robot_name in ('a_bot', 'b_bot'))"
        name="publish_period"	value="0.008"/>
   <arg unless="$(eval robot_name in ('a_bot', 'b_bot'))"
@@ -41,14 +47,16 @@
   	name="rqt_controller_manager"
         pkg="rqt_controller_manager" type="rqt_controller_manager"/>
 
-  <!-- Spawn servo_server -->
+  <!-- Spawn servo_server or pose_tracking_servo -->
   <node name="$(arg server)"
 	pkg="aist_moveit_servo" type="$(arg server)" output="screen">
     <rosparam file="$(dirname)/../../config/ur_servo_server.yaml"
 	      subst_value="true"/>
-    <rosparam if="$(eval server=='pose_tracking_servo')"
+    <rosparam if="$(eval server == 'pose_tracking_servo')"
 	      file="$(dirname)/../../config/ur_pose_tracking_servo.yaml"
 	      subst_value="true"/>
+    <remap if="$(eval server == 'pose_tracking_servo')"
+	   from="/target_pose" to="$(arg target_pose_topic)"/>
   </node>
 
 </launch>
