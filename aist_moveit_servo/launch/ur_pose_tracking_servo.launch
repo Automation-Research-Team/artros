@@ -4,9 +4,18 @@
   <arg name="robot_name"	default="a_bot"/>
   <arg name="camera_name"	default="$(arg robot_name)_inside_camera"/>
   <arg name="sim"		default="false"/>
-  <arg name="unitless"		default="false"/>
   <arg name="traj"		default="true"/>
   <arg name="velocity_control"	default="false"/>
+
+  <!-- Select camera -->
+  <node if="$(arg sim)"
+	name="camera_selecter"
+	pkg="aist_camera_multiplexer" type="select_camera.py"
+	args="$(arg camera_name)" output="screen"/>
+  <node unless="$(arg sim)"
+	name="camera_selecter"
+	pkg="aist_camera_multiplexer" type="select_realsense_camera.py"
+	args="$(arg camera_name)" output="screen"/>
 
   <!-- Spawn aruco marker tracker -->
   <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
@@ -23,19 +32,9 @@
     <arg name="server"			value="pose_tracking_servo"/>
     <arg name="robot_name"		value="$(arg robot_name)"/>
     <arg name="sim"			value="$(arg sim)"/>
-    <arg name="unitless"		value="$(arg unitless)"/>
+    <arg name="unitless"		value="false"/>
     <arg name="traj"			value="$(arg traj)"/>
     <arg name="velocity_control"	value="$(arg velocity_control)"/>
   </include>
-
-  <!-- Select camera -->
-  <node if="$(arg sim)"
-	name="camera_selecter"
-	pkg="aist_camera_multiplexer" type="select_camera.py"
-	args="$(arg camera_name)" output="screen"/>
-  <node unless="$(arg sim)"
-	name="camera_selecter"
-	pkg="aist_camera_multiplexer" type="select_realsense_camera.py"
-	args="$(arg camera_name)" output="screen"/>
 
 </launch>

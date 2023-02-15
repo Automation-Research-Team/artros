@@ -3,7 +3,6 @@
 
   <arg name="robot_name"	default="a_bot"/>
   <arg name="sim"		default="false"/>
-  <arg name="unitless"		default="false"/>
   <arg name="traj"		default="true"/>
   <arg name="velocity_control"	default="false"/>
   <arg name="teleop_tools"	default="false"/>
@@ -32,7 +31,7 @@
     <arg name="server"			value="servo_server"/>
     <arg name="robot_name"		value="$(arg robot_name)"/>
     <arg name="sim"			value="$(arg sim)"/>
-    <arg name="unitless"		value="$(arg unitless)"/>
+    <arg name="unitless"		value="true"/>
     <arg name="traj"			value="$(arg traj)"/>
     <arg name="velocity_control"	value="$(arg velocity_control)"/>
   </include>

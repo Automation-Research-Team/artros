@@ -6,7 +6,6 @@
   <arg name="repeat_rate"	default="10.0"/>
   <arg name="robot_name"	default="a_bot"/>
   <arg name="sim"		default="false"/>
-  <arg name="unitless"		default="true"/>
   <arg name="traj"		default="true"/>
   <arg name="velocity_control"	default="false"/>
 
@@ -27,7 +26,7 @@
     <arg name="server"			value="servo_server"/>
     <arg name="robot_name"		value="$(arg robot_name)"/>
     <arg name="sim"			value="$(arg sim)"/>
-    <arg name="unitless"		value="$(arg unitless)"/>
+    <arg name="unitless"		value="false"/>
     <arg name="traj"			value="$(arg traj)"/>
     <arg name="velocity_control"	value="$(arg velocity_control)"/>
   </include>

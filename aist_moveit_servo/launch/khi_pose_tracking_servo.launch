@@ -1,10 +1,10 @@
+<?xml version="1.0"?>
 <launch>
 
-  <arg name="sim"		default="false"/>
   <arg name="camera_name"	default="realsense"/>
-  <arg name="traj"		default="true"/>
-  <arg name="unitless"		default="false"/>
   <arg name="manager"		default="camera_manager"/>
+  <arg name="sim"		default="false"/>
+  <arg name="traj"		default="true"/>
 
   <!-- Spawn cameras -->
   <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
@@ -40,7 +40,7 @@
   <include file="$(dirname)/include/khi_servo_server.launch">
     <arg name="server"		value="pose_tracking_servo"/>
     <arg name="sim"		value="$(arg sim)"/>
-    <arg name="unitless"	value="$(arg unitless)"/>
+    <arg name="unitless"	value="false"/>
     <arg name="traj"		value="$(arg traj)"/>
   </include>	
 

@@ -2,7 +2,6 @@
 <launch>
 
   <arg name="sim"		default="false"/>
-  <arg name="unitless"		default="true"/>
   <arg name="traj"		default="true"/>
   <arg name="teleop_tools"	default="false"/>
        
@@ -29,7 +28,7 @@
   <include file="$(dirname)/include/khi_servo_server.launch">
     <arg name="server"		value="servo_server"/>
     <arg name="sim"		value="$(arg sim)"/>
-    <arg name="unitless"	value="$(arg unitless)"/>
+    <arg name="unitless"	value="true"/>
     <arg name="traj"		value="$(arg traj)"/>
   </include>	
 
