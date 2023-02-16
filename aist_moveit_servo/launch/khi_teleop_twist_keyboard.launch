@@ -3,9 +3,9 @@
 
   <arg name="sim"		default="false"/>
   <arg name="traj"		default="true"/>
-  <arg name="speed"		default="13.0"/>
-  <arg name="turn"		default="13.0"/>
-  <arg name="repeat_rate"	default="100.0"/>
+  <arg name="speed"		default="0.1"/>
+  <arg name="turn"		default="1.0"/>
+  <arg name="repeat_rate"	default="10.0"/>
 
   <!-- Spawn teleop_twist_keyboard -->
   <node name="teleop_twist_keyboard"

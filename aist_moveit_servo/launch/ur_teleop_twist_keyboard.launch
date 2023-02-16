@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="speed"		default="5.0"/>
-  <arg name="turn"		default="5.0"/>
+  <arg name="speed"		default="0.1"/>
+  <arg name="turn"		default="1.0"/>
   <arg name="repeat_rate"	default="10.0"/>
   <arg name="robot_name"	default="a_bot"/>
   <arg name="sim"		default="false"/>
