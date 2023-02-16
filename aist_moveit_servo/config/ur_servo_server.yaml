@@ -8,8 +8,8 @@ command_in_type: "speed_units"
 
 # Scale parameters are only used if command_in_type=="unitless"
 scale:
-  linear:     0.6
-  rotational: 0.3
+  linear:     0.1
+  rotational: 0.1
   joint:      0.01
 
 low_pass_filter_coeff: 2.

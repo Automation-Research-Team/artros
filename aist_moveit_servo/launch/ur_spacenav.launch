@@ -1,11 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="sim"		default="false"/>
   <arg name="robot_name"	default="a_bot"/>
+  <arg name="sim"		default="false"/>
   <arg name="traj"		default="true"/>
   <arg name="velocity_control"	default="false"/>
-  <arg name="unitless"		default="false"/>
   <arg name="teleop_tools"	default="false"/>
 
   <!-- Spawn spacenav driver -->
@@ -27,44 +26,13 @@
     </node>
   </group>
 
-  <!-- Set parameters for servo_server -->
-  <arg if="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
-       name="publish_period"	value="0.008"/>
-  <arg unless="$(eval robot_name=='a_bot' or robot_name=='b_bot')"
-       name="publish_period"	value="0.002"/>
-
-  <arg if="$(arg traj)"
-       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
-  <arg unless="$(arg traj)"
-       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
-
-  <arg if="$(eval traj and not velocity_control)"
-       name="controller"	value="scaled_pos_joint_traj_controller"/>
-  <arg if="$(eval traj and velocity_control)"
-       name="controller"	value="scaled_vel_joint_traj_controller"/>
-  <arg if="$(eval not traj and not velocity_control)"
-       name="controller"	value="joint_group_pos_controller"/>
-  <arg if="$(eval not traj and velocity_control)"
-       name="controller"	value="joint_group_vel_controller"/>
-
-  <arg if="$(arg unitless)"
-       name="command_in_type"	value="unitless"/>
-  <arg unless="$(arg unitless)"
-       name="command_in_type"	value="speed_units"/>
-
-  <arg name="pub_pos"		value="$(eval not velocity_control)"/>
-  <arg name="pub_vel"		value="$(eval velocity_control)"/>
-
-  <!-- Spawn controller manager if non-default controller is required -->
-  <node unless="$(eval controller == 'scaled_pos_joint_traj_controller')"
-  	name="rqt_controller_manager"
-        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
-
   <!-- Spawn servo_server -->
-  <node name="servo_server"
-	pkg="aist_moveit_servo" type="servo_server" output="screen">
-    <rosparam file="$(dirname)/../config/ur_servo_server.yaml"
-	      subst_value="true"/>
-  </node>
+  <include file="$(dirname)/include/ur_servo_server.launch">
+    <arg name="robot_name"		value="$(arg robot_name)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="unitless"		value="true"/>
+    <arg name="traj"			value="$(arg traj)"/>
+    <arg name="velocity_control"	value="$(arg velocity_control)"/>
+  </include>
 
 </launch>

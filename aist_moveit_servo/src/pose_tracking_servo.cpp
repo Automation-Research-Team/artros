@@ -43,6 +43,7 @@
 #include <aist_moveit_servo/status_codes.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <nav_msgs/Odometry.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_moveit_servo/PoseTrackingAction.h>
@@ -235,8 +236,23 @@ class PoseTrackingServo
     using planning_scene_monitor_p
 			 = planning_scene_monitor::PlanningSceneMonitorPtr;
     using server_t	 = actionlib::SimpleActionServer<PoseTrackingAction>;
+    using goal_cp	 = boost::shared_ptr<const server_t::Goal>;
+    using ddr_t		 = ddynamic_reconfigure::DDynamicReconfigure;
     using servo_status_t = aist_moveit_servo::StatusCode;
-
+    using int8_cp	 = std_msgs::Int8ConstPtr;
+    using twist_t	 = geometry_msgs::TwistStamped;
+    using twist_cp	 = geometry_msgs::TwistStampedConstPtr;
+    using pose_t	 = geometry_msgs::PoseStamped;
+    using pose_cp	 = geometry_msgs::PoseStampedConstPtr;
+    using raw_pose_t	 = geometry_msgs::Pose;
+    using odom_t	 = nav_msgs::Odometry;
+    using odom_cp	 = nav_msgs::OdometryConstPtr;
+    using vector3_t	 = Eigen::Vector3d;
+    using angle_axis_t	 = Eigen::AngleAxisd;
+    using pid_t		 = control_toolbox::Pid;
+    using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
+    using extrapolator_t = aist_utility::SplineExtrapolator<raw_pose_t, 3>;
+    
     struct PIDConfig
     {
       // Default values
@@ -258,17 +274,17 @@ class PoseTrackingServo
 
   private:
     void	readROSParams()						;
-    void	servoStatusCB(const std_msgs::Int8ConstPtr& msg)	;
-    void	targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg);
+    void	servoStatusCB(const int8_cp& msg)	;
+    void	targetPoseCB(const pose_cp& msg)			;
+    void	odometryCB(const odom_cp& msg)				;
     void	goalCB()						;
     void	preemptCB()						;
-    void	calculatePoseError(const geometry_msgs::Pose& offset,
-				   Eigen::Vector3d& positional_error,
-				   Eigen::AngleAxisd& angular_error) const;
+    void	calculatePoseError(const raw_pose_t& offset,
+				   vector3_t& positional_error,
+				   angle_axis_t& angular_error)	const	;
 
-    geometry_msgs::TwistStampedConstPtr
-		calculateTwistCommand(const Eigen::Vector3d& positional_error,
-				      const Eigen::AngleAxisd& angular_error);
+    twist_cp	calculateTwistCommand(const vector3_t& positional_error,
+				      const angle_axis_t& angular_error);
     void	stopMotion()						;
     void	doPostMotionReset()					;
 
@@ -278,7 +294,7 @@ class PoseTrackingServo
 
   // PID stuffs
     void	initializePID(const PIDConfig& pid_config,
-			      std::vector<control_toolbox::Pid>& pid_vector);
+			      std::vector<pid_t>& pids);
     void	updatePositionPIDs(double PIDConfig::* field,
 				   double value)			;
     void	updateOrientationPID(double PIDConfig::* field,
@@ -290,53 +306,55 @@ class PoseTrackingServo
     void	resetTargetPose()					;
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
 
+  // Odometry stuffs
+    void	resetOdometry()						;
+    bool	haveRecentOdometry(const ros::Duration& timeout) const	;
+
   private:
-    ros::NodeHandle				nh_;
+    ros::NodeHandle			nh_;
 
-    const planning_scene_monitor_p		planning_scene_monitor_;
-    const std::unique_ptr<Servo>		servo_;
-    servo_status_t				servo_status_;
+    const planning_scene_monitor_p	planning_scene_monitor_;
+    const std::unique_ptr<Servo>	servo_;
+    servo_status_t			servo_status_;
 
-    ros::ServiceClient				reset_servo_status_;
-    ros::Subscriber				servo_status_sub_;
-    ros::Subscriber				target_pose_sub_;
-    ros::Publisher				twist_pub_;
-    const ros::Publisher			target_pose_debug_pub_;
-    const ros::Publisher			ee_pose_debug_pub_;
-    ros::Rate					loop_rate_;
-    DurationArray&				durations_;
+    ros::ServiceClient			reset_servo_status_;
+    const ros::Subscriber		servo_status_sub_;
+    const ros::Subscriber		target_pose_sub_;
+    const ros::Subscriber		odom_sub_;
+    const ros::Publisher		twist_pub_;
+    const ros::Publisher		target_pose_debug_pub_;
+    const ros::Publisher		ee_pose_debug_pub_;
+    ros::Rate				loop_rate_;
+    DurationArray&			durations_;
 
   // Action server stuffs
-    server_t					tracker_srv_;
-    boost::shared_ptr<const server_t::Goal>	current_goal_;
+    server_t				tracker_srv_;
+    goal_cp				current_goal_;
 
   // Dynamic reconfigure server
-    ddynamic_reconfigure::DDynamicReconfigure	ddr_;
+    ddr_t				ddr_;
 
   // Filters for input target pose
-    int				input_low_pass_filter_half_order_;
-    double			input_low_pass_filter_cutoff_frequency_;
-    aist_utility::ButterworthLPF<double, geometry_msgs::Pose>
-				input_low_pass_filter_;
+    int					input_low_pass_filter_half_order_;
+    double				input_low_pass_filter_cutoff_frequency_;
+    lpf_t				input_low_pass_filter_;
 
   // Spline extrapolator
-    // aist_utility::SplineExtrapolator<geometry_msgs::Pose, 3>
-    // 						input_extrapolator_;
-    aist_utility::SplineExtrapolator<geometry_msgs::Point, 3>
-						input_extrapolator_;
+    extrapolator_t			input_extrapolator_;
 
   // PIDs
-    std::vector<control_toolbox::Pid>		cartesian_position_pids_;
-    std::vector<control_toolbox::Pid>		cartesian_orientation_pids_;
-    PIDConfig					x_pid_config_,
-						y_pid_config_,
-						z_pid_config_,
-						angular_pid_config_;
+    std::vector<pid_t>			cartesian_position_pids_;
+    std::vector<pid_t>			cartesian_orientation_pids_;
+    PIDConfig				x_pid_config_;
+    PIDConfig				y_pid_config_;
+    PIDConfig				z_pid_config_;
+    PIDConfig				angular_pid_config_;
 
   // Transforms w.r.t. planning_frame_
-    std::string					planning_frame_;
-    geometry_msgs::PoseStamped			target_pose_;
-    mutable std::mutex				target_pose_mtx_;
+    std::string				planning_frame_;
+    pose_t				target_pose_;
+    odom_t				odom_;
+    mutable std::mutex			input_mtx_;
 };
 
 PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
@@ -349,11 +367,18 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 			     "reset_servo_status")),
      servo_status_sub_(nh_.subscribe(servo_->getParameters().status_topic, 1,
 				     &PoseTrackingServo::servoStatusCB, this)),
-     target_pose_sub_(),
-     twist_pub_(),
-     target_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+     target_pose_sub_(nh_.subscribe(
+			  "/target_pose", 1,
+			  &PoseTrackingServo::targetPoseCB, this,
+			  ros::TransportHints().reliable().tcpNoDelay(true))),
+     odom_sub_(nh_.subscribe(
+		   "/odom", 1, &PoseTrackingServo::odometryCB, this,
+		   ros::TransportHints().reliable().tcpNoDelay(true))),
+     twist_pub_(nh_.advertise<twist_t>(
+		    servo_->getParameters().cartesian_command_in_topic, 1)),
+     target_pose_debug_pub_(nh_.advertise<pose_t>(
 				"desired_pose", 1)),
-     ee_pose_debug_pub_(nh_.advertise<geometry_msgs::PoseStamped>(
+     ee_pose_debug_pub_(nh_.advertise<pose_t>(
 			    "actual_pose", 1)),
      loop_rate_(DEFAULT_LOOP_RATE),
      durations_(servo_->durations()),
@@ -378,7 +403,8 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 
      planning_frame_(),
      target_pose_(),
-     target_pose_mtx_()
+     odom_(),
+     input_mtx_()
 {
     readROSParams();
 
@@ -392,16 +418,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     initializePID(y_pid_config_,       cartesian_position_pids_);
     initializePID(z_pid_config_,       cartesian_position_pids_);
     initializePID(angular_pid_config_, cartesian_orientation_pids_);
-
-  // Connect to Servo ROS interfaces
-    target_pose_sub_ = nh_.subscribe<geometry_msgs::PoseStamped>(
-    			"/target_pose", 1,
-    			&PoseTrackingServo::targetPoseCB, this,
-    			ros::TransportHints().reliable().tcpNoDelay(true));
-
-  // Publish outgoing twist commands to the Servo object
-    twist_pub_ = nh_.advertise<geometry_msgs::TwistStamped>(
-    			servo_->getParameters().cartesian_command_in_topic, 1);
 
   // Setup action server
     tracker_srv_.registerGoalCallback(boost::bind(&PoseTrackingServo::goalCB,
@@ -536,7 +552,8 @@ PoseTrackingServo::tick()
     }
 
   // Check that target pose is recent enough.
-    if (!haveRecentTargetPose(current_goal_->timeout))
+    if (!haveRecentTargetPose(current_goal_->timeout) ||
+	!haveRecentOdometry(current_goal_->timeout))
     {
     	doPostMotionReset();
 	PoseTrackingResult	result;
@@ -550,8 +567,8 @@ PoseTrackingServo::tick()
     }
 
   // Compute positional and angular errors.
-    Eigen::Vector3d	positional_error;
-    Eigen::AngleAxisd	angular_error;
+    vector3_t		positional_error;
+    angle_axis_t	angular_error;
     calculatePoseError(current_goal_->target_offset,
 		       positional_error, angular_error);
 
@@ -698,7 +715,7 @@ PoseTrackingServo::readROSParams()
 }
 
 void
-PoseTrackingServo::servoStatusCB(const std_msgs::Int8ConstPtr& msg)
+PoseTrackingServo::servoStatusCB(const int8_cp& msg)
 {
     const auto	servo_status = static_cast<servo_status_t>(msg->data);
 
@@ -731,9 +748,9 @@ PoseTrackingServo::servoStatusCB(const std_msgs::Int8ConstPtr& msg)
 }
 
 void
-PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
+PoseTrackingServo::targetPoseCB(const pose_cp& msg)
 {
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    std::lock_guard<std::mutex> lock(input_mtx_);
 
     target_pose_ = *msg;
 
@@ -757,15 +774,32 @@ PoseTrackingServo::targetPoseCB(const geometry_msgs::PoseStampedConstPtr& msg)
 	tf2::doTransform(target_pose_, target_pose_, Tpt);
     }
 
-  //input_extrapolator_.update(ros::Time::now(), target_pose_.pose);
-    input_extrapolator_.update(ros::Time::now(), target_pose_.pose.position);
+    input_extrapolator_.update(ros::Time::now(), target_pose_.pose);
+}
+
+void
+PoseTrackingServo::odometryCB(const odom_cp& msg)
+{
+    std::lock_guard<std::mutex>	lock(input_mtx_);
+
+    odom_ = *msg;
+
+    if (odom_.header.stamp == ros::Time(0))
+	odom_.header.stamp = ros::Time::now();
+
+    auto Tpb = tf2::eigenToTransform(servo_->getFrameTransform(
+					     odom_.child_frame_id));
+    Tpb.header.stamp	= odom_.header.stamp;
+    Tpb.header.frame_id	= planning_frame_;
+    Tpb.child_frame_id	= odom_.child_frame_id;
 }
 
 void
 PoseTrackingServo::goalCB()
 {
     resetTargetPose();
-
+    resetOdometry();
+    
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
@@ -813,13 +847,13 @@ PoseTrackingServo::preemptCB()
 }
 
 void
-PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
-				      Eigen::Vector3d& positional_error,
-				      Eigen::AngleAxisd& angular_error) const
+PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
+				      vector3_t& positional_error,
+				      angle_axis_t& angular_error) const
 {
-    geometry_msgs::PoseStamped	target_pose;
+    pose_t	target_pose;
     {
-	std::lock_guard<std::mutex> lock(target_pose_mtx_);
+	std::lock_guard<std::mutex> lock(input_mtx_);
 
 	target_pose = target_pose_;
     }
@@ -859,16 +893,14 @@ PoseTrackingServo::calculatePoseError(const geometry_msgs::Pose& offset,
 					      planning_frame_)));
 }
 
-geometry_msgs::TwistStampedConstPtr
-PoseTrackingServo::calculateTwistCommand(
-			const Eigen::Vector3d& positional_error,
-			const Eigen::AngleAxisd& angular_error)
+PoseTrackingServo::twist_cp
+PoseTrackingServo::calculateTwistCommand(const vector3_t& positional_error,
+					 const angle_axis_t& angular_error)
 {
   // use the shared pool to create a message more efficiently
-    const auto	msg = moveit::util::make_shared_from_pool<
-			geometry_msgs::TwistStamped>();
+    const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
     {
-	std::lock_guard<std::mutex> lock(target_pose_mtx_);
+	std::lock_guard<std::mutex> lock(input_mtx_);
 
 	msg->header.frame_id = target_pose_.header.frame_id;
     }
@@ -915,10 +947,9 @@ void
 PoseTrackingServo::stopMotion()
 {
   // Send a 0 command to Servo to halt arm motion
-    const auto	msg = moveit::util::make_shared_from_pool<
-			geometry_msgs::TwistStamped>();
+    const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
     {
-	std::lock_guard<std::mutex> lock(target_pose_mtx_);
+	std::lock_guard<std::mutex> lock(input_mtx_);
 
 	msg->header.frame_id = target_pose_.header.frame_id;
     }
@@ -945,7 +976,7 @@ PoseTrackingServo::updateInputLowPassFilter(int half_order,
 void
 PoseTrackingServo::updatePositionPIDs(double PIDConfig::* field, double value)
 {
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    std::lock_guard<std::mutex> lock(input_mtx_);
 
     x_pid_config_.*field = value;
     y_pid_config_.*field = value;
@@ -961,7 +992,7 @@ void
 PoseTrackingServo::updateOrientationPID(double PIDConfig::* field,
 					double value)
 {
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    std::lock_guard<std::mutex> lock(input_mtx_);
 
     angular_pid_config_.*field = value;
 
@@ -971,15 +1002,12 @@ PoseTrackingServo::updateOrientationPID(double PIDConfig::* field,
 
 void
 PoseTrackingServo::initializePID(const PIDConfig& pid_config,
-				 std::vector<control_toolbox::Pid>& pid_vector)
+				 std::vector<pid_t>& pids)
 {
     bool	use_anti_windup = true;
-    pid_vector.push_back(control_toolbox::Pid(pid_config.k_p,
-					      pid_config.k_i,
-					      pid_config.k_d,
-					      pid_config.windup_limit,
-					      -pid_config.windup_limit,
-					      use_anti_windup));
+    pids.push_back(pid_t(pid_config.k_p, pid_config.k_i, pid_config.k_d,
+			 pid_config.windup_limit, -pid_config.windup_limit,
+			 use_anti_windup));
 }
 
 void
@@ -1001,18 +1029,36 @@ PoseTrackingServo::getPIDErrors(double& x_error, double& y_error,
 void
 PoseTrackingServo::resetTargetPose()
 {
-    std::lock_guard<std::mutex>	lock(target_pose_mtx_);
+    std::lock_guard<std::mutex>	lock(input_mtx_);
 
-    target_pose_	      = geometry_msgs::PoseStamped();
+    target_pose_	      = pose_t();
     target_pose_.header.stamp = ros::Time(0);
 }
 
 bool
 PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
 {
-    std::lock_guard<std::mutex> lock(target_pose_mtx_);
+    std::lock_guard<std::mutex> lock(input_mtx_);
 
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
+}
+
+// Odometry stuffs
+void
+PoseTrackingServo::resetOdometry()
+{
+    std::lock_guard<std::mutex>	lock(input_mtx_);
+
+    odom_	       = odom_t();
+    odom_.header.stamp = ros::Time(0);
+}
+
+bool
+PoseTrackingServo::haveRecentOdometry(const ros::Duration& timeout) const
+{
+    std::lock_guard<std::mutex> lock(input_mtx_);
+
+    return (ros::Time::now() - odom_.header.stamp < timeout);
 }
 
 }	// namespace aist_moveit_servo

@@ -1,13 +1,12 @@
+<?xml version="1.0"?>
 <launch>
-  <!-- Launch an example that sends commands via C++ API. -->
 
-  <arg name="sim"		default="false"/>
   <arg name="camera_name"	default="realsense"/>
-  <arg name="traj"		default="true"/>
-  <arg name="unitless"		default="false"/>
   <arg name="manager"		default="camera_manager"/>
+  <arg name="sim"		default="false"/>
+  <arg name="traj"		default="true"/>
 
-  <!-- Launch cameras -->
+  <!-- Spawn cameras -->
   <include file="$(find toyota1_routines)/launch/toyota1_cameras.launch">
     <arg name="sim"		 value="$(arg sim)"/>
     <arg name="phoxi_config"	 value="$(find toyota1_nagara
@@ -17,7 +16,7 @@
     <arg name="manager"		 value="$(arg manager)"/>
   </include>
 
-  <!-- Launch ArUco -->
+  <!-- Spawn ArUco marker detector -->
   <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
         args="load aist_aruco_ros/aruco_detector $(arg manager)">
     <remap if="$(eval camera_name == 'phoxi')"
@@ -37,34 +36,12 @@
   		    )/config/toyota1/$(arg camera_name).yaml"/>
   </node>
 
-  <!-- Launch pose_tracking_servo -->
-  <arg if="$(arg traj)"
-       name="command_out_type"	value="trajectory_msgs/JointTrajectory"/>
-  <arg unless="$(arg traj)"
-       name="command_out_type"	value="std_msgs/Float64MultiArray"/>
-
-  <arg if="$(arg traj)"
-       name="controller"	value="arm_controller"/>
-  <arg unless="$(arg traj)"
-       name="controller"	value="arm_joint_group_controller"/>
-
-  <node unless="$(arg traj)"
-  	name="rqt_controller_manager"
-        pkg="rqt_controller_manager" type="rqt_controller_manager"/>
-
-  <arg if="$(arg unitless)"
-       name="command_in_type"	value="unitless"/>
-  <arg unless="$(arg unitless)"
-       name="command_in_type"	value="speed_units"/>
-
-  <arg name="cartesian_command_in_topic"	value="delta_twist_cmds"/>
-
-  <node name="pose_tracking_servo"
-  	pkg="aist_moveit_servo" type="pose_tracking_servo" output="screen">
-    <rosparam file="$(dirname)/../config/khi_servo_server.yaml"
-  	      subst_value="true"/>
-    <rosparam file="$(dirname)/../config/khi_pose_tracking.yaml"/>
-    <remap from="/target_pose"	to="/aruco_detector/pose"/>
-  </node>
+  <!-- Spawn pose_tracking_servo -->
+  <include file="$(dirname)/include/khi_servo_server.launch">
+    <arg name="target_pose_topic"	value="/aruco_detector/pose"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="unitless"		value="false"/>
+    <arg name="traj"			value="$(arg traj)"/>
+  </include>	
 
 </launch>
