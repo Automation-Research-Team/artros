@@ -552,8 +552,7 @@ PoseTrackingServo::tick()
     }
 
   // Check that target pose is recent enough.
-    if (!haveRecentTargetPose(current_goal_->timeout) ||
-	!haveRecentOdometry(current_goal_->timeout))
+    if (!haveRecentTargetPose(current_goal_->timeout))
     {
     	doPostMotionReset();
 	PoseTrackingResult	result;
