@@ -38,7 +38,7 @@
     <rosparam file="$(dirname)/../../config/khi_servo_server.yaml"
 	      subst_value="true"/>
     <rosparam if="$(eval server == 'pose_tracking_servo')"
-	      file="$(dirname)/../../config/khi_pose_tracking_servo.yaml"
+	      file="$(dirname)/../../config/khi_pose_tracking.yaml"
 	      subst_value="true"/>
     <remap if="$(eval server == 'pose_tracking_servo')"
 	   from="/target_pose" to="$(arg target_pose_topic)"/>

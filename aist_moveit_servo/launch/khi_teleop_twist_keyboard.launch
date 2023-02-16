@@ -3,7 +3,7 @@
 
   <arg name="sim"		default="false"/>
   <arg name="traj"		default="true"/>
-  <arg name="speed"		default="0.1"/>
+  <arg name="speed"		default="1.0"/>
   <arg name="turn"		default="1.0"/>
   <arg name="repeat_rate"	default="10.0"/>
 
@@ -20,7 +20,7 @@
   </node>
 
   <!-- Spawn servo_server -->
-  <include file="$(dirname)/khi_servo_server.launch">
+  <include file="$(dirname)/include/khi_servo_server.launch">
     <arg name="sim"		value="$(arg sim)"/>
     <arg name="unitless"	value="false"/>
     <arg name="traj"		value="$(arg traj)"/>

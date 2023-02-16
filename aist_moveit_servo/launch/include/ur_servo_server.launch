@@ -53,7 +53,7 @@
     <rosparam file="$(dirname)/../../config/ur_servo_server.yaml"
 	      subst_value="true"/>
     <rosparam if="$(eval server == 'pose_tracking_servo')"
-	      file="$(dirname)/../../config/ur_pose_tracking_servo.yaml"
+	      file="$(dirname)/../../config/ur_pose_tracking.yaml"
 	      subst_value="true"/>
     <remap if="$(eval server == 'pose_tracking_servo')"
 	   from="/target_pose" to="$(arg target_pose_topic)"/>
