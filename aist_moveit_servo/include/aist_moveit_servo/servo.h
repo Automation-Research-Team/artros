@@ -42,9 +42,9 @@
 #include <memory>
 
 // MoveIt
-#include <aist_moveit_servo/collision_check.h>
 #include <aist_moveit_servo/servo_parameters.h>
 #include <aist_moveit_servo/servo_calcs.h>
+#include <aist_moveit_servo/collision_check.h>
 
 namespace aist_moveit_servo
 {
@@ -53,7 +53,7 @@ namespace aist_moveit_servo
 ************************************************************************/
 planning_scene_monitor::PlanningSceneMonitorPtr
 createPlanningSceneMonitor(const std::string& robot_description)	;
-    
+
 /************************************************************************
 *  class Servo								*
 ************************************************************************/
@@ -68,13 +68,9 @@ class Servo
   public:
 		Servo(const ros::NodeHandle& nh,
 		      const planning_scene_monitor_p& planning_scene_monitor);
-
 		~Servo();
 
-  /** \brief start servo node */
     void	start()							;
-
-  /** \brief Pause or unpause processing servo commands while keeping the timers alive */
     void	setPaused(bool paused)					;
 
     isometry3_t	getCommandFrameTransform() const
@@ -82,60 +78,48 @@ class Servo
 		    return getFrameTransform(parameters_
 					     .robot_link_command_frame);
 		}
-
     isometry3_t	getEEFrameTransform() const
 		{
 		    return getFrameTransform(parameters_.ee_frame_name);
 		}
-
     isometry3_t	getFrameTransform(const std::string& frame) const
 		{
-		    return servo_calcs_->getFrameTransform(frame);
+		    return servo_calcs_.getFrameTransform(frame);
 		}
 
-  /** \brief Get the parameters used by servo node. */
+  //! Get the parameters used by servo node
     const ServoParameters&
 		getParameters()	const
 		{
 		    return parameters_;
 		}
 
-  /** \brief Change the controlled link. Often, this is the end effector
-   * This must be a link on the robot since MoveIt tracks the transform (not tf)
-   */
+  //! Change the controlled link. Often, this is the end effector
+  /*!
+    This must be a link on the robot since MoveIt tracks the transform (not tf)
+  */
     void	changeRobotLinkCommandFrame(
 			const std::string& new_command_frame)
 		{
-		    servo_calcs_->changeRobotLinkCommandFrame(
+		    servo_calcs_.changeRobotLinkCommandFrame(
 			new_command_frame);
 		}
 
   // Give test access to private/protected methods
     friend class ServoFixture;
 
-    aist_moveit_servo::DurationArray&
+    DurationArray&
 		durations()
 		{
-		    return servo_calcs_->durations();
+		    return servo_calcs_.durations();
 		}
 
   private:
-    bool	readParameters()	;
-
-  private:
     ros::NodeHandle			nh_;
-
-  // Pointer to the collision environment
-    const planning_scene_monitor_p	planning_scene_monitor_;
-
-  // Store the parameters that were read from ROS server
     ServoParameters			parameters_;
-
-    std::unique_ptr<ServoCalcs>		servo_calcs_;
-    std::unique_ptr<CollisionCheck>	collision_checker_;
+    const planning_scene_monitor_p	planning_scene_monitor_;
+    ServoCalcs				servo_calcs_;
+    CollisionCheck			collision_checker_;
 };
-
-// ServoPtr using alias
-using ServoPtr = std::shared_ptr<Servo>;
 
 }  // namespace aist_moveit_servo
