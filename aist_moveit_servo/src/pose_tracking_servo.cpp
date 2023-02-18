@@ -252,7 +252,7 @@ class PoseTrackingServo
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
     using extrapolator_t = aist_utility::SplineExtrapolator<raw_pose_t, 3>;
-    
+
     struct PIDConfig
     {
       // Default values
@@ -716,34 +716,7 @@ PoseTrackingServo::readROSParams()
 void
 PoseTrackingServo::servoStatusCB(const int8_cp& msg)
 {
-    const auto	servo_status = static_cast<servo_status_t>(msg->data);
-
-    if (servo_status == servo_status_)
-	return;
-
-    servo_status_ = servo_status;
-
-    switch (servo_status)
-    {
-      case servo_status_t::DECELERATE_FOR_SINGULARITY:
-      case servo_status_t::DECELERATE_FOR_COLLISION:
-	ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Servo status["
-			      << SERVO_STATUS_CODE_MAP.at(servo_status)
-			      << ']');
-	break;
-      case servo_status_t::HALT_FOR_SINGULARITY:
-      case servo_status_t::HALT_FOR_COLLISION:
-      case servo_status_t::JOINT_BOUND:
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Servo status["
-			       << SERVO_STATUS_CODE_MAP.at(servo_status)
-			       << ']');
-	break;
-      default:
-	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Servo status["
-			      << SERVO_STATUS_CODE_MAP.at(servo_status)
-			      << ']');
-	break;
-    }
+    servo_status_ = static_cast<servo_status_t>(msg->data);
 }
 
 void
@@ -798,7 +771,7 @@ PoseTrackingServo::goalCB()
 {
     resetTargetPose();
     resetOdometry();
-    
+
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
