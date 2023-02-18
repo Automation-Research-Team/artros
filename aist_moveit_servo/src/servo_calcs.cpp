@@ -834,29 +834,33 @@ ServoCalcs::checkPositionLimits(const vector_t& positions,
 				const vector_t& delta_theta) const
 {
     for (const auto joint : joint_group()->getActiveJointModels())
-	if (const auto&	limits = joint->getVariableBoundsMsg();
-	    !limits.empty() &&
-	    !robot_state_->satisfiesPositionBounds(
-		joint, -parameters_.joint_limit_margin))
-	{
-	    const auto	i	 = joint_indices_.at(joint->getName());
-	    const auto	position = positions[i];
-	    const auto	delta	 = delta_theta[i];
+    {
+	using JointType	= moveit::core::JointModel::JointType;
 
-	  // Check if pending velocity command is moving in the right direction
-	    if ((delta < 0 && position < (limits[0].min_position +
-					  parameters_.joint_limit_margin)) ||
-		(delta > 0 && position > (limits[0].max_position -
-					  parameters_.joint_limit_margin)))
-	    {
-		ROS_WARN_STREAM_THROTTLE_NAMED(
-		    ROS_LOG_THROTTLE_PERIOD, LOGNAME,
-		    ros::this_node::getName()
-		    << " " << joint->getName()
-		    << " close to a position limit. Halting.");
-		return false;
-	    }
+	const auto&	limits = joint->getVariableBoundsMsg();
+	if (limits.empty())
+	    continue;
+
+	const auto	margin = (joint->getType() == JointType::PRISMATIC ?
+				  parameters_.prismatic_joint_limit_margin :
+				  parameters_.revolute_joint_limit_margin);
+	if (robot_state_->satisfiesPositionBounds(joint, -margin))
+	    continue;
+
+      // Check if pending velocity command is moving in the right direction
+	const auto	i	 = joint_indices_.at(joint->getName());
+	const auto	position = positions[i];
+	const auto	delta	 = delta_theta[i];
+	if ((delta < 0 && position < (limits[0].min_position + margin)) ||
+	    (delta > 0 && position > (limits[0].max_position - margin)))
+	{
+	    ROS_WARN_STREAM_THROTTLE_NAMED(
+		ROS_LOG_THROTTLE_PERIOD, LOGNAME,
+		ros::this_node::getName() << " " << joint->getName()
+		<< " close to a position limit. Halting.");
+	    return false;
 	}
+    }
 
     return true;
 }

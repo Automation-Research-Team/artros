@@ -71,7 +71,7 @@ createPlanningSceneMonitor(const std::string& robot_description)
 
     return monitor;
 }
-    
+
 /************************************************************************
 *  class Servo								*
 ************************************************************************/
@@ -169,8 +169,12 @@ Servo::readParameters()
 				      parameters_.ee_frame_name);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "use_gazebo",
 				      parameters_.use_gazebo);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "joint_limit_margin",
-				      parameters_.joint_limit_margin);
+    error += !rosparam_shortcuts::get(LOGNAME, nh,
+				      "revolute_joint_limit_margin",
+				      parameters_.revolute_joint_limit_margin);
+    error += !rosparam_shortcuts::get(LOGNAME, nh,
+				      "prismatic_joint_limit_margin",
+				      parameters_.prismatic_joint_limit_margin);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "command_out_topic",
 				      parameters_.command_out_topic);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "command_out_type",
@@ -293,9 +297,15 @@ Servo::readParameters()
 		       "should be positive. Check yaml fuke.");
 	return false;
     }
-    if (parameters_.joint_limit_margin < 0.)
+    if (parameters_.revolute_joint_limit_margin < 0.)
     {
-	ROS_WARN_NAMED(LOGNAME, "Parameter 'joint_limit_margin' should be "
+	ROS_WARN_NAMED(LOGNAME, "Parameter 'revolute_joint_limit_margin' should be "
+		       "greater than or equal to zero. Check yaml file.");
+	return false;
+    }
+    if (parameters_.prismatic_joint_limit_margin < 0.)
+    {
+	ROS_WARN_NAMED(LOGNAME, "Parameter 'prismatic_joint_limit_margin' should be "
 		       "greater than or equal to zero. Check yaml file.");
 	return false;
     }
