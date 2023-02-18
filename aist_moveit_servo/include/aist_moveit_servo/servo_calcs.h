@@ -52,7 +52,6 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit_msgs/ChangeDriftDimensions.h>
 #include <moveit_msgs/ChangeControlDimensions.h>
-#include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/Int8.h>
 #include <std_srvs/Empty.h>
@@ -87,7 +86,6 @@ class ServoCalcs
     using joint_jog_cp	= control_msgs::JointJogConstPtr;
     using trajectory_t	= trajectory_msgs::JointTrajectory;
     using trajectory_cp	= trajectory_msgs::JointTrajectoryConstPtr;
-    using joint_state_t	= sensor_msgs::JointState;
     using flt64_t	= std_msgs::Float64;
     using flt64_cp	= std_msgs::Float64ConstPtr;
 

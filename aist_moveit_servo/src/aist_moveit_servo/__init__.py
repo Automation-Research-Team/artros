@@ -22,32 +22,26 @@ class PoseTrackingClient(object):
     def __init__(self, server="/pose_tracking_servo"):
         super(PoseTrackingClient, self).__init__()
 
-        try:
-            timeout = rospy.Duration(5)
+        timeout = rospy.Duration(5)
 
-            rospy.wait_for_service(server + '/reset_servo_status', timeout)
-            self._reset_servo_status \
-                = rospy.ServiceProxy(server + '/reset_servo_status', Empty)
+        rospy.wait_for_service(server + '/reset_servo_status', timeout)
+        self._reset_servo_status \
+            = rospy.ServiceProxy(server + '/reset_servo_status', Empty)
 
-            rospy.wait_for_service(server + '/change_drift_dimensions', timeout)
-            self._change_drift_dimensions \
-                = rospy.ServiceProxy(server + '/change_drift_dimensions',
-                                     ChangeDriftDimensions)
+        rospy.wait_for_service(server + '/change_drift_dimensions', timeout)
+        self._change_drift_dimensions \
+            = rospy.ServiceProxy(server + '/change_drift_dimensions',
+                                 ChangeDriftDimensions)
 
-            rospy.wait_for_service(server + '/change_control_dimensions',
-                                   timeout)
-            self._change_control_dimensions \
-                = rospy.ServiceProxy(server + '/change_control_dimensions',
-                                     ChangeControlDimensions)
+        rospy.wait_for_service(server + '/change_control_dimensions', timeout)
+        self._change_control_dimensions \
+            = rospy.ServiceProxy(server + '/change_control_dimensions',
+                                 ChangeControlDimensions)
 
-            self._pose_tracking = SimpleActionClient(server + '/pose_tracking',
-                                                     PoseTrackingAction)
-            if not self._pose_tracking.wait_for_server(timeout=timeout):
-                raise rospy.ROSExceptioon('failed to connect to action ')
-        except rospy.ROSException as e:
-            rospy.logerr('(PoseTrackingClient) server[%s] timeout: %s',
-                         server, e)
-            sys.exit()
+        self._pose_tracking = SimpleActionClient(server + '/pose_tracking',
+                                                 PoseTrackingAction)
+        if not self._pose_tracking.wait_for_server(timeout=timeout):
+            raise rospy.ROSExceptioon('failed to connect to action ')
 
         rospy.loginfo('(PoseTrackingClient) connected to server[%s]', server)
 
