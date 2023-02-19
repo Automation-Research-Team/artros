@@ -56,7 +56,6 @@
 namespace
 {
 constexpr char		LOGNAME[]	  = "pose_tracking_servo";
-constexpr double	DEFAULT_LOOP_RATE = 100;	// Hz
 constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
 const	  ros::Duration	DEFAULT_INPUT_TIMEOUT{0.5};	// sec
 }	// anonymous namespace
@@ -231,10 +230,6 @@ normalize(geometry_msgs::Quaternion& q)
 class PoseTrackingServo
 {
   private:
-    using planning_scene_monitor_t
-			 = planning_scene_monitor::PlanningSceneMonitor;
-    using planning_scene_monitor_p
-			 = planning_scene_monitor::PlanningSceneMonitorPtr;
     using server_t	 = actionlib::SimpleActionServer<PoseTrackingAction>;
     using goal_cp	 = boost::shared_ptr<const server_t::Goal>;
     using ddr_t		 = ddynamic_reconfigure::DDynamicReconfigure;
@@ -269,11 +264,15 @@ class PoseTrackingServo
 
     void	run()							;
     void	tick()							;
-    const ros::Rate&
-		loop_rate()					const	;
 
   private:
     void	readROSParams()						;
+    ros::Duration
+		expectedCycleTime() const
+		{
+		    return ros::Duration(servo_.getParameters().publish_period);
+		}
+
     void	servoStatusCB(const int8_cp& msg)	;
     void	targetPoseCB(const pose_cp& msg)			;
     void	odometryCB(const odom_cp& msg)				;
@@ -293,14 +292,11 @@ class PoseTrackingServo
 					 double cutoff_frequency)	;
 
   // PID stuffs
-    void	initializePID(const PIDConfig& pid_config,
-			      std::vector<pid_t>& pids);
-    void	updatePositionPIDs(double PIDConfig::* field,
-				   double value)			;
-    void	updateOrientationPID(double PIDConfig::* field,
-				     double value)			;
-    void	getPIDErrors(double& x_error, double& y_error,
-			     double& z_error, double& orientation_error);
+    void	initializePositionPIDs(double PIDConfig::* field,
+				       double value)			;
+    void	initializeOrientationPID(double PIDConfig::* field,
+					 double value)			;
+    void	initializePID(const PIDConfig& pid_config, pid_t& pid)	;
 
   // Target pose stuffs
     void	resetTargetPose()					;
@@ -311,61 +307,53 @@ class PoseTrackingServo
     bool	haveRecentOdometry(const ros::Duration& timeout) const	;
 
   private:
-    ros::NodeHandle			nh_;
+    ros::NodeHandle		nh_;
 
-    const planning_scene_monitor_p	planning_scene_monitor_;
-    const std::unique_ptr<Servo>	servo_;
-    servo_status_t			servo_status_;
+    Servo			servo_;
+    servo_status_t		servo_status_;
 
-    ros::ServiceClient			reset_servo_status_;
-    const ros::Subscriber		servo_status_sub_;
-    const ros::Subscriber		target_pose_sub_;
-    const ros::Subscriber		odom_sub_;
-    const ros::Publisher		twist_pub_;
-    const ros::Publisher		target_pose_debug_pub_;
-    const ros::Publisher		ee_pose_debug_pub_;
-    ros::Rate				loop_rate_;
-    DurationArray&			durations_;
+    ros::ServiceClient		reset_servo_status_;
+    const ros::Subscriber	servo_status_sub_;
+    const ros::Subscriber	target_pose_sub_;
+    const ros::Subscriber	odom_sub_;
+    const ros::Publisher	twist_pub_;
+    const ros::Publisher	target_pose_debug_pub_;
+    const ros::Publisher	ee_pose_debug_pub_;
+    DurationArray&		durations_;
 
   // Action server stuffs
-    server_t				tracker_srv_;
-    goal_cp				current_goal_;
+    server_t			tracker_srv_;
+    goal_cp			current_goal_;
 
   // Dynamic reconfigure server
-    ddr_t				ddr_;
+    ddr_t			ddr_;
 
   // Filters for input target pose
-    int					input_low_pass_filter_half_order_;
-    double				input_low_pass_filter_cutoff_frequency_;
-    lpf_t				input_low_pass_filter_;
+    int				input_low_pass_filter_half_order_;
+    double			input_low_pass_filter_cutoff_frequency_;
+    lpf_t			input_low_pass_filter_;
 
   // Spline extrapolator
-    extrapolator_t			input_extrapolator_;
+    extrapolator_t		input_extrapolator_;
 
   // PIDs
-    std::vector<pid_t>			cartesian_position_pids_;
-    std::vector<pid_t>			cartesian_orientation_pids_;
-    PIDConfig				x_pid_config_;
-    PIDConfig				y_pid_config_;
-    PIDConfig				z_pid_config_;
-    PIDConfig				angular_pid_config_;
+    std::array<PIDConfig, 4>	pid_configs_;
+    std::array<pid_t, 4>	pids_;
 
-  // Transforms w.r.t. planning_frame_
-    std::string				planning_frame_;
-    pose_t				target_pose_;
-    odom_t				odom_;
-    mutable std::mutex			input_mtx_;
+  // Servo inputs
+    pose_t			target_pose_;
+    odom_t			odom_;
+    mutable std::mutex		input_mtx_;
 };
 
 PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     :nh_(nh),
-     planning_scene_monitor_(createPlanningSceneMonitor("robot_description")),
-     servo_(new Servo(nh_, planning_scene_monitor_)),
+     servo_(nh_, createPlanningSceneMonitor("robot_description")),
      servo_status_(servo_status_t::INVALID),
 
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
-     servo_status_sub_(nh_.subscribe(servo_->getParameters().status_topic, 1,
+     servo_status_sub_(nh_.subscribe(servo_.getParameters().status_topic, 1,
 				     &PoseTrackingServo::servoStatusCB, this)),
      target_pose_sub_(nh_.subscribe(
 			  "/target_pose", 1,
@@ -375,13 +363,12 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 		   "/odom", 1, &PoseTrackingServo::odometryCB, this,
 		   ros::TransportHints().reliable().tcpNoDelay(true))),
      twist_pub_(nh_.advertise<twist_t>(
-		    servo_->getParameters().cartesian_command_in_topic, 1)),
+		    servo_.getParameters().cartesian_command_in_topic, 1)),
      target_pose_debug_pub_(nh_.advertise<pose_t>(
 				"desired_pose", 1)),
      ee_pose_debug_pub_(nh_.advertise<pose_t>(
 			    "actual_pose", 1)),
-     loop_rate_(DEFAULT_LOOP_RATE),
-     durations_(servo_->durations()),
+     durations_(servo_.durations()),
 
      tracker_srv_(nh_, "pose_tracking", false),
      current_goal_(nullptr),
@@ -391,17 +378,13 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      input_low_pass_filter_cutoff_frequency_(7.0),
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
-			    loop_rate_.expectedCycleTime().toSec()),
+			    expectedCycleTime().toSec()),
 
      input_extrapolator_(),
 
-     cartesian_position_pids_(),
-     cartesian_orientation_pids_(),
-     x_pid_config_(),
-     y_pid_config_(),
-     z_pid_config_(),
+     pid_configs_(),
+     pids_(),
 
-     planning_frame_(),
      target_pose_(),
      odom_(),
      input_mtx_()
@@ -411,13 +394,11 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
   // Initialize input lowpass-filter
     input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
 				      input_low_pass_filter_cutoff_frequency_ *
-				      loop_rate_.expectedCycleTime().toSec());
+				      expectedCycleTime().toSec());
 
   // Initialize PID controllers
-    initializePID(x_pid_config_,       cartesian_position_pids_);
-    initializePID(y_pid_config_,       cartesian_position_pids_);
-    initializePID(z_pid_config_,       cartesian_position_pids_);
-    initializePID(angular_pid_config_, cartesian_orientation_pids_);
+    for (size_t i = 0; i < pids_.size(); ++i)
+	initializePID(pid_configs_[i], pids_[i]);
 
   // Setup action server
     tracker_srv_.registerGoalCallback(boost::bind(&PoseTrackingServo::goalCB,
@@ -446,45 +427,45 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 				  "Cutoff frequency of input low pass filter",
 				  0.5, 100.0);
     ddr_.registerVariable<double>("linear_proportional_gain",
-				  x_pid_config_.k_p,
+				  pid_configs_[0].k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::initializePositionPIDs,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for translation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("linear_integral_gain",
-				  x_pid_config_.k_i,
+				  pid_configs_[0].k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::initializePositionPIDs,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for translation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("linear_derivative_gain",
-				  x_pid_config_.k_d,
+				  pid_configs_[0].k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::initializePositionPIDs,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for translation",
 				  0.0, 20.0);
 
     ddr_.registerVariable<double>("angular_proportinal_gain",
-				  angular_pid_config_.k_p,
+				  pid_configs_[3].k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::initializeOrientationPID,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for rotation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("angular_integral_gain",
-				  angular_pid_config_.k_i,
+				  pid_configs_[3].k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::initializeOrientationPID,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for rotation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("angular_derivative_gain",
-				  angular_pid_config_.k_d,
+				  pid_configs_[3].k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::initializeOrientationPID,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for rotation",
 				  0.0, 20.0);
@@ -504,10 +485,11 @@ PoseTrackingServo::run()
     ros::AsyncSpinner	spinner(8);
     spinner.start();
 
-    while (ros::ok())
+    for (ros::Rate loop_rate(1.0 / servo_.getParameters().publish_period);
+	 ros::ok(); )
     {
 	tick();
-	loop_rate_.sleep();
+	loop_rate.sleep();
     }
 
     spinner.stop();
@@ -606,12 +588,6 @@ PoseTrackingServo::tick()
 			    durations_.header.stamp).toSec();
 }
 
-const ros::Rate&
-PoseTrackingServo::loop_rate() const
-{
-    return loop_rate_;
-}
-
 /*
  *  private member functions
  */
@@ -620,54 +596,15 @@ PoseTrackingServo::readROSParams()
 {
   // Optional parameter sub-namespace specified in the launch file.
   // All other parameters will be read from this namespace.
-    std::string	parameter_ns;
-    ros::param::get("~parameter_ns", parameter_ns);
-
   // If parameters have been loaded into sub-namespace
   // within the node namespace, append the parameter namespace
   // to load the parameters correctly.
-    auto	nh = (parameter_ns.empty() ?
-		      nh_ : ros::NodeHandle(nh_, parameter_ns));
-
-  // Wait for ROS parameters to load
-    const auto	begin = ros::Time::now();
-    while (ros::ok() && !nh.hasParam("planning_frame") &&
-	   (ros::Time::now() - begin).toSec() < ROS_STARTUP_WAIT)
-    {
-	ROS_WARN_STREAM_NAMED(LOGNAME,
-			      "Waiting for parameter: planning_frame");
-	ros::Duration(0.1).sleep();
-    }
-
-    std::size_t error = 0;
-
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "planning_frame", planning_frame_);
-
-    std::string	move_group_name;
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "move_group_name", move_group_name);
-    if (!planning_scene_monitor_->getRobotModel()
-				->hasJointModelGroup(move_group_name))
-    {
-	++error;
-	ROS_ERROR_STREAM_NAMED(
-	    LOGNAME, "Unable to find the specified joint model group: "
-	    << move_group_name);
-    }
-
-  // Setup loop_rate_
-    double	publish_period;
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
-				      "publish_period", publish_period);
-    loop_rate_ = ros::Rate(1 / publish_period);
-
-    x_pid_config_.dt	   = publish_period;
-    y_pid_config_.dt	   = publish_period;
-    z_pid_config_.dt	   = publish_period;
-    angular_pid_config_.dt = publish_period;
+    std::string	parameter_ns;
+    auto	nh = (nh_.getParam("parameter_ns", parameter_ns) ?
+		      ros::NodeHandle(nh_, parameter_ns) : nh_);
 
   // Setup input low-pass filter
+    std::size_t error = 0;
     error += !rosparam_shortcuts::get(LOGNAME, nh,
 				      "input_low_pass_filter_half_order",
 				      input_low_pass_filter_half_order_);
@@ -679,36 +616,37 @@ PoseTrackingServo::readROSParams()
     double	windup_limit;
     error += !rosparam_shortcuts::get(LOGNAME, nh, "windup_limit",
 				      windup_limit);
-    x_pid_config_.windup_limit = windup_limit;
-    y_pid_config_.windup_limit = windup_limit;
-    z_pid_config_.windup_limit = windup_limit;
-    angular_pid_config_.windup_limit = windup_limit;
+    for (size_t i = 0; i < pids_.size(); ++i)
+    {
+	pid_configs_[i].dt	     = expectedCycleTime().toSec();
+	pid_configs_[i].windup_limit = windup_limit;
+    }
 
     error += !rosparam_shortcuts::get(LOGNAME, nh, "x_proportional_gain",
-				      x_pid_config_.k_p);
+				      pid_configs_[0].k_p);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "y_proportional_gain",
-				      y_pid_config_.k_p);
+				      pid_configs_[1].k_p);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "z_proportional_gain",
-				      z_pid_config_.k_p);
+				      pid_configs_[2].k_p);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "x_integral_gain",
-				      x_pid_config_.k_i);
+				      pid_configs_[0].k_i);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "y_integral_gain",
-				      y_pid_config_.k_i);
+				      pid_configs_[1].k_i);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "z_integral_gain",
-				      z_pid_config_.k_i);
+				      pid_configs_[2].k_i);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "x_derivative_gain",
-				      x_pid_config_.k_d);
+				      pid_configs_[0].k_d);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "y_derivative_gain",
-				      y_pid_config_.k_d);
+				      pid_configs_[1].k_d);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "z_derivative_gain",
-				      z_pid_config_.k_d);
+				      pid_configs_[2].k_d);
 
     error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_proportional_gain",
-				      angular_pid_config_.k_p);
+				      pid_configs_[3].k_p);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_integral_gain",
-				      angular_pid_config_.k_i);
+				      pid_configs_[3].k_i);
     error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_derivative_gain",
-				      angular_pid_config_.k_d);
+				      pid_configs_[3].k_d);
 
     rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
 }
@@ -736,12 +674,12 @@ PoseTrackingServo::targetPoseCB(const pose_cp& msg)
 				 durations_.header.stamp).toSec();
 
   // If the target pose is not defined in planning frame, transform it.
-    if (target_pose_.header.frame_id != planning_frame_)
+    if (target_pose_.header.frame_id != servo_.getParameters().planning_frame)
     {
-	auto Tpt = tf2::eigenToTransform(servo_->getFrameTransform(
+	auto Tpt = tf2::eigenToTransform(servo_.getFrameTransform(
 					     target_pose_.header.frame_id));
 	Tpt.header.stamp    = target_pose_.header.stamp;
-	Tpt.header.frame_id = planning_frame_;
+	Tpt.header.frame_id = servo_.getParameters().planning_frame;
 	Tpt.child_frame_id  = target_pose_.header.frame_id;
 	tf2::doTransform(target_pose_, target_pose_, Tpt);
     }
@@ -759,10 +697,10 @@ PoseTrackingServo::odometryCB(const odom_cp& msg)
     if (odom_.header.stamp == ros::Time(0))
 	odom_.header.stamp = ros::Time::now();
 
-    auto Tpb = tf2::eigenToTransform(servo_->getFrameTransform(
-					     odom_.child_frame_id));
+    auto	Tpb = tf2::eigenToTransform(servo_.getFrameTransform(
+						odom_.child_frame_id));
     Tpb.header.stamp	= odom_.header.stamp;
-    Tpb.header.frame_id	= planning_frame_;
+    Tpb.header.frame_id	= servo_.getParameters().planning_frame;
     Tpb.child_frame_id	= odom_.child_frame_id;
 }
 
@@ -785,7 +723,7 @@ PoseTrackingServo::goalCB()
 
 	    std_srvs::Empty	empty;
 	    reset_servo_status_.call(empty);
-	    servo_->start();
+	    servo_.start();
 
 	    current_goal_ = tracker_srv_.acceptNewGoal();
 	    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
@@ -850,7 +788,7 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
     target_pose_debug_pub_.publish(target_pose);
 
   // Compute errors
-    const auto	Tpe = servo_->getEEFrameTransform();
+    const auto	Tpe = servo_.getEEFrameTransform();
     positional_error(0) = target_pose.pose.position.x - Tpe.translation()(0);
     positional_error(1) = target_pose.pose.position.y - Tpe.translation()(1);
     positional_error(2) = target_pose.pose.position.z - Tpe.translation()(2);
@@ -860,9 +798,10 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
     angular_error = q_desired * Eigen::Quaterniond(Tpe.rotation()).inverse();
 
   // For debugging
-    ee_pose_debug_pub_.publish(tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					      Tpe, ros::Time::now(),
-					      planning_frame_)));
+    ee_pose_debug_pub_.publish(tf2::toMsg(
+				   tf2::Stamped<Eigen::Isometry3d>(
+				       Tpe, ros::Time::now(),
+				       servo_.getParameters().planning_frame)));
 }
 
 PoseTrackingServo::twist_cp
@@ -879,21 +818,14 @@ PoseTrackingServo::calculateTwistCommand(const vector3_t& positional_error,
 
   // Get twist components from PID controllers
     auto&	twist = msg->twist;
-    twist.linear.x = cartesian_position_pids_[0]
-		    .computeCommand(positional_error(0),
-				    loop_rate_.expectedCycleTime());
-    twist.linear.y = cartesian_position_pids_[1]
-		    .computeCommand(positional_error(1),
-				    loop_rate_.expectedCycleTime());
-    twist.linear.z = cartesian_position_pids_[2]
-		    .computeCommand(positional_error(2),
-				    loop_rate_.expectedCycleTime());
+    const auto	dt = expectedCycleTime();
+    twist.linear.x = pids_[0].computeCommand(positional_error(0), dt);
+    twist.linear.y = pids_[1].computeCommand(positional_error(1), dt);
+    twist.linear.z = pids_[2].computeCommand(positional_error(2), dt);
 
   // Anglular components
-    const auto	ang_vel_magnitude = cartesian_orientation_pids_[0]
-				   .computeCommand(angular_error.angle(),
-						   loop_rate_
-						   .expectedCycleTime());
+    const auto	ang_vel_magnitude = pids_[3].computeCommand(
+						angular_error.angle(), dt);
     twist.angular.x = ang_vel_magnitude * angular_error.axis()[0];
     twist.angular.y = ang_vel_magnitude * angular_error.axis()[1];
     twist.angular.z = ang_vel_magnitude * angular_error.axis()[2];
@@ -909,10 +841,8 @@ PoseTrackingServo::doPostMotionReset()
     stopMotion();
 
   // Reset error integrals and previous errors of PID controllers
-    cartesian_position_pids_[0].reset();
-    cartesian_position_pids_[1].reset();
-    cartesian_position_pids_[2].reset();
-    cartesian_orientation_pids_[0].reset();
+    for (auto&& pid : pids_)
+	pid.reset();
 }
 
 void
@@ -938,63 +868,41 @@ PoseTrackingServo::updateInputLowPassFilter(int half_order,
     input_low_pass_filter_cutoff_frequency_ = cutoff_frequency;
 
     input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
-				      input_low_pass_filter_cutoff_frequency_
-				      *loop_rate_.expectedCycleTime().toSec());
+				      input_low_pass_filter_cutoff_frequency_*
+				      expectedCycleTime().toSec());
 
     input_low_pass_filter_.reset(target_pose_.pose);
 }
 
 // PID controller stuffs
 void
-PoseTrackingServo::updatePositionPIDs(double PIDConfig::* field, double value)
+PoseTrackingServo::initializePositionPIDs(double PIDConfig::* field,
+					  double value)
 {
     std::lock_guard<std::mutex> lock(input_mtx_);
 
-    x_pid_config_.*field = value;
-    y_pid_config_.*field = value;
-    z_pid_config_.*field = value;
-
-    cartesian_position_pids_.clear();
-    initializePID(x_pid_config_, cartesian_position_pids_);
-    initializePID(y_pid_config_, cartesian_position_pids_);
-    initializePID(z_pid_config_, cartesian_position_pids_);
+    for (size_t i = 0; i < 3; ++i)
+    {
+	pid_configs_[i].*field = value;
+	initializePID(pid_configs_[i], pids_[i]);
+    }
 }
 
 void
-PoseTrackingServo::updateOrientationPID(double PIDConfig::* field,
-					double value)
+PoseTrackingServo::initializeOrientationPID(double PIDConfig::* field,
+					    double value)
 {
     std::lock_guard<std::mutex> lock(input_mtx_);
 
-    angular_pid_config_.*field = value;
-
-    cartesian_orientation_pids_.clear();
-    initializePID(angular_pid_config_, cartesian_orientation_pids_);
+    pid_configs_[3].*field = value;
+    initializePID(pid_configs_[3], pids_[3]);
 }
 
 void
-PoseTrackingServo::initializePID(const PIDConfig& pid_config,
-				 std::vector<pid_t>& pids)
+PoseTrackingServo::initializePID(const PIDConfig& pid_config, pid_t& pid)
 {
-    bool	use_anti_windup = true;
-    pids.push_back(pid_t(pid_config.k_p, pid_config.k_i, pid_config.k_d,
-			 pid_config.windup_limit, -pid_config.windup_limit,
-			 use_anti_windup));
-}
-
-void
-PoseTrackingServo::getPIDErrors(double& x_error, double& y_error,
-				double& z_error, double& orientation_error)
-{
-    double	dummy1, dummy2;
-    cartesian_position_pids_.at(0).getCurrentPIDErrors(&x_error,
-						       &dummy1, &dummy2);
-    cartesian_position_pids_.at(1).getCurrentPIDErrors(&y_error,
-						       &dummy1, &dummy2);
-    cartesian_position_pids_.at(2).getCurrentPIDErrors(&z_error,
-						       &dummy1, &dummy2);
-    cartesian_orientation_pids_.at(0).getCurrentPIDErrors(&orientation_error,
-							  &dummy1, &dummy2);
+    pid.initPid(pid_config.k_p, pid_config.k_i, pid_config.k_d,
+		pid_config.windup_limit, -pid_config.windup_limit, true);
 }
 
 // Target pose stuffs
