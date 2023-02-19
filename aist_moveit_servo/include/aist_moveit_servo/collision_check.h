@@ -59,7 +59,7 @@ class CollisionCheck
     using planning_scene_monitor_p
 			     = planning_scene_monitor::PlanningSceneMonitorPtr;
     using collision_matrix_t = collision_detection::AllowedCollisionMatrix;
-    
+
   public:
 		CollisionCheck(
 		    const ros::NodeHandle& nh,
