@@ -292,11 +292,11 @@ class PoseTrackingServo
 					 double cutoff_frequency)	;
 
   // PID stuffs
-    void	initializePositionPIDs(double PIDConfig::* field,
-				       double value)			;
-    void	initializeOrientationPID(double PIDConfig::* field,
-					 double value)			;
-    void	initializePID(const PIDConfig& pid_config, pid_t& pid)	;
+    void	updatePositionPIDs(double PIDConfig::* field,
+				   double value)			;
+    void	updateOrientationPID(double PIDConfig::* field,
+				     double value)			;
+    void	updatePID(const PIDConfig& pid_config, pid_t& pid)	;
 
   // Target pose stuffs
     void	resetTargetPose()					;
@@ -398,7 +398,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 
   // Initialize PID controllers
     for (size_t i = 0; i < pids_.size(); ++i)
-	initializePID(pid_configs_[i], pids_[i]);
+	updatePID(pid_configs_[i], pids_[i]);
 
   // Setup action server
     tracker_srv_.registerGoalCallback(boost::bind(&PoseTrackingServo::goalCB,
@@ -429,21 +429,21 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  pid_configs_[0].k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::initializePositionPIDs,
+					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for translation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("linear_integral_gain",
 				  pid_configs_[0].k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::initializePositionPIDs,
+					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for translation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("linear_derivative_gain",
 				  pid_configs_[0].k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::initializePositionPIDs,
+					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for translation",
 				  0.0, 20.0);
@@ -451,21 +451,21 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     ddr_.registerVariable<double>("angular_proportinal_gain",
 				  pid_configs_[3].k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::initializeOrientationPID,
+					      ::updateOrientationPID,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for rotation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("angular_integral_gain",
 				  pid_configs_[3].k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::initializeOrientationPID,
+					      ::updateOrientationPID,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for rotation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("angular_derivative_gain",
 				  pid_configs_[3].k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::initializeOrientationPID,
+					      ::updateOrientationPID,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for rotation",
 				  0.0, 20.0);
@@ -876,30 +876,30 @@ PoseTrackingServo::updateInputLowPassFilter(int half_order,
 
 // PID controller stuffs
 void
-PoseTrackingServo::initializePositionPIDs(double PIDConfig::* field,
-					  double value)
+PoseTrackingServo::updatePositionPIDs(double PIDConfig::* field,
+				      double value)
 {
     std::lock_guard<std::mutex> lock(input_mtx_);
 
     for (size_t i = 0; i < 3; ++i)
     {
 	pid_configs_[i].*field = value;
-	initializePID(pid_configs_[i], pids_[i]);
+	updatePID(pid_configs_[i], pids_[i]);
     }
 }
 
 void
-PoseTrackingServo::initializeOrientationPID(double PIDConfig::* field,
-					    double value)
+PoseTrackingServo::updateOrientationPID(double PIDConfig::* field,
+					double value)
 {
     std::lock_guard<std::mutex> lock(input_mtx_);
 
     pid_configs_[3].*field = value;
-    initializePID(pid_configs_[3], pids_[3]);
+    updatePID(pid_configs_[3], pids_[3]);
 }
 
 void
-PoseTrackingServo::initializePID(const PIDConfig& pid_config, pid_t& pid)
+PoseTrackingServo::updatePID(const PIDConfig& pid_config, pid_t& pid)
 {
     pid.initPid(pid_config.k_p, pid_config.k_i, pid_config.k_d,
 		pid_config.windup_limit, -pid_config.windup_limit, true);
