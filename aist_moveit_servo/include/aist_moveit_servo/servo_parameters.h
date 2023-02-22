@@ -38,6 +38,8 @@
 
 #pragma once
 
+#include <ros/ros.h>
+
 namespace aist_moveit_servo
 {
 // Size of queues used in ros pub/sub/service
@@ -46,6 +48,8 @@ constexpr size_t ROS_QUEUE_SIZE = 2;
 // ROS params to be read. See the yaml file in /config for a description of each.
 struct ServoParameters
 {
+    ServoParameters(const ros::NodeHandle& nh, const std::string& logname);
+
     std::string	move_group_name;
     std::string	joint_topic;
     std::string	cartesian_command_in_topic;

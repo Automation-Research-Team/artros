@@ -80,6 +80,7 @@ add_library(
   src/collision_check.cpp
   src/servo.cpp
   src/servo_calcs.cpp
+  src/servo_parameters.cpp
 )
 
 target_link_libraries(
