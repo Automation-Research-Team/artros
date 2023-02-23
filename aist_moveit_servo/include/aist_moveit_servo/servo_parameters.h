@@ -61,6 +61,7 @@ struct ServoParameters
     std::string	joint_command_in_topic;
     std::string	command_in_type;
     std::string	command_out_type;
+    std::string target_positions_topic;
     double	linear_scale;
     double	rotational_scale;
     double	joint_scale;

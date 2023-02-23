@@ -12,8 +12,7 @@ scale:
   rotational: 0.1
   joint:      0.01
 
-low_pass_filter_coeff: 2.
-low_pass_filter_half_order: 3
+low_pass_filter_half_order:       3
 low_pass_filter_cutoff_frequency: 10.0
 
 ## Properties of outgoing commands
@@ -45,6 +44,7 @@ prismatic_joint_limit_margin:    0.005
 ## Topic names
 cartesian_command_in_topic: delta_twist_cmds
 joint_command_in_topic:     delta_joint_cmds
+target_positions_topic:     ""
 joint_topic:                joint_states
 status_topic:               status
 command_out_topic:          /$(arg robot_name)/$(arg controller)/command

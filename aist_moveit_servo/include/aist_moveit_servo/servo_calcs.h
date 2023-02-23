@@ -53,6 +53,7 @@
 #include <moveit_msgs/ChangeDriftDimensions.h>
 #include <moveit_msgs/ChangeControlDimensions.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Int8.h>
 #include <std_srvs/Empty.h>
 #include <tf2_eigen/tf2_eigen.h>
@@ -86,6 +87,8 @@ class ServoCalcs
     using joint_jog_cp	= control_msgs::JointJogConstPtr;
     using trajectory_t	= trajectory_msgs::JointTrajectory;
     using trajectory_cp	= trajectory_msgs::JointTrajectoryConstPtr;
+    using multi_array_t	= std_msgs::Float64MultiArray;
+    using multi_array_cp= std_msgs::Float64MultiArrayConstPtr;
     using flt64_t	= std_msgs::Float64;
     using flt64_cp	= std_msgs::Float64ConstPtr;
 
@@ -163,6 +166,7 @@ class ServoCalcs
 
     void	twistCmdCB(const twist_cp& msg)				;
     void	jointCmdCB(const joint_jog_cp& msg)			;
+    void	targetPositionsCB(const multi_array_cp& msg)		;
     void	collisionVelocityScaleCB(const flt64_cp& msg)		;
 
     bool	changeDriftDimensions(
@@ -190,6 +194,7 @@ class ServoCalcs
     ros::NodeHandle			internal_nh_;
     const ros::Subscriber		twist_cmd_sub_;
     const ros::Subscriber		joint_cmd_sub_;
+    const ros::Subscriber		target_positions_sub_;
     const ros::Subscriber		collision_velocity_scale_sub_;
     ros::Publisher			status_pub_;
     ros::Publisher			worst_case_stop_time_pub_;
@@ -241,7 +246,8 @@ class ServoCalcs
     mutable std::mutex			input_mutex_;
     twist_t				twist_cmd_;
     joint_jog_t				joint_cmd_;
-
+    vector_t				target_positions_;
+    
   // input condition variable used for low latency mode
     std::condition_variable		input_cv_;
     bool				new_input_cmd_;
