@@ -48,7 +48,6 @@
 #include <actionlib/server/simple_action_server.h>
 #include <aist_moveit_servo/PoseTrackingAction.h>
 #include <aist_utility/butterworth_lpf.h>
-#include <aist_utility/spline_extrapolator.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -246,7 +245,6 @@ class PoseTrackingServo
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-    using extrapolator_t = aist_utility::SplineExtrapolator<raw_pose_t, 3>;
 
     struct PIDConfig
     {
@@ -333,9 +331,6 @@ class PoseTrackingServo
     double			input_low_pass_filter_cutoff_frequency_;
     lpf_t			input_low_pass_filter_;
 
-  // Spline extrapolator
-    extrapolator_t		input_extrapolator_;
-
   // PIDs
     std::array<PIDConfig, 4>	pid_configs_;
     std::array<pid_t, 4>	pids_;
@@ -379,8 +374,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    expectedCycleTime().toSec()),
-
-     input_extrapolator_(),
 
      pid_configs_(),
      pids_(),
@@ -683,8 +676,6 @@ PoseTrackingServo::targetPoseCB(const pose_cp& msg)
 	Tpt.child_frame_id  = target_pose_.header.frame_id;
 	tf2::doTransform(target_pose_, target_pose_, Tpt);
     }
-
-    input_extrapolator_.update(ros::Time::now(), target_pose_.pose);
 }
 
 void
@@ -767,11 +758,6 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
 
 	target_pose = target_pose_;
     }
-
-  // Apply input extrapolator
-    // target_pose.pose = input_extrapolator_.pos(ros::Time::now());
-    // normalize(target_pose.pose.orientation);
-  //target_pose.pose.position = input_extrapolator_.pos(ros::Time::now());
 
   // Apply input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
