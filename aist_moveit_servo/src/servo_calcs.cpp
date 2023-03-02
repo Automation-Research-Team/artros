@@ -36,7 +36,6 @@
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson, Toshio Ueshiba
  */
 #include <cassert>
-#include <std_msgs/Float64MultiArray.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
 #include <aist_moveit_servo/servo_calcs.h>
 
@@ -111,6 +110,12 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
        nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
 		     &ServoCalcs::jointCmdCB, this,
 		     ros::TransportHints().reliable().tcpNoDelay(true))),
+   target_positions_sub_(
+       parameters_.target_positions_topic.empty() ?
+       ros::Subscriber() :
+       nh_.subscribe(parameters_.target_positions_topic, ROS_QUEUE_SIZE,
+		     &ServoCalcs::targetPositionsCB, this,
+		     ros::TransportHints().reliable().tcpNoDelay(true))),
    collision_velocity_scale_sub_(
        internal_nh_.subscribe(
 	   "collision_velocity_scale", ROS_QUEUE_SIZE,
@@ -122,16 +127,16 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 				 "worst_case_stop_time", ROS_QUEUE_SIZE)),
    outgoing_cmd_pub_(
        parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
-       nh_.advertise<trajectory_t>(
-	   parameters_.command_out_topic, ROS_QUEUE_SIZE) :
-       nh_.advertise<std_msgs::Float64MultiArray>(
-	   parameters_.command_out_topic, ROS_QUEUE_SIZE)),
+       nh_.advertise<trajectory_t>(parameters_.command_out_topic,
+				   ROS_QUEUE_SIZE) :
+       nh_.advertise<multi_array_t>(parameters_.command_out_topic,
+				    ROS_QUEUE_SIZE)),
    outgoing_cmd_debug_pub_(
        parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
-       nh_.advertise<trajectory_t>(
-	   parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE) :
-       nh_.advertise<std_msgs::Float64MultiArray>(
-	   parameters_.command_out_topic + "_debug", ROS_QUEUE_SIZE)),
+       nh_.advertise<trajectory_t>(parameters_.command_out_topic + "_debug",
+				   ROS_QUEUE_SIZE) :
+       nh_.advertise<multi_array_t>(parameters_.command_out_topic + "_debug",
+				    ROS_QUEUE_SIZE)),
    durations_pub_(
        nh_.advertise<aist_moveit_servo::DurationArray>("durations", 1)),
    drift_dimensions_srv_(
@@ -172,7 +177,8 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    input_mutex_(),
    twist_cmd_(),
    joint_cmd_(),
-
+   target_positions_(),
+   
    input_cv_(),
    new_input_cmd_(false)
 {
@@ -498,8 +504,7 @@ ServoCalcs::calculateSingleIteration()
     }
     else if (parameters_.command_out_type == "std_msgs/Float64MultiArray")
     {
-	auto	joints = moveit::util::make_shared_from_pool<
-				std_msgs::Float64MultiArray>();
+	auto	joints = moveit::util::make_shared_from_pool<multi_array_t>();
 	if (parameters_.publish_joint_positions &&
 	    !joint_trajectory_.points.empty())
 	    joints->data = joint_trajectory_.points[0].positions;
@@ -815,7 +820,9 @@ ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
 void
 ServoCalcs::convertDeltasToTrajectory(const vector_t& delta_theta)
 {
-    vector_t	desired_positions = actual_positions_ + delta_theta;
+    vector_t	desired_positions
+		    = (parameters_.target_positions_topic.empty() ?
+		       actual_positions_ : target_positions_) + delta_theta;
     lowPassFilterPositions(desired_positions);
 
     if (checkPositionLimits(desired_positions, delta_theta))
@@ -1031,6 +1038,16 @@ ServoCalcs::collisionVelocityScaleCB(const flt64_cp& msg)
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
     collision_velocity_scale_ = msg->data;
+}
+
+void
+ServoCalcs::targetPositionsCB(const multi_array_cp& msg)
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    target_positions_.resize(msg->data.size());
+    std::copy_n(msg->data.data(), target_positions_.size(),
+		target_positions_.data());
 }
 
 //! Allow drift in certain dimensions

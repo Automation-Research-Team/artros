@@ -118,6 +118,8 @@ class HMIRoutines(AISTBaseRoutines):
         orientation = QuaternionStamped()
         orientation.header.frame_id = self.reference_frame
         orientation.quaternion = Quaternion(0, 0, 0, 1)
+        if self.using_hmi_graspability_params:
+            max_slant = 0
         return self.graspability_wait_for_result(orientation, max_slant)
 
     def sweep_bin(self, bin_id):

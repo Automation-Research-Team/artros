@@ -144,7 +144,7 @@ class KittingRoutines(AISTBaseRoutines):
                                     feedback_cb=self._pick_or_place_feedback_cb)
                 self._wait_for_approaching()
                 poses, _ = self.search(bin_id)
-                resutl   = self.pick_or_place_wait_for_result()
+                result   = self.pick_or_place_wait_for_result()
                 return result == PickOrPlaceResult.SUCCESS, poses
             elif result == PickOrPlaceResult.MOVE_FAILURE or \
                  result == PickOrPlaceResult.APPROACH_FAILURE:

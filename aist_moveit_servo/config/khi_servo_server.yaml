@@ -12,13 +12,11 @@ scale:
   rotational: 3.0
   joint:      0.1
 
-low_pass_filter_coeff: 40.
 low_pass_filter_half_order: 3
 low_pass_filter_cutoff_frequency: 7.
 
 ## Properties of outgoing commands
 publish_period:   0.002
-#publish_period:   0.02
 low_latency_mode: false
 
 command_out_type: $(arg command_out_type)
@@ -46,6 +44,7 @@ prismatic_joint_limit_margin:    0.005
 ## Topic names
 cartesian_command_in_topic: delta_twist_cmds
 joint_command_in_topic:     delta_joint_cmds
+target_positions_topic:     ""
 joint_topic:                joint_states
 status_topic:               status
 command_out_topic:          /$(arg controller)/command
