@@ -48,7 +48,6 @@
 #include <actionlib/server/simple_action_server.h>
 #include <aist_moveit_servo/PoseTrackingAction.h>
 #include <aist_utility/butterworth_lpf.h>
-#include <aist_utility/spline_extrapolator.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -240,13 +239,14 @@ class PoseTrackingServo
     using pose_t	 = geometry_msgs::PoseStamped;
     using pose_cp	 = geometry_msgs::PoseStampedConstPtr;
     using raw_pose_t	 = geometry_msgs::Pose;
+    using multi_array_t	 = std_msgs::Float64MultiArray;
+    using multi_array_cp = std_msgs::Float64MultiArrayConstPtr;
     using odom_t	 = nav_msgs::Odometry;
     using odom_cp	 = nav_msgs::OdometryConstPtr;
     using vector3_t	 = Eigen::Vector3d;
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-    using extrapolator_t = aist_utility::SplineExtrapolator<raw_pose_t, 3>;
 
     struct PIDConfig
     {
@@ -317,6 +317,7 @@ class PoseTrackingServo
     const ros::Subscriber	target_pose_sub_;
     const ros::Subscriber	odom_sub_;
     const ros::Publisher	twist_pub_;
+    const ros::Publisher	target_positions_pub_;
     const ros::Publisher	target_pose_debug_pub_;
     const ros::Publisher	ee_pose_debug_pub_;
     DurationArray&		durations_;
@@ -332,9 +333,6 @@ class PoseTrackingServo
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
     lpf_t			input_low_pass_filter_;
-
-  // Spline extrapolator
-    extrapolator_t		input_extrapolator_;
 
   // PIDs
     std::array<PIDConfig, 4>	pid_configs_;
@@ -364,10 +362,13 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 		   ros::TransportHints().reliable().tcpNoDelay(true))),
      twist_pub_(nh_.advertise<twist_t>(
 		    servo_.getParameters().cartesian_command_in_topic, 1)),
-     target_pose_debug_pub_(nh_.advertise<pose_t>(
-				"desired_pose", 1)),
-     ee_pose_debug_pub_(nh_.advertise<pose_t>(
-			    "actual_pose", 1)),
+     target_positions_pub_(
+	 servo_.getParameters().target_positions_topic.empty() ?
+	 ros::Publisher() :
+	 nh_.advertise<multi_array_t>(
+	     servo_.getParameters().target_positions_topic, 1)),
+     target_pose_debug_pub_(nh_.advertise<pose_t>("desired_pose", 1)),
+     ee_pose_debug_pub_(nh_.advertise<pose_t>("actual_pose", 1)),
      durations_(servo_.durations()),
 
      tracker_srv_(nh_, "pose_tracking", false),
@@ -379,8 +380,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    expectedCycleTime().toSec()),
-
-     input_extrapolator_(),
 
      pid_configs_(),
      pids_(),
@@ -683,8 +682,6 @@ PoseTrackingServo::targetPoseCB(const pose_cp& msg)
 	Tpt.child_frame_id  = target_pose_.header.frame_id;
 	tf2::doTransform(target_pose_, target_pose_, Tpt);
     }
-
-    input_extrapolator_.update(ros::Time::now(), target_pose_.pose);
 }
 
 void
@@ -767,11 +764,6 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
 
 	target_pose = target_pose_;
     }
-
-  // Apply input extrapolator
-    // target_pose.pose = input_extrapolator_.pos(ros::Time::now());
-    // normalize(target_pose.pose.orientation);
-  //target_pose.pose.position = input_extrapolator_.pos(ros::Time::now());
 
   // Apply input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
