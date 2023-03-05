@@ -75,6 +75,8 @@ class ServoCalcs
 {
   public:
     using isometry3_t	= Eigen::Isometry3d;
+    using vector_t	= Eigen::VectorXd;
+    using pose_t	= geometry_msgs::PoseStamped;
 
   private:
     using planning_scene_monitor_p
@@ -92,7 +94,6 @@ class ServoCalcs
     using flt64_t	= std_msgs::Float64;
     using flt64_cp	= std_msgs::Float64ConstPtr;
 
-    using vector_t	= Eigen::VectorXd;
     using matrix_t	= Eigen::MatrixXd;
     using lpf_t		= aist_utility::ButterworthLPF<double>;
     using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
@@ -103,7 +104,9 @@ class ServoCalcs
 			   const planning_scene_monitor_p& monitor)	;
 		~ServoCalcs()						;
 
-    isometry3_t	getFrameTransform(const std::string& frame)	 const	;
+    isometry3_t	getFrameTransform(const std::string& frame)	const	;
+    bool	getJointPositions(const pose_t& pose,
+				  vector_t& joint_positions)	const	;
     void	start()							;
     void	setPaused(bool paused)					;
     void	changeRobotLinkCommandFrame(
@@ -247,7 +250,7 @@ class ServoCalcs
     twist_t				twist_cmd_;
     joint_jog_t				joint_cmd_;
     vector_t				target_positions_;
-    
+
   // input condition variable used for low latency mode
     std::condition_variable		input_cv_;
     bool				new_input_cmd_;

@@ -178,7 +178,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    twist_cmd_(),
    joint_cmd_(),
    target_positions_(),
-   
+
    input_cv_(),
    new_input_cmd_(false)
 {
@@ -239,6 +239,32 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 ServoCalcs::~ServoCalcs()
 {
     stop();
+}
+
+bool
+ServoCalcs::getJointPositions(const pose_t& pose,
+			      vector_t& joint_positions) const
+{
+    moveit::core::RobotState	robot_state;
+    {
+	const std::lock_guard<std::mutex>	lock(input_mutex_);
+
+	robot_state = *robot_state_;
+    }
+
+  // Get transform from frame_id of pose to model reference frame.
+    pose_t	target_pose;
+    const auto	Trt = robot_state.getGlobalLinkTransform(pose.header.frame_id);
+    tf2::doTransform(pose, target_pose, Trt);
+
+    if (!robot_state.setFromIK(joint_group(), target_pose.pose,
+			       parameters_.ee_frame_name))
+	return false;
+
+    joint_positions.resize(num_joints());
+    robot_state.copyJointGroupPositions(joint_group(), joint_positions.data());
+
+    return true;
 }
 
 //! Start the timer where we do work and publish outputs
