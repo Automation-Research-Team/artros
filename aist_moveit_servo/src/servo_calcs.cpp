@@ -38,6 +38,7 @@
 #include <cassert>
 #include <aist_moveit_servo/make_shared_from_pool.h>
 #include <aist_moveit_servo/servo_calcs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 static const std::string LOGNAME = "servo_calcs";
 constexpr size_t	 ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
@@ -178,7 +179,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    twist_cmd_(),
    joint_cmd_(),
    target_positions_(),
-   
+
    input_cv_(),
    new_input_cmd_(false)
 {
@@ -234,11 +235,47 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 				  "Cutoff frequency of low pass filter",
 				  0.5, 100.0);
     ddr_.publishServicesTopics();
+
+  // Show names of model frame and variables of the robot model.
+    ROS_INFO_STREAM_NAMED(LOGNAME, "model_frame: "
+			  << robot_state_->getRobotModel()->getModelFrame());
+    for (const auto& name : robot_state_->getRobotModel()->getVariableNames())
+	ROS_INFO_STREAM_NAMED(LOGNAME, "  variable_name: " << name);
 }
 
 ServoCalcs::~ServoCalcs()
 {
     stop();
+}
+
+bool
+ServoCalcs::getJointPositions(const pose_t& pose,
+			      vector_t& joint_positions) const
+{
+    moveit::core::RobotState	robot_state(robot_state_->getRobotModel());
+    {
+	const std::lock_guard<std::mutex>	lock(input_mutex_);
+
+	robot_state = *robot_state_;
+    }
+
+  // Transform given pose to model reference frame.
+    auto	Trt = tf2::eigenToTransform(robot_state.getGlobalLinkTransform(
+						pose.header.frame_id));
+    Trt.header.stamp	= pose.header.stamp;
+    Trt.header.frame_id = robot_state.getRobotModel()->getModelFrame();
+    Trt.child_frame_id	= pose.header.frame_id;
+    pose_t	target_pose;
+    tf2::doTransform(pose, target_pose, Trt);
+
+    if (!robot_state.setFromIK(joint_group(), target_pose.pose,
+			       parameters_.ee_frame_name))
+	return false;
+
+    joint_positions.resize(num_joints());
+    robot_state.copyJointGroupPositions(joint_group(), joint_positions.data());
+
+    return true;
 }
 
 //! Start the timer where we do work and publish outputs

@@ -62,6 +62,8 @@ class Servo
 {
   public:
     using isometry3_t	= Eigen::Isometry3d;
+    using vector_t	= Eigen::VectorXd;
+    using pose_t	= geometry_msgs::PoseStamped;
     using planning_scene_monitor_p
 			= planning_scene_monitor::PlanningSceneMonitorPtr;
 
@@ -85,6 +87,13 @@ class Servo
     isometry3_t	getFrameTransform(const std::string& frame) const
 		{
 		    return servo_calcs_.getFrameTransform(frame);
+		}
+
+    bool	getJointPositions(const pose_t& pose,
+				  vector_t& joint_positions) const
+		{
+		    return servo_calcs_.getJointPositions(pose,
+							  joint_positions);
 		}
 
   //! Get the parameters used by servo node
