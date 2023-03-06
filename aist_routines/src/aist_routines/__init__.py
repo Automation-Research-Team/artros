@@ -593,7 +593,7 @@ class AISTBaseRoutines(object):
                                             header.stamp, rospy.Duration(10))
             mat44 = self._listener.asMatrix(target_frame, header)
         except Exception as e:
-            rospy.logerr('AISTBaseRoutines._transform_positions_to_target_frame(): {}'.format(e))
+            rospy.logerr('AISTBaseRoutines._transform_points_to_target_frame(): {}'.format(e))
             raise e
 
         return [ gmsg.Point(*tuple(np.dot(mat44,

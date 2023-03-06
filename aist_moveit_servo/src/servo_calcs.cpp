@@ -38,6 +38,7 @@
 #include <cassert>
 #include <aist_moveit_servo/make_shared_from_pool.h>
 #include <aist_moveit_servo/servo_calcs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 static const std::string LOGNAME = "servo_calcs";
 constexpr size_t	 ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs inside loops
@@ -234,6 +235,12 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 				  "Cutoff frequency of low pass filter",
 				  0.5, 100.0);
     ddr_.publishServicesTopics();
+
+  // Show names of model frame and variables of the robot model.
+    ROS_INFO_STREAM_NAMED(LOGNAME, "model_frame: "
+			  << robot_state_->getRobotModel()->getModelFrame());
+    for (const auto& name : robot_state_->getRobotModel()->getVariableNames())
+	ROS_INFO_STREAM_NAMED(LOGNAME, "  variable_name: " << name);
 }
 
 ServoCalcs::~ServoCalcs()
@@ -245,7 +252,7 @@ bool
 ServoCalcs::getJointPositions(const pose_t& pose,
 			      vector_t& joint_positions) const
 {
-    moveit::core::RobotState	robot_state;
+    moveit::core::RobotState	robot_state(robot_state_->getRobotModel());
     {
 	const std::lock_guard<std::mutex>	lock(input_mutex_);
 
@@ -253,8 +260,12 @@ ServoCalcs::getJointPositions(const pose_t& pose,
     }
 
   // Get transform from frame_id of pose to model reference frame.
+    auto Trt = tf2::eigenToTransform(robot_state.getGlobalLinkTransform(
+					 pose.header.frame_id));
+    Trt.header.stamp	= pose.header.stamp;
+    Trt.header.frame_id = robot_state.getRobotModel()->getModelFrame();
+    Trt.child_frame_id	= pose.header.frame_id;
     pose_t	target_pose;
-    const auto	Trt = robot_state.getGlobalLinkTransform(pose.header.frame_id);
     tf2::doTransform(pose, target_pose, Trt);
 
     if (!robot_state.setFromIK(joint_group(), target_pose.pose,
