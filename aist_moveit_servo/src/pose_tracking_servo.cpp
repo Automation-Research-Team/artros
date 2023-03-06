@@ -243,6 +243,7 @@ class PoseTrackingServo
     using multi_array_cp = std_msgs::Float64MultiArrayConstPtr;
     using odom_t	 = nav_msgs::Odometry;
     using odom_cp	 = nav_msgs::OdometryConstPtr;
+    using vector_t	 = Eigen::VectorXd;
     using vector3_t	 = Eigen::Vector3d;
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
@@ -334,6 +335,9 @@ class PoseTrackingServo
     double			input_low_pass_filter_cutoff_frequency_;
     lpf_t			input_low_pass_filter_;
 
+  // Feedforward joint positions
+    mutable vector_t		ff_positions_;
+
   // PIDs
     std::array<PIDConfig, 4>	pid_configs_;
     std::array<pid_t, 4>	pids_;
@@ -380,6 +384,8 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    expectedCycleTime().toSec()),
+
+     ff_positions_(),
 
      pid_configs_(),
      pids_(),
@@ -659,7 +665,7 @@ PoseTrackingServo::servoStatusCB(const int8_cp& msg)
 void
 PoseTrackingServo::targetPoseCB(const pose_cp& msg)
 {
-    std::lock_guard<std::mutex> lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     target_pose_ = *msg;
 
@@ -687,15 +693,15 @@ PoseTrackingServo::targetPoseCB(const pose_cp& msg)
 void
 PoseTrackingServo::odometryCB(const odom_cp& msg)
 {
-    std::lock_guard<std::mutex>	lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     odom_ = *msg;
 
     if (odom_.header.stamp == ros::Time(0))
 	odom_.header.stamp = ros::Time::now();
 
-    auto	Tpb = tf2::eigenToTransform(servo_.getFrameTransform(
-						odom_.child_frame_id));
+    auto Tpb = tf2::eigenToTransform(servo_.getFrameTransform(
+					 odom_.child_frame_id));
     Tpb.header.stamp	= odom_.header.stamp;
     Tpb.header.frame_id	= servo_.getParameters().planning_frame;
     Tpb.child_frame_id	= odom_.child_frame_id;
@@ -760,7 +766,7 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
 {
     pose_t	target_pose;
     {
-	std::lock_guard<std::mutex> lock(input_mtx_);
+	const std::lock_guard<std::mutex>	lock(input_mtx_);
 
 	target_pose = target_pose_;
     }
@@ -790,10 +796,20 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
     angular_error = q_desired * Eigen::Quaterniond(Tpe.rotation()).inverse();
 
   // For debugging
-    ee_pose_debug_pub_.publish(tf2::toMsg(
-				   tf2::Stamped<Eigen::Isometry3d>(
-				       Tpe, ros::Time::now(),
-				       servo_.getParameters().planning_frame)));
+    const auto	ee_pose = tf2::toMsg(
+			       tf2::Stamped<Eigen::Isometry3d>(
+				   Tpe, ros::Time::now(),
+				   servo_.getParameters().planning_frame));
+    ee_pose_debug_pub_.publish(ee_pose);
+
+    if (!servo_.getJointPositions(ee_pose, ff_positions_))
+    {
+	std::cerr << "***getJointPositions() failed." << std::endl;
+	return;
+    }
+
+    std::cerr << "*** joint_positions = " << ff_positions_.transpose()
+	      << std::endl;
 }
 
 PoseTrackingServo::twist_cp
@@ -803,7 +819,7 @@ PoseTrackingServo::calculateTwistCommand(const vector3_t& positional_error,
   // use the shared pool to create a message more efficiently
     const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
     {
-	std::lock_guard<std::mutex> lock(input_mtx_);
+	const std::lock_guard<std::mutex>	lock(input_mtx_);
 
 	msg->header.frame_id = target_pose_.header.frame_id;
     }
@@ -843,7 +859,7 @@ PoseTrackingServo::stopMotion()
   // Send a 0 command to Servo to halt arm motion
     const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
     {
-	std::lock_guard<std::mutex> lock(input_mtx_);
+	const std::lock_guard<std::mutex>	lock(input_mtx_);
 
 	msg->header.frame_id = target_pose_.header.frame_id;
     }
@@ -871,7 +887,7 @@ void
 PoseTrackingServo::updatePositionPIDs(double PIDConfig::* field,
 				      double value)
 {
-    std::lock_guard<std::mutex> lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     for (size_t i = 0; i < 3; ++i)
     {
@@ -884,7 +900,7 @@ void
 PoseTrackingServo::updateOrientationPID(double PIDConfig::* field,
 					double value)
 {
-    std::lock_guard<std::mutex> lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     pid_configs_[3].*field = value;
     updatePID(pid_configs_[3], pids_[3]);
@@ -901,7 +917,7 @@ PoseTrackingServo::updatePID(const PIDConfig& pid_config, pid_t& pid)
 void
 PoseTrackingServo::resetTargetPose()
 {
-    std::lock_guard<std::mutex>	lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     target_pose_	      = pose_t();
     target_pose_.header.stamp = ros::Time(0);
@@ -910,7 +926,7 @@ PoseTrackingServo::resetTargetPose()
 bool
 PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
 {
-    std::lock_guard<std::mutex> lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
 }
@@ -919,7 +935,7 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
 void
 PoseTrackingServo::resetOdometry()
 {
-    std::lock_guard<std::mutex>	lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     odom_	       = odom_t();
     odom_.header.stamp = ros::Time(0);
@@ -928,7 +944,7 @@ PoseTrackingServo::resetOdometry()
 bool
 PoseTrackingServo::haveRecentOdometry(const ros::Duration& timeout) const
 {
-    std::lock_guard<std::mutex> lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     return (ros::Time::now() - odom_.header.stamp < timeout);
 }
