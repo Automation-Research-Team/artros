@@ -259,9 +259,9 @@ ServoCalcs::getJointPositions(const pose_t& pose,
 	robot_state = *robot_state_;
     }
 
-  // Get transform from frame_id of pose to model reference frame.
-    auto Trt = tf2::eigenToTransform(robot_state.getGlobalLinkTransform(
-					 pose.header.frame_id));
+  // Transform given pose to model reference frame.
+    auto	Trt = tf2::eigenToTransform(robot_state.getGlobalLinkTransform(
+						pose.header.frame_id));
     Trt.header.stamp	= pose.header.stamp;
     Trt.header.frame_id = robot_state.getRobotModel()->getModelFrame();
     Trt.child_frame_id	= pose.header.frame_id;
