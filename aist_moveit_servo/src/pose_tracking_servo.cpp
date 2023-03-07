@@ -801,7 +801,7 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
 				   Tpe, ros::Time::now(),
 				   servo_.getParameters().planning_frame));
     ee_pose_debug_pub_.publish(ee_pose);
-
+  /*
     if (!servo_.getJointPositions(ee_pose, ff_positions_))
     {
 	std::cerr << "***getJointPositions() failed." << std::endl;
@@ -810,6 +810,7 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
 
     std::cerr << "*** joint_positions = " << ff_positions_.transpose()
 	      << std::endl;
+  */
 }
 
 PoseTrackingServo::twist_cp
