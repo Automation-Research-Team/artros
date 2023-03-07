@@ -11,6 +11,7 @@
 # the use or other dealings in the software.
 import rospy, sys
 from actionlib             import SimpleActionClient
+from actionlib_msgs.msg    import GoalStatus
 from aist_moveit_servo.msg import PoseTrackingAction, PoseTrackingGoal
 from std_srvs.srv          import Empty
 from moveit_msgs.srv       import ChangeDriftDimensions, ChangeControlDimensions
@@ -86,9 +87,10 @@ class PoseTrackingClient(object):
             done_cb=done_cb, active_cb=active_cb, feedback_cb=feedback_cb)
 
     def cancel_goal(self, wait=False):
-        self._pose_tracking.cancel_goal()
-        if wait:
-            self._pose_tracking.wait_for_result()
+        if self.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
+            self._pose_tracking.cancel_goal()
+            if wait:
+                self._pose_tracking.wait_for_result()
 
     def cancel_all_goals(self):
         self._pose_tracking.cancel_all_goals()
