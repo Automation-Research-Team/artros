@@ -83,7 +83,8 @@ class PoseTrackingServo
     };
 
   public:
-		PoseTrackingServo(const ros::NodeHandle& nh)		;
+		PoseTrackingServo(const ros::NodeHandle& nh,
+				  const std::string& logname)		;
 		~PoseTrackingServo()					;
 
     void	run()							;
@@ -127,7 +128,8 @@ class PoseTrackingServo
 
   private:
     ros::NodeHandle		nh_;
-
+    const std::string		logname_;
+    
     Servo			servo_;
     servo_status_t		servo_status_;
 

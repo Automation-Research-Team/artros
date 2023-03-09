@@ -40,77 +40,17 @@
 #include <aist_utility/geometry_msgs.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
-// Conventions:
-// Calculations are done in the planning_frame_ unless otherwise noted.
-
-namespace
-{
-constexpr char		LOGNAME[]	  = "pose_tracking_servo";
-constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
-const	  ros::Duration	DEFAULT_INPUT_TIMEOUT{0.5};	// sec
-}	// anonymous namespace
-
 namespace aist_moveit_servo
 {
-namespace
-{
-/************************************************************************
-*  static functions							*
-************************************************************************/
-std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
-{
-    return out << pose.position.x << ' '
-	       << pose.position.y << ' '
-	       << pose.position.z << ';'
-	       << pose.orientation.x << ' '
-	       << pose.orientation.y << ' '
-	       << pose.orientation.z << ' '
-	       << pose.orientation.w;
-}
-
-std::ostream&
-operator <<(std::ostream& out, const Eigen::Isometry3d& transform)
-{
-    const Eigen::Quaterniond	q(transform.rotation());
-
-    return out << transform.translation()(0) << ' '
-	       << transform.translation()(1) << ' '
-	       << transform.translation()(2) << ';'
-	       << q.x() << ' '
-	       << q.y() << ' '
-	       << q.z() << ' '
-	       << q.w();
-}
-
-std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
-{
-    return out << twist.linear.x << ' '
-	       << twist.linear.y << ' '
-	       << twist.linear.z << ';'
-	       << twist.angular.x << ' '
-	       << twist.angular.y << ' '
-	       << twist.angular.z;
-}
-
-void
-normalize(geometry_msgs::Quaternion& q)
-{
-    const auto	norm1 = 1/std::sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
-    q.x *= norm1;
-    q.y *= norm1;
-    q.z *= norm1;
-    q.w *= norm1;
-}
-
-}	// anonymous namespace
-
 /************************************************************************
 *  class PoseTrackingServo						*
 ************************************************************************/
-PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
+// Conventions:
+// Calculations are done in the planning_frame_ unless otherwise noted.
+PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh,
+				     const std::string& logname)
     :nh_(nh),
+     logname_(logname),
      servo_(nh_, createPlanningSceneMonitor("robot_description")),
      servo_status_(servo_status_t::INVALID),
 
@@ -232,7 +172,7 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 				  0.0, 20.0);
     ddr_.publishServicesTopics();
 
-    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) server started");
+    ROS_INFO_STREAM_NAMED(logname_, "(PoseTrackingServo) server started");
 }
 
 PoseTrackingServo::~PoseTrackingServo()
@@ -284,7 +224,7 @@ PoseTrackingServo::tick()
 	PoseTrackingResult	result;
 	result.status = static_cast<int8_t>(servo_status_);
 	pose_tracking_srv_.setAborted(result);
-	ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
+	ROS_ERROR_STREAM_NAMED(logname_, "(PoseTrackingServo) goal ABORTED["
 			       << SERVO_STATUS_CODE_MAP.at(servo_status_)
 			       << ']');
 	return;
@@ -301,7 +241,7 @@ PoseTrackingServo::tick()
 	PoseTrackingResult	result;
 	result.status = PoseTrackingResult::INPUT_TIMEOUT;
     	pose_tracking_srv_.setAborted(result);
-        ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ABORTED["
+        ROS_ERROR_STREAM_NAMED(logname_, "(PoseTrackingServo) goal ABORTED["
     			       << "The target pose was not updated recently."
 			       << ']');
 
@@ -327,7 +267,7 @@ PoseTrackingServo::tick()
 	PoseTrackingResult	result;
 	result.status = PoseTrackingResult::NO_ERROR;
 	pose_tracking_srv_.setSucceeded(result);
-	ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal SUCCEEDED");
+	ROS_INFO_STREAM_NAMED(logname_, "(PoseTrackingServo) goal SUCCEEDED");
 
 	return;
     }
@@ -366,16 +306,16 @@ PoseTrackingServo::readROSParams()
 
   // Setup input low-pass filter
     std::size_t error = 0;
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
+    error += !rosparam_shortcuts::get(logname_, nh,
 				      "input_low_pass_filter_half_order",
 				      input_low_pass_filter_half_order_);
-    error += !rosparam_shortcuts::get(LOGNAME, nh,
+    error += !rosparam_shortcuts::get(logname_, nh,
 				      "input_low_pass_filter_cutoff_frequency",
 				      input_low_pass_filter_cutoff_frequency_);
 
   // Setup PID configurations
     double	windup_limit;
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "windup_limit",
+    error += !rosparam_shortcuts::get(logname_, nh, "windup_limit",
 				      windup_limit);
     for (size_t i = 0; i < pids_.size(); ++i)
     {
@@ -383,30 +323,30 @@ PoseTrackingServo::readROSParams()
 	pid_configs_[i].windup_limit = windup_limit;
     }
 
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "x_proportional_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "x_proportional_gain",
 				      pid_configs_[0].k_p);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "y_proportional_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "y_proportional_gain",
 				      pid_configs_[1].k_p);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "z_proportional_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "z_proportional_gain",
 				      pid_configs_[2].k_p);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "x_integral_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "x_integral_gain",
 				      pid_configs_[0].k_i);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "y_integral_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "y_integral_gain",
 				      pid_configs_[1].k_i);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "z_integral_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "z_integral_gain",
 				      pid_configs_[2].k_i);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "x_derivative_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "x_derivative_gain",
 				      pid_configs_[0].k_d);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "y_derivative_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "y_derivative_gain",
 				      pid_configs_[1].k_d);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "z_derivative_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "z_derivative_gain",
 				      pid_configs_[2].k_d);
 
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_proportional_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "angular_proportional_gain",
 				      pid_configs_[3].k_p);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_integral_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "angular_integral_gain",
 				      pid_configs_[3].k_i);
-    error += !rosparam_shortcuts::get(LOGNAME, nh, "angular_derivative_gain",
+    error += !rosparam_shortcuts::get(logname_, nh, "angular_derivative_gain",
 				      pid_configs_[3].k_d);
 
     rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
@@ -454,6 +394,8 @@ PoseTrackingServo::goalCB()
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
+    const ros::Duration	DEFAULT_INPUT_TIMEOUT(0.5);
+    
     for (const auto start_time = ros::Time::now();
 	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
 	 ros::Duration(0.001).sleep())
@@ -467,7 +409,8 @@ PoseTrackingServo::goalCB()
 	    servo_.start();
 
 	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
-	    ROS_INFO_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal ACCEPTED["
+	    ROS_INFO_STREAM_NAMED(logname_,
+				  "(PoseTrackingServo) goal ACCEPTED["
 				  << current_goal_->target_offset << ']');
 
 	    if (pose_tracking_srv_.isPreemptRequested())
@@ -484,7 +427,8 @@ PoseTrackingServo::goalCB()
     result.status = static_cast<int8_t>(servo_status_);
     pose_tracking_srv_.setAborted(result);
 
-    ROS_ERROR_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) Cannot accept goal because no target pose available recently.");
+    ROS_ERROR_STREAM_NAMED(logname_,
+			   "(PoseTrackingServo) Cannot accept goal because no target pose available recently.");
 }
 
 void
@@ -494,7 +438,7 @@ PoseTrackingServo::preemptCB()
     PoseTrackingResult	result;
     result.status = static_cast<int8_t>(servo_status_);
     pose_tracking_srv_.setPreempted(result);
-    ROS_WARN_STREAM_NAMED(LOGNAME, "(PoseTrackingServo) goal CANCELED");
+    ROS_WARN_STREAM_NAMED(logname_, "(PoseTrackingServo) goal CANCELED");
 }
 
 void
@@ -511,7 +455,7 @@ PoseTrackingServo::calculatePoseError(const raw_pose_t& offset,
 
   // Apply input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
-    normalize(target_pose.pose.orientation);
+    aist_utility::normalize(target_pose.pose.orientation);
 
   // Correct target_pose by offset
     tf2::Transform	target_transform;
@@ -678,10 +622,12 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
 int
 main(int argc, char* argv[])
 {
-    ros::init(argc, argv, LOGNAME);
+    const std::string	logname("pose_tracking_servo");
+
+    ros::init(argc, argv, logname);
 
     ros::NodeHandle	nh("~");
-    aist_moveit_servo::PoseTrackingServo	servo(nh);
+    aist_moveit_servo::PoseTrackingServo	servo(nh, logname);
     servo.run();
 
     return 0;

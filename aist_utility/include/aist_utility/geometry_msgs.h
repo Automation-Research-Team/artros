@@ -195,6 +195,16 @@ zero(geometry_msgs::Quaternion)
     return ret;
 }
 
+inline void
+normalize(geometry_msgs::Quaternion& q)
+{
+    const auto	norm1 = 1/std::sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
+    q.x *= norm1;
+    q.y *= norm1;
+    q.z *= norm1;
+    q.w *= norm1;
+}
+
 /*
  *  Arithmetic operators on Pose
  */
