@@ -92,12 +92,10 @@ class PoseTrackingServo
     
     struct PIDConfig
     {
-      // Default values
-	double dt	    = 0.001;
-	double k_p	    = 1;
-	double k_i	    = 0;
-	double k_d	    = 0;
-	double windup_limit = 0.1;
+	double	k_p = 1;
+	double	k_i = 0;
+	double	k_d = 0;
+	double	windup_limit = 0.1;
     };
 
   public:
@@ -175,7 +173,8 @@ class PoseTrackingServo
     lpf_t			input_low_pass_filter_;
 
   // PIDs
-    std::array<PIDConfig, 4>	pid_configs_;
+    PIDConfig			linear_pid_config_;
+    PIDConfig			angular_pid_config_;
     std::array<pid_t, 4>	pids_;
 
   // Servo inputs
@@ -222,7 +221,8 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    expectedCycleTime().toSec()),
 
-     pid_configs_(),
+     linear_pid_config_(),
+     angular_pid_config_(),
      pids_(),
 
      target_pose_(),
@@ -236,8 +236,9 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
 				      expectedCycleTime().toSec());
 
   // Initialize PID controllers
-    for (size_t i = 0; i < pids_.size(); ++i)
-	updatePID(pid_configs_[i], pids_[i]);
+    for (size_t i = 0; i < 3; ++i)
+	updatePID(linear_pid_config_, pids_[i]);
+    updatePID(angular_pid_config_, pids_[3]);
 
   // Setup action server
     pose_tracking_srv_.registerGoalCallback(boost::bind(
@@ -267,21 +268,21 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
 				  "Cutoff frequency of input low pass filter",
 				  0.5, 100.0);
     ddr_.registerVariable<double>("linear_proportional_gain",
-				  pid_configs_[0].k_p,
+				  linear_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for translation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("linear_integral_gain",
-				  pid_configs_[0].k_i,
+				  linear_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for translation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("linear_derivative_gain",
-				  pid_configs_[0].k_d,
+				  linear_pid_config_.k_d,
 				  boost::bind(&PoseTrackingServo
 					      ::updatePositionPIDs,
 					      this, &PIDConfig::k_d, _1),
@@ -289,21 +290,21 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
 				  0.0, 20.0);
 
     ddr_.registerVariable<double>("angular_proportinal_gain",
-				  pid_configs_[3].k_p,
+				  angular_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for rotation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("angular_integral_gain",
-				  pid_configs_[3].k_i,
+				  angular_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for rotation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("angular_derivative_gain",
-				  pid_configs_[3].k_d,
+				  angular_pid_config_.k_d,
 				  boost::bind(&PoseTrackingServo
 					      ::updateOrientationPID,
 					      this, &PIDConfig::k_d, _1),
@@ -458,37 +459,21 @@ PoseTrackingServo<FF>::readROSParams()
     double	windup_limit;
     error += !rosparam_shortcuts::get(logname_, nh, "windup_limit",
 				      windup_limit);
-    for (size_t i = 0; i < pids_.size(); ++i)
-    {
-	pid_configs_[i].dt	     = expectedCycleTime().toSec();
-	pid_configs_[i].windup_limit = windup_limit;
-    }
+    linear_pid_config_.windup_limit  = windup_limit;
+    angular_pid_config_.windup_limit = windup_limit;
 
-    error += !rosparam_shortcuts::get(logname_, nh, "x_proportional_gain",
-				      pid_configs_[0].k_p);
-    error += !rosparam_shortcuts::get(logname_, nh, "y_proportional_gain",
-				      pid_configs_[1].k_p);
-    error += !rosparam_shortcuts::get(logname_, nh, "z_proportional_gain",
-				      pid_configs_[2].k_p);
-    error += !rosparam_shortcuts::get(logname_, nh, "x_integral_gain",
-				      pid_configs_[0].k_i);
-    error += !rosparam_shortcuts::get(logname_, nh, "y_integral_gain",
-				      pid_configs_[1].k_i);
-    error += !rosparam_shortcuts::get(logname_, nh, "z_integral_gain",
-				      pid_configs_[2].k_i);
-    error += !rosparam_shortcuts::get(logname_, nh, "x_derivative_gain",
-				      pid_configs_[0].k_d);
-    error += !rosparam_shortcuts::get(logname_, nh, "y_derivative_gain",
-				      pid_configs_[1].k_d);
-    error += !rosparam_shortcuts::get(logname_, nh, "z_derivative_gain",
-				      pid_configs_[2].k_d);
-
+    error += !rosparam_shortcuts::get(logname_, nh, "linear_proportional_gain",
+				      linear_pid_config_.k_p);
+    error += !rosparam_shortcuts::get(logname_, nh, "linear_integral_gain",
+				      linear_pid_config_.k_i);
+    error += !rosparam_shortcuts::get(logname_, nh, "linear_derivative_gain",
+				      linear_pid_config_.k_d);
     error += !rosparam_shortcuts::get(logname_, nh, "angular_proportional_gain",
-				      pid_configs_[3].k_p);
+				      angular_pid_config_.k_p);
     error += !rosparam_shortcuts::get(logname_, nh, "angular_integral_gain",
-				      pid_configs_[3].k_i);
+				      angular_pid_config_.k_i);
     error += !rosparam_shortcuts::get(logname_, nh, "angular_derivative_gain",
-				      pid_configs_[3].k_d);
+				      angular_pid_config_.k_d);
 
     rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
 }
@@ -714,11 +699,9 @@ PoseTrackingServo<FF>::updatePositionPIDs(double PIDConfig::* field,
 {
     const std::lock_guard<std::mutex>	lock(input_mtx_);
 
+    linear_pid_config_.*field = value;
     for (size_t i = 0; i < 3; ++i)
-    {
-	pid_configs_[i].*field = value;
-	updatePID(pid_configs_[i], pids_[i]);
-    }
+	updatePID(linear_pid_config_, pids_[i]);
 }
 
 template <class FF> void
@@ -727,8 +710,8 @@ PoseTrackingServo<FF>::updateOrientationPID(double PIDConfig::* field,
 {
     const std::lock_guard<std::mutex>	lock(input_mtx_);
 
-    pid_configs_[3].*field = value;
-    updatePID(pid_configs_[3], pids_[3]);
+    angular_pid_config_.*field = value;
+    updatePID(angular_pid_config_, pids_[3]);
 }
 
 template <class FF> void
