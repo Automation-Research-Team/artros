@@ -37,14 +37,14 @@
  */
 #pragma once
 
+#include <actionlib/server/simple_action_server.h>
+#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <control_toolbox/pid.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <aist_utility/butterworth_lpf.h>
 #include <aist_moveit_servo/servo.h>
 #include <aist_moveit_servo/status_codes.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
-#include <actionlib/server/simple_action_server.h>
 #include <aist_moveit_servo/PoseTrackingAction.h>
-#include <aist_utility/butterworth_lpf.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -67,9 +67,6 @@ class PoseTrackingServo
     using pose_t	 = geometry_msgs::PoseStamped;
     using pose_cp	 = geometry_msgs::PoseStampedConstPtr;
     using raw_pose_t	 = geometry_msgs::Pose;
-    using multi_array_t	 = std_msgs::Float64MultiArray;
-    using multi_array_cp = std_msgs::Float64MultiArrayConstPtr;
-    using vector_t	 = Eigen::VectorXd;
     using vector3_t	 = Eigen::Vector3d;
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
@@ -154,9 +151,6 @@ class PoseTrackingServo
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
     lpf_t			input_low_pass_filter_;
-
-  // Feedforward joint positions
-    mutable vector_t		ff_positions_;
 
   // PIDs
     std::array<PIDConfig, 4>	pid_configs_;

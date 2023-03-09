@@ -143,8 +143,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 			    input_low_pass_filter_cutoff_frequency_ *
 			    expectedCycleTime().toSec()),
 
-     ff_positions_(),
-
      pid_configs_(),
      pids_(),
 
