@@ -37,6 +37,7 @@
  */
 #include <aist_moveit_servo/pose_tracking_servo.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
+#include <aist_utility/geometry_msgs.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 
 // Conventions:
@@ -48,114 +49,6 @@ constexpr char		LOGNAME[]	  = "pose_tracking_servo";
 constexpr double	ROS_STARTUP_WAIT  = 10;		// sec
 const	  ros::Duration	DEFAULT_INPUT_TIMEOUT{0.5};	// sec
 }	// anonymous namespace
-
-namespace geometry_msgs
-{
-Pose
-operator +(const Pose& a, const Pose& b)
-{
-    Pose	ret;
-    ret.position.x    = a.position.x	+ b.position.x;
-    ret.position.y    = a.position.y	+ b.position.y;
-    ret.position.z    = a.position.z	+ b.position.z;
-    ret.orientation.x = a.orientation.x	+ b.orientation.x;
-    ret.orientation.y = a.orientation.y	+ b.orientation.y;
-    ret.orientation.z = a.orientation.z	+ b.orientation.z;
-    ret.orientation.w = a.orientation.w	+ b.orientation.w;
-
-    return ret;
-}
-
-Pose
-operator -(const Pose& a, const Pose& b)
-{
-    Pose	ret;
-    ret.position.x    = a.position.x	- b.position.x;
-    ret.position.y    = a.position.y	- b.position.y;
-    ret.position.z    = a.position.z	- b.position.z;
-    ret.orientation.x = a.orientation.x	- b.orientation.x;
-    ret.orientation.y = a.orientation.y	- b.orientation.y;
-    ret.orientation.z = a.orientation.z	- b.orientation.z;
-    ret.orientation.w = a.orientation.w	- b.orientation.w;
-
-    return ret;
-}
-
-Pose
-operator *(double c, const Pose& a)
-{
-    Pose	ret;
-    ret.position.x    = c * a.position.x;
-    ret.position.y    = c * a.position.y;
-    ret.position.z    = c * a.position.z;
-    ret.orientation.x = c * a.orientation.x;
-    ret.orientation.y = c * a.orientation.y;
-    ret.orientation.z = c * a.orientation.z;
-    ret.orientation.w = c * a.orientation.w;
-
-    return ret;
-}
-
-Pose
-zero(Pose)
-{
-    Pose	ret;
-    ret.position.x    = 0;
-    ret.position.y    = 0;
-    ret.position.z    = 0;
-    ret.orientation.x = 0;
-    ret.orientation.y = 0;
-    ret.orientation.z = 0;
-    ret.orientation.w = 0;
-
-    return ret;
-}
-
-Point
-operator +(const Point& a, const Point& b)
-{
-    Point	ret;
-    ret.x = a.x	+ b.x;
-    ret.y = a.y	+ b.y;
-    ret.z = a.z	+ b.z;
-
-    return ret;
-}
-
-Point
-operator -(const Point& a, const Point& b)
-{
-    Point	ret;
-    ret.x = a.x - b.x;
-    ret.y = a.y - b.y;
-    ret.z = a.z - b.z;
-
-    return ret;
-}
-
-Point
-operator *(double c, const Point& a)
-{
-    Point	ret;
-    ret.x = c * a.x;
-    ret.y = c * a.y;
-    ret.z = c * a.z;
-
-    return ret;
-}
-
-Point
-zero(Point)
-{
-    Point	ret;
-    ret.x = 0;
-    ret.y = 0;
-    ret.z = 0;
-
-    return ret;
-}
-
-}	// namespace geometry_msgs
 
 namespace aist_moveit_servo
 {
