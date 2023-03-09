@@ -35,19 +35,9 @@
  *  \file	pose_tracking_servo.cpp
  *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
  */
-#include <atomic>
-#include <boost/optional.hpp>
-#include <control_toolbox/pid.h>
+#include <aist_moveit_servo/pose_tracking_servo.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
-#include <aist_moveit_servo/servo.h>
-#include <aist_moveit_servo/status_codes.h>
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <nav_msgs/Odometry.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
-#include <actionlib/server/simple_action_server.h>
-#include <aist_moveit_servo/PoseTrackingAction.h>
-#include <aist_utility/butterworth_lpf.h>
 
 // Conventions:
 // Calculations are done in the planning_frame_ unless otherwise noted.
@@ -226,128 +216,6 @@ normalize(geometry_msgs::Quaternion& q)
 /************************************************************************
 *  class PoseTrackingServo						*
 ************************************************************************/
-class PoseTrackingServo
-{
-  private:
-    using server_t	 = actionlib::SimpleActionServer<PoseTrackingAction>;
-    using goal_cp	 = boost::shared_ptr<const server_t::Goal>;
-    using ddr_t		 = ddynamic_reconfigure::DDynamicReconfigure;
-    using servo_status_t = aist_moveit_servo::StatusCode;
-    using int8_cp	 = std_msgs::Int8ConstPtr;
-    using twist_t	 = geometry_msgs::TwistStamped;
-    using twist_cp	 = geometry_msgs::TwistStampedConstPtr;
-    using pose_t	 = geometry_msgs::PoseStamped;
-    using pose_cp	 = geometry_msgs::PoseStampedConstPtr;
-    using raw_pose_t	 = geometry_msgs::Pose;
-    using multi_array_t	 = std_msgs::Float64MultiArray;
-    using multi_array_cp = std_msgs::Float64MultiArrayConstPtr;
-    using odom_t	 = nav_msgs::Odometry;
-    using odom_cp	 = nav_msgs::OdometryConstPtr;
-    using vector_t	 = Eigen::VectorXd;
-    using vector3_t	 = Eigen::Vector3d;
-    using angle_axis_t	 = Eigen::AngleAxisd;
-    using pid_t		 = control_toolbox::Pid;
-    using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-
-    struct PIDConfig
-    {
-      // Default values
-	double dt	    = 0.001;
-	double k_p	    = 1;
-	double k_i	    = 0;
-	double k_d	    = 0;
-	double windup_limit = 0.1;
-    };
-
-  public:
-		PoseTrackingServo(const ros::NodeHandle& nh)		;
-		~PoseTrackingServo()					;
-
-    void	run()							;
-    void	tick()							;
-
-  private:
-    void	readROSParams()						;
-    ros::Duration
-		expectedCycleTime() const
-		{
-		    return ros::Duration(servo_.getParameters().publish_period);
-		}
-
-    void	servoStatusCB(const int8_cp& msg)	;
-    void	targetPoseCB(const pose_cp& msg)			;
-    void	odometryCB(const odom_cp& msg)				;
-    void	goalCB()						;
-    void	preemptCB()						;
-    void	calculatePoseError(const raw_pose_t& offset,
-				   vector3_t& positional_error,
-				   angle_axis_t& angular_error)	const	;
-
-    twist_cp	calculateTwistCommand(const vector3_t& positional_error,
-				      const angle_axis_t& angular_error);
-    void	stopMotion()						;
-    void	doPostMotionReset()					;
-
-  // Input low-pass filter stuffs
-    void	updateInputLowPassFilter(int half_order,
-					 double cutoff_frequency)	;
-
-  // PID stuffs
-    void	updatePositionPIDs(double PIDConfig::* field,
-				   double value)			;
-    void	updateOrientationPID(double PIDConfig::* field,
-				     double value)			;
-    void	updatePID(const PIDConfig& pid_config, pid_t& pid)	;
-
-  // Target pose stuffs
-    void	resetTargetPose()					;
-    bool	haveRecentTargetPose(const ros::Duration& timeout) const;
-
-  // Odometry stuffs
-    void	resetOdometry()						;
-    bool	haveRecentOdometry(const ros::Duration& timeout) const	;
-
-  private:
-    ros::NodeHandle		nh_;
-
-    Servo			servo_;
-    servo_status_t		servo_status_;
-
-    ros::ServiceClient		reset_servo_status_;
-    const ros::Subscriber	servo_status_sub_;
-    const ros::Subscriber	target_pose_sub_;
-    const ros::Subscriber	odom_sub_;
-    const ros::Publisher	twist_pub_;
-    const ros::Publisher	predictive_pose_pub_;
-    const ros::Publisher	target_pose_debug_pub_;
-    const ros::Publisher	ee_pose_debug_pub_;
-    DurationArray&		durations_;
-
-  // Action server stuffs
-    server_t			pose_tracking_srv_;
-    goal_cp			current_goal_;
-
-  // Dynamic reconfigure server
-    ddr_t			ddr_;
-
-  // Filters for input target pose
-    int				input_low_pass_filter_half_order_;
-    double			input_low_pass_filter_cutoff_frequency_;
-    lpf_t			input_low_pass_filter_;
-
-  // Feedforward joint positions
-    mutable vector_t		ff_positions_;
-
-  // PIDs
-    std::array<PIDConfig, 4>	pid_configs_;
-    std::array<pid_t, 4>	pids_;
-
-  // Servo inputs
-    pose_t			target_pose_;
-    odom_t			odom_;
-    mutable std::mutex		input_mtx_;
-};
-
 PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
     :nh_(nh),
      servo_(nh_, createPlanningSceneMonitor("robot_description")),
@@ -361,9 +229,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
 			  "/target_pose", 1,
 			  &PoseTrackingServo::targetPoseCB, this,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
-     odom_sub_(nh_.subscribe(
-		   "/odom", 1, &PoseTrackingServo::odometryCB, this,
-		   ros::TransportHints().reliable().tcpNoDelay(true))),
      twist_pub_(nh_.advertise<twist_t>(
 		    servo_.getParameters().cartesian_command_in_topic, 1)),
      predictive_pose_pub_(
@@ -391,7 +256,6 @@ PoseTrackingServo::PoseTrackingServo(const ros::NodeHandle& nh)
      pids_(),
 
      target_pose_(),
-     odom_(),
      input_mtx_()
 {
     readROSParams();
@@ -692,27 +556,9 @@ PoseTrackingServo::targetPoseCB(const pose_cp& msg)
 }
 
 void
-PoseTrackingServo::odometryCB(const odom_cp& msg)
-{
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
-
-    odom_ = *msg;
-
-    if (odom_.header.stamp == ros::Time(0))
-	odom_.header.stamp = ros::Time::now();
-
-    auto Tpb = tf2::eigenToTransform(servo_.getFrameTransform(
-					 odom_.child_frame_id));
-    Tpb.header.stamp	= odom_.header.stamp;
-    Tpb.header.frame_id	= servo_.getParameters().planning_frame;
-    Tpb.child_frame_id	= odom_.child_frame_id;
-}
-
-void
 PoseTrackingServo::goalCB()
 {
     resetTargetPose();
-    resetOdometry();
 
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
@@ -931,24 +777,6 @@ PoseTrackingServo::haveRecentTargetPose(const ros::Duration& timeout) const
     const std::lock_guard<std::mutex>	lock(input_mtx_);
 
     return (ros::Time::now() - target_pose_.header.stamp < timeout);
-}
-
-// Odometry stuffs
-void
-PoseTrackingServo::resetOdometry()
-{
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
-
-    odom_	       = odom_t();
-    odom_.header.stamp = ros::Time(0);
-}
-
-bool
-PoseTrackingServo::haveRecentOdometry(const ros::Duration& timeout) const
-{
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
-
-    return (ros::Time::now() - odom_.header.stamp < timeout);
 }
 
 }	// namespace aist_moveit_servo
