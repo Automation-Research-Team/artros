@@ -103,25 +103,22 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 
    nh_(nh),
    internal_nh_(nh, "internal"),
-   twist_cmd_sub_(
-       nh_.subscribe(parameters_.cartesian_command_in_topic, ROS_QUEUE_SIZE,
-		     &ServoCalcs::twistCmdCB, this,
-		     ros::TransportHints().reliable().tcpNoDelay(true))),
-   joint_cmd_sub_(
-       nh_.subscribe(parameters_.joint_command_in_topic, ROS_QUEUE_SIZE,
-		     &ServoCalcs::jointCmdCB, this,
-		     ros::TransportHints().reliable().tcpNoDelay(true))),
-   target_positions_sub_(
-       parameters_.target_positions_topic.empty() ?
-       ros::Subscriber() :
-       nh_.subscribe(parameters_.target_positions_topic, ROS_QUEUE_SIZE,
-		     &ServoCalcs::targetPositionsCB, this,
-		     ros::TransportHints().reliable().tcpNoDelay(true))),
-   collision_velocity_scale_sub_(
-       internal_nh_.subscribe(
-	   "collision_velocity_scale", ROS_QUEUE_SIZE,
-	   &ServoCalcs::collisionVelocityScaleCB, this,
-	   ros::TransportHints().reliable().tcpNoDelay(true))),
+   twist_cmd_sub_(nh_.subscribe(parameters_.cartesian_command_in_topic,
+				ROS_QUEUE_SIZE,
+				&ServoCalcs::twistCmdCB, this)),
+   joint_cmd_sub_(nh_.subscribe(parameters_.joint_command_in_topic,
+				ROS_QUEUE_SIZE,
+				&ServoCalcs::jointCmdCB, this)),
+   predictive_pose_sub_(parameters_.predictive_pose_topic.empty() ?
+			ros::Subscriber() :
+			nh_.subscribe(parameters_.predictive_pose_topic,
+				      ROS_QUEUE_SIZE,
+				      &ServoCalcs::predictivePoseCB, this)),
+   collision_velocity_scale_sub_(internal_nh_.subscribe(
+				     "collision_velocity_scale",
+				     ROS_QUEUE_SIZE,
+				     &ServoCalcs::collisionVelocityScaleCB,
+				     this)),
    status_pub_(nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
 					     ROS_QUEUE_SIZE)),
    worst_case_stop_time_pub_(internal_nh_.advertise<flt64_t>(
@@ -178,7 +175,7 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
    input_mutex_(),
    twist_cmd_(),
    joint_cmd_(),
-   target_positions_(),
+   predictive_positions_(),
 
    input_cv_(),
    new_input_cmd_(false)
@@ -246,36 +243,6 @@ ServoCalcs::ServoCalcs(const ros::NodeHandle& nh, ServoParameters& parameters,
 ServoCalcs::~ServoCalcs()
 {
     stop();
-}
-
-bool
-ServoCalcs::getJointPositions(const pose_t& pose,
-			      vector_t& joint_positions) const
-{
-    moveit::core::RobotState	robot_state(robot_state_->getRobotModel());
-    {
-	const std::lock_guard<std::mutex>	lock(input_mutex_);
-
-	robot_state = *robot_state_;
-    }
-
-  // Transform given pose to model reference frame.
-    auto	Trt = tf2::eigenToTransform(robot_state.getGlobalLinkTransform(
-						pose.header.frame_id));
-    Trt.header.stamp	= pose.header.stamp;
-    Trt.header.frame_id = robot_state.getRobotModel()->getModelFrame();
-    Trt.child_frame_id	= pose.header.frame_id;
-    pose_t	target_pose;
-    tf2::doTransform(pose, target_pose, Trt);
-
-    if (!robot_state.setFromIK(joint_group(), target_pose.pose,
-			       parameters_.ee_frame_name))
-	return false;
-
-    joint_positions.resize(num_joints());
-    robot_state.copyJointGroupPositions(joint_group(), joint_positions.data());
-
-    return true;
 }
 
 //! Start the timer where we do work and publish outputs
@@ -857,9 +824,9 @@ ServoCalcs::applyVelocityScaling(vector_t& delta_theta,
 void
 ServoCalcs::convertDeltasToTrajectory(const vector_t& delta_theta)
 {
-    vector_t	desired_positions
-		    = (parameters_.target_positions_topic.empty() ?
-		       actual_positions_ : target_positions_) + delta_theta;
+    vector_t desired_positions = (parameters_.predictive_pose_topic.empty() ?
+				  actual_positions_ : predictive_positions_)
+			       + delta_theta;
     lowPassFilterPositions(desired_positions);
 
     if (checkPositionLimits(desired_positions, delta_theta))
@@ -1046,11 +1013,11 @@ ServoCalcs::resetLowPassFilters()
  *  private member functions: callbacks
  */
 void
-ServoCalcs::twistCmdCB(const twist_cp& msg)
+ServoCalcs::twistCmdCB(const twist_cp& twist_cmd)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
-    twist_cmd_ = *msg;
+    twist_cmd_ = *twist_cmd;
 
   // notify that we have a new input
     new_input_cmd_ = true;
@@ -1058,11 +1025,11 @@ ServoCalcs::twistCmdCB(const twist_cp& msg)
 }
 
 void
-ServoCalcs::jointCmdCB(const joint_jog_cp& msg)
+ServoCalcs::jointCmdCB(const joint_jog_cp& joint_cmd)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
-    joint_cmd_ = *msg;
+    joint_cmd_ = *joint_cmd;
 
   // notify that we have a new input
     new_input_cmd_ = true;
@@ -1070,21 +1037,36 @@ ServoCalcs::jointCmdCB(const joint_jog_cp& msg)
 }
 
 void
-ServoCalcs::collisionVelocityScaleCB(const flt64_cp& msg)
+ServoCalcs::predictivePoseCB(const pose_cp& predictive_pose)
 {
-    const std::lock_guard<std::mutex> lock(input_mutex_);
+    const std::lock_guard<std::mutex>	lock(input_mutex_);
 
-    collision_velocity_scale_ = msg->data;
+  // Transform given pose to model reference frame.
+    auto robot_state = *robot_state_;
+    auto Trt = tf2::eigenToTransform(robot_state.getGlobalLinkTransform(
+					 predictive_pose->header.frame_id));
+    Trt.header.stamp	= predictive_pose->header.stamp;
+    Trt.header.frame_id = robot_state.getRobotModel()->getModelFrame();
+    Trt.child_frame_id	= predictive_pose->header.frame_id;
+    pose_t	predictive_pose_in_reference;
+    tf2::doTransform(*predictive_pose, predictive_pose_in_reference, Trt);
+
+  // Solve IK for robot_state.
+    if (robot_state.setFromIK(joint_group(), predictive_pose_in_reference.pose,
+			      parameters_.ee_frame_name))
+    {
+	predictive_positions_.resize(num_joints());
+	robot_state.copyJointGroupPositions(joint_group(),
+					    predictive_positions_.data());
+    }
 }
 
 void
-ServoCalcs::targetPositionsCB(const multi_array_cp& msg)
+ServoCalcs::collisionVelocityScaleCB(const flt64_cp& velocity_scale)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
-    target_positions_.resize(msg->data.size());
-    std::copy_n(msg->data.data(), target_positions_.size(),
-		target_positions_.data());
+    collision_velocity_scale_ = velocity_scale->data;
 }
 
 //! Allow drift in certain dimensions
