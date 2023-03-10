@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, PickNik LLC
+ *  Copyright (c) 2023, National Institute of Industrial Scienece
+ *  and Technology (AIST)
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -34,6 +35,7 @@
 /*
  *  \file	pose_tracking_servo.h
  *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
+ *  \author	Toshio UESHIBA
  */
 #pragma once
 
