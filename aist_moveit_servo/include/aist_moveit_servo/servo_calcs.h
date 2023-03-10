@@ -75,8 +75,6 @@ class ServoCalcs
 {
   public:
     using isometry3_t	= Eigen::Isometry3d;
-    using vector_t	= Eigen::VectorXd;
-    using pose_t	= geometry_msgs::PoseStamped;
 
   private:
     using planning_scene_monitor_p
@@ -85,15 +83,17 @@ class ServoCalcs
     using transform_t	= geometry_msgs::TransformStamped;
     using twist_t	= geometry_msgs::TwistStamped;
     using twist_cp	= geometry_msgs::TwistStampedConstPtr;
+    using pose_t	= geometry_msgs::PoseStamped;
+    using pose_cp	= geometry_msgs::PoseStampedConstPtr;
     using joint_jog_t	= control_msgs::JointJog;
     using joint_jog_cp	= control_msgs::JointJogConstPtr;
     using trajectory_t	= trajectory_msgs::JointTrajectory;
     using trajectory_cp	= trajectory_msgs::JointTrajectoryConstPtr;
     using multi_array_t	= std_msgs::Float64MultiArray;
-    using multi_array_cp= std_msgs::Float64MultiArrayConstPtr;
     using flt64_t	= std_msgs::Float64;
     using flt64_cp	= std_msgs::Float64ConstPtr;
 
+    using vector_t	= Eigen::VectorXd;
     using matrix_t	= Eigen::MatrixXd;
     using lpf_t		= aist_utility::ButterworthLPF<double>;
     using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
@@ -105,8 +105,6 @@ class ServoCalcs
 		~ServoCalcs()						;
 
     isometry3_t	getFrameTransform(const std::string& frame)	const	;
-    bool	getJointPositions(const pose_t& pose,
-				  vector_t& joint_positions)	const	;
     void	start()							;
     void	setPaused(bool paused)					;
     void	changeRobotLinkCommandFrame(
@@ -167,10 +165,10 @@ class ServoCalcs
 
     void	resetLowPassFilters()					;
 
-    void	twistCmdCB(const twist_cp& msg)				;
-    void	jointCmdCB(const joint_jog_cp& msg)			;
-    void	targetPositionsCB(const multi_array_cp& msg)		;
-    void	collisionVelocityScaleCB(const flt64_cp& msg)		;
+    void	twistCmdCB(const twist_cp& twist_cmd)			;
+    void	jointCmdCB(const joint_jog_cp& joint_cmd)		;
+    void	predictivePoseCB(const pose_cp& predictive_pose)	;
+    void	collisionVelocityScaleCB(const flt64_cp& velocity_scale);
 
     bool	changeDriftDimensions(
 			moveit_msgs::ChangeDriftDimensions::Request& req,
@@ -197,7 +195,7 @@ class ServoCalcs
     ros::NodeHandle			internal_nh_;
     const ros::Subscriber		twist_cmd_sub_;
     const ros::Subscriber		joint_cmd_sub_;
-    const ros::Subscriber		target_positions_sub_;
+    const ros::Subscriber		predictive_pose_sub_;
     const ros::Subscriber		collision_velocity_scale_sub_;
     ros::Publisher			status_pub_;
     ros::Publisher			worst_case_stop_time_pub_;
@@ -249,7 +247,7 @@ class ServoCalcs
     mutable std::mutex			input_mutex_;
     twist_t				twist_cmd_;
     joint_jog_t				joint_cmd_;
-    vector_t				target_positions_;
+    vector_t				predictive_positions_;
 
   // input condition variable used for low latency mode
     std::condition_variable		input_cv_;

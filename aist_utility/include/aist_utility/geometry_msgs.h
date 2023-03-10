@@ -47,16 +47,226 @@
 
 namespace aist_utility
 {
-inline std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Point& p)
+/*
+ *  Arithmetic operators on Vector3
+ */
+inline geometry_msgs::Vector3
+operator +(const geometry_msgs::Vector3& p, const geometry_msgs::Vector3& q)
 {
-    return out << '[' << p.x << ',' << p.y << ',' << p.z << ']';
+    geometry_msgs::Vector3	ret;
+    ret.x = p.x	+ q.x;
+    ret.y = p.y	+ q.y;
+    ret.z = p.z	+ q.z;
+
+    return ret;
 }
 
+inline geometry_msgs::Vector3
+operator -(const geometry_msgs::Vector3& p, const geometry_msgs::Vector3& q)
+{
+    geometry_msgs::Vector3	ret;
+    ret.x = p.x - q.x;
+    ret.y = p.y - q.y;
+    ret.z = p.z - q.z;
+
+    return ret;
+}
+
+inline geometry_msgs::Vector3
+operator *(double c, const geometry_msgs::Vector3& p)
+{
+    geometry_msgs::Vector3	ret;
+    ret.x = c * p.x;
+    ret.y = c * p.y;
+    ret.z = c * p.z;
+
+    return ret;
+}
+
+/*
+ *  Arithmetic operators on Point
+ */
+inline geometry_msgs::Point
+operator +(const geometry_msgs::Point& p, const geometry_msgs::Point& q)
+{
+    geometry_msgs::Point	ret;
+    ret.x = p.x	+ q.x;
+    ret.y = p.y	+ q.y;
+    ret.z = p.z	+ q.z;
+
+    return ret;
+}
+
+inline geometry_msgs::Point
+operator -(const geometry_msgs::Point& p, const geometry_msgs::Point& q)
+{
+    geometry_msgs::Point	ret;
+    ret.x = p.x - q.x;
+    ret.y = p.y - q.y;
+    ret.z = p.z - q.z;
+
+    return ret;
+}
+
+inline geometry_msgs::Point
+operator *(double c, const geometry_msgs::Point& p)
+{
+    geometry_msgs::Point	ret;
+    ret.x = c * p.x;
+    ret.y = c * p.y;
+    ret.z = c * p.z;
+
+    return ret;
+}
+
+inline geometry_msgs::Point
+operator *(const geometry_msgs::Point& p, double c)
+{
+    return c * p;
+}
+
+inline geometry_msgs::Point
+zero(geometry_msgs::Point)
+{
+    geometry_msgs::Point	ret;
+    ret.x = 0;
+    ret.y = 0;
+    ret.z = 0;
+
+    return ret;
+}
+
+/*
+ *  Arithmetic operators on Quaternion
+ */
+inline geometry_msgs::Quaternion
+operator +(const geometry_msgs::Quaternion& p,
+	   const geometry_msgs::Quaternion& q)
+{
+    geometry_msgs::Quaternion	ret;
+    ret.x = p.x	+ q.x;
+    ret.y = p.y	+ q.y;
+    ret.z = p.z	+ q.z;
+    ret.w = p.w	+ q.w;
+
+    return ret;
+}
+
+inline geometry_msgs::Quaternion
+operator -(const geometry_msgs::Quaternion& p,
+	   const geometry_msgs::Quaternion& q)
+{
+    geometry_msgs::Quaternion	ret;
+    ret.x = p.x	- q.x;
+    ret.y = p.y	- q.y;
+    ret.z = p.z	- q.z;
+    ret.w = p.w	- q.w;
+
+    return ret;
+}
+
+inline geometry_msgs::Quaternion
+operator *(double c, const geometry_msgs::Quaternion& p)
+{
+    geometry_msgs::Quaternion	ret;
+    ret.x = c * p.x;
+    ret.y = c * p.y;
+    ret.z = c * p.z;
+    ret.w = c * p.w;
+
+    return ret;
+}
+
+inline geometry_msgs::Quaternion
+operator *(const geometry_msgs::Quaternion& p, double c)
+{
+    return c * p;
+}
+
+inline geometry_msgs::Quaternion
+zero(geometry_msgs::Quaternion)
+{
+    geometry_msgs::Quaternion	ret;
+    ret.x = 0;
+    ret.y = 0;
+    ret.z = 0;
+    ret.w = 0;
+
+    return ret;
+}
+
+inline void
+normalize(geometry_msgs::Quaternion& q)
+{
+    const auto	norm1 = 1/std::sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
+    q.x *= norm1;
+    q.y *= norm1;
+    q.z *= norm1;
+    q.w *= norm1;
+}
+
+/*
+ *  Arithmetic operators on Pose
+ */
+inline geometry_msgs::Pose
+operator +(const geometry_msgs::Pose& p, const geometry_msgs::Pose& q)
+{
+    geometry_msgs::Pose	ret;
+    ret.position    = p.position    + q.position;
+    ret.orientation = p.orientation + q.orientation;
+
+    return ret;
+}
+
+inline geometry_msgs::Pose
+operator -(const geometry_msgs::Pose& p, const geometry_msgs::Pose& q)
+{
+    geometry_msgs::Pose	ret;
+    ret.position    = p.position    - q.position;
+    ret.orientation = p.orientation - q.orientation;
+
+    return ret;
+}
+
+inline geometry_msgs::Pose
+operator *(double c, const geometry_msgs::Pose& p)
+{
+    geometry_msgs::Pose	ret;
+    ret.position    = c * p.position;
+    ret.orientation = c * p.orientation;
+
+    return ret;
+}
+
+inline geometry_msgs::Pose
+operator *(const geometry_msgs::Pose& p, double c)
+{
+    return c * p;
+}
+
+inline geometry_msgs::Pose
+zero(geometry_msgs::Pose)
+{
+    geometry_msgs::Pose	ret;
+    ret.position    = zero(geometry_msgs::Point());
+    ret.orientation = zero(geometry_msgs::Quaternion());
+
+    return ret;
+}
+
+/*
+ *  I/O operators
+ */
 inline std::ostream&
 operator <<(std::ostream& out, const geometry_msgs::Vector3& v)
 {
     return out << '[' << v.x << ',' << v.y << ',' << v.z << ']';
+}
+
+inline std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Point& p)
+{
+    return out << '[' << p.x << ',' << p.y << ',' << p.z << ']';
 }
 
 inline std::ostream&
@@ -81,6 +291,9 @@ operator <<(std::ostream& out, const geometry_msgs::Transform& transform)
 	       << "; " << transform.rotation << ']';
 }
 
+/*
+ *  Conversion betwenn Transform and Pose
+ */
 inline geometry_msgs::Pose
 toPose(const geometry_msgs::Transform& transform)
 {
