@@ -130,10 +130,10 @@ class Servo
     uint	num_joints()					const	;
     joint_group_cp
 		joint_group()					const	;
-    template <class MSG>
-    bool	isStale(const MSG& msg)				const	;
-    bool	isValid(const twist_t& msg)			const	;
-    static bool	isValid(const joint_jog_t& msg)				;
+    template <class CMD>
+    bool	isStale(const CMD& cmd)				const	;
+    bool	isValid(const twist_t& cmd)			const	;
+    static bool	isValid(const joint_jog_t& cmd)				;
 
     void	stop()							;
 

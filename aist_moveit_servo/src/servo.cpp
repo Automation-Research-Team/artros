@@ -291,22 +291,22 @@ Servo::changeRobotLinkCommandFrame(const std::string& new_command_frame)
 /*
  *  private member functions
  */
-template <class MSG> bool
-Servo::isStale(const MSG& msg) const
+template <class CMD> bool
+Servo::isStale(const CMD& cmd) const
 {
-    return (ros::Time::now() - msg.header.stamp >
+    return (ros::Time::now() - cmd.header.stamp >
 	    ros::Duration(parameters_.incoming_command_timeout));
 }
 
 bool
-Servo::isValid(const geometry_msgs::TwistStamped& msg) const
+Servo::isValid(const twist_t& cmd) const
 {
-    if (std::isnan(msg.twist.linear.x)  ||
-	std::isnan(msg.twist.linear.y)  ||
-	std::isnan(msg.twist.linear.z)  ||
-	std::isnan(msg.twist.angular.x) ||
-	std::isnan(msg.twist.angular.y) ||
-	std::isnan(msg.twist.angular.z))
+    if (std::isnan(cmd.twist.linear.x)  ||
+	std::isnan(cmd.twist.linear.y)  ||
+	std::isnan(cmd.twist.linear.z)  ||
+	std::isnan(cmd.twist.angular.x) ||
+	std::isnan(cmd.twist.angular.y) ||
+	std::isnan(cmd.twist.angular.z))
     {
 	ROS_WARN_STREAM_THROTTLE_NAMED(
 	    ROS_LOG_THROTTLE_PERIOD, LOGNAME,
@@ -316,13 +316,13 @@ Servo::isValid(const geometry_msgs::TwistStamped& msg) const
     }
 
   // If incoming commands should be in the range [-1:1], check for |delta|>1
-    if ((parameters_.command_in_type == "unitless") &&
-	((std::abs(msg.twist.linear.x)  > 1) ||
-	 (std::abs(msg.twist.linear.y)  > 1) ||
-	 (std::abs(msg.twist.linear.z)  > 1) ||
-	 (std::abs(msg.twist.angular.x) > 1) ||
-	 (std::abs(msg.twist.angular.y) > 1) ||
-	 (std::abs(msg.twist.angular.z) > 1)))
+    if (parameters_.command_in_type == "unitless" &&
+	(std::abs(cmd.twist.linear.x)  > 1 ||
+	 std::abs(cmd.twist.linear.y)  > 1 ||
+	 std::abs(cmd.twist.linear.z)  > 1 ||
+	 std::abs(cmd.twist.angular.x) > 1 ||
+	 std::abs(cmd.twist.angular.y) > 1 ||
+	 std::abs(cmd.twist.angular.z) > 1))
     {
 	ROS_WARN_STREAM_THROTTLE_NAMED(
 	    ROS_LOG_THROTTLE_PERIOD, LOGNAME,
@@ -331,18 +331,18 @@ Servo::isValid(const geometry_msgs::TwistStamped& msg) const
 	return false;
     }
 
-    return msg.twist.linear.x  != 0.0 ||
-	   msg.twist.linear.y  != 0.0 ||
-	   msg.twist.linear.z  != 0.0 ||
-           msg.twist.angular.x != 0.0 ||
-	   msg.twist.angular.y != 0.0 ||
-	   msg.twist.angular.z != 0.0;
+    return cmd.twist.linear.x  != 0.0 ||
+	   cmd.twist.linear.y  != 0.0 ||
+	   cmd.twist.linear.z  != 0.0 ||
+           cmd.twist.angular.x != 0.0 ||
+	   cmd.twist.angular.y != 0.0 ||
+	   cmd.twist.angular.z != 0.0;
 }
 
 bool
-Servo::isValid(const control_msgs::JointJog& msg)
+Servo::isValid(const joint_jog_t& cmd)
 {
-    for (auto velocity : msg.velocities)
+    for (auto velocity : cmd.velocities)
 	if (std::isnan(velocity))
 	{
 	    ROS_WARN_STREAM_THROTTLE_NAMED(
@@ -351,7 +351,7 @@ Servo::isValid(const control_msgs::JointJog& msg)
 	    return false;
 	}
 
-    for (auto velocity : msg.velocities)
+    for (auto velocity : cmd.velocities)
 	if (velocity != 0.0)
 	    return true;
 
@@ -699,9 +699,9 @@ Servo::scaleJointCommand(const joint_jog_t& cmd) const
 */
 double
 Servo::velocityScalingFactorForSingularity(
-    const vector_t& commanded_velocity,
-    const Eigen::JacobiSVD<matrix_t>& svd,
-    const matrix_t& pseudo_inverse)
+		const vector_t& commanded_velocity,
+		const Eigen::JacobiSVD<matrix_t>& svd,
+		const matrix_t& pseudo_inverse)
 {
     double	velocity_scale = 1;
     size_t	num_dimensions = commanded_velocity.size();
@@ -784,8 +784,7 @@ Servo::velocityScalingFactorForSingularity(
  \param singularity_scale tells how close we are to a singularity
 */
 void
-Servo::applyVelocityScaling(vector_t& delta_theta,
-				 double singularity_scale)
+Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 {
   // Convert to joint angle velocities for checking and applying joint
   // specific velocity limits.
@@ -853,7 +852,7 @@ Servo::convertDeltasToTrajectory(const vector_t& delta_theta)
 //! Avoid overshooting joint limits
 bool
 Servo::checkPositionLimits(const vector_t& positions,
-				const vector_t& delta_theta) const
+			   const vector_t& delta_theta) const
 {
     for (const auto joint : joint_group()->getActiveJointModels())
     {
@@ -892,7 +891,7 @@ Servo::checkPositionLimits(const vector_t& positions,
 */
 void
 Servo::setPointsToTrajectory(const vector_t& positions,
-				  const vector_t& delta_theta, bool sudden)
+			     const vector_t& delta_theta, bool sudden)
 {
     auto&	points = joint_trajectory_.points;
     points.resize(parameters_.use_gazebo ? 30 : 1);
@@ -965,7 +964,7 @@ Servo::zeroVelocitiesInTrajectory()
 */
 void
 Servo::removeDimension(matrix_t& jacobian,
-			    vector_t& delta_x, uint row_to_remove) const
+		       vector_t& delta_x, uint row_to_remove) const
 {
     const auto	nrows = jacobian.rows() - 1;
     const auto	ncols = jacobian.cols();
@@ -1090,9 +1089,8 @@ Servo::collisionVelocityScaleCB(const flt64_cp& velocity_scale)
   \return		true if the adjustment was made
 */
 bool
-Servo::changeDriftDimensions(
-		moveit_msgs::ChangeDriftDimensions::Request&  req,
-		moveit_msgs::ChangeDriftDimensions::Response& res)
+Servo::changeDriftDimensions(moveit_msgs::ChangeDriftDimensions::Request&  req,
+			     moveit_msgs::ChangeDriftDimensions::Response& res)
 {
     const std::lock_guard<std::mutex> lock(input_mutex_);
 
