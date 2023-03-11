@@ -98,11 +98,11 @@ Servo::Servo(const ros::NodeHandle& nh,
 				ROS_QUEUE_SIZE, &Servo::twistCmdCB, this)),
    joint_cmd_sub_(nh_.subscribe(parameters_.joint_command_in_topic,
 				ROS_QUEUE_SIZE, &Servo::jointCmdCB, this)),
-   predictive_pose_sub_(parameters_.predictive_pose_topic.empty() ?
-			ros::Subscriber() :
-			nh_.subscribe(parameters_.predictive_pose_topic,
-				      ROS_QUEUE_SIZE,
-				      &Servo::predictivePoseCB, this)),
+   ff_pose_sub_(parameters_.feed_forward_pose_topic.empty() ?
+		ros::Subscriber() :
+		nh_.subscribe(parameters_.feed_forward_pose_topic,
+			      ROS_QUEUE_SIZE,
+			      &Servo::feedForwardPoseCB, this)),
    collision_velocity_scale_sub_(internal_nh_.subscribe(
 				     "collision_velocity_scale",
 				     ROS_QUEUE_SIZE,
@@ -118,11 +118,8 @@ Servo::Servo(const ros::NodeHandle& nh,
        nh_.advertise<multi_array_t>(parameters_.command_out_topic,
 				    ROS_QUEUE_SIZE)),
    outgoing_cmd_debug_pub_(
-       parameters_.command_out_type == "trajectory_msgs/JointTrajectory" ?
        nh_.advertise<trajectory_t>(parameters_.command_out_topic + "_debug",
-				   ROS_QUEUE_SIZE) :
-       nh_.advertise<multi_array_t>(parameters_.command_out_topic + "_debug",
-				    ROS_QUEUE_SIZE)),
+				   ROS_QUEUE_SIZE)),
    durations_pub_(nh_.advertise<DurationArray>("durations", 1)),
    drift_dimensions_srv_(
        nh_.advertiseService(ros::names::append(nh_.getNamespace(),
@@ -146,7 +143,7 @@ Servo::Servo(const ros::NodeHandle& nh,
    input_mutex_(),
    twist_cmd_(),
    joint_cmd_(),
-   predictive_positions_(),
+   ff_positions_(),
 
    invalid_command_count_(0),
    wait_for_servo_commands_(true),
@@ -331,12 +328,12 @@ Servo::isValid(const twist_t& cmd) const
 	return false;
     }
 
-    return cmd.twist.linear.x  != 0.0 ||
-	   cmd.twist.linear.y  != 0.0 ||
-	   cmd.twist.linear.z  != 0.0 ||
-           cmd.twist.angular.x != 0.0 ||
-	   cmd.twist.angular.y != 0.0 ||
-	   cmd.twist.angular.z != 0.0;
+    return (cmd.twist.linear.x  != 0.0 ||
+	    cmd.twist.linear.y  != 0.0 ||
+	    cmd.twist.linear.z  != 0.0 ||
+	    cmd.twist.angular.x != 0.0 ||
+	    cmd.twist.angular.y != 0.0 ||
+	    cmd.twist.angular.z != 0.0);
 }
 
 bool
@@ -834,8 +831,8 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 void
 Servo::convertDeltasToTrajectory(const vector_t& delta_theta)
 {
-    vector_t desired_positions = (parameters_.predictive_pose_topic.empty() ?
-				  actual_positions_ : predictive_positions_)
+    vector_t desired_positions = (parameters_.feed_forward_pose_topic.empty() ?
+				  actual_positions_ : ff_positions_)
 			       + delta_theta;
     lowPassFilterPositions(desired_positions);
 
@@ -1047,27 +1044,27 @@ Servo::jointCmdCB(const joint_jog_cp& joint_cmd)
 }
 
 void
-Servo::predictivePoseCB(const pose_cp& predictive_pose)
+Servo::feedForwardPoseCB(const pose_cp& ff_pose)
 {
     const std::lock_guard<std::mutex>	lock(input_mutex_);
 
   // Transform given pose to model reference frame.
     auto robot_state = *robot_state_;
     auto Trt = tf2::eigenToTransform(robot_state.getGlobalLinkTransform(
-					 predictive_pose->header.frame_id));
-    Trt.header.stamp	= predictive_pose->header.stamp;
+					 ff_pose->header.frame_id));
+    Trt.header.stamp	= ff_pose->header.stamp;
     Trt.header.frame_id = robot_state.getRobotModel()->getModelFrame();
-    Trt.child_frame_id	= predictive_pose->header.frame_id;
-    pose_t	predictive_pose_in_reference;
-    tf2::doTransform(*predictive_pose, predictive_pose_in_reference, Trt);
+    Trt.child_frame_id	= ff_pose->header.frame_id;
+    pose_t	ff_pose_in_reference;
+    tf2::doTransform(*ff_pose, ff_pose_in_reference, Trt);
 
   // Solve IK for robot_state.
-    if (robot_state.setFromIK(joint_group(), predictive_pose_in_reference.pose,
+    if (robot_state.setFromIK(joint_group(), ff_pose_in_reference.pose,
 			      parameters_.ee_frame_name))
     {
-	predictive_positions_.resize(num_joints());
+	ff_positions_.resize(num_joints());
 	robot_state.copyJointGroupPositions(joint_group(),
-					    predictive_positions_.data());
+					    ff_positions_.data());
     }
 }
 

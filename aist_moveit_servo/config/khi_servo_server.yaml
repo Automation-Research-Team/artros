@@ -44,7 +44,7 @@ prismatic_joint_limit_margin:    0.005
 ## Topic names
 cartesian_command_in_topic: delta_twist_cmds
 joint_command_in_topic:     delta_joint_cmds
-predictive_pose_topic:      ""
+feed_forward_pose_topic:    ""
 joint_topic:                joint_states
 status_topic:               status
 command_out_topic:          /$(arg controller)/command

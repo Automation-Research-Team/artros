@@ -152,7 +152,7 @@ class PoseTrackingServo
     const ros::Subscriber	servo_status_sub_;
     const ros::Subscriber	target_pose_sub_;
     const ros::Publisher	twist_pub_;
-    const ros::Publisher	predictive_pose_pub_;
+    const ros::Publisher	ff_pose_pub_;
     const ros::Publisher	target_pose_debug_pub_;
     const ros::Publisher	ee_pose_debug_pub_;
     DurationArray&		durations_;
@@ -199,10 +199,10 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
      twist_pub_(nh_.advertise<twist_t>(
 		    getServoParameters().cartesian_command_in_topic, 1)),
-     predictive_pose_pub_(getServoParameters().predictive_pose_topic.empty() ?
-			  ros::Publisher() :
-			  nh_.advertise<pose_t>(
-			      getServoParameters().predictive_pose_topic, 1)),
+     ff_pose_pub_(getServoParameters().feed_forward_pose_topic.empty() ?
+		  ros::Publisher() :
+		  nh_.advertise<pose_t>(
+		      getServoParameters().feed_forward_pose_topic, 1)),
      target_pose_debug_pub_(nh_.advertise<pose_t>("desired_pose", 1)),
      ee_pose_debug_pub_(nh_.advertise<pose_t>("actual_pose", 1)),
      durations_(servo_.durations()),
@@ -429,8 +429,8 @@ PoseTrackingServo<FF>::tick()
   // Correct target pose by offset specified by the goal.
     const auto	target_pose = correctTargetPose(current_goal_->target_offset);
     
-  // Add predictive term to target pose and publish as feed-forward command.
-    ff_.publishPrediction(target_pose, expectedCycleTime());
+  // Add feed forward term to target pose and publish as feed-forward command.
+    ff_.publish(target_pose, expectedCycleTime());
     
   // Compute positional and angular errors.
     vector3_t		positional_error;
@@ -511,7 +511,7 @@ PoseTrackingServo<FF>::calculatePoseError(const pose_t& target_pose,
     tf2::convert(target_pose.pose.orientation, q_desired);
     angular_error = q_desired * Eigen::Quaterniond(Tpe.rotation()).inverse();
 
-  // For debugging
+  // Publish target pose and current pose for debugging.
     target_pose_debug_pub_.publish(target_pose);
     const auto	ee_pose = tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
 					 Tpe, ros::Time::now(),
@@ -524,30 +524,26 @@ PoseTrackingServo<FF>::calculateTwistCommand(const vector3_t& positional_error,
 					     const angle_axis_t& angular_error)
 {
   // use the shared pool to create a message more efficiently
-    const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
-    {
-	const std::lock_guard<std::mutex>	lock(input_mtx_);
+    const auto	twist_cmd = moveit::util::make_shared_from_pool<twist_t>();
+    auto&	twist	  = twist_cmd->twist;
+    const auto	dt	  = expectedCycleTime();
 
-	msg->header.frame_id = target_pose_.header.frame_id;
-    }
-
-  // Get twist components from PID controllers
-    auto&	twist = msg->twist;
-    const auto	dt = expectedCycleTime();
+  // Get linear components of twist from PID controllers
     twist.linear.x = pids_[0].computeCommand(positional_error(0), dt);
     twist.linear.y = pids_[1].computeCommand(positional_error(1), dt);
     twist.linear.z = pids_[2].computeCommand(positional_error(2), dt);
 
-  // Anglular components
+  // Get angula components of twist from PID controllers
     const auto	ang_vel_magnitude = pids_[3].computeCommand(
 						angular_error.angle(), dt);
     twist.angular.x = ang_vel_magnitude * angular_error.axis()[0];
     twist.angular.y = ang_vel_magnitude * angular_error.axis()[1];
     twist.angular.z = ang_vel_magnitude * angular_error.axis()[2];
 
-    msg->header.stamp = ros::Time::now();
+    twist_cmd->header.frame_id = getServoParameters().planning_frame;
+    twist_cmd->header.stamp    = ros::Time::now();
 
-    return msg;
+    return twist_cmd;
 }
 
 template <class FF> void
@@ -564,14 +560,14 @@ template <class FF> void
 PoseTrackingServo<FF>::stopMotion()
 {
   // Send a 0 command to Servo to halt arm motion
-    const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
+    const auto	twist_cmd = moveit::util::make_shared_from_pool<twist_t>();
     {
 	const std::lock_guard<std::mutex>	lock(input_mtx_);
 
-	msg->header.frame_id = target_pose_.header.frame_id;
+	twist_cmd->header.frame_id = target_pose_.header.frame_id;
     }
-    msg->header.stamp = ros::Time::now();
-    twist_pub_.publish(msg);
+    twist_cmd->header.stamp = ros::Time::now();
+    twist_pub_.publish(twist_cmd);
 }
 
 // Low-pass filter stuffs

@@ -82,8 +82,8 @@ ServoParameters::ServoParameters(const ros::NodeHandle& nh,
 				      "joint_command_in_topic",
 				      joint_command_in_topic);
     error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "predictive_pose_topic",
-				      predictive_pose_topic);
+				      "feed_forward_pose_topic",
+				      feed_forward_pose_topic);
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "robot_link_command_frame",
 				      robot_link_command_frame);

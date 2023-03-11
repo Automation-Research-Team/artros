@@ -175,7 +175,7 @@ class Servo
 
     void	twistCmdCB(const twist_cp& twist_cmd)			;
     void	jointCmdCB(const joint_jog_cp& joint_cmd)		;
-    void	predictivePoseCB(const pose_cp& predictive_pose)	;
+    void	feedForwardPoseCB(const pose_cp& ff_pose)		;
     void	collisionVelocityScaleCB(const flt64_cp& velocity_scale);
 
     bool	changeDriftDimensions(
@@ -204,7 +204,7 @@ class Servo
     ros::NodeHandle			internal_nh_;
     const ros::Subscriber		twist_cmd_sub_;
     const ros::Subscriber		joint_cmd_sub_;
-    const ros::Subscriber		predictive_pose_sub_;
+    const ros::Subscriber		ff_pose_sub_;
     const ros::Subscriber		collision_velocity_scale_sub_;
     const ros::Publisher		status_pub_;
     const ros::Publisher		worst_case_stop_time_pub_;
@@ -227,7 +227,7 @@ class Servo
     mutable std::mutex			input_mutex_;
     twist_t				twist_cmd_;
     joint_jog_t				joint_cmd_;
-    vector_t				predictive_positions_;
+    vector_t				ff_positions_;
 
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.

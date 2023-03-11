@@ -52,8 +52,8 @@ struct NullFF
     
     void	resetInput()					{}
     bool	haveRecentInput(const ros::Duration&)	const	{ return true;}
-    void	publishPrediction(const pose_t&,
-				  const ros::Duration&)	const	{}
+    void	publish(const pose_t&,
+			const ros::Duration&)		const	{}
 };
 }	// namespace aist_moveit_servo
 
