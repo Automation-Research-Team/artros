@@ -136,7 +136,6 @@ Servo::Servo(const ros::NodeHandle& nh,
    ddr_(nh_),
 
    robot_state_(planning_scene_monitor_->getStateMonitor()->getCurrentState()),
-   robot_state_stamp_(ros::Time(0)),
    actual_positions_(),
    actual_velocities_(),
 
@@ -538,9 +537,8 @@ Servo::calculateSingleIteration()
 void
 Servo::updateJoints()
 {
-    robot_state_       = planning_scene_monitor_->getStateMonitor()
-						->getCurrentState();
-    robot_state_stamp_ = ros::Time::now();
+    robot_state_ = planning_scene_monitor_->getStateMonitor()
+					  ->getCurrentState();
 
   // Keep original joint positions and velocities.
     actual_positions_.resize(num_joints());
