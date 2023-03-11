@@ -501,7 +501,8 @@ PoseTrackingServo<FF>::calculatePoseError(const pose_t& target_pose,
 					  vector3_t& positional_error,
 					  angle_axis_t& angular_error) const
 {
-    const auto	Tpe = servo_.getEEFrameTransform();
+    const auto	Tpe = servo_.getFrameTransform(
+			getServoParameters().ee_frame_name);
     positional_error(0) = target_pose.pose.position.x - Tpe.translation()(0);
     positional_error(1) = target_pose.pose.position.y - Tpe.translation()(1);
     positional_error(2) = target_pose.pose.position.z - Tpe.translation()(2);

@@ -80,7 +80,6 @@ add_library(
   ${PROJECT_NAME}
   src/collision_check.cpp
   src/servo.cpp
-  src/servo_calcs.cpp
   src/servo_parameters.cpp
 )
 
