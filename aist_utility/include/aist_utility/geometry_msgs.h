@@ -43,6 +43,7 @@
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Transform.h>
+#include <geometry_msgs/Twist.h>
 #include <aist_utility/tf.h>
 
 namespace aist_utility
@@ -289,6 +290,12 @@ operator <<(std::ostream& out, const geometry_msgs::Transform& transform)
 {
     return out << '['  << transform.translation
 	       << "; " << transform.rotation << ']';
+}
+
+inline std::ostream&
+operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
+{
+    return out << '['  << twist.linear << "; " << twist.angular << ']';
 }
 
 /*

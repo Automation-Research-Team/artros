@@ -45,50 +45,6 @@ constexpr size_t	 ROS_LOG_THROTTLE_PERIOD = 30;  // Seconds to throttle logs ins
 
 namespace aist_moveit_servo
 {
-namespace
-{
-/************************************************************************
-*  static functions							*
-************************************************************************/
-std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Pose& pose)
-{
-    return out << pose.position.x    << ' '
-	       << pose.position.y    << ' '
-	       << pose.position.z    << ';'
-	       << pose.orientation.x << ' '
-	       << pose.orientation.y << ' '
-	       << pose.orientation.z << ' '
-	       << pose.orientation.w;
-}
-
-std::ostream&
-operator <<(std::ostream& out, const Eigen::Isometry3d& isometry)
-{
-    const Eigen::Quaterniond	q(isometry.rotation());
-
-    return out << isometry.translation()(0) << ' '
-	       << isometry.translation()(1) << ' '
-	       << isometry.translation()(2) << ';'
-	       << q.x() << ' '
-	       << q.y() << ' '
-	       << q.z() << ' '
-	       << q.w();
-}
-
-std::ostream&
-operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
-{
-    return out << twist.linear.x  << ' '
-	       << twist.linear.y  << ' '
-	       << twist.linear.z  << ';'
-	       << twist.angular.x << ' '
-	       << twist.angular.y << ' '
-	       << twist.angular.z;
-}
-
-}  // namespace
-
 /************************************************************************
 *  class ServoCalcs							*
 ************************************************************************/

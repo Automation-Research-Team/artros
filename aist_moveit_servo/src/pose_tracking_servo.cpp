@@ -39,18 +39,38 @@
  */
 #include <aist_moveit_servo/pose_tracking_servo.h>
 
+namespace aist_moveit_servo
+{
+/************************************************************************
+*  struct NullFF							*
+************************************************************************/
+struct NullFF
+{
+    using pose_t = geometry_msgs::PoseStamped;
+    
+		NullFF(const ros::NodeHandle&)			{}
+    
+    void	resetInput()					{}
+    bool	haveRecentInput(const ros::Duration&)	const	{ return true;}
+    void	publishPrediction(const pose_t&,
+				  const ros::Duration&)	const	{}
+};
+}	// namespace aist_moveit_servo
+
 /************************************************************************
 *  main function							*
 ************************************************************************/
 int
 main(int argc, char* argv[])
 {
+    using namespace	aist_moveit_servo;
+    
     const std::string	logname("pose_tracking_servo");
 
     ros::init(argc, argv, logname);
 
-    ros::NodeHandle	nh("~");
-    aist_moveit_servo::PoseTrackingServo<>	servo(nh, logname);
+    ros::NodeHandle		nh("~");
+    PoseTrackingServo<NullFF>	servo(nh, logname);
     servo.run();
 
     return 0;
