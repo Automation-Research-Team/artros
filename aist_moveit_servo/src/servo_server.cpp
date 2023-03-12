@@ -53,6 +53,7 @@ class ServoServer : public Servo
 
   private:
     void	twistCmdCB(const twist_cp& twist_cmd)			;
+    twist_t	twistCmd()					const	;
     
   private:
     ros::NodeHandle		nh_;
@@ -67,7 +68,9 @@ ServoServer::ServoServer(const ros::NodeHandle& nh,
   :Servo(nh, robot_description, logname),
    nh_(nh),
    twist_cmd_sub_(nh_.subscribe(servoParameters().cartesian_command_in_topic,
-				1, &ServoServer::twistCmdCB, this))
+				1, &ServoServer::twistCmdCB, this)),
+   twist_cmd_(new twist_t()),
+   twist_mtx_()
 {
 }
 
@@ -80,14 +83,8 @@ ServoServer::run()
     for (ros::Rate rate(1.0/servoParameters().publish_period);
 	 ros::ok(); rate.sleep())
     {
-	twist_t	twist_cmd;
-	{
-	    const std::lock_guard<std::mutex>	lock(twist_mtx_);
-
-	    twist_cmd = *twist_cmd_;
-	}
-
-	publishTrajectory(twist_cmd);
+	update();
+	publishTrajectory(twistCmd());
     }
 
     ros::waitForShutdown();	// Wait for ros to shutdown
@@ -99,6 +96,14 @@ ServoServer::twistCmdCB(const twist_cp& twist_cmd)
     const std::lock_guard<std::mutex>	lock(twist_mtx_);
 
     twist_cmd_ = twist_cmd;
+}
+
+ServoServer::twist_t
+ServoServer::twistCmd() const
+{
+    const std::lock_guard<std::mutex>	lock(twist_mtx_);
+
+    return *twist_cmd_;
 }
 }	// namespace aist_moveit_servo
 

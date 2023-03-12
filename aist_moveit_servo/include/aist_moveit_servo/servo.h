@@ -137,8 +137,6 @@ class Servo
     uint	num_joints()					const	;
     joint_group_cp
 		joint_group()					const	;
-    template <class CMD>
-    bool	isStale(const CMD& cmd)				const	;
     bool	isValid(const twist_t& cmd)			const	;
     bool	isValid(const joint_jog_t& cmd)			const	;
 

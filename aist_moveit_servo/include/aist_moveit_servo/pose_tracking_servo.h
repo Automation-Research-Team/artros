@@ -107,10 +107,10 @@ class PoseTrackingServo : public Servo
 					 double cutoff_frequency)	;
 
   // PID stuffs
-    void	updatePositionPIDs(double PIDConfig::* field,
-				   double value)			;
-    void	updateOrientationPID(double PIDConfig::* field,
-				     double value)			;
+    void	updateLinearPIDs(double PIDConfig::* field,
+				 double value)				;
+    void	updateAngularPID(double PIDConfig::* field,
+				 double value)				;
     void	updatePID(const PIDConfig& pid_config, pid_t& pid)	;
 
   // PostTrackingAction stuffs
@@ -248,21 +248,21 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  linear_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::updateLinearPIDs,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for translation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("linear_integral_gain",
 				  linear_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::updateLinearPIDs,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for translation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("linear_derivative_gain",
 				  linear_pid_config_.k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::updateLinearPIDs,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for translation",
 				  0.0, 20.0);
@@ -270,21 +270,21 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
     ddr_.registerVariable<double>("angular_proportinal_gain",
 				  angular_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::updateAngularPID,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for rotation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("angular_integral_gain",
 				  angular_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::updateAngularPID,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for rotation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("angular_derivative_gain",
 				  angular_pid_config_.k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::updateAngularPID,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for rotation",
 				  0.0, 20.0);
@@ -589,8 +589,8 @@ PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
 
 // PID controller stuffs
 template <class FF> void
-PoseTrackingServo<FF>::updatePositionPIDs(double PIDConfig::* field,
-					  double value)
+PoseTrackingServo<FF>::updateLinearPIDs(double PIDConfig::* field,
+					double value)
 {
     linear_pid_config_.*field = value;
     for (size_t i = 0; i < 3; ++i)
@@ -598,8 +598,8 @@ PoseTrackingServo<FF>::updatePositionPIDs(double PIDConfig::* field,
 }
 
 template <class FF> void
-PoseTrackingServo<FF>::updateOrientationPID(double PIDConfig::* field,
-					    double value)
+PoseTrackingServo<FF>::updateAngularPID(double PIDConfig::* field,
+					double value)
 {
     angular_pid_config_.*field = value;
     updatePID(angular_pid_config_, pids_[3]);

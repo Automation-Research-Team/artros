@@ -284,13 +284,6 @@ Servo::publishTrajectory(const CMD& cmd)
 /*
  *  private member functions
  */
-template <class CMD> bool
-Servo::isStale(const CMD& cmd) const
-{
-    return (ros::Time::now() - cmd.header.stamp >
-	    ros::Duration(parameters_.incoming_command_timeout));
-}
-
 bool
 Servo::isValid(const twist_t& twist_cmd) const
 {
