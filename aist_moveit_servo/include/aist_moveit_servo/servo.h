@@ -84,13 +84,8 @@ createPlanningSceneMonitor(const std::string& robot_description)	;
 ************************************************************************/
 class Servo
 {
-  public:
+  protected:
     using isometry3_t	= Eigen::Isometry3d;
-
-  private:
-    using planning_scene_monitor_p
-			= planning_scene_monitor::PlanningSceneMonitorPtr;
-    using joint_group_cp= const moveit::core::JointModelGroup*;
     using transform_t	= geometry_msgs::TransformStamped;
     using twist_t	= geometry_msgs::TwistStamped;
     using twist_cp	= geometry_msgs::TwistStampedConstPtr;
@@ -98,55 +93,67 @@ class Servo
     using pose_cp	= geometry_msgs::PoseStampedConstPtr;
     using joint_jog_t	= control_msgs::JointJog;
     using joint_jog_cp	= control_msgs::JointJogConstPtr;
+    using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
+
+  private:
+    using planning_scene_monitor_p
+			= planning_scene_monitor::PlanningSceneMonitorPtr;
+    using joint_group_cp= const moveit::core::JointModelGroup*;
     using trajectory_t	= trajectory_msgs::JointTrajectory;
     using trajectory_cp	= trajectory_msgs::JointTrajectoryConstPtr;
     using multi_array_t	= std_msgs::Float64MultiArray;
     using flt64_t	= std_msgs::Float64;
     using flt64_cp	= std_msgs::Float64ConstPtr;
-
     using vector_t	= Eigen::VectorXd;
     using matrix_t	= Eigen::MatrixXd;
     using lpf_t		= aist_utility::ButterworthLPF<double>;
-    using ddr_t		= ddynamic_reconfigure::DDynamicReconfigure;
 
   public:
 		Servo(const ros::NodeHandle& nh,
-		      const planning_scene_monitor_p& monitor)		;
+		      const std::string& robot_description,
+		      const std::string& logname)			;
 		~Servo()						;
 
+  protected:
+    const std::string&
+		logname()					const	;
     const ServoParameters&
-		getParameters()					const	;
+		servoParameters()				const	;
     DurationArray&
 		durations()						;
     isometry3_t	getFrameTransform(const std::string& frame)	const	;
-    void	start()							;
-    void	setPaused(bool paused)					;
     void	changeRobotLinkCommandFrame(
 			const std::string& new_command_frame)		;
 
+    void	start()							;
+    void	stop()							;
+    void	update()						;
+    bool	publishTrajectory(const twist_t& twist_cmd,
+				  const pose_t& ff_pose)		;
+    template <class CMD>
+    bool	publishTrajectory(const CMD& cmd)			;
+    
   private:
-    isometry3_t	getFrameTransformUnlocked(const std::string& frame)
-								const	;
     uint	num_joints()					const	;
     joint_group_cp
 		joint_group()					const	;
     template <class CMD>
     bool	isStale(const CMD& cmd)				const	;
     bool	isValid(const twist_t& cmd)			const	;
-    static bool	isValid(const joint_jog_t& cmd)				;
+    bool	isValid(const joint_jog_t& cmd)			const	;
 
-    void	stop()							;
-
-    void	mainCalcLoop()						;
-    void	calculateSingleIteration()				;
+    template <class CMD>
+    bool	publishTrajectory(const CMD& cmd,
+				  const vector_t& positions)		;
 
     void	updateJoints()						;
-    void	setCartesianServoTrajectory(twist_t& cmd)		;
-    void	setJointServoTrajectory(const joint_jog_t& cmd)		;
+    void	setTrajectory(const twist_t& cmd,
+			      const vector_t& positions)		;
+    void	setTrajectory(const joint_jog_t& cmd,
+			      const vector_t& positions)		;
 
-    vector_t	scaleCartesianCommand(const twist_t& cmd)	const	;
-
-    vector_t	scaleJointCommand(const joint_jog_t& cmd)	const	;
+    vector_t	scaleCommand(const twist_t& cmd)		const	;
+    vector_t	scaleCommand(const joint_jog_t& cmd)		const	;
     void	enforceVelLimits(vector_t& delta_theta)		const	;
     double	velocityScalingFactorForSingularity(
 			const vector_t& commanded_velocity,
@@ -155,11 +162,12 @@ class Servo
     void	applyVelocityScaling(vector_t& delta_theta,
 				     double singularity_scale=1.0)	;
 
-    void	convertDeltasToTrajectory(const vector_t& delta_theta)	;
+    void	convertDeltasToTrajectory(const vector_t& positions,
+					  const vector_t& delta_theta)	;
     void	setPointsToTrajectory(const vector_t& positions,
 				      const vector_t& delta_theta,
 				      bool sudden=false)		;
-    void	zeroVelocitiesInTrajectory()				;
+    void	setZeroVelocitiesToTrajectory()				;
 
     bool	checkPositionLimits(const vector_t& positions,
 				    const vector_t& delta_theta) const	;
@@ -169,42 +177,36 @@ class Servo
 
     void	initializeLowPassFilters(int half_order,
 					 double cutoff_frequency)	;
-    void	lowPassFilterPositions(vector_t& positions)		;
-
+    void	applyLowPassFilters(vector_t& positions)		;
     void	resetLowPassFilters()					;
 
-    void	twistCmdCB(const twist_cp& twist_cmd)			;
-    void	jointCmdCB(const joint_jog_cp& joint_cmd)		;
-    void	feedForwardPoseCB(const pose_cp& ff_pose)		;
     void	collisionVelocityScaleCB(const flt64_cp& velocity_scale);
 
-    bool	changeDriftDimensions(
+    bool	changeDriftDimensionsCB(
 			moveit_msgs::ChangeDriftDimensions::Request& req,
 			moveit_msgs::ChangeDriftDimensions::Response& res);
-
-    bool	changeControlDimensions(
+    bool	changeControlDimensionsCB(
 			moveit_msgs::ChangeControlDimensions::Request& req,
 			moveit_msgs::ChangeControlDimensions::Response& res);
 
   // Servo status stuffs
     void	publishStatus()					const	;
-    bool	resetStatus(std_srvs::Empty::Request&,
-			    std_srvs::Empty::Response&)			;
+    bool	resetStatusCB(std_srvs::Empty::Request&,
+			      std_srvs::Empty::Response&)		;
 
   // Worst case stop time stuffs
     void	publishWorstCaseStopTime()			const	;
 
   private:
+    ros::NodeHandle			nh_;
+    ros::NodeHandle			internal_nh_;
+
+    const std::string			logname_;
     ServoParameters			parameters_;
     const planning_scene_monitor_p	planning_scene_monitor_;
     CollisionCheck			collision_checker_;
 
   // ROS
-    ros::NodeHandle			nh_;
-    ros::NodeHandle			internal_nh_;
-    const ros::Subscriber		twist_cmd_sub_;
-    const ros::Subscriber		joint_cmd_sub_;
-    const ros::Subscriber		ff_pose_sub_;
     const ros::Subscriber		collision_velocity_scale_sub_;
     const ros::Publisher		status_pub_;
     const ros::Publisher		worst_case_stop_time_pub_;
@@ -221,23 +223,11 @@ class Servo
     moveit::core::RobotStatePtr		robot_state_;
     vector_t				actual_positions_;
     vector_t				actual_velocities_;
-
-  // Incoming command messages
-    mutable std::mutex			input_mutex_;
-    twist_t				twist_cmd_;
-    joint_jog_t				joint_cmd_;
     vector_t				ff_positions_;
-
+    
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
     int					invalid_command_count_;
-
-  // Flag for staying inactive while there are no incoming commands
-    bool				wait_for_servo_commands_;
-
-  // Input condition variable used for low latency mode
-    std::condition_variable		input_cv_;
-    bool				new_input_cmd_;
 
   // Allow drift in [x, y, z, roll, pitch, yaw] in the command frame
     std::array<bool, 6>			drift_dimensions_;
@@ -252,18 +242,20 @@ class Servo
     trajectory_t			joint_trajectory_;
     std::map<std::string, size_t>	joint_indices_;
 
-  // Main tracking / result publisher loop
-    std::thread				thread_;
-    bool				stop_requested_;
-
   // Servo status
     StatusCode				status_;
-    std::atomic<bool>			paused_;
     double				collision_velocity_scale_;
+    mutable std::mutex			input_mtx_;
 };
 
+inline const std::string&
+Servo::logname() const
+{
+    return logname_;
+}
+    
 inline const ServoParameters&
-Servo::getParameters() const
+Servo::servoParameters() const
 {
     return parameters_;
 }
@@ -277,17 +269,19 @@ Servo::durations()
 inline Servo::isometry3_t
 Servo::getFrameTransform(const std::string& frame) const
 {
-    const std::lock_guard<std::mutex>	lock(input_mutex_);
-
-    return getFrameTransformUnlocked(frame);
-}
-
-inline Servo::isometry3_t
-Servo::getFrameTransformUnlocked(const std::string& frame) const
-{
     return robot_state_->getGlobalLinkTransform(parameters_.planning_frame)
 	  .inverse()
 	 * robot_state_->getGlobalLinkTransform(frame);
+}
+
+//! Change the controlled link. Often, this is the end effector
+/*!
+  This must be a link on the robot since MoveIt tracks the transform (not tf)
+*/
+inline void
+Servo::changeRobotLinkCommandFrame(const std::string& new_command_frame)
+{
+    parameters_.robot_link_command_frame = new_command_frame;
 }
 
 inline uint

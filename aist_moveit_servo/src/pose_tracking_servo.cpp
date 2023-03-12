@@ -48,7 +48,7 @@ struct NullFF
 {
     using pose_t = geometry_msgs::PoseStamped;
     
-		NullFF(const ros::NodeHandle&)			{}
+		NullFF()					{}
     
     void	resetInput()					{}
     bool	haveRecentInput(const ros::Duration&)	const	{ return true;}
@@ -65,12 +65,12 @@ main(int argc, char* argv[])
 {
     using namespace	aist_moveit_servo;
     
-    const std::string	logname("pose_tracking_servo");
+    constexpr char	LOGNAME[] = "pose_tracking_servo";
 
-    ros::init(argc, argv, logname);
+    ros::init(argc, argv, LOGNAME);
 
     ros::NodeHandle		nh("~");
-    PoseTrackingServo<NullFF>	servo(nh, logname);
+    PoseTrackingServo<NullFF>	servo(nh, "robot_description", LOGNAME);
     servo.run();
 
     return 0;
