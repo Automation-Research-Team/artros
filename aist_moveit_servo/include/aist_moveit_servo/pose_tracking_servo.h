@@ -1,7 +1,8 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2020, PickNik LLC
+ *  Copyright (c) 2023, National Institute of Industrial Scienece
+ *  and Technology (AIST)
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -34,6 +35,7 @@
 /*
  *  \file	pose_tracking_servo.h
  *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
+ *  \author	Toshio UESHIBA
  */
 #pragma once
 
@@ -50,39 +52,21 @@
 #include <aist_moveit_servo/make_shared_from_pool.h>
 
 // Conventions:
-// Calculations are done in the planning_frame_ unless otherwise noted.
+// Calculations are done in the planning_frame unless otherwise noted.
 
 namespace aist_moveit_servo
 {
 /************************************************************************
-*  struct NullFeedForward						*
-************************************************************************/
-struct NullFeedForward
-{
-		NullFeedForward(const ros::NodeHandle&)		{}
-    
-    void	resetInput()					{}
-    bool	haveRecentInput(const ros::Duration&)	const	{ return true; }
-};
-    
-/************************************************************************
 *  class PoseTrackingServo<FF>						*
 ************************************************************************/
-// Conventions:
-// Calculations are done in the planning_frame_ unless otherwise noted.
-template <class FF=NullFeedForward>
-class PoseTrackingServo
+template <class FF>
+class PoseTrackingServo : public Servo
 {
   private:
     using server_t	 = actionlib::SimpleActionServer<PoseTrackingAction>;
     using goal_cp	 = boost::shared_ptr<const server_t::Goal>;
-    using ddr_t		 = ddynamic_reconfigure::DDynamicReconfigure;
     using servo_status_t = aist_moveit_servo::StatusCode;
     using int8_cp	 = std_msgs::Int8ConstPtr;
-    using twist_t	 = geometry_msgs::TwistStamped;
-    using twist_cp	 = geometry_msgs::TwistStampedConstPtr;
-    using pose_t	 = geometry_msgs::PoseStamped;
-    using pose_cp	 = geometry_msgs::PoseStampedConstPtr;
     using raw_pose_t	 = geometry_msgs::Pose;
     using vector3_t	 = Eigen::Vector3d;
     using angle_axis_t	 = Eigen::AngleAxisd;
@@ -92,37 +76,28 @@ class PoseTrackingServo
     
     struct PIDConfig
     {
-	double	k_p = 1;
-	double	k_i = 0;
-	double	k_d = 0;
+	double	k_p	     = 1;
+	double	k_i	     = 0;
+	double	k_d	     = 0;
 	double	windup_limit = 0.1;
     };
 
   public:
 		PoseTrackingServo(const ros::NodeHandle& nh,
+				  const std::string& robot_description,
 				  const std::string& logname)		;
 		~PoseTrackingServo()					;
 
     void	run()							;
-    void	tick()							;
 
   private:
     void	readROSParams()						;
-    ros::Duration
-		expectedCycleTime() const
-		{
-		    return ros::Duration(servo_.getParameters().publish_period);
-		}
-
-    void	servoStatusCB(const int8_cp& msg)	;
-    void	targetPoseCB(const pose_cp& msg)			;
-    void	goalCB()						;
-    void	preemptCB()						;
-    void	calculatePoseError(const raw_pose_t& offset,
+    void	tick()							;
+    pose_t	correctTargetPose(const raw_pose_t& offset)	const	;
+    void	calculatePoseError(const pose_t& target_pose,
 				   vector3_t& positional_error,
 				   angle_axis_t& angular_error)	const	;
-
-    twist_cp	calculateTwistCommand(const vector3_t& positional_error,
+    twist_t	calculateTwistCommand(const vector3_t& positional_error,
 				      const angle_axis_t& angular_error);
     void	stopMotion()						;
     void	doPostMotionReset()					;
@@ -132,40 +107,52 @@ class PoseTrackingServo
 					 double cutoff_frequency)	;
 
   // PID stuffs
-    void	updatePositionPIDs(double PIDConfig::* field,
-				   double value)			;
-    void	updateOrientationPID(double PIDConfig::* field,
-				     double value)			;
+    void	updateLinearPIDs(double PIDConfig::* field,
+				 double value)				;
+    void	updateAngularPID(double PIDConfig::* field,
+				 double value)				;
     void	updatePID(const PIDConfig& pid_config, pid_t& pid)	;
 
+  // PostTrackingAction stuffs
+    void	goalCB()						;
+    void	preemptCB()						;
+
+  // Servo status stuffs
+    void	servoStatusCB(const int8_cp& servo_status)		;
+    servo_status_t
+		servoStatus()					const	;
+    void	resetServoStatus()					;
+    
   // Target pose stuffs
-    void	resetTargetPose()					;
+    void	targetPoseCB(const pose_cp& target_pose)		;
+    pose_t	targetPose()					const	;
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
+    void	resetTargetPose()					;
 
   private:
+  // ROS
     ros::NodeHandle		nh_;
-    const std::string		logname_;
-    
-    Servo			servo_;
-    servo_status_t		servo_status_;
-
     ros::ServiceClient		reset_servo_status_;
     const ros::Subscriber	servo_status_sub_;
     const ros::Subscriber	target_pose_sub_;
-    const ros::Publisher	twist_pub_;
-    const ros::Publisher	predictive_pose_pub_;
     const ros::Publisher	target_pose_debug_pub_;
     const ros::Publisher	ee_pose_debug_pub_;
     DurationArray&		durations_;
-
-    feed_forward_t		ff_;
+    ddr_t			ddr_;
 
   // Action server stuffs
     server_t			pose_tracking_srv_;
     goal_cp			current_goal_;
 
-  // Dynamic reconfigure server
-    ddr_t			ddr_;
+  // Servo status stuffs
+    servo_status_t		servo_status_;
+    mutable std::mutex		servo_status_mtx_;
+
+  // Target pose stuffs
+    pose_t			target_pose_;
+    mutable std::mutex		target_pose_mtx_;
+
+    feed_forward_t		ff_;
 
   // Filters for input target pose
     int				input_low_pass_filter_half_order_;
@@ -176,64 +163,55 @@ class PoseTrackingServo
     PIDConfig			linear_pid_config_;
     PIDConfig			angular_pid_config_;
     std::array<pid_t, 4>	pids_;
-
-  // Servo inputs
-    pose_t			target_pose_;
-    mutable std::mutex		input_mtx_;
 };
 
 template <class FF>
 PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
+					 const std::string& robot_description,
 					 const std::string& logname)
-    :nh_(nh),
-     logname_(logname),
-     servo_(nh_, createPlanningSceneMonitor("robot_description")),
-     servo_status_(servo_status_t::INVALID),
+    :Servo(nh, robot_description, logname),
+     nh_(nh),
 
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
-     servo_status_sub_(nh_.subscribe(servo_.getParameters().status_topic, 1,
+     servo_status_sub_(nh_.subscribe(servoParameters().status_topic, 1,
 				     &PoseTrackingServo::servoStatusCB, this)),
      target_pose_sub_(nh_.subscribe(
 			  "/target_pose", 1,
 			  &PoseTrackingServo::targetPoseCB, this,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
-     twist_pub_(nh_.advertise<twist_t>(
-		    servo_.getParameters().cartesian_command_in_topic, 1)),
-     predictive_pose_pub_(
-	 servo_.getParameters().predictive_pose_topic.empty() ?
-	 ros::Publisher() :
-	 nh_.advertise<pose_t>(
-	     servo_.getParameters().predictive_pose_topic, 1)),
      target_pose_debug_pub_(nh_.advertise<pose_t>("desired_pose", 1)),
      ee_pose_debug_pub_(nh_.advertise<pose_t>("actual_pose", 1)),
-     durations_(servo_.durations()),
-
-     ff_(nh_),
+     durations_(durations()),
+     ddr_(ros::NodeHandle(nh_, "pose_tracking")),
 
      pose_tracking_srv_(nh_, "pose_tracking", false),
      current_goal_(nullptr),
-     ddr_(ros::NodeHandle(nh_, "pose_tracking")),
 
+     servo_status_(servo_status_t::NO_WARNING),
+     servo_status_mtx_(),
+     
+     target_pose_(),
+     target_pose_mtx_(),
+
+     ff_(),
+     
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
-			    expectedCycleTime().toSec()),
+			    servoParameters().publish_period),
 
      linear_pid_config_(),
      angular_pid_config_(),
-     pids_(),
-
-     target_pose_(),
-     input_mtx_()
+     pids_()
 {
     readROSParams();
 
   // Initialize input lowpass-filter
     input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
 				      input_low_pass_filter_cutoff_frequency_ *
-				      expectedCycleTime().toSec());
+				      servoParameters().publish_period);
 
   // Initialize PID controllers
     for (size_t i = 0; i < 3; ++i)
@@ -270,21 +248,21 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  linear_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::updateLinearPIDs,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for translation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("linear_integral_gain",
 				  linear_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::updateLinearPIDs,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for translation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("linear_derivative_gain",
 				  linear_pid_config_.k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::updatePositionPIDs,
+					      ::updateLinearPIDs,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for translation",
 				  0.0, 20.0);
@@ -292,27 +270,27 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
     ddr_.registerVariable<double>("angular_proportinal_gain",
 				  angular_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::updateAngularPID,
 					      this, &PIDConfig::k_p, _1),
 				  "Proportional gain for rotation",
 				  0.5, 300.0);
     ddr_.registerVariable<double>("angular_integral_gain",
 				  angular_pid_config_.k_i,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::updateAngularPID,
 					      this, &PIDConfig::k_i, _1),
 				  "Integral gain for rotation",
 				  0.0, 20.0);
     ddr_.registerVariable<double>("angular_derivative_gain",
 				  angular_pid_config_.k_d,
 				  boost::bind(&PoseTrackingServo
-					      ::updateOrientationPID,
+					      ::updateAngularPID,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for rotation",
 				  0.0, 20.0);
     ddr_.publishServicesTopics();
 
-    ROS_INFO_STREAM_NAMED(logname_, "(PoseTrackingServo) server started");
+    ROS_INFO_STREAM_NAMED(logname, "(PoseTrackingServo) server started");
 }
 
 template <class FF>
@@ -327,108 +305,14 @@ PoseTrackingServo<FF>::run()
     ros::AsyncSpinner	spinner(8);
     spinner.start();
 
-    for (ros::Rate loop_rate(1.0 / servo_.getParameters().publish_period);
-	 ros::ok(); )
+    for (ros::Rate rate(1.0/servoParameters().publish_period);
+	 ros::ok(); rate.sleep())
     {
 	tick();
-	loop_rate.sleep();
     }
 
     spinner.stop();
     ros::waitForShutdown();
-}
-
-template <class FF> void
-PoseTrackingServo<FF>::tick()
-{
-    durations_.tick_begin = (ros::Time::now() -
-			     durations_.header.stamp).toSec();
-
-    if (!pose_tracking_srv_.isActive())
-	return;
-
-  // Continue sending PID controller output to Servo
-  // until one of the following conditions is met:
-  // - Servo status is not in emergency
-  // - Target pose becomes outdated
-  // - Command frame transform becomes outdated
-  // - Goal tolerance is satisfied
-
-  // Check servo status
-    switch (servo_status_)
-    {
-      case servo_status_t::HALT_FOR_SINGULARITY:
-      case servo_status_t::HALT_FOR_COLLISION:
-      case servo_status_t::JOINT_BOUND:
-      {
-	doPostMotionReset();
-	PoseTrackingResult	result;
-	result.status = static_cast<int8_t>(servo_status_);
-	pose_tracking_srv_.setAborted(result);
-	ROS_ERROR_STREAM_NAMED(logname_, "(PoseTrackingServo) goal ABORTED["
-			       << SERVO_STATUS_CODE_MAP.at(servo_status_)
-			       << ']');
-	return;
-      }
-
-      default:
-	break;
-    }
-
-  // Check that target pose is recent enough.
-    if (!haveRecentTargetPose(current_goal_->timeout) ||
-	!ff_.haveRecentInput(current_goal_->timeout))
-    {
-    	doPostMotionReset();
-	PoseTrackingResult	result;
-	result.status = PoseTrackingResult::INPUT_TIMEOUT;
-    	pose_tracking_srv_.setAborted(result);
-        ROS_ERROR_STREAM_NAMED(logname_, "(PoseTrackingServo) goal ABORTED["
-    			       << "The target pose was not updated recently."
-			       << ']');
-
-    	return;
-    }
-
-  // Compute positional and angular errors.
-    vector3_t		positional_error;
-    angle_axis_t	angular_error;
-    calculatePoseError(current_goal_->target_offset,
-		       positional_error, angular_error);
-
-  // Check if goal tolerance is satisfied.
-    if (std::abs(positional_error(0)) <
-	current_goal_->positional_tolerance[0] &&
-	std::abs(positional_error(1)) <
-	current_goal_->positional_tolerance[1] &&
-	std::abs(positional_error(2)) <
-	current_goal_->positional_tolerance[2] &&
-	std::abs(angular_error.angle()) < current_goal_->angular_tolerance)
-    {
-	doPostMotionReset();
-	PoseTrackingResult	result;
-	result.status = PoseTrackingResult::NO_ERROR;
-	pose_tracking_srv_.setSucceeded(result);
-	ROS_INFO_STREAM_NAMED(logname_, "(PoseTrackingServo) goal SUCCEEDED");
-
-	return;
-    }
-
-  // Publish tracking result as feedback.
-    PoseTrackingFeedback	feedback;
-    feedback.positional_error[0] = positional_error(0);
-    feedback.positional_error[1] = positional_error(1);
-    feedback.positional_error[2] = positional_error(2);
-    feedback.angular_error	 = angular_error.angle();
-    feedback.status		 = static_cast<int8_t>(servo_status_);
-    pose_tracking_srv_.publishFeedback(feedback);
-
-  // Compute servo command from PID controller output and send it
-  // to the Servo object, for execution
-    twist_pub_.publish(calculateTwistCommand(positional_error, angular_error));
-
-    durations_.twist_out = (ros::Time::now() -
-			    durations_.header.stamp).toSec();
 }
 
 /*
@@ -448,141 +332,160 @@ PoseTrackingServo<FF>::readROSParams()
 
   // Setup input low-pass filter
     std::size_t error = 0;
-    error += !rosparam_shortcuts::get(logname_, nh,
+    error += !rosparam_shortcuts::get(logname(), nh,
 				      "input_low_pass_filter_half_order",
 				      input_low_pass_filter_half_order_);
-    error += !rosparam_shortcuts::get(logname_, nh,
+    error += !rosparam_shortcuts::get(logname(), nh,
 				      "input_low_pass_filter_cutoff_frequency",
 				      input_low_pass_filter_cutoff_frequency_);
 
   // Setup PID configurations
     double	windup_limit;
-    error += !rosparam_shortcuts::get(logname_, nh, "windup_limit",
+    error += !rosparam_shortcuts::get(logname(), nh, "windup_limit",
 				      windup_limit);
     linear_pid_config_.windup_limit  = windup_limit;
     angular_pid_config_.windup_limit = windup_limit;
 
-    error += !rosparam_shortcuts::get(logname_, nh, "linear_proportional_gain",
+    error += !rosparam_shortcuts::get(logname(), nh, "linear_proportional_gain",
 				      linear_pid_config_.k_p);
-    error += !rosparam_shortcuts::get(logname_, nh, "linear_integral_gain",
+    error += !rosparam_shortcuts::get(logname(), nh, "linear_integral_gain",
 				      linear_pid_config_.k_i);
-    error += !rosparam_shortcuts::get(logname_, nh, "linear_derivative_gain",
+    error += !rosparam_shortcuts::get(logname(), nh, "linear_derivative_gain",
 				      linear_pid_config_.k_d);
-    error += !rosparam_shortcuts::get(logname_, nh, "angular_proportional_gain",
+    error += !rosparam_shortcuts::get(logname(), nh, "angular_proportional_gain",
 				      angular_pid_config_.k_p);
-    error += !rosparam_shortcuts::get(logname_, nh, "angular_integral_gain",
+    error += !rosparam_shortcuts::get(logname(), nh, "angular_integral_gain",
 				      angular_pid_config_.k_i);
-    error += !rosparam_shortcuts::get(logname_, nh, "angular_derivative_gain",
+    error += !rosparam_shortcuts::get(logname(), nh, "angular_derivative_gain",
 				      angular_pid_config_.k_d);
 
     rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
 }
 
 template <class FF> void
-PoseTrackingServo<FF>::servoStatusCB(const int8_cp& msg)
+PoseTrackingServo<FF>::tick()
 {
-    servo_status_ = static_cast<servo_status_t>(msg->data);
-}
-
-template <class FF> void
-PoseTrackingServo<FF>::targetPoseCB(const pose_cp& msg)
-{
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
-
-    target_pose_ = *msg;
-
-  // Prevent doTransform from copying a stamp of 0,
-  // which will cause the haveRecentTargetPose check to fail servo motions
-    if (target_pose_.header.stamp == ros::Time(0))
-	target_pose_.header.stamp = ros::Time::now();
-
-    durations_.header	      = target_pose_.header;
-    durations_.target_pose_in = (ros::Time::now() -
-				 durations_.header.stamp).toSec();
-
-  // If the target pose is not defined in planning frame, transform it.
-    if (target_pose_.header.frame_id != servo_.getParameters().planning_frame)
-    {
-	auto Tpt = tf2::eigenToTransform(servo_.getFrameTransform(
-					     target_pose_.header.frame_id));
-	Tpt.header.stamp    = target_pose_.header.stamp;
-	Tpt.header.frame_id = servo_.getParameters().planning_frame;
-	Tpt.child_frame_id  = target_pose_.header.frame_id;
-	tf2::doTransform(target_pose_, target_pose_, Tpt);
-    }
-}
-
-template <class FF> void
-PoseTrackingServo<FF>::goalCB()
-{
-    resetTargetPose();
-    ff_.resetInput();
-
-  // Wait a bit for a target pose message to arrive.
-  // The target pose may get updated by new messages as the robot moves
-  // (in a callback function).
-    const ros::Duration	DEFAULT_INPUT_TIMEOUT(0.5);
+    update();
     
-    for (const auto start_time = ros::Time::now();
-	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
-	 ros::Duration(0.001).sleep())
+    if (!pose_tracking_srv_.isActive())
+	return;
+
+    durations_.tick_begin = (ros::Time::now() -
+			     durations_.header.stamp).toSec();
+
+    const auto	servo_status = servoStatus();
+
+  // Check that servo status is not emergency.
+    switch (servo_status)
     {
-	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
-	    ff_.haveRecentInput(DEFAULT_INPUT_TIMEOUT))
-	{
-	    input_low_pass_filter_.reset(target_pose_.pose);
+      case servo_status_t::HALT_FOR_SINGULARITY:
+      case servo_status_t::HALT_FOR_COLLISION:
+      case servo_status_t::JOINT_BOUND:
+      {
+	doPostMotionReset();
 
-	    std_srvs::Empty	empty;
-	    reset_servo_status_.call(empty);
-	    servo_.start();
+	PoseTrackingResult	result;
+	result.status = static_cast<int8_t>(servo_status);
+	pose_tracking_srv_.setAborted(result);
+	ROS_ERROR_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ABORTED["
+			       << SERVO_STATUS_CODE_MAP.at(servo_status)
+			       << ']');
 
-	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
-	    ROS_INFO_STREAM_NAMED(logname_,
-				  "(PoseTrackingServo) goal ACCEPTED");
+	return;
+      }
 
-	    if (pose_tracking_srv_.isPreemptRequested())
-		preemptCB();
-
-	    return;
-	}
+      default:
+	break;
     }
 
-  // No target pose available recently.
-  // Once accept the pending goal and then abort it immediately.
-    current_goal_ = pose_tracking_srv_.acceptNewGoal();
-    PoseTrackingResult	result;
-    result.status = static_cast<int8_t>(servo_status_);
-    pose_tracking_srv_.setAborted(result);
-
-    ROS_ERROR_STREAM_NAMED(logname_,
-			   "(PoseTrackingServo) Cannot accept goal because no target pose available recently.");
-}
-
-template <class FF> void
-PoseTrackingServo<FF>::preemptCB()
-{
-    doPostMotionReset();
-    PoseTrackingResult	result;
-    result.status = static_cast<int8_t>(servo_status_);
-    pose_tracking_srv_.setPreempted(result);
-    ROS_WARN_STREAM_NAMED(logname_, "(PoseTrackingServo) goal CANCELED");
-}
-
-template <class FF> void
-PoseTrackingServo<FF>::calculatePoseError(const raw_pose_t& offset,
-					  vector3_t& positional_error,
-					  angle_axis_t& angular_error) const
-{
-    pose_t	target_pose;
+  // Check that target pose is recent enough.
+    if (!haveRecentTargetPose(current_goal_->timeout) ||
+	!ff_.haveRecentInput(current_goal_->timeout))
     {
-	const std::lock_guard<std::mutex>	lock(input_mtx_);
+    	doPostMotionReset();
 
-	target_pose = target_pose_;
+	PoseTrackingResult	result;
+	result.status = PoseTrackingResult::INPUT_TIMEOUT;
+    	pose_tracking_srv_.setAborted(result);
+        ROS_ERROR_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ABORTED["
+    			       << "The target pose was not updated recently."
+			       << ']');
+
+	return;
     }
+
+  // Correct target pose by offset specified by the goal.
+    const auto	target_pose = correctTargetPose(current_goal_->target_offset);
+    
+  // Add feed forward term to target pose and publish as feed-forward command.
+    ff_.publish(target_pose, ros::Duration(servoParameters().publish_period));
+    
+  // Compute positional and angular errors.
+    vector3_t		positional_error;
+    angle_axis_t	angular_error;
+    calculatePoseError(target_pose, positional_error, angular_error);
+
+  // Check if goal tolerance is satisfied.
+    if (std::abs(positional_error(0)) <
+	current_goal_->positional_tolerance[0] &&
+	std::abs(positional_error(1)) <
+	current_goal_->positional_tolerance[1] &&
+	std::abs(positional_error(2)) <
+	current_goal_->positional_tolerance[2] &&
+	std::abs(angular_error.angle()) < current_goal_->angular_tolerance)
+    {
+	doPostMotionReset();
+
+	PoseTrackingResult	result;
+	result.status = PoseTrackingResult::NO_ERROR;
+	pose_tracking_srv_.setSucceeded(result);
+	ROS_INFO_STREAM_NAMED(logname(), "(PoseTrackingServo) goal SUCCEEDED");
+	return;
+    }
+
+  // Publish tracking result as feedback.
+    PoseTrackingFeedback	feedback;
+    feedback.positional_error[0] = positional_error(0);
+    feedback.positional_error[1] = positional_error(1);
+    feedback.positional_error[2] = positional_error(2);
+    feedback.angular_error	 = angular_error.angle();
+    feedback.status		 = static_cast<int8_t>(servo_status);
+    pose_tracking_srv_.publishFeedback(feedback);
+
+  // Compute servo command from PID controller output and send it
+  // to the Servo object, for execution
+    const auto	twist_cmd = calculateTwistCommand(positional_error,
+						  angular_error);
+
+    durations_.twist_out = (ros::Time::now() -
+			    durations_.header.stamp).toSec();
+
+    publishTrajectory(twist_cmd);
+}
+
+template <class FF> typename PoseTrackingServo<FF>::pose_t
+PoseTrackingServo<FF>::correctTargetPose(const raw_pose_t& offset) const
+{
+    auto	target_pose = targetPose();
 
   // Apply input low-pass filter
     target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
     aist_utility::normalize(target_pose.pose.orientation);
+
+  // If the target pose is not defined in planning frame, transform it.
+    if (target_pose.header.frame_id != servoParameters().planning_frame)
+    {
+	auto Tpt = tf2::eigenToTransform(getFrameTransform(
+					     target_pose.header.frame_id));
+	Tpt.header.stamp    = target_pose.header.stamp;
+	Tpt.header.frame_id = servoParameters().planning_frame;
+	Tpt.child_frame_id  = target_pose.header.frame_id;
+	tf2::doTransform(target_pose, target_pose, Tpt);
+    }
+
+    durations_.header	      = target_pose.header;
+    durations_.target_pose_in = (ros::Time::now() -
+				 durations_.header.stamp).toSec();
 
   // Correct target_pose by offset
     tf2::Transform	target_transform;
@@ -591,11 +494,15 @@ PoseTrackingServo<FF>::calculatePoseError(const raw_pose_t& offset,
     tf2::fromMsg(offset, offset_transform);
     tf2::toMsg(target_transform * offset_transform, target_pose.pose);
 
-  // Publish corrected pose for debugging
-    target_pose_debug_pub_.publish(target_pose);
+    return target_pose;
+}
 
-  // Compute errors
-    const auto	Tpe = servo_.getEEFrameTransform();
+template <class FF> void
+PoseTrackingServo<FF>::calculatePoseError(const pose_t& target_pose,
+					  vector3_t& positional_error,
+					  angle_axis_t& angular_error) const
+{
+    const auto	Tpe = getFrameTransform(servoParameters().ee_frame_name);
     positional_error(0) = target_pose.pose.position.x - Tpe.translation()(0);
     positional_error(1) = target_pose.pose.position.y - Tpe.translation()(1);
     positional_error(2) = target_pose.pose.position.z - Tpe.translation()(2);
@@ -604,53 +511,39 @@ PoseTrackingServo<FF>::calculatePoseError(const raw_pose_t& offset,
     tf2::convert(target_pose.pose.orientation, q_desired);
     angular_error = q_desired * Eigen::Quaterniond(Tpe.rotation()).inverse();
 
-  // For debugging
-    const auto	ee_pose = tf2::toMsg(
-			       tf2::Stamped<Eigen::Isometry3d>(
-				   Tpe, ros::Time::now(),
-				   servo_.getParameters().planning_frame));
+  // Publish target pose and current pose for debugging.
+    target_pose_debug_pub_.publish(target_pose);
+    const auto	ee_pose = tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+					 Tpe, ros::Time::now(),
+					 servoParameters().planning_frame));
     ee_pose_debug_pub_.publish(ee_pose);
-  /*
-    if (!servo_.getJointPositions(ee_pose, ff_positions_))
-    {
-	std::cerr << "***getJointPositions() failed." << std::endl;
-	return;
-    }
-
-    std::cerr << "*** joint_positions = " << ff_positions_.transpose()
-	      << std::endl;
-  */
 }
 
-template <class FF> typename PoseTrackingServo<FF>::twist_cp
+template <class FF> typename PoseTrackingServo<FF>::twist_t
 PoseTrackingServo<FF>::calculateTwistCommand(const vector3_t& positional_error,
 					     const angle_axis_t& angular_error)
 {
   // use the shared pool to create a message more efficiently
-    const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
-    {
-	const std::lock_guard<std::mutex>	lock(input_mtx_);
+    twist_t		twist_cmd;
+    auto&		twist = twist_cmd.twist;
+    const ros::Duration	dt(servoParameters().publish_period);
 
-	msg->header.frame_id = target_pose_.header.frame_id;
-    }
-
-  // Get twist components from PID controllers
-    auto&	twist = msg->twist;
-    const auto	dt = expectedCycleTime();
+  // Get linear components of twist from PID controllers
     twist.linear.x = pids_[0].computeCommand(positional_error(0), dt);
     twist.linear.y = pids_[1].computeCommand(positional_error(1), dt);
     twist.linear.z = pids_[2].computeCommand(positional_error(2), dt);
 
-  // Anglular components
+  // Get angula components of twist from PID controllers
     const auto	ang_vel_magnitude = pids_[3].computeCommand(
 						angular_error.angle(), dt);
     twist.angular.x = ang_vel_magnitude * angular_error.axis()[0];
     twist.angular.y = ang_vel_magnitude * angular_error.axis()[1];
     twist.angular.z = ang_vel_magnitude * angular_error.axis()[2];
 
-    msg->header.stamp = ros::Time::now();
+    twist_cmd.header.frame_id = servoParameters().planning_frame;
+    twist_cmd.header.stamp    = ros::Time::now();
 
-    return msg;
+    return twist_cmd;
 }
 
 template <class FF> void
@@ -667,14 +560,17 @@ template <class FF> void
 PoseTrackingServo<FF>::stopMotion()
 {
   // Send a 0 command to Servo to halt arm motion
-    const auto	msg = moveit::util::make_shared_from_pool<twist_t>();
-    {
-	const std::lock_guard<std::mutex>	lock(input_mtx_);
-
-	msg->header.frame_id = target_pose_.header.frame_id;
-    }
-    msg->header.stamp = ros::Time::now();
-    twist_pub_.publish(msg);
+    twist_t	twist_cmd;
+    twist_cmd.header.frame_id = "";
+    twist_cmd.header.stamp    = ros::Time::now();
+    twist_cmd.twist.linear.x  = 0;
+    twist_cmd.twist.linear.y  = 0;
+    twist_cmd.twist.linear.z  = 0;
+    twist_cmd.twist.angular.x = 0;
+    twist_cmd.twist.angular.y = 0;
+    twist_cmd.twist.angular.z = 0;
+    
+    publishTrajectory(twist_cmd);
 }
 
 // Low-pass filter stuffs
@@ -687,29 +583,25 @@ PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
 
     input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
 				      input_low_pass_filter_cutoff_frequency_*
-				      expectedCycleTime().toSec());
+				      servoParameters().publish_period);
 
-    input_low_pass_filter_.reset(target_pose_.pose);
+    input_low_pass_filter_.reset(targetPose().pose);
 }
 
 // PID controller stuffs
 template <class FF> void
-PoseTrackingServo<FF>::updatePositionPIDs(double PIDConfig::* field,
-					  double value)
+PoseTrackingServo<FF>::updateLinearPIDs(double PIDConfig::* field,
+					double value)
 {
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
-
     linear_pid_config_.*field = value;
     for (size_t i = 0; i < 3; ++i)
 	updatePID(linear_pid_config_, pids_[i]);
 }
 
 template <class FF> void
-PoseTrackingServo<FF>::updateOrientationPID(double PIDConfig::* field,
-					    double value)
+PoseTrackingServo<FF>::updateAngularPID(double PIDConfig::* field,
+					double value)
 {
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
-
     angular_pid_config_.*field = value;
     updatePID(angular_pid_config_, pids_[3]);
 }
@@ -721,22 +613,124 @@ PoseTrackingServo<FF>::updatePID(const PIDConfig& pid_config, pid_t& pid)
 		pid_config.windup_limit, -pid_config.windup_limit, true);
 }
 
+// PoseTrackingAction stuffs
+template <class FF> void
+PoseTrackingServo<FF>::goalCB()
+{
+    resetServoStatus();
+    resetTargetPose();
+    ff_.resetInput();
+
+  // Wait a bit for a target pose message to arrive.
+  // The target pose may get updated by new messages as the robot moves
+  // (in a callback function).
+    const ros::Duration	DEFAULT_INPUT_TIMEOUT(0.5);
+    
+    for (const auto start_time = ros::Time::now();
+	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
+	 ros::Duration(0.001).sleep())
+    {
+	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
+	    ff_.haveRecentInput(DEFAULT_INPUT_TIMEOUT))
+	{
+	    input_low_pass_filter_.reset(targetPose().pose);
+
+	    std_srvs::Empty	empty;
+	    reset_servo_status_.call(empty);
+	    start();
+
+	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
+	    ROS_INFO_STREAM_NAMED(logname(),
+				  "(PoseTrackingServo) goal ACCEPTED");
+
+	    if (pose_tracking_srv_.isPreemptRequested())
+		preemptCB();
+
+	    return;
+	}
+    }
+
+  // No target pose available recently.
+  // Once accept the pending goal and then abort it immediately.
+    current_goal_ = pose_tracking_srv_.acceptNewGoal();
+    PoseTrackingResult	result;
+    result.status = PoseTrackingResult::INPUT_TIMEOUT;
+    pose_tracking_srv_.setAborted(result);
+
+    ROS_ERROR_STREAM_NAMED(logname(),
+			   "(PoseTrackingServo) Cannot accept goal because no target pose available recently.");
+}
+
+template <class FF> void
+PoseTrackingServo<FF>::preemptCB()
+{
+    doPostMotionReset();
+
+    PoseTrackingResult	result;
+    result.status = static_cast<int8_t>(servoStatus());
+    pose_tracking_srv_.setPreempted(result);
+    ROS_WARN_STREAM_NAMED(logname(), "(PoseTrackingServo) goal CANCELED");
+}
+
+// Servo status stuffs
+template <class FF> void
+PoseTrackingServo<FF>::servoStatusCB(const int8_cp& servo_status)
+{
+    const std::lock_guard<std::mutex>	lock(servo_status_mtx_);
+
+    servo_status_ = static_cast<servo_status_t>(servo_status->data);
+}
+
+template <class FF> typename PoseTrackingServo<FF>::servo_status_t
+PoseTrackingServo<FF>::servoStatus() const
+{
+    const std::lock_guard<std::mutex>	lock(servo_status_mtx_);
+
+    return servo_status_;
+}
+
+template <class FF> void
+PoseTrackingServo<FF>::resetServoStatus()
+{
+    const std::lock_guard<std::mutex>	lock(servo_status_mtx_);
+
+    servo_status_ = servo_status_t::NO_WARNING;
+}
+
 // Target pose stuffs
 template <class FF> void
-PoseTrackingServo<FF>::resetTargetPose()
+PoseTrackingServo<FF>::targetPoseCB(const pose_cp& target_pose)
 {
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
-    target_pose_	      = pose_t();
-    target_pose_.header.stamp = ros::Time(0);
+    target_pose_ = *target_pose;
+
+    if (target_pose_.header.stamp == ros::Time(0))
+	target_pose_.header.stamp = ros::Time::now();
+}
+
+template <class FF> typename PoseTrackingServo<FF>::pose_t
+PoseTrackingServo<FF>::targetPose() const
+{
+    const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
+
+    return target_pose_;
 }
 
 template <class FF> bool
 PoseTrackingServo<FF>::haveRecentTargetPose(const ros::Duration& timeout) const
 {
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
-    return (ros::Time::now() - target_pose_.header.stamp < timeout);
+    return ros::Time::now() - target_pose_.header.stamp < timeout;
+}
+
+template <class FF> void
+PoseTrackingServo<FF>::resetTargetPose()
+{
+    const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
+
+    target_pose_.header.stamp = ros::Time(0);
 }
 
 }	// namespace aist_moveit_servo

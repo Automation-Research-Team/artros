@@ -33,28 +33,76 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 /*
- *  \file	pose_tracking_servo.cpp
+ *  \file	linear_tracking_servo.cpp
  *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
  *  \author	Toshio UESHIBA
  */
+#include <mutex>
+#include <thread>
 #include <aist_moveit_servo/pose_tracking_servo.h>
 
 namespace aist_moveit_servo
 {
-/************************************************************************
-*  struct NullFF							*
-************************************************************************/
-struct NullFF
+class LinearFeedForward
 {
-    using pose_t = geometry_msgs::PoseStamped;
+  private:
+    using vector3_t	 = geometry_msgs::Vector3Stamped;
+    using vector3_cp	 = geometry_msgs::Vector3StampedConstPtr;
+    using pose_t	 = geometry_msgs::PoseStamped;
+    using pose_cp	 = geometry_msgs::PoseStampedConstPtr;
     
-		NullFF()					{}
+  public:
+		LinearFeedForward(const ros::NodeHandle& nh)		;
+
+    void	resetInput()						;
+    bool	haveRecentInput(const ros::Duration&)		const	;
+    void	publishPredictivePose(const pose_t& desired_pose,
+				      const ros::Duration& dt)	const	;
     
-    void	resetInput()					{}
-    bool	haveRecentInput(const ros::Duration&)	const	{ return true;}
-    void	publish(const pose_t&,
-			const ros::Duration&)		const	{}
+  private:
+    void	velocityCB(const vector3_cp& velocity)			;
+    
+  private:
+    ros::NodeHandle		nh_;
+    const ros::Subscriber	velocity_sub_;
+    const ros::Publisher	pose_pub_;
+    veclocity_t			velocity_;
+    mutable std::mutex		input_mutex_;
 };
+
+LinearFeedForward::LinearFeedForward(const ros::NodeHandle& nh)
+    :nh_(nh),
+     velocity_sub_(nh_.subscribe("/velocity",
+				 &LinearFeedForward::velocityCB, this)),
+     pose_pub_(nh_.advertise<pose_t>(nh_.param<std::string>(), 1))
+{
+}
+
+void
+LinearFeedForward::resetTargetPose()
+{
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
+
+    velocity_		   = veloccity_t();
+    velocity_.header.stamp = ros::Time(0);
+}
+    
+bool
+LinearFeedForward::haveRecentInput(const ros::Duration& timeout) const
+{
+    const std::lock_guard<std::mutex>	lock(input_mtx_);
+
+    return (ros::Time::now() - velocity_.header.stamp < timeout);
+}
+    
+void
+LinearFeedForward::velocityCB(const vector3_cp& velocity)
+{
+    const std::lock_guard<std::mutex> lock(input_mutex_);
+
+    velocity_ = *velocity;
+}
+    
 }	// namespace aist_moveit_servo
 
 /************************************************************************
@@ -63,14 +111,12 @@ struct NullFF
 int
 main(int argc, char* argv[])
 {
-    using namespace	aist_moveit_servo;
-    
-    constexpr char	LOGNAME[] = "pose_tracking_servo";
+    const std::string	logname("conveyor_tracking_servo");
 
-    ros::init(argc, argv, LOGNAME);
+    ros::init(argc, argv, logname);
 
-    ros::NodeHandle		nh("~");
-    PoseTrackingServo<NullFF>	servo(nh, "robot_description", LOGNAME);
+    ros::NodeHandle	nh("~");
+    aist_moveit_servo::PoseTrackingServo<>	servo(nh, logname);
     servo.run();
 
     return 0;

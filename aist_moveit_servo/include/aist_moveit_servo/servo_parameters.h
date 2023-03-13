@@ -50,41 +50,56 @@ struct ServoParameters
 {
     ServoParameters(const ros::NodeHandle& nh, const std::string& logname);
 
-    std::string	move_group_name;
-    std::string	joint_topic;
-    std::string	cartesian_command_in_topic;
-    std::string	robot_link_command_frame;
-    std::string	command_out_topic;
-    std::string	planning_frame;
-    std::string	ee_frame_name;
-    std::string	status_topic;
-    std::string	joint_command_in_topic;
+  // Gazebo
+    bool	use_gazebo;
+
+  // Properties of incoming commands
     std::string	command_in_type;
-    std::string	command_out_type;
-    std::string predictive_pose_topic;
+
+  // Scale parameters (only used if command_in_type == "unitless")
     double	linear_scale;
     double	rotational_scale;
     double	joint_scale;
-    double	lower_singularity_threshold;
-    double	hard_stop_singularity_threshold;
+
+  // Low-pass filter applied to output command
     int		low_pass_filter_half_order;
     double	low_pass_filter_cutoff_frequency;
+    
+  // Properties of outgoing commands
+    std::string	command_out_type;
     double	publish_period;
-    double	incoming_command_timeout;
-    double	revolute_joint_limit_margin;
-    double	prismatic_joint_limit_margin;
-    int		num_outgoing_halt_msgs_to_publish;
-    bool	use_gazebo;
+    bool	low_latency_mode;
     bool	publish_joint_positions;
     bool	publish_joint_velocities;
     bool	publish_joint_accelerations;
-    bool	low_latency_mode;
+
+  // MoveIt properties
+    std::string	move_group_name;
+    std::string	planning_frame;
+    std::string	ee_frame_name;
+    std::string	robot_link_command_frame;
+
+  // Stopping behavior
+    double	incoming_command_timeout;
+    int		num_outgoing_halt_msgs_to_publish;
+
+  // Configure handling of sigularities and joint limits
+    double	lower_singularity_threshold;
+    double	hard_stop_singularity_threshold;
+    double	revolute_joint_limit_margin;
+    double	prismatic_joint_limit_margin;
+
+  // Topic names
+    std::string	joint_topic;
+    std::string	status_topic;
+    std::string	command_out_topic;
+
   // Collision checking
     bool	check_collisions;
     std::string	collision_check_type;
     double	collision_check_rate;
-    double	scene_collision_proximity_threshold;
     double	self_collision_proximity_threshold;
+    double	scene_collision_proximity_threshold;
     double	collision_distance_safety_factor;
     double	min_allowable_collision_distance;
 };

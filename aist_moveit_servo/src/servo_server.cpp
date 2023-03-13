@@ -37,27 +37,92 @@
  */
 #include <aist_moveit_servo/servo.h>
 
-namespace
+namespace aist_moveit_servo
 {
-constexpr char LOGNAME[]   = "servo_server";
-constexpr char ROS_THREADS = 8;
-}  // namespace
+/************************************************************************
+*  class ServoServer							*
+************************************************************************/
+class ServoServer : public Servo
+{
+  public:
+		ServoServer(const ros::NodeHandle& nh,
+			    const std::string& robot_description,
+			    const std::string& logname)			;
 
-int
-main(int argc, char** argv)
+    void	run()							;
+
+  private:
+    void	twistCmdCB(const twist_cp& twist_cmd)			;
+    twist_t	twistCmd()					const	;
+    
+  private:
+    ros::NodeHandle		nh_;
+    const ros::Subscriber	twist_cmd_sub_;
+    twist_cp			twist_cmd_;
+    mutable std::mutex		twist_mtx_;
+};
+
+ServoServer::ServoServer(const ros::NodeHandle& nh,
+			 const std::string& robot_description,
+			 const std::string& logname)
+    :Servo(nh, robot_description, logname),
+     nh_(nh),
+     twist_cmd_sub_(nh_.subscribe("delta_twist_cmds", 1,
+				  &ServoServer::twistCmdCB, this)),
+     twist_cmd_(new twist_t()),
+     twist_mtx_()
 {
-    ros::init(argc, argv, LOGNAME);
-    ros::AsyncSpinner	spinner(ROS_THREADS);
+    ROS_INFO_STREAM_NAMED(logname, "(ServoServer) server started");
+}
+
+void
+ServoServer::run()
+{
+    ros::AsyncSpinner	spinner(8);
     spinner.start();
 
-    aist_moveit_servo::Servo
-	servo(ros::NodeHandle("~"),
-	      aist_moveit_servo::createPlanningSceneMonitor(
-		  "robot_description"));
-    servo.start();		// Start the servo server in the ros spinner
+    for (ros::Rate rate(1.0/servoParameters().publish_period);
+	 ros::ok(); rate.sleep())
+    {
+	update();
+	publishTrajectory(twistCmd());
+    }
 
     ros::waitForShutdown();	// Wait for ros to shutdown
-    servo.setPaused(true);	// Stop the servo server
+}
+
+void
+ServoServer::twistCmdCB(const twist_cp& twist_cmd)
+{
+    const std::lock_guard<std::mutex>	lock(twist_mtx_);
+
+    twist_cmd_ = twist_cmd;
+}
+
+ServoServer::twist_t
+ServoServer::twistCmd() const
+{
+    const std::lock_guard<std::mutex>	lock(twist_mtx_);
+
+    return *twist_cmd_;
+}
+}	// namespace aist_moveit_servo
+
+/************************************************************************
+*  global functions							*
+************************************************************************/
+int
+main(int argc, char* argv[])
+{
+    using namespace	aist_moveit_servo;
+    
+    constexpr char	LOGNAME[] = "servo_server";
+
+    ros::init(argc, argv, LOGNAME);
+
+    ServoServer	servo_server(ros::NodeHandle("~"), "robot_description",
+			     LOGNAME);
+    servo_server.run();		// Start the servo server in the ros spinner
 
     return 0;
 }
