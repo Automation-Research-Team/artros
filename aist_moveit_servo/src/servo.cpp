@@ -167,14 +167,14 @@ Servo::Servo(const ros::NodeHandle& nh,
   // Setup joint_trajectory command to be published.
     joint_trajectory_.header.frame_id = parameters_.planning_frame;
     joint_trajectory_.header.stamp    = ros::Time(0);
-    joint_trajectory_.joint_names = joint_group()->getActiveJointModelNames();
+    joint_trajectory_.joint_names = jointGroup()->getActiveJointModelNames();
 
   // Setup a map from joint names to there indices for buffers of actual state.
-    for (size_t i = 0; i < num_joints(); ++i)
+    for (size_t i = 0; i < numJoints(); ++i)
 	joint_indices_[joint_trajectory_.joint_names[i]] = i;
 
   // Low-pass filters for the joint positions
-    for (size_t i = 0; i < num_joints(); ++i)
+    for (size_t i = 0; i < numJoints(); ++i)
     {
 	position_filters_.emplace_back(
 	    parameters_.low_pass_filter_half_order,
@@ -223,7 +223,7 @@ Servo::start()
   // Set current positions and zero velocities to trajectory
   // so that the robot does not move.
     updateJoints();
-    setPointsToTrajectory(actual_positions_, vector_t::Zero(num_joints()));
+    setPointsToTrajectory(actual_positions_, vector_t::Zero(numJoints()));
 
   // Reset output low-pass filters with current positions.
     resetLowPassFilters();
@@ -243,7 +243,7 @@ Servo::stop()
 }
 
 void
-Servo::update()
+Servo::updateRobot()
 {
     publishStatus();			// Publish servo status.
     updateJoints();			// Read robot status.
@@ -264,11 +264,11 @@ Servo::publishTrajectory(const twist_t& twist_cmd, const pose_t& ff_pose)
     tf2::doTransform(ff_pose, ff_pose_in_reference, Trt);
 
   // Solve IK for robot_state.
-    if (robot_state.setFromIK(joint_group(), ff_pose_in_reference.pose,
+    if (robot_state.setFromIK(jointGroup(), ff_pose_in_reference.pose,
 			      parameters_.ee_frame_name))
     {
-	ff_positions_.resize(num_joints());
-	robot_state.copyJointGroupPositions(joint_group(),
+	ff_positions_.resize(numJoints());
+	robot_state.copyJointGroupPositions(jointGroup(),
 					    ff_positions_.data());
     }
 
@@ -351,7 +351,7 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     else
     {
 	setPointsToTrajectory(actual_positions_,
-			      vector_t::Zero(num_joints()), true);
+			      vector_t::Zero(numJoints()), true);
 	resetLowPassFilters();
 
       // Skip the servoing publication if all inputs have been zero
@@ -414,11 +414,11 @@ Servo::updateJoints()
 					  ->getCurrentState();
 
   // Keep original joint positions and velocities.
-    actual_positions_.resize(num_joints());
-    robot_state_->copyJointGroupPositions(joint_group(),
+    actual_positions_.resize(numJoints());
+    robot_state_->copyJointGroupPositions(jointGroup(),
 					  actual_positions_.data());
-    actual_velocities_.resize(num_joints());
-    robot_state_->copyJointGroupVelocities(joint_group(),
+    actual_velocities_.resize(numJoints());
+    robot_state_->copyJointGroupVelocities(jointGroup(),
 					   actual_velocities_.data());
 }
 
@@ -473,7 +473,7 @@ Servo::setTrajectory(const twist_t& twist_cmd, const vector_t& positions)
 	cmd.twist.angular.z = angular(2);
     }
 
-    auto	jacobian = robot_state_->getJacobian(joint_group());
+    auto	jacobian = robot_state_->getJacobian(jointGroup());
     auto	delta_x  = scaleCommand(cmd);
 
   // May allow some dimensions to drift, based on drift_dimensions
@@ -547,7 +547,7 @@ Servo::scaleCommand(const twist_t& twist_cmd) const
 Servo::vector_t
 Servo::scaleCommand(const joint_jog_t& joint_cmd) const
 {
-    vector_t	delta_theta(num_joints());
+    vector_t	delta_theta(numJoints());
     delta_theta.setZero();
 
     const auto joint_scale = (parameters_.command_in_type == "unitless" ?
@@ -606,10 +606,10 @@ Servo::velocityScalingFactorForSingularity(
 
   // Calculate a small change in joints
     vector_t	new_theta;
-    robot_state_->copyJointGroupPositions(joint_group(), new_theta);
+    robot_state_->copyJointGroupPositions(jointGroup(), new_theta);
     new_theta += pseudo_inverse * delta_x;
-    robot_state_->setJointGroupPositions(joint_group(), new_theta);
-    matrix_t	new_jacobian = robot_state_->getJacobian(joint_group());
+    robot_state_->setJointGroupPositions(jointGroup(), new_theta);
+    matrix_t	new_jacobian = robot_state_->getJacobian(jointGroup());
 
     Eigen::JacobiSVD<matrix_t>	new_svd(new_jacobian);
     const auto	new_condition = new_svd.singularValues()(0)
@@ -668,7 +668,7 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
   // specific velocity limits.
     double	bounding_scale = 1.0;
 
-    for (const auto joint : joint_group()->getActiveJointModels())
+    for (const auto joint : jointGroup()->getActiveJointModels())
     {
 	const auto&	bounds	 = joint->getVariableBounds(joint->getName());
 	const auto	i	 = joint_indices_.at(joint->getName());
@@ -736,7 +736,7 @@ bool
 Servo::checkPositionLimits(const vector_t& positions,
 			   const vector_t& delta_theta) const
 {
-    for (const auto joint : joint_group()->getActiveJointModels())
+    for (const auto joint : jointGroup()->getActiveJointModels())
     {
 	using JointType	= moveit::core::JointModel::JointType;
 
@@ -995,7 +995,7 @@ Servo::publishWorstCaseStopTime() const
 {
   // Calculate worst case joint stop time, for collision checking
     double	worst_case_stop_time = 0;
-    for (const auto joint : joint_group()->getActiveJointModels())
+    for (const auto joint : jointGroup()->getActiveJointModels())
     {
 	const auto&	bound = joint->getVariableBounds()[0];
 

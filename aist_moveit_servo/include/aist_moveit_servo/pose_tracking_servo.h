@@ -365,7 +365,7 @@ PoseTrackingServo<FF>::readROSParams()
 template <class FF> void
 PoseTrackingServo<FF>::tick()
 {
-    update();
+    updateRobot();
 
     if (!pose_tracking_srv_.isActive())
 	return;

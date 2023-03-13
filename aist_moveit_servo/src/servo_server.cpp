@@ -84,7 +84,7 @@ ServoServer::run()
     for (ros::Rate rate(1.0/servoParameters().publish_period);
 	 ros::ok(); rate.sleep())
     {
-	update();
+	updateRobot();
 	publishTrajectory(twistCmd(), nullptr);
     }
 

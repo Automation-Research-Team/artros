@@ -127,16 +127,16 @@ class Servo
 
     void	start()							;
     void	stop()							;
-    void	update()						;
+    void	updateRobot()						;
     bool	publishTrajectory(const twist_t& twist_cmd,
 				  const pose_t& ff_pose)		;
     template <class CMD>
     bool	publishTrajectory(const CMD& cmd, std::nullptr_t)	;
 
   private:
-    uint	num_joints()					const	;
+    uint	numJoints()					const	;
     joint_group_cp
-		joint_group()					const	;
+		jointGroup()					const	;
     bool	isValid(const twist_t& cmd)			const	;
     bool	isValid(const joint_jog_t& cmd)			const	;
 
@@ -289,13 +289,13 @@ Servo::changeRobotLinkCommandFrame(const std::string& new_command_frame)
 }
 
 inline uint
-Servo::num_joints() const
+Servo::numJoints() const
 {
     return joint_trajectory_.joint_names.size();
 }
 
 inline Servo::joint_group_cp
-Servo::joint_group() const
+Servo::jointGroup() const
 {
     return robot_state_->getJointModelGroup(parameters_.move_group_name);
 }

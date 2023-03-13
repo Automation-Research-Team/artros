@@ -64,7 +64,7 @@ class LinearFeedForward
   private:
     ros::NodeHandle		nh_;
     const ros::Subscriber	velocity_sub_;
-    veclocity_t			velocity_;
+    vector3_t			velocity_;
     mutable std::mutex		velocity_mtx_;
 };
 
@@ -91,7 +91,19 @@ LinearFeedForward::haveRecentInput(const ros::Duration& timeout) const
 {
     const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
-    return (ros::Time::now() - velocity_.header.stamp < timeout);
+    return (ros::Time::now() - velocity_->header.stamp < timeout);
+}
+
+LinearFeedForward::pose_t
+ff_psoe(const pose_t& desired_pose, const ros::Duration& dt) const
+{
+    velocity_t	velocity;
+    {
+	const std::lock_guard<std::mutex>	lock(velocity_mtx_);
+
+	velocity = veclocity_;
+    }
+
 }
 
 void
@@ -110,7 +122,7 @@ LinearFeedForward::velocityCB(const vector3_cp& velocity)
 int
 main(int argc, char* argv[])
 {
-    const std::string	logname("conveyor_tracking_servo");
+    const std::string	logname("linear_tracking_servo");
 
     ros::init(argc, argv, logname);
 
