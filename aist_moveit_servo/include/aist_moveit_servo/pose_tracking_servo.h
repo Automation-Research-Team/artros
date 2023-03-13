@@ -387,10 +387,10 @@ PoseTrackingServo<FF>::tick()
 	PoseTrackingResult	result;
 	result.status = static_cast<int8_t>(servo_status);
 	pose_tracking_srv_.setAborted(result);
-	std::cerr << "*** Debug point" << std::endl;
 	ROS_ERROR_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ABORTED["
 			       << SERVO_STATUS_CODE_MAP.at(servo_status)
 			       << ']');
+
 	return;
       }
 
@@ -410,7 +410,8 @@ PoseTrackingServo<FF>::tick()
         ROS_ERROR_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ABORTED["
     			       << "The target pose was not updated recently."
 			       << ']');
-    	return;
+
+	return;
     }
 
   // Correct target pose by offset specified by the goal.

@@ -65,13 +65,14 @@ class ServoServer : public Servo
 ServoServer::ServoServer(const ros::NodeHandle& nh,
 			 const std::string& robot_description,
 			 const std::string& logname)
-  :Servo(nh, robot_description, logname),
-   nh_(nh),
-   twist_cmd_sub_(nh_.subscribe(servoParameters().cartesian_command_in_topic,
-				1, &ServoServer::twistCmdCB, this)),
-   twist_cmd_(new twist_t()),
-   twist_mtx_()
+    :Servo(nh, robot_description, logname),
+     nh_(nh),
+     twist_cmd_sub_(nh_.subscribe("delta_twist_cmds", 1,
+				  &ServoServer::twistCmdCB, this)),
+     twist_cmd_(new twist_t()),
+     twist_mtx_()
 {
+    ROS_INFO_STREAM_NAMED(logname, "(ServoServer) server started");
 }
 
 void

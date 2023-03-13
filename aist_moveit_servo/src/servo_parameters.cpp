@@ -51,69 +51,37 @@ ServoParameters::ServoParameters(const ros::NodeHandle& nh,
 				ros::NodeHandle(nh, parameter_ns) : nh);
     std::size_t error = 0;
 
+  // Gazebo
     error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "publish_period", publish_period);
+				      "use_gazebo", use_gazebo);
+
+  // Properties of incoming commands
     error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "collision_check_rate",
-				      collision_check_rate);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "num_outgoing_halt_msgs_to_publish",
-				      num_outgoing_halt_msgs_to_publish);
+				      "command_in_type", command_in_type);
+
+  // Scale parameters (only used if command_in_type == "unitless")
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "scale/linear", linear_scale);
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "scale/rotational", rotational_scale);
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "scale/joint", joint_scale);
+
+  // Low-pass filter applied to output command
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "low_pass_filter_half_order",
 				      low_pass_filter_half_order);
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "low_pass_filter_cutoff_frequency",
 				      low_pass_filter_cutoff_frequency);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "joint_topic", joint_topic);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "command_in_type", command_in_type);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "cartesian_command_in_topic",
-				      cartesian_command_in_topic);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "joint_command_in_topic",
-				      joint_command_in_topic);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "feed_forward_pose_topic",
-				      feed_forward_pose_topic);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "robot_link_command_frame",
-				      robot_link_command_frame);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "incoming_command_timeout",
-				      incoming_command_timeout);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "lower_singularity_threshold",
-				      lower_singularity_threshold);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "hard_stop_singularity_threshold",
-				      hard_stop_singularity_threshold);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "move_group_name", move_group_name);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "planning_frame", planning_frame);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "ee_frame_name", ee_frame_name);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "use_gazebo", use_gazebo);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "revolute_joint_limit_margin",
-				      revolute_joint_limit_margin);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "prismatic_joint_limit_margin",
-				      prismatic_joint_limit_margin);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "command_out_topic", command_out_topic);
+
+  // Properties of outgoing commands
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "command_out_type", command_out_type);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "publish_period", publish_period);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "low_latency_mode", low_latency_mode);
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "publish_joint_positions",
 				      publish_joint_positions);
@@ -123,6 +91,51 @@ ServoParameters::ServoParameters(const ros::NodeHandle& nh,
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "publish_joint_accelerations",
 				      publish_joint_accelerations);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "robot_link_command_frame",
+				      robot_link_command_frame);
+
+  // MoveIt properties
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "move_group_name", move_group_name);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "planning_frame", planning_frame);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "ee_frame_name", ee_frame_name);
+    
+  // Stopping behavior
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "incoming_command_timeout",
+				      incoming_command_timeout);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "num_outgoing_halt_msgs_to_publish",
+				      num_outgoing_halt_msgs_to_publish);
+
+  // Configure handling of sigularities and joint limits
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "lower_singularity_threshold",
+				      lower_singularity_threshold);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "hard_stop_singularity_threshold",
+				      hard_stop_singularity_threshold);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "revolute_joint_limit_margin",
+				      revolute_joint_limit_margin);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "prismatic_joint_limit_margin",
+				      prismatic_joint_limit_margin);
+
+  // Topic names
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "joint_topic", joint_topic);
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "command_out_topic", command_out_topic);
+    
+    error += !rosparam_shortcuts::get(logname, parameter_nh,
+				      "collision_check_rate",
+				      collision_check_rate);
+    error += !rosparam_shortcuts::get(logname, parameter_nh, "status_topic",
+				      status_topic);
 
   // Parameters for collision checking
     error += !rosparam_shortcuts::get(logname, parameter_nh,
@@ -142,10 +155,6 @@ ServoParameters::ServoParameters(const ros::NodeHandle& nh,
     error += !rosparam_shortcuts::get(logname, parameter_nh,
 				      "min_allowable_collision_distance",
 				      min_allowable_collision_distance);
-    error += !rosparam_shortcuts::get(logname, parameter_nh, "status_topic",
-				      status_topic);
-    error += !rosparam_shortcuts::get(logname, parameter_nh,
-				      "low_latency_mode", low_latency_mode);
 
   // Parameters existence checking
     rosparam_shortcuts::shutdownIfError(logname, error);

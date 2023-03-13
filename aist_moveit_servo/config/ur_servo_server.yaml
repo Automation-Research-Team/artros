@@ -42,12 +42,9 @@ revolute_joint_limit_margin:     0.1
 prismatic_joint_limit_margin:    0.005
 
 ## Topic names
-cartesian_command_in_topic: delta_twist_cmds
-joint_command_in_topic:     delta_joint_cmds
-feed_forward_pose_topic:    ""
-joint_topic:                joint_states
-status_topic:               status
-command_out_topic:          /$(arg robot_name)/$(arg controller)/command
+joint_topic:       joint_states
+status_topic:      status
+command_out_topic: /$(arg robot_name)/$(arg controller)/command
 
 ## Collision checking for the entire robot body
 check_collisions:     true
@@ -55,7 +52,7 @@ collision_check_rate: 50
 collision_check_type: threshold_distance
 
 # Parameters for "threshold_distance"-type collision checking
-self_collision_proximity_threshold: 0.01
+self_collision_proximity_threshold:  0.01
 scene_collision_proximity_threshold: 0.05
 
 # Parameters for "stop_distance"-type collision checking
