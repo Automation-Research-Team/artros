@@ -84,6 +84,17 @@ operator *(double c, const geometry_msgs::Vector3& p)
     return ret;
 }
 
+inline geometry_msgs::Vector3
+zero(geometry_msgs::Vector3)
+{
+    geometry_msgs::Vector3	ret;
+    ret.x = 0;
+    ret.y = 0;
+    ret.z = 0;
+
+    return ret;
+}
+
 /*
  *  Arithmetic operators on Point
  */
@@ -196,6 +207,18 @@ zero(geometry_msgs::Quaternion)
     return ret;
 }
 
+inline geometry_msgs::Quaternion
+identity(geometry_msgs::Quaternion)
+{
+    geometry_msgs::Quaternion	ret;
+    ret.x = 0;
+    ret.y = 0;
+    ret.z = 0;
+    ret.w = 1;
+
+    return ret;
+}
+
 inline void
 normalize(geometry_msgs::Quaternion& q)
 {
@@ -255,6 +278,29 @@ zero(geometry_msgs::Pose)
     return ret;
 }
 
+inline geometry_msgs::Pose
+identity(geometry_msgs::Pose)
+{
+    geometry_msgs::Pose	ret;
+    ret.position    = zero(geometry_msgs::Point());
+    ret.orientation = identity(geometry_msgs::Quaternion());
+
+    return ret;
+}
+
+/*
+ *  Arithmetic operators on Transform
+ */
+inline geometry_msgs::Transform
+identity(geometry_msgs::Transform)
+{
+    geometry_msgs::Transform	ret;
+    ret.translation = zero(geometry_msgs::Vector3());
+    ret.rotation    = identity(geometry_msgs::Quaternion());
+
+    return ret;
+}
+    
 /*
  *  I/O operators
  */
