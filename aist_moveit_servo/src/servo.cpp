@@ -3,10 +3,10 @@
  *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
- *      
+ *
  *      Modified  : 10/3/2023
  *      Modifier  : Toshio Ueshiba
- *      
+ *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -227,7 +227,7 @@ Servo::start()
 
   // Reset output low-pass filters with current positions.
     resetLowPassFilters();
-    
+
     if (parameters_.check_collisions)
     {
 	collision_checker_.start();	// Check collisions in this timer
@@ -273,12 +273,6 @@ Servo::publishTrajectory(const twist_t& twist_cmd, const pose_t& ff_pose)
     }
 
     return publishTrajectory(twist_cmd, ff_positions_);
-}
-
-template <class CMD> bool
-Servo::publishTrajectory(const CMD& cmd)
-{
-    return publishTrajectory(cmd, actual_positions_);
 }
 
 /*
@@ -351,7 +345,7 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     if (isValid(cmd))
     {
 	setTrajectory(cmd, positions);
-	
+
 	invalid_command_count_ = 0;
     }
     else
@@ -433,11 +427,11 @@ void
 Servo::setTrajectory(const twist_t& twist_cmd, const vector_t& positions)
 {
     auto	cmd = twist_cmd;
-    
+
   // Set uncontrolled dimensions to 0 in command frame
     {
 	const std::lock_guard<std::mutex>	lock(input_mtx_);
-	
+
 	if (!control_dimensions_[0])
 	    cmd.twist.linear.x = 0;
 	if (!control_dimensions_[1])
@@ -489,7 +483,7 @@ Servo::setTrajectory(const twist_t& twist_cmd, const vector_t& positions)
   // Work backwards through the 6-vector so indices don't get out of order
     {
 	const std::lock_guard<std::mutex>	lock(input_mtx_);
-	
+
 	for (auto dimension = jacobian.rows() - 1; dimension >= 0; --dimension)
 	    if (drift_dimensions_[dimension] && jacobian.rows() > 1)
 		removeDimension(jacobian, delta_x, dimension);
@@ -698,7 +692,7 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
     // 		<< bound_scaling << std::endl;
     {
 	const std::lock_guard<std::mutex>	lock(input_mtx_);
-	
+
 	delta_theta *= (bounding_scale *
 			collision_velocity_scale_ * singularity_scale);
 
@@ -1031,7 +1025,9 @@ Servo::publishWorstCaseStopTime() const
     worst_case_stop_time_pub_.publish(msg);
 }
 
-template bool	Servo::publishTrajectory(const twist_t& twist_cmd)	;
-template bool	Servo::publishTrajectory(const joint_jog_t& joint_cmd)	;
+template bool	Servo::publishTrajectory(const twist_t& twist_cmd,
+					 const vector_t& positions)	;
+template bool	Servo::publishTrajectory(const joint_jog_t& joint_cmd,
+					 const vector_t& positions)	;
 
 }  // namespace aist_moveit_servo

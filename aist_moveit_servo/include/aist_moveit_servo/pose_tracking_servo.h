@@ -73,7 +73,7 @@ class PoseTrackingServo : public Servo
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
     using feed_forward_t = FF;
-    
+
     struct PIDConfig
     {
 	double	k_p	     = 1;
@@ -122,7 +122,7 @@ class PoseTrackingServo : public Servo
     servo_status_t
 		servoStatus()					const	;
     void	resetServoStatus()					;
-    
+
   // Target pose stuffs
     void	targetPoseCB(const pose_cp& target_pose)		;
     pose_t	targetPose()					const	;
@@ -190,12 +190,12 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
 
      servo_status_(servo_status_t::NO_WARNING),
      servo_status_mtx_(),
-     
+
      target_pose_(),
      target_pose_mtx_(),
 
      ff_(),
-     
+
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
      input_low_pass_filter_(input_low_pass_filter_half_order_,
@@ -366,7 +366,7 @@ template <class FF> void
 PoseTrackingServo<FF>::tick()
 {
     update();
-    
+
     if (!pose_tracking_srv_.isActive())
 	return;
 
@@ -416,10 +416,7 @@ PoseTrackingServo<FF>::tick()
 
   // Correct target pose by offset specified by the goal.
     const auto	target_pose = correctTargetPose(current_goal_->target_offset);
-    
-  // Add feed forward term to target pose and publish as feed-forward command.
-    ff_.publish(target_pose, ros::Duration(servoParameters().publish_period));
-    
+
   // Compute positional and angular errors.
     vector3_t		positional_error;
     angle_axis_t	angular_error;
@@ -460,7 +457,9 @@ PoseTrackingServo<FF>::tick()
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
 
-    publishTrajectory(twist_cmd);
+    publishTrajectory(twist_cmd, ff_.ff_pose(target_pose,
+					     ros::Duration(servoParameters()
+							   .publish_period)));
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
@@ -569,8 +568,8 @@ PoseTrackingServo<FF>::stopMotion()
     twist_cmd.twist.angular.x = 0;
     twist_cmd.twist.angular.y = 0;
     twist_cmd.twist.angular.z = 0;
-    
-    publishTrajectory(twist_cmd);
+
+    publishTrajectory(twist_cmd, nullptr);
 }
 
 // Low-pass filter stuffs
@@ -625,7 +624,7 @@ PoseTrackingServo<FF>::goalCB()
   // The target pose may get updated by new messages as the robot moves
   // (in a callback function).
     const ros::Duration	DEFAULT_INPUT_TIMEOUT(0.5);
-    
+
     for (const auto start_time = ros::Time::now();
 	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
 	 ros::Duration(0.001).sleep())
