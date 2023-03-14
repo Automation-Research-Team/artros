@@ -48,7 +48,7 @@ struct NullFF
 {
     using pose_t = geometry_msgs::PoseStamped;
 
-		NullFF()					{}
+		NullFF(const ros::NodeHandle&)			{}
 
     void	resetInput()					{}
     bool	haveRecentInput(const ros::Duration&)	const	{ return true;}

@@ -135,8 +135,28 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+#
+#  linear_tracking_servo
+#
+add_executable(
+  linear_tracking_servo
+  src/linear_tracking_servo.cpp
+)
+
+target_link_libraries(
+  linear_tracking_servo
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+add_dependencies(
+  linear_tracking_servo
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
 install(
-  TARGETS servo_server pose_tracking_servo
+  TARGETS servo_server pose_tracking_servo linear_tracking_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -194,7 +194,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
      target_pose_(),
      target_pose_mtx_(),
 
-     ff_(),
+     ff_(nh_),
 
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
