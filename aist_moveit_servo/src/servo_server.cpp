@@ -54,7 +54,7 @@ class ServoServer : public Servo
   private:
     void	twistCmdCB(const twist_cp& twist_cmd)			;
     twist_t	twistCmd()					const	;
-    
+
   private:
     ros::NodeHandle		nh_;
     const ros::Subscriber	twist_cmd_sub_;
@@ -84,8 +84,8 @@ ServoServer::run()
     for (ros::Rate rate(1.0/servoParameters().publish_period);
 	 ros::ok(); rate.sleep())
     {
-	update();
-	publishTrajectory(twistCmd());
+	updateRobot();
+	publishTrajectory(twistCmd(), nullptr);
     }
 
     ros::waitForShutdown();	// Wait for ros to shutdown
@@ -115,7 +115,7 @@ int
 main(int argc, char* argv[])
 {
     using namespace	aist_moveit_servo;
-    
+
     constexpr char	LOGNAME[] = "servo_server";
 
     ros::init(argc, argv, LOGNAME);

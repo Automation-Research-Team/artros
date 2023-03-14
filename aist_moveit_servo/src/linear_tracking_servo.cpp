@@ -38,7 +38,8 @@
  *  \author	Toshio UESHIBA
  */
 #include <mutex>
-#include <thread>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_listener.h>
 #include <aist_moveit_servo/pose_tracking_servo.h>
 
 namespace aist_moveit_servo
@@ -49,60 +50,97 @@ class LinearFeedForward
     using vector3_t	 = geometry_msgs::Vector3Stamped;
     using vector3_cp	 = geometry_msgs::Vector3StampedConstPtr;
     using pose_t	 = geometry_msgs::PoseStamped;
-    using pose_cp	 = geometry_msgs::PoseStampedConstPtr;
-    
+
   public:
 		LinearFeedForward(const ros::NodeHandle& nh)		;
 
     void	resetInput()						;
-    bool	haveRecentInput(const ros::Duration&)		const	;
-    void	publishPredictivePose(const pose_t& desired_pose,
-				      const ros::Duration& dt)	const	;
-    
+    bool	haveRecentInput(const ros::Duration& timeout)	const	;
+    pose_t	ff_pose(const pose_t& target_pose,
+			const ros::Duration& dt)		const	;
+
   private:
     void	velocityCB(const vector3_cp& velocity)			;
-    
+
   private:
     ros::NodeHandle		nh_;
     const ros::Subscriber	velocity_sub_;
-    const ros::Publisher	pose_pub_;
-    veclocity_t			velocity_;
-    mutable std::mutex		input_mutex_;
+    vector3_t			velocity_;
+    mutable std::mutex		velocity_mtx_;
+
+    tf2_ros::Buffer		buffer_;
+    tf2_ros::TransformListener	listener_;
 };
 
 LinearFeedForward::LinearFeedForward(const ros::NodeHandle& nh)
     :nh_(nh),
-     velocity_sub_(nh_.subscribe("/velocity",
+     velocity_sub_(nh_.subscribe("/velocity", 1,
 				 &LinearFeedForward::velocityCB, this)),
-     pose_pub_(nh_.advertise<pose_t>(nh_.param<std::string>(), 1))
+     velocity_(),
+     velocity_mtx_(),
+     buffer_(),
+     listener_(buffer_)
 {
 }
 
 void
-LinearFeedForward::resetTargetPose()
+LinearFeedForward::resetInput()
 {
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
-    velocity_		   = veloccity_t();
+    velocity_		   = vector3_t();
     velocity_.header.stamp = ros::Time(0);
 }
-    
+
 bool
 LinearFeedForward::haveRecentInput(const ros::Duration& timeout) const
 {
-    const std::lock_guard<std::mutex>	lock(input_mtx_);
+    const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
     return (ros::Time::now() - velocity_.header.stamp < timeout);
 }
-    
+
+LinearFeedForward::pose_t
+LinearFeedForward::ff_pose(const pose_t& target_pose,
+			   const ros::Duration& dt) const
+{
+    vector3_t	v;
+    {
+	const std::lock_guard<std::mutex>	lock(velocity_mtx_);
+
+	v = velocity_;
+    }
+
+    try
+    {
+	tf2::doTransform(v, v,
+			 buffer_.lookupTransform(target_pose.header.frame_id,
+						 v.header.frame_id,
+						 target_pose.header.stamp));
+	const auto	d = dt.toSec();
+	auto		p = target_pose;
+	p.pose.position.x += d * v.vector.x;
+	p.pose.position.y += d * v.vector.y;
+	p.pose.position.z += d * v.vector.z;
+
+	return  p;
+    }
+    catch (const tf2::TransformException& e)
+    {
+	ROS_ERROR_STREAM("(LinearFeedForward) " << e.what());
+    }
+
+    return target_pose;
+}
+
 void
 LinearFeedForward::velocityCB(const vector3_cp& velocity)
 {
-    const std::lock_guard<std::mutex> lock(input_mutex_);
+    const std::lock_guard<std::mutex> lock(velocity_mtx_);
 
     velocity_ = *velocity;
 }
-    
+
 }	// namespace aist_moveit_servo
 
 /************************************************************************
@@ -111,12 +149,15 @@ LinearFeedForward::velocityCB(const vector3_cp& velocity)
 int
 main(int argc, char* argv[])
 {
-    const std::string	logname("conveyor_tracking_servo");
+    using namespace aist_moveit_servo;
+    
+    const std::string	logname("linear_tracking_servo");
 
     ros::init(argc, argv, logname);
 
-    ros::NodeHandle	nh("~");
-    aist_moveit_servo::PoseTrackingServo<>	servo(nh, logname);
+    ros::NodeHandle				nh("~");
+    PoseTrackingServo<LinearFeedForward>	servo(nh, "robot_description",
+						      logname);
     servo.run();
 
     return 0;

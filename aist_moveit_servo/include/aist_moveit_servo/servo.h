@@ -3,10 +3,10 @@
  *      Project   : moveit_servo
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
- *      
+ *
  *      Modified  : 10/3/2023
  *      Modifier  : Toshio Ueshiba
- *      
+ *
  * BSD 3-Clause License
  *
  * Copyright (c) 2019, Los Alamos National Security, LLC
@@ -127,16 +127,16 @@ class Servo
 
     void	start()							;
     void	stop()							;
-    void	update()						;
+    void	updateRobot()						;
     bool	publishTrajectory(const twist_t& twist_cmd,
 				  const pose_t& ff_pose)		;
     template <class CMD>
-    bool	publishTrajectory(const CMD& cmd)			;
-    
+    bool	publishTrajectory(const CMD& cmd, std::nullptr_t)	;
+
   private:
-    uint	num_joints()					const	;
+    uint	numJoints()					const	;
     joint_group_cp
-		joint_group()					const	;
+		jointGroup()					const	;
     bool	isValid(const twist_t& cmd)			const	;
     bool	isValid(const joint_jog_t& cmd)			const	;
 
@@ -222,7 +222,7 @@ class Servo
     vector_t				actual_positions_;
     vector_t				actual_velocities_;
     vector_t				ff_positions_;
-    
+
   // Track the number of cycles during which motion has not occurred.
   // Will avoid re-publishing zero velocities endlessly.
     int					invalid_command_count_;
@@ -251,13 +251,13 @@ Servo::logname() const
 {
     return logname_;
 }
-    
+
 inline const ServoParameters&
 Servo::servoParameters() const
 {
     return parameters_;
 }
-    
+
 inline DurationArray&
 Servo::durations()
 {
@@ -272,6 +272,12 @@ Servo::getFrameTransform(const std::string& frame) const
 	 * robot_state_->getGlobalLinkTransform(frame);
 }
 
+template <class CMD> bool
+Servo::publishTrajectory(const CMD& cmd, std::nullptr_t)
+{
+    return publishTrajectory(cmd, actual_positions_);
+}
+
 //! Change the controlled link. Often, this is the end effector
 /*!
   This must be a link on the robot since MoveIt tracks the transform (not tf)
@@ -283,13 +289,13 @@ Servo::changeRobotLinkCommandFrame(const std::string& new_command_frame)
 }
 
 inline uint
-Servo::num_joints() const
+Servo::numJoints() const
 {
     return joint_trajectory_.joint_names.size();
 }
 
 inline Servo::joint_group_cp
-Servo::joint_group() const
+Servo::jointGroup() const
 {
     return robot_state_->getJointModelGroup(parameters_.move_group_name);
 }

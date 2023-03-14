@@ -47,13 +47,15 @@ namespace aist_moveit_servo
 struct NullFF
 {
     using pose_t = geometry_msgs::PoseStamped;
-    
-		NullFF()					{}
-    
+
+		NullFF(const ros::NodeHandle&)			{}
+
     void	resetInput()					{}
     bool	haveRecentInput(const ros::Duration&)	const	{ return true;}
-    void	publish(const pose_t&,
-			const ros::Duration&)		const	{}
+    auto	ff_pose(const pose_t&, const ros::Duration&) const
+		{
+		    return nullptr;
+		}
 };
 }	// namespace aist_moveit_servo
 
@@ -64,7 +66,7 @@ int
 main(int argc, char* argv[])
 {
     using namespace	aist_moveit_servo;
-    
+
     constexpr char	LOGNAME[] = "pose_tracking_servo";
 
     ros::init(argc, argv, LOGNAME);
