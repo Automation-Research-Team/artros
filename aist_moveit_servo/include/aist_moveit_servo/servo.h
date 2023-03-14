@@ -121,6 +121,8 @@ class Servo
 		servoParameters()				const	;
     DurationArray&
 		durations()						;
+    isometry3_t	getFrameTransform(const std::string& parent,
+				  const std::string& child)	const	;
     isometry3_t	getFrameTransform(const std::string& frame)	const	;
     void	changeRobotLinkCommandFrame(
 			const std::string& new_command_frame)		;
@@ -265,11 +267,17 @@ Servo::durations()
 }
 
 inline Servo::isometry3_t
+Servo::getFrameTransform(const std::string& parent,
+			 const std::string& child) const
+{
+    return robot_state_->getGlobalLinkTransform(parent).inverse()
+	 * robot_state_->getGlobalLinkTransform(child);
+}
+
+inline Servo::isometry3_t
 Servo::getFrameTransform(const std::string& frame) const
 {
-    return robot_state_->getGlobalLinkTransform(parameters_.planning_frame)
-	  .inverse()
-	 * robot_state_->getGlobalLinkTransform(frame);
+    return getFrameTransform(parameters_.planning_frame, frame);
 }
 
 template <class CMD> bool
