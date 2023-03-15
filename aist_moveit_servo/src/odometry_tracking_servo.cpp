@@ -33,7 +33,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 /*
- *  \file	linear_tracking_servo.cpp
+ *  \file	odometry_tracking_servo.cpp
  *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
  *  \author	Toshio UESHIBA
  */
@@ -117,7 +117,7 @@ OdometryFeedForward::ff_pose(const pose_t& target_pose,
     auto	pose = target_pose;
     pose.pose.position.x -= d * twist.twist.linear.x;
     pose.pose.position.y -= d * twist.twist.linear.y;
-    pose.pose.position.z += d * twist.twist.linear.z;
+    pose.pose.position.z -= d * twist.twist.linear.z;
 
     return  pose;
 }
