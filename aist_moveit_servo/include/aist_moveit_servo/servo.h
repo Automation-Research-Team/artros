@@ -114,19 +114,21 @@ class Servo
 		      const std::string& logname)			;
 		~Servo()						;
 
-  protected:
+    const ros::NodeHandle&
+		nodeHandle()					const	;
     const std::string&
 		logname()					const	;
     const ServoParameters&
 		servoParameters()				const	;
-    DurationArray&
-		durations()						;
     isometry3_t	getFrameTransform(const std::string& parent,
 				  const std::string& child)	const	;
     isometry3_t	getFrameTransform(const std::string& frame)	const	;
-    void	changeRobotLinkCommandFrame(
-			const std::string& new_command_frame)		;
+    void	changeRobotLinkCommandFrame(const std::string& frame)	;
 
+    DurationArray&
+		durations()						;
+
+  protected:
     void	start()							;
     void	stop()							;
     void	updateRobot()						;
@@ -134,6 +136,8 @@ class Servo
 				  const pose_t& ff_pose)		;
     template <class CMD>
     bool	publishTrajectory(const CMD& cmd, std::nullptr_t)	;
+    StatusCode	servoStatus()					const	;
+    void	resetServoStatus()					;
 
   private:
     uint	numJoints()					const	;
@@ -180,8 +184,9 @@ class Servo
     void	applyLowPassFilters(vector_t& positions)		;
     void	resetLowPassFilters()					;
 
+    double	collisionVelocityScale()			const	;
     void	collisionVelocityScaleCB(const flt64_cp& velocity_scale);
-
+    
     bool	changeDriftDimensionsCB(
 			moveit_msgs::ChangeDriftDimensions::Request& req,
 			moveit_msgs::ChangeDriftDimensions::Response& res);
@@ -190,9 +195,9 @@ class Servo
 			moveit_msgs::ChangeControlDimensions::Response& res);
 
   // Servo status stuffs
-    void	publishStatus()					const	;
-    bool	resetStatusCB(std_srvs::Empty::Request&,
-			      std_srvs::Empty::Response&)		;
+    void	publishServoStatus()				const	;
+    bool	resetServoStatusCB(std_srvs::Empty::Request&,
+				   std_srvs::Empty::Response&)		;
 
   // Worst case stop time stuffs
     void	publishWorstCaseStopTime()			const	;
@@ -208,14 +213,14 @@ class Servo
 
   // ROS
     const ros::Subscriber		collision_velocity_scale_sub_;
-    const ros::Publisher		status_pub_;
+    const ros::Publisher		servo_status_pub_;
     const ros::Publisher		worst_case_stop_time_pub_;
     const ros::Publisher		outgoing_cmd_pub_;
     const ros::Publisher		outgoing_cmd_debug_pub_;
     const ros::Publisher		durations_pub_;
     const ros::ServiceServer		drift_dimensions_srv_;
     const ros::ServiceServer		control_dimensions_srv_;
-    const ros::ServiceServer		reset_status_srv_;
+    const ros::ServiceServer		reset_servo_status_srv_;
     aist_moveit_servo::DurationArray	durations_;
     ddr_t				ddr_;
 
@@ -242,12 +247,19 @@ class Servo
     trajectory_t			joint_trajectory_;
     std::map<std::string, size_t>	joint_indices_;
 
-  // Servo status
-    StatusCode				status_;
-    double				collision_velocity_scale_;
+  // Servo status and scaling factor of collision velocity
+    StatusCode				servo_status_;
+    flt64_cp				collision_velocity_scale_;
+
     mutable std::mutex			input_mtx_;
 };
 
+inline const ros::NodeHandle&
+Servo::nodeHandle() const
+{
+    return nh_;
+}
+    
 inline const std::string&
 Servo::logname() const
 {
@@ -260,10 +272,13 @@ Servo::servoParameters() const
     return parameters_;
 }
 
-inline DurationArray&
-Servo::durations()
+inline StatusCode
+Servo::servoStatus() const
 {
-    return durations_;
+  // Guard servo_status_
+    const std::lock_guard<std::mutex> lock(input_mtx_);
+
+    return servo_status_;
 }
 
 inline Servo::isometry3_t
@@ -280,6 +295,12 @@ Servo::getFrameTransform(const std::string& frame) const
     return getFrameTransform(parameters_.planning_frame, frame);
 }
 
+inline DurationArray&
+Servo::durations()
+{
+    return durations_;
+}
+
 template <class CMD> bool
 Servo::publishTrajectory(const CMD& cmd, std::nullptr_t)
 {
@@ -291,9 +312,9 @@ Servo::publishTrajectory(const CMD& cmd, std::nullptr_t)
   This must be a link on the robot since MoveIt tracks the transform (not tf)
 */
 inline void
-Servo::changeRobotLinkCommandFrame(const std::string& new_command_frame)
+Servo::changeRobotLinkCommandFrame(const std::string& frame)
 {
-    parameters_.robot_link_command_frame = new_command_frame;
+    parameters_.robot_link_command_frame = frame;
 }
 
 inline uint
@@ -308,4 +329,13 @@ Servo::jointGroup() const
     return robot_state_->getJointModelGroup(parameters_.move_group_name);
 }
 
+inline void
+Servo::resetServoStatus()
+{
+  // Guard servo_status_
+    const std::lock_guard<std::mutex> lock(input_mtx_);
+
+    servo_status_ = StatusCode::NO_WARNING;
+}
+    
 }  // namespace aist_moveit_servo

@@ -117,12 +117,6 @@ class PoseTrackingServo : public Servo
     void	goalCB()						;
     void	preemptCB()						;
 
-  // Servo status stuffs
-    void	servoStatusCB(const int8_cp& servo_status)		;
-    servo_status_t
-		servoStatus()					const	;
-    void	resetServoStatus()					;
-
   // Target pose stuffs
     void	targetPoseCB(const pose_cp& target_pose)		;
     pose_t	targetPose()					const	;
@@ -133,7 +127,6 @@ class PoseTrackingServo : public Servo
   // ROS
     ros::NodeHandle		nh_;
     ros::ServiceClient		reset_servo_status_;
-    const ros::Subscriber	servo_status_sub_;
     const ros::Subscriber	target_pose_sub_;
     const ros::Publisher	target_pose_debug_pub_;
     const ros::Publisher	ee_pose_debug_pub_;
@@ -144,12 +137,8 @@ class PoseTrackingServo : public Servo
     server_t			pose_tracking_srv_;
     goal_cp			current_goal_;
 
-  // Servo status stuffs
-    servo_status_t		servo_status_;
-    mutable std::mutex		servo_status_mtx_;
-
   // Target pose stuffs
-    pose_t			target_pose_;
+    pose_cp			target_pose_;
     mutable std::mutex		target_pose_mtx_;
 
     feed_forward_t		ff_;
@@ -174,8 +163,6 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
 
      reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
-     servo_status_sub_(nh_.subscribe(servoParameters().status_topic, 1,
-				     &PoseTrackingServo::servoStatusCB, this)),
      target_pose_sub_(nh_.subscribe(
 			  "/target_pose", 1,
 			  &PoseTrackingServo::targetPoseCB, this,
@@ -188,13 +175,10 @@ PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
      pose_tracking_srv_(nh_, "pose_tracking", false),
      current_goal_(nullptr),
 
-     servo_status_(servo_status_t::NO_WARNING),
-     servo_status_mtx_(),
-
-     target_pose_(),
+     target_pose_(nullptr),
      target_pose_mtx_(),
 
-     ff_(nh_),
+     ff_(*this),
 
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
@@ -633,9 +617,6 @@ PoseTrackingServo<FF>::goalCB()
 	    ff_.haveRecentInput(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(targetPose().pose);
-
-	    std_srvs::Empty	empty;
-	    reset_servo_status_.call(empty);
 	    start();
 
 	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
@@ -671,41 +652,16 @@ PoseTrackingServo<FF>::preemptCB()
     ROS_WARN_STREAM_NAMED(logname(), "(PoseTrackingServo) goal CANCELED");
 }
 
-// Servo status stuffs
-template <class FF> void
-PoseTrackingServo<FF>::servoStatusCB(const int8_cp& servo_status)
-{
-    const std::lock_guard<std::mutex>	lock(servo_status_mtx_);
-
-    servo_status_ = static_cast<servo_status_t>(servo_status->data);
-}
-
-template <class FF> typename PoseTrackingServo<FF>::servo_status_t
-PoseTrackingServo<FF>::servoStatus() const
-{
-    const std::lock_guard<std::mutex>	lock(servo_status_mtx_);
-
-    return servo_status_;
-}
-
-template <class FF> void
-PoseTrackingServo<FF>::resetServoStatus()
-{
-    const std::lock_guard<std::mutex>	lock(servo_status_mtx_);
-
-    servo_status_ = servo_status_t::NO_WARNING;
-}
-
 // Target pose stuffs
 template <class FF> void
 PoseTrackingServo<FF>::targetPoseCB(const pose_cp& target_pose)
 {
     const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
-    target_pose_ = *target_pose;
+    target_pose_ = target_pose;
 
-    if (target_pose_.header.stamp == ros::Time(0))
-	target_pose_.header.stamp = ros::Time::now();
+    // if (target_pose_.header.stamp == ros::Time(0))
+    // 	target_pose_.header.stamp = ros::Time::now();
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
@@ -713,7 +669,7 @@ PoseTrackingServo<FF>::targetPose() const
 {
     const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
-    return target_pose_;
+    return *target_pose_;
 }
 
 template <class FF> bool
@@ -721,7 +677,8 @@ PoseTrackingServo<FF>::haveRecentTargetPose(const ros::Duration& timeout) const
 {
     const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
-    return ros::Time::now() - target_pose_.header.stamp < timeout;
+    return (target_pose_ != nullptr &&
+	    ros::Time::now() - target_pose_->header.stamp < timeout);
 }
 
 template <class FF> void
@@ -729,7 +686,7 @@ PoseTrackingServo<FF>::resetTargetPose()
 {
     const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
-    target_pose_.header.stamp = ros::Time(0);
+    target_pose_ = nullptr;
 }
 
 }	// namespace aist_moveit_servo

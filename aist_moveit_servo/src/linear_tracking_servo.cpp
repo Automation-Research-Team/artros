@@ -37,9 +37,6 @@
  *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
  *  \author	Toshio UESHIBA
  */
-#include <mutex>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/transform_listener.h>
 #include <aist_moveit_servo/pose_tracking_servo.h>
 
 namespace aist_moveit_servo
@@ -52,7 +49,7 @@ class LinearFeedForward
     using pose_t	 = geometry_msgs::PoseStamped;
 
   public:
-		LinearFeedForward(const ros::NodeHandle& nh)		;
+		LinearFeedForward(const Servo& servo)			;
 
     void	resetInput()						;
     bool	haveRecentInput(const ros::Duration& timeout)	const	;
@@ -63,23 +60,20 @@ class LinearFeedForward
     void	velocityCB(const vector3_cp& velocity)			;
 
   private:
+    const Servo&		servo_;
     ros::NodeHandle		nh_;
     const ros::Subscriber	velocity_sub_;
     vector3_t			velocity_;
     mutable std::mutex		velocity_mtx_;
-
-    tf2_ros::Buffer		buffer_;
-    tf2_ros::TransformListener	listener_;
 };
 
-LinearFeedForward::LinearFeedForward(const ros::NodeHandle& nh)
-    :nh_(nh),
+LinearFeedForward::LinearFeedForward(const Servo& servo)
+    :servo_(servo),
+     nh_(servo_.nodeHandle()),
      velocity_sub_(nh_.subscribe("/velocity", 1,
 				 &LinearFeedForward::velocityCB, this)),
      velocity_(),
-     velocity_mtx_(),
-     buffer_(),
-     listener_(buffer_)
+     velocity_mtx_()
 {
 }
 
@@ -104,33 +98,29 @@ LinearFeedForward::pose_t
 LinearFeedForward::ff_pose(const pose_t& target_pose,
 			   const ros::Duration& dt) const
 {
-    vector3_t	v;
+    vector3_t	velocity;
     {
 	const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
-	v = velocity_;
+	velocity = velocity_;
     }
 
-    try
-    {
-	tf2::doTransform(v, v,
-			 buffer_.lookupTransform(target_pose.header.frame_id,
-						 v.header.frame_id,
-						 target_pose.header.stamp));
-	const auto	d = dt.toSec();
-	auto		p = target_pose;
-	p.pose.position.x += d * v.vector.x;
-	p.pose.position.y += d * v.vector.y;
-	p.pose.position.z += d * v.vector.z;
+  // Convert the subscribed velocity to the frame describing the target pose.
+    auto	T = tf2::eigenToTransform(servo_.getFrameTransform(
+					      target_pose.header.frame_id,
+					      velocity.header.frame_id));
+    T.header	     = target_pose.header;
+    T.child_frame_id = velocity.header.frame_id;
+    tf2::doTransform(velocity, velocity, T);
 
-	return  p;
-    }
-    catch (const tf2::TransformException& e)
-    {
-	ROS_ERROR_STREAM("(LinearFeedForward) " << e.what());
-    }
+  // Correct the target pose by a displacement predicted from the velocity.
+    const auto	d    = dt.toSec();
+    auto	pose = target_pose;
+    pose.pose.position.x += d * velocity.vector.x;
+    pose.pose.position.y += d * velocity.vector.y;
+    pose.pose.position.z += d * velocity.vector.z;
 
-    return target_pose;
+    return  pose;
 }
 
 void
