@@ -37,21 +37,22 @@
  *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
  *  \author	Toshio UESHIBA
  */
+#include <nav_msgs/Odometry.h>
 #include <aist_moveit_servo/pose_tracking_servo.h>
 
 namespace aist_moveit_servo
 {
-class LinearFeedForward
+class OdometryFeedForward
 {
   public:
     using pose_t	= geometry_msgs::PoseStamped;
 
   private:
-    using vector3_t	= geometry_msgs::Vector3Stamped;
-    using vector3_cp	= geometry_msgs::Vector3StampedConstPtr;
+    using odometry_cp	= nav_msgs::OdometryConstPtr;
+    using twist_t	= geometry_msgs::TwistStamped;
 
   public:
-		LinearFeedForward(const Servo& servo)			;
+		OdometryFeedForward(const Servo& servo)			;
 
     void	resetInput()						;
     bool	haveRecentInput(const ros::Duration& timeout)	const	;
@@ -59,81 +60,86 @@ class LinearFeedForward
 			const ros::Duration& dt)		const	;
 
   private:
-    vector3_t	getVelocity()					const	;
-    void	velocityCB(const vector3_cp& velocity)			;
+    twist_t	getTwist()					const	;
+    void	odometryCB(const odometry_cp& odometry)			;
 
   private:
     const Servo&		servo_;
     ros::NodeHandle		nh_;
-    const ros::Subscriber	velocity_sub_;
-    vector3_cp			velocity_;
-    mutable std::mutex		velocity_mtx_;
+    const ros::Subscriber	odometry_sub_;
+    odometry_cp			odometry_;
+    mutable std::mutex		odometry_mtx_;
 };
 
-LinearFeedForward::LinearFeedForward(const Servo& servo)
+OdometryFeedForward::OdometryFeedForward(const Servo& servo)
     :servo_(servo),
      nh_(servo_.nodeHandle()),
-     velocity_sub_(nh_.subscribe("/velocity", 1,
-				 &LinearFeedForward::velocityCB, this)),
-     velocity_(),
-     velocity_mtx_()
+     odometry_sub_(nh_.subscribe("/odom", 1,
+				 &OdometryFeedForward::odometryCB, this)),
+     odometry_(nullptr),
+     odometry_mtx_()
 {
 }
 
 void
-LinearFeedForward::resetInput()
+OdometryFeedForward::resetInput()
 {
-    const std::lock_guard<std::mutex>	lock(velocity_mtx_);
+    const std::lock_guard<std::mutex>	lock(odometry_mtx_);
 
-    velocity_ = nullptr;
+    odometry_ = nullptr;
 }
 
 bool
-LinearFeedForward::haveRecentInput(const ros::Duration& timeout) const
+OdometryFeedForward::haveRecentInput(const ros::Duration& timeout) const
 {
-    const std::lock_guard<std::mutex>	lock(velocity_mtx_);
+    const std::lock_guard<std::mutex>	lock(odometry_mtx_);
 
-    return (velocity_ != nullptr &&
-	    ros::Time::now() - velocity_->header.stamp < timeout);
+    return (odometry_ != nullptr &&
+	    ros::Time::now() - odometry_->header.stamp < timeout);
 }
 
-LinearFeedForward::pose_t
-LinearFeedForward::ff_pose(const pose_t& target_pose,
-			   const ros::Duration& dt) const
+OdometryFeedForward::pose_t
+OdometryFeedForward::ff_pose(const pose_t& target_pose,
+			     const ros::Duration& dt) const
 {
   // Convert the subscribed velocity to the frame describing the target pose.
-    auto	velocity = getVelocity();
+    auto	twist = getTwist();
     auto	T = tf2::eigenToTransform(servo_.getFrameTransform(
 					      target_pose.header.frame_id,
-					      velocity.header.frame_id));
+					      twist.header.frame_id));
     T.header	     = target_pose.header;
-    T.child_frame_id = velocity.header.frame_id;
-    tf2::doTransform(velocity, velocity, T);
+    T.child_frame_id = twist.header.frame_id;
+    tf2::doTransform(twist.twist.linear,  twist.twist.linear,  T);
+    tf2::doTransform(twist.twist.angular, twist.twist.angular, T);
 
   // Correct the target pose by a displacement predicted from the velocity.
     const auto	d    = dt.toSec();
     auto	pose = target_pose;
-    pose.pose.position.x += d * velocity.vector.x;
-    pose.pose.position.y += d * velocity.vector.y;
-    pose.pose.position.z += d * velocity.vector.z;
+    pose.pose.position.x -= d * twist.twist.linear.x;
+    pose.pose.position.y -= d * twist.twist.linear.y;
+    pose.pose.position.z += d * twist.twist.linear.z;
 
     return  pose;
 }
 
-LinearFeedForward::vector3_t
-LinearFeedForward::getVelocity() const
+OdometryFeedForward::twist_t
+OdometryFeedForward::getTwist() const
 {
-    const std::lock_guard<std::mutex> lock(velocity_mtx_);
+    const std::lock_guard<std::mutex> lock(odometry_mtx_);
 
-    return *velocity_;
+    twist_t	twist;
+    twist.header = odometry_->header;
+    twist.twist  = odometry_->twist.twist;
+
+    return twist;
 }
 
 void
-LinearFeedForward::velocityCB(const vector3_cp& velocity)
+OdometryFeedForward::odometryCB(const odometry_cp& odometry)
 {
-    const std::lock_guard<std::mutex> lock(velocity_mtx_);
+    const std::lock_guard<std::mutex> lock(odometry_mtx_);
 
-    velocity_ = velocity;
+    odometry_ = odometry;
 }
 
 }	// namespace aist_moveit_servo
@@ -146,12 +152,12 @@ main(int argc, char* argv[])
 {
     using namespace aist_moveit_servo;
 
-    const std::string	logname("linear_tracking_servo");
+    const std::string	logname("odometry_tracking_servo");
 
     ros::init(argc, argv, logname);
 
     ros::NodeHandle				nh("~");
-    PoseTrackingServo<LinearFeedForward>	servo(nh, "robot_description",
+    PoseTrackingServo<OdometryFeedForward>	servo(nh, "robot_description",
 						      logname);
     servo.run();
 
