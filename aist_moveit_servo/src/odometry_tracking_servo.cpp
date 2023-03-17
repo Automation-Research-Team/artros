@@ -50,6 +50,9 @@ class OdometryFeedForward
   private:
     using odometry_cp	= nav_msgs::OdometryConstPtr;
     using twist_t	= geometry_msgs::TwistStamped;
+    using vector3_t	= Eigen::Vector3d;
+    using angle_axis_t	= Eigen::AngleAxisd;
+    using quaternion_t	= Eigen::Quaterniond;
 
   public:
 		OdometryFeedForward(const Servo& servo)			;
@@ -102,13 +105,26 @@ OdometryFeedForward::pose_t
 OdometryFeedForward::ff_pose(const pose_t& target_pose,
 			     const ros::Duration& dt) const
 {
-  // Convert the subscribed velocity to the frame describing the target pose.
-    auto	twist = getTwist();
-    auto	T = tf2::eigenToTransform(servo_.getFrameTransform(
-					      target_pose.header.frame_id,
-					      twist.header.frame_id));
-    T.header	     = target_pose.header;
-    T.child_frame_id = twist.header.frame_id;
+  // Get transform to base frame.
+    const auto	twist = getTwist();
+    const auto	Tb = servo_.getFrameTransform(twist.header.frame_id,
+					      target_pose.header.frame_id));
+
+  // Get transform produced from twist.
+    const vector3_t	axis(twist.twist.angular.x,
+			     twist.twist.angular.y, twist.twist.angular.z);
+    const auto		d = dt.toSec();
+    isometry3_t		S;
+    S.linear()	    = angle_axis_t(d * axis.norm(), axis.normalized());
+    S.translation() = vector3_t(d * twist.twist.linear.x,
+				d * twist.twist.linear.y,
+				d * twist.twist.linear.z);
+
+
+    const quaternion_t	q()
+
+    T.header	     = twist.header;
+    T.child_frame_id = targetwist.header.frame_id;
     tf2::doTransform(twist.twist.linear,  twist.twist.linear,  T);
     tf2::doTransform(twist.twist.angular, twist.twist.angular, T);
 
@@ -128,8 +144,9 @@ OdometryFeedForward::getTwist() const
     const std::lock_guard<std::mutex> lock(odometry_mtx_);
 
     twist_t	twist;
-    twist.header = odometry_->header;
-    twist.twist  = odometry_->twist.twist;
+    twist.header.stamp	  = odometry_->header.stamp;
+    twist.header.frame_id = odometry_->child_frame_id;
+    twist.twist		  = odometry_->twist.twist;
 
     return twist;
 }
