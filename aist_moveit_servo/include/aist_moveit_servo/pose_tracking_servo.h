@@ -83,8 +83,7 @@ class PoseTrackingServo : public Servo
     };
 
   public:
-		PoseTrackingServo(const ros::NodeHandle& nh,
-				  const std::string& robot_description,
+		PoseTrackingServo(ros::NodeHandle& nh,
 				  const std::string& logname)		;
 		~PoseTrackingServo()					;
 
@@ -155,24 +154,22 @@ class PoseTrackingServo : public Servo
 };
 
 template <class FF>
-PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
-					 const std::string& robot_description,
+PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 					 const std::string& logname)
-    :Servo(nh, robot_description, logname),
-     nh_(nh),
+    :Servo(nh, logname),
 
-     reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
+     reset_servo_status_(nh.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
-     target_pose_sub_(nh_.subscribe(
+     target_pose_sub_(nh.subscribe(
 			  "/target_pose", 1,
 			  &PoseTrackingServo::targetPoseCB, this,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
-     target_pose_debug_pub_(nh_.advertise<pose_t>("desired_pose", 1)),
-     ee_pose_debug_pub_(nh_.advertise<pose_t>("actual_pose", 1)),
+     target_pose_debug_pub_(nh.advertise<pose_t>("desired_pose", 1)),
+     ee_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
      durations_(durations()),
-     ddr_(ros::NodeHandle(nh_, "pose_tracking")),
+     ddr_(ros::NodeHandle(nh, "pose_tracking")),
 
-     pose_tracking_srv_(nh_, "pose_tracking", false),
+     pose_tracking_srv_(nh, "pose_tracking", false),
      current_goal_(nullptr),
 
      target_pose_(nullptr),
@@ -311,36 +308,43 @@ PoseTrackingServo<FF>::readROSParams()
   // within the node namespace, append the parameter namespace
   // to load the parameters correctly.
     std::string	parameter_ns;
-    auto	nh = (nh_.getParam("parameter_ns", parameter_ns) ?
-		      ros::NodeHandle(nh_, parameter_ns) : nh_);
+    auto&	nh = nodeHandle();
+    auto	parameter_nh = (nh.getParam("parameter_ns", parameter_ns) ?
+				ros::NodeHandle(nh, parameter_ns) : nh);
 
   // Setup input low-pass filter
     std::size_t error = 0;
-    error += !rosparam_shortcuts::get(logname(), nh,
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
 				      "input_low_pass_filter_half_order",
 				      input_low_pass_filter_half_order_);
-    error += !rosparam_shortcuts::get(logname(), nh,
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
 				      "input_low_pass_filter_cutoff_frequency",
 				      input_low_pass_filter_cutoff_frequency_);
 
   // Setup PID configurations
     double	windup_limit;
-    error += !rosparam_shortcuts::get(logname(), nh, "windup_limit",
-				      windup_limit);
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "windup_limit", windup_limit);
     linear_pid_config_.windup_limit  = windup_limit;
     angular_pid_config_.windup_limit = windup_limit;
 
-    error += !rosparam_shortcuts::get(logname(), nh, "linear_proportional_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "linear_proportional_gain",
 				      linear_pid_config_.k_p);
-    error += !rosparam_shortcuts::get(logname(), nh, "linear_integral_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "linear_integral_gain",
 				      linear_pid_config_.k_i);
-    error += !rosparam_shortcuts::get(logname(), nh, "linear_derivative_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "linear_derivative_gain",
 				      linear_pid_config_.k_d);
-    error += !rosparam_shortcuts::get(logname(), nh, "angular_proportional_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "angular_proportional_gain",
 				      angular_pid_config_.k_p);
-    error += !rosparam_shortcuts::get(logname(), nh, "angular_integral_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "angular_integral_gain",
 				      angular_pid_config_.k_i);
-    error += !rosparam_shortcuts::get(logname(), nh, "angular_derivative_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "angular_derivative_gain",
 				      angular_pid_config_.k_d);
 
     rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);

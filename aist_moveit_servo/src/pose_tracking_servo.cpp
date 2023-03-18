@@ -67,12 +67,12 @@ main(int argc, char* argv[])
 {
     using namespace	aist_moveit_servo;
 
-    constexpr char	LOGNAME[] = "pose_tracking_servo";
+    constexpr char	logname[] = "pose_tracking_servo";
 
-    ros::init(argc, argv, LOGNAME);
+    ros::init(argc, argv, logname);
 
     ros::NodeHandle		nh("~");
-    PoseTrackingServo<NullFF>	servo(nh, "robot_description", LOGNAME);
+    PoseTrackingServo<NullFF>	servo(nh, logname);
     servo.run();
 
     return 0;

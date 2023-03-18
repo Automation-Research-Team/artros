@@ -45,8 +45,7 @@ namespace aist_moveit_servo
 class ServoServer : public Servo
 {
   public:
-		ServoServer(const ros::NodeHandle& nh,
-			    const std::string& robot_description,
+		ServoServer(ros::NodeHandle& nh,
 			    const std::string& logname)			;
 
     void	run()							;
@@ -56,19 +55,15 @@ class ServoServer : public Servo
     twist_t	twistCmd()					const	;
 
   private:
-    ros::NodeHandle		nh_;
     const ros::Subscriber	twist_cmd_sub_;
     twist_cp			twist_cmd_;
     mutable std::mutex		twist_mtx_;
 };
 
-ServoServer::ServoServer(const ros::NodeHandle& nh,
-			 const std::string& robot_description,
-			 const std::string& logname)
-    :Servo(nh, robot_description, logname),
-     nh_(nh),
-     twist_cmd_sub_(nh_.subscribe("delta_twist_cmds", 1,
-				  &ServoServer::twistCmdCB, this)),
+ServoServer::ServoServer(ros::NodeHandle& nh, const std::string& logname)
+    :Servo(nh, logname),
+     twist_cmd_sub_(nh.subscribe("delta_twist_cmds", 1,
+				 &ServoServer::twistCmdCB, this)),
      twist_cmd_(new twist_t()),
      twist_mtx_()
 {
@@ -116,12 +111,12 @@ main(int argc, char* argv[])
 {
     using namespace	aist_moveit_servo;
 
-    constexpr char	LOGNAME[] = "servo_server";
+    constexpr char	logname[] = "servo_server";
 
-    ros::init(argc, argv, LOGNAME);
+    ros::init(argc, argv, logname);
 
-    ServoServer	servo_server(ros::NodeHandle("~"), "robot_description",
-			     LOGNAME);
+    ros::NodeHandle	nh("~");
+    ServoServer		servo_server(nh, logname);
     servo_server.run();		// Start the servo server in the ros spinner
 
     return 0;

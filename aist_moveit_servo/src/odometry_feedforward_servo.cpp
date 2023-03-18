@@ -33,8 +33,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  *********************************************************************/
 /*
- *  \file	odometry_tracking_servo.cpp
- *  \brief	ROS pose tracker of aist_moveit_servo::PoseTracking type
+ *  \file	odometry_feedforward_servo.cpp
+ *  \brief	ROS pose tracking servo with odometry feedforward
  *  \author	Toshio UESHIBA
  */
 #include <nav_msgs/Odometry.h>
@@ -52,7 +52,6 @@ class OdometryFeedForward
     using twist_t	= geometry_msgs::TwistStamped;
     using vector3_t	= Eigen::Vector3d;
     using angle_axis_t	= Eigen::AngleAxisd;
-    using quaternion_t	= Eigen::Quaterniond;
 
   public:
 		OdometryFeedForward(const Servo& servo)			;
@@ -68,7 +67,6 @@ class OdometryFeedForward
 
   private:
     const Servo&		servo_;
-    ros::NodeHandle		nh_;
     const ros::Subscriber	odometry_sub_;
     odometry_cp			odometry_;
     mutable std::mutex		odometry_mtx_;
@@ -76,9 +74,8 @@ class OdometryFeedForward
 
 OdometryFeedForward::OdometryFeedForward(const Servo& servo)
     :servo_(servo),
-     nh_(servo_.nodeHandle()),
-     odometry_sub_(nh_.subscribe("/odom", 1,
-				 &OdometryFeedForward::odometryCB, this)),
+     odometry_sub_(servo_.nodeHandle().subscribe(
+		       "/odom", 1, &OdometryFeedForward::odometryCB, this)),
      odometry_(nullptr),
      odometry_mtx_()
 {
@@ -107,33 +104,27 @@ OdometryFeedForward::ff_pose(const pose_t& target_pose,
 {
   // Get transform to base frame.
     const auto	twist = getTwist();
-    const auto	Tb = servo_.getFrameTransform(twist.header.frame_id,
-					      target_pose.header.frame_id));
+    const auto	T     = servo_.getFrameTransform(twist.header.frame_id,
+						 target_pose.header.frame_id);
 
   // Get transform produced from twist.
-    const vector3_t	axis(twist.twist.angular.x,
-			     twist.twist.angular.y, twist.twist.angular.z);
+    const vector3_t	angular(twist.twist.angular.x,
+				twist.twist.angular.y,
+				twist.twist.angular.z);
     const auto		d = dt.toSec();
-    isometry3_t		S;
-    S.linear()	    = angle_axis_t(d * axis.norm(), axis.normalized());
-    S.translation() = vector3_t(d * twist.twist.linear.x,
-				d * twist.twist.linear.y,
-				d * twist.twist.linear.z);
+    Servo::isometry3_t	dT;
+    dT.linear()	     = angle_axis_t(d * angular.norm(), angular.normalized())
+		      .toRotationMatrix();
+    dT.translation() = vector3_t(d * twist.twist.linear.x,
+				 d * twist.twist.linear.y,
+				 d * twist.twist.linear.z);
 
-
-    const quaternion_t	q()
-
-    T.header	     = twist.header;
-    T.child_frame_id = targetwist.header.frame_id;
-    tf2::doTransform(twist.twist.linear,  twist.twist.linear,  T);
-    tf2::doTransform(twist.twist.angular, twist.twist.angular, T);
-
-  // Correct the target pose by a displacement predicted from the velocity.
-    const auto	d    = dt.toSec();
-    auto	pose = target_pose;
-    pose.pose.position.x -= d * twist.twist.linear.x;
-    pose.pose.position.y -= d * twist.twist.linear.y;
-    pose.pose.position.z -= d * twist.twist.linear.z;
+  // Correct target pose by twist.
+    auto	dS = tf2::eigenToTransform(T.inverse() * dT.inverse() * T);
+    dS.header	      = target_pose.header;
+    dS.child_frame_id = target_pose.header.frame_id;
+    pose_t	pose;
+    tf2::doTransform(target_pose, pose, dS);
 
     return  pose;
 }
@@ -169,13 +160,12 @@ main(int argc, char* argv[])
 {
     using namespace aist_moveit_servo;
 
-    const std::string	logname("odometry_tracking_servo");
+    const std::string	logname("odometry_feedforward_servo");
 
     ros::init(argc, argv, logname);
 
     ros::NodeHandle				nh("~");
-    PoseTrackingServo<OdometryFeedForward>	servo(nh, "robot_description",
-						      logname);
+    PoseTrackingServo<OdometryFeedForward>	servo(nh, logname);
     servo.run();
 
     return 0;

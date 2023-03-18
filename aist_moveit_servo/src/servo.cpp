@@ -86,15 +86,16 @@ createPlanningSceneMonitor(const std::string& robot_description,
  *  public member functions
  */
 // Constructor for the class that handles servoing calculations
-Servo::Servo(const ros::NodeHandle& nh,
-	     const std::string& robot_description, const std::string& logname)
+Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
     :nh_(nh),
-     internal_nh_(nh, "internal"),
+     internal_nh_(nh_, "internal"),
      logname_(logname),
-     parameters_(nh, logname_),
-     planning_scene_monitor_(createPlanningSceneMonitor(robot_description,
-							logname_)),
-     collision_checker_(nh, parameters_, planning_scene_monitor_),
+     parameters_(nh_, logname_),
+     planning_scene_monitor_(createPlanningSceneMonitor(
+				 nh_.param<std::string>("robot_description",
+							"robot_description"),
+				 logname_)),
+     collision_checker_(nh_, parameters_, planning_scene_monitor_),
 
      collision_velocity_scale_sub_(internal_nh_.subscribe(
 				       "collision_velocity_scale",
@@ -703,7 +704,7 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
     else if (collision_velocity_scale < 1)
     {
 	servo_status_ = StatusCode::DECELERATE_FOR_COLLISION;
-	
+
 	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, logname_,
 				       SERVO_STATUS_CODE_MAP.at(servo_status_));
     }
