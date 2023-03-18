@@ -44,14 +44,18 @@ namespace aist_moveit_servo
 /************************************************************************
 *  struct NullFF							*
 ************************************************************************/
-struct NullFF
+struct NoFeedForwardServo : public PoseTrackingServo<NoFeedForwardServo>
 {
-    using pose_t = geometry_msgs::PoseStamped;
+		NoFeedForwardServo(ros::NodeHandle& nh,
+				   const std::string& logname)
+		    :PoseTrackingServo<NoFeedForwardServo>(nh, logname)
+		{}
 
-		NullFF(const Servo&)				{}
-
-    void	resetInput()					{}
-    bool	haveRecentInput(const ros::Duration&)	const	{ return true;}
+    void	resetFeedForward()					{}
+    bool	haveRecentFeedForward(const ros::Duration&) const
+		{
+		    return true;
+		}
     auto	ff_pose(const pose_t&, const ros::Duration&) const
 		{
 		    return nullptr;
@@ -65,14 +69,12 @@ struct NullFF
 int
 main(int argc, char* argv[])
 {
-    using namespace	aist_moveit_servo;
-
-    constexpr char	logname[] = "pose_tracking_servo";
+    const std::string	logname("pose_tracking_servo");
 
     ros::init(argc, argv, logname);
 
-    ros::NodeHandle		nh("~");
-    PoseTrackingServo<NullFF>	servo(nh, logname);
+    ros::NodeHandle				nh("~");
+    aist_moveit_servo::NoFeedForwardServo	servo(nh, logname);
     servo.run();
 
     return 0;

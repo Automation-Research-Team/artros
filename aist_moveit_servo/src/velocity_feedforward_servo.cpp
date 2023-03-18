@@ -41,20 +41,21 @@
 
 namespace aist_moveit_servo
 {
-class VelocityFeedForward
+class VelocityFeedForwardServo
+    : public PoseTrackingServo<VelocityFeedForwardServo>
 {
-  public:
-    using pose_t	= geometry_msgs::PoseStamped;
-
   private:
+    using super		= PoseTrackingServo<VelocityFeedForwardServo>;
     using vector3_t	= geometry_msgs::Vector3Stamped;
     using vector3_cp	= geometry_msgs::Vector3StampedConstPtr;
 
   public:
-		VelocityFeedForward(const Servo& servo)			;
+		VelocityFeedForwardServo(ros::NodeHandle& nh,
+					 const std::string& logname)	;
 
-    void	resetInput()						;
-    bool	haveRecentInput(const ros::Duration& timeout)	const	;
+    void	resetFeedForward()					;
+    bool	haveRecentFeedForward(const ros::Duration& timeout)
+								const	;
     pose_t	ff_pose(const pose_t& target_pose,
 			const ros::Duration& dt)		const	;
 
@@ -63,23 +64,23 @@ class VelocityFeedForward
     void	velocityCB(const vector3_cp& velocity)			;
 
   private:
-    const Servo&		servo_;
     const ros::Subscriber	velocity_sub_;
     vector3_cp			velocity_;
     mutable std::mutex		velocity_mtx_;
 };
 
-VelocityFeedForward::VelocityFeedForward(const Servo& servo)
-    :servo_(servo),
-     velocity_sub_(servo_.nodeHandle().subscribe(
-		       "/velocity", 1, &VelocityFeedForward::velocityCB, this)),
+VelocityFeedForwardServo::VelocityFeedForwardServo(ros::NodeHandle& nh,
+						   const std::string& logname)
+    :super(nh, logname),
+     velocity_sub_(nh.subscribe("/velocity", 1,
+				&VelocityFeedForwardServo::velocityCB, this)),
      velocity_(),
      velocity_mtx_()
 {
 }
 
 void
-VelocityFeedForward::resetInput()
+VelocityFeedForwardServo::resetFeedForward()
 {
     const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
@@ -87,7 +88,8 @@ VelocityFeedForward::resetInput()
 }
 
 bool
-VelocityFeedForward::haveRecentInput(const ros::Duration& timeout) const
+VelocityFeedForwardServo::haveRecentFeedForward(
+				const ros::Duration& timeout) const
 {
     const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
@@ -95,13 +97,13 @@ VelocityFeedForward::haveRecentInput(const ros::Duration& timeout) const
 	    ros::Time::now() - velocity_->header.stamp < timeout);
 }
 
-VelocityFeedForward::pose_t
-VelocityFeedForward::ff_pose(const pose_t& target_pose,
-			   const ros::Duration& dt) const
+VelocityFeedForwardServo::pose_t
+VelocityFeedForwardServo::ff_pose(const pose_t& target_pose,
+				  const ros::Duration& dt) const
 {
   // Convert the subscribed velocity to the frame describing the target pose.
     auto	velocity = getVelocity();
-    auto	T = tf2::eigenToTransform(servo_.getFrameTransform(
+    auto	T = tf2::eigenToTransform(getFrameTransform(
 					      target_pose.header.frame_id,
 					      velocity.header.frame_id));
     T.header	     = target_pose.header;
@@ -118,8 +120,8 @@ VelocityFeedForward::ff_pose(const pose_t& target_pose,
     return  pose;
 }
 
-VelocityFeedForward::vector3_t
-VelocityFeedForward::getVelocity() const
+VelocityFeedForwardServo::vector3_t
+VelocityFeedForwardServo::getVelocity() const
 {
     const std::lock_guard<std::mutex> lock(velocity_mtx_);
 
@@ -127,7 +129,7 @@ VelocityFeedForward::getVelocity() const
 }
 
 void
-VelocityFeedForward::velocityCB(const vector3_cp& velocity)
+VelocityFeedForwardServo::velocityCB(const vector3_cp& velocity)
 {
     const std::lock_guard<std::mutex> lock(velocity_mtx_);
 
@@ -142,14 +144,12 @@ VelocityFeedForward::velocityCB(const vector3_cp& velocity)
 int
 main(int argc, char* argv[])
 {
-    using namespace aist_moveit_servo;
-
     const std::string	logname("velocity_feedforward_servo");
 
     ros::init(argc, argv, logname);
 
     ros::NodeHandle				nh("~");
-    PoseTrackingServo<VelocityFeedForward>	servo(nh, logname);
+    aist_moveit_servo::VelocityFeedForwardServo	servo(nh, logname);
     servo.run();
 
     return 0;

@@ -72,7 +72,6 @@ class PoseTrackingServo : public Servo
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-    using feed_forward_t = FF;
 
     struct PIDConfig
     {
@@ -140,8 +139,6 @@ class PoseTrackingServo : public Servo
     pose_cp			target_pose_;
     mutable std::mutex		target_pose_mtx_;
 
-    feed_forward_t		ff_;
-
   // Filters for input target pose
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
@@ -174,8 +171,6 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 
      target_pose_(nullptr),
      target_pose_mtx_(),
-
-     ff_(*this),
 
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
@@ -388,7 +383,8 @@ PoseTrackingServo<FF>::tick()
 
   // Check that target pose is recent enough.
     if (!haveRecentTargetPose(current_goal_->timeout) ||
-	!ff_.haveRecentInput(current_goal_->timeout))
+	!static_cast<const FF&>(*this)
+	 .haveRecentFeedForward(current_goal_->timeout))
     {
     	doPostMotionReset();
 
@@ -445,9 +441,10 @@ PoseTrackingServo<FF>::tick()
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
 
-    publishTrajectory(twist_cmd, ff_.ff_pose(target_pose,
-					     ros::Duration(servoParameters()
-							   .publish_period)));
+    publishTrajectory(twist_cmd,
+		      static_cast<const FF&>(*this).ff_pose(
+			  target_pose,
+			  ros::Duration(servoParameters().publish_period)));
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
@@ -606,7 +603,7 @@ PoseTrackingServo<FF>::goalCB()
 {
     resetServoStatus();
     resetTargetPose();
-    ff_.resetInput();
+    static_cast<FF&>(*this).resetFeedForward();
 
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
@@ -618,7 +615,8 @@ PoseTrackingServo<FF>::goalCB()
 	 ros::Duration(0.001).sleep())
     {
 	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
-	    ff_.haveRecentInput(DEFAULT_INPUT_TIMEOUT))
+	    static_cast<const FF&>(*this)
+	    .haveRecentFeedForward(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(targetPose().pose);
 	    start();

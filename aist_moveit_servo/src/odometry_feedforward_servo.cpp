@@ -42,22 +42,23 @@
 
 namespace aist_moveit_servo
 {
-class OdometryFeedForward
+class OdometryFeedForwardServo
+    : public PoseTrackingServo<OdometryFeedForwardServo>
 {
-  public:
-    using pose_t	= geometry_msgs::PoseStamped;
-
   private:
+    using super		= PoseTrackingServo<OdometryFeedForwardServo>;
     using odometry_cp	= nav_msgs::OdometryConstPtr;
     using twist_t	= geometry_msgs::TwistStamped;
     using vector3_t	= Eigen::Vector3d;
     using angle_axis_t	= Eigen::AngleAxisd;
 
   public:
-		OdometryFeedForward(const Servo& servo)			;
+		OdometryFeedForwardServo(ros::NodeHandle& nh,
+					 const std::string& logname)	;
 
-    void	resetInput()						;
-    bool	haveRecentInput(const ros::Duration& timeout)	const	;
+    void	resetFeedForward()					;
+    bool	haveRecentFeedForward(const ros::Duration& timeout)
+								const	;
     pose_t	ff_pose(const pose_t& target_pose,
 			const ros::Duration& dt)		const	;
 
@@ -66,23 +67,23 @@ class OdometryFeedForward
     void	odometryCB(const odometry_cp& odometry)			;
 
   private:
-    const Servo&		servo_;
     const ros::Subscriber	odometry_sub_;
     odometry_cp			odometry_;
     mutable std::mutex		odometry_mtx_;
 };
 
-OdometryFeedForward::OdometryFeedForward(const Servo& servo)
-    :servo_(servo),
-     odometry_sub_(servo_.nodeHandle().subscribe(
-		       "/odom", 1, &OdometryFeedForward::odometryCB, this)),
+OdometryFeedForwardServo::OdometryFeedForwardServo(ros::NodeHandle& nh,
+						   const std::string& logname)
+    :super(nh, logname),
+     odometry_sub_(nh.subscribe("/odom", 1,
+				&OdometryFeedForwardServo::odometryCB, this)),
      odometry_(nullptr),
      odometry_mtx_()
 {
 }
 
 void
-OdometryFeedForward::resetInput()
+OdometryFeedForwardServo::resetFeedForward()
 {
     const std::lock_guard<std::mutex>	lock(odometry_mtx_);
 
@@ -90,7 +91,8 @@ OdometryFeedForward::resetInput()
 }
 
 bool
-OdometryFeedForward::haveRecentInput(const ros::Duration& timeout) const
+OdometryFeedForwardServo::haveRecentFeedForward(
+				const ros::Duration& timeout) const
 {
     const std::lock_guard<std::mutex>	lock(odometry_mtx_);
 
@@ -98,14 +100,14 @@ OdometryFeedForward::haveRecentInput(const ros::Duration& timeout) const
 	    ros::Time::now() - odometry_->header.stamp < timeout);
 }
 
-OdometryFeedForward::pose_t
-OdometryFeedForward::ff_pose(const pose_t& target_pose,
-			     const ros::Duration& dt) const
+OdometryFeedForwardServo::pose_t
+OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
+				  const ros::Duration& dt) const
 {
   // Get transform to base frame.
     const auto	twist = getTwist();
-    const auto	T     = servo_.getFrameTransform(twist.header.frame_id,
-						 target_pose.header.frame_id);
+    const auto	T     = getFrameTransform(twist.header.frame_id,
+					  target_pose.header.frame_id);
 
   // Get transform produced from twist.
     const vector3_t	angular(twist.twist.angular.x,
@@ -129,8 +131,8 @@ OdometryFeedForward::ff_pose(const pose_t& target_pose,
     return  pose;
 }
 
-OdometryFeedForward::twist_t
-OdometryFeedForward::getTwist() const
+OdometryFeedForwardServo::twist_t
+OdometryFeedForwardServo::getTwist() const
 {
     const std::lock_guard<std::mutex> lock(odometry_mtx_);
 
@@ -143,7 +145,7 @@ OdometryFeedForward::getTwist() const
 }
 
 void
-OdometryFeedForward::odometryCB(const odometry_cp& odometry)
+OdometryFeedForwardServo::odometryCB(const odometry_cp& odometry)
 {
     const std::lock_guard<std::mutex> lock(odometry_mtx_);
 
@@ -158,14 +160,12 @@ OdometryFeedForward::odometryCB(const odometry_cp& odometry)
 int
 main(int argc, char* argv[])
 {
-    using namespace aist_moveit_servo;
-
     const std::string	logname("odometry_feedforward_servo");
 
     ros::init(argc, argv, logname);
 
     ros::NodeHandle				nh("~");
-    PoseTrackingServo<OdometryFeedForward>	servo(nh, logname);
+    aist_moveit_servo::OdometryFeedForwardServo	servo(nh, logname);
     servo.run();
 
     return 0;
