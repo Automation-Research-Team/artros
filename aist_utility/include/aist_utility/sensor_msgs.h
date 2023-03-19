@@ -44,6 +44,7 @@
 #include <array>
 #include <algorithm>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
@@ -85,6 +86,24 @@ template <class T> inline const T*
 ptr(const sensor_msgs::Image& image, int v)
 {
     return reinterpret_cast<const T*>(image.data.data() + v*image.step);
+}
+
+inline sensor_msgs::Image
+create_empty_image(const ros::Time& stamp, const std::string& frame)
+{
+    using namespace	sensor_msgs;
+
+    Image	image;
+    image.header.stamp	  = stamp;
+    image.header.frame_id = frame;
+    image.height	  = 1;
+    image.width		  = 0;
+    image.encoding	  = sensor_msgs::image_encodings::RGB8;
+    image.is_bigendian	  = false;
+    image.step		  = 0;
+    image.data.clear();
+
+    return image;
 }
 
 //! Convert depth image to sequence of 3D points.
