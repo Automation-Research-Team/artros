@@ -36,22 +36,47 @@ class FTCalibrationRoutines(AISTBaseRoutines):
             self._save_calibration    = None
             self._clear_samples       = None
 
-    def move(self, xyzrpy):
-        target_pose = PoseStamped()
-        target_pose.header.frame_id = self.reference_frame
-        target_pose.pose = Pose(Point(*xyzrpy[0:3]),
-                                Quaternion(*tfs.quaternion_from_euler(
-                                               *map(radians, xyzrpy[3:6]))))
-        success, _, _ = self.go_to_pose_goal(self._robot_name, target_pose,
-                                             self._speed, move_lin=True)
-        return success
+    def run(self):
+        self.print_help_messages()
+        print('')
 
+        axis = 'Y'
+
+        while not rospy.is_shutdown():
+            prompt = '{:>5}:{}>> ' \
+                     .format(axis,
+                             self.format_pose(
+                                 self.get_current_pose(self._robot_name)))
+            key = raw_input(prompt)
+
+            try:
+                _, axis, _ = self.interactive(key, self._robot_name, axis,
+                                              self._speed)
+            except Exception as e:
+                print(e.message)
+
+    # Interactive stuffs
+    def print_help_messages(self):
+        super(FTCalibrationRoutines, self).print_help_messages()
+        print('=== Calibration commands ===')
+        print('  RET: do calibration')
+
+    def interactive(self, key, robot_name, axis, speed):
+        if key == '':
+            self.calibrate()
+        else:
+            return super(FTCalibrationRoutines, self) \
+                  .interactive(key, robot_name, axis, speed)
+        return robot_name, axis, speed
+
+    # Commands
     def calibrate(self):
         self.go_to_named_pose(self._robot_name, 'home')
         if self._clear_samples:
             self._clear_samples()
 
-        self.move(self._initpose)
+        self.go_to_pose_goal(self._robot_name,
+                             self.pose_from_xyzrpy(self._initpoe), self._speed)
         if self._take_sample:
             self._take_sample()
 
@@ -100,14 +125,6 @@ class FTCalibrationRoutines(AISTBaseRoutines):
             print('  save calibration: {}').format(res.message)
 
         self.go_to_named_pose(self._robot_name, 'home')
-
-    def run(self):
-        while not rospy.is_shutdown():
-            print('\n  RET: do calibration')
-            print('  q  : go to home position and quit')
-            if raw_input('>> ') == 'q':
-                break
-            self.calibrate()
 
 
 ######################################################################
