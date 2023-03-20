@@ -89,7 +89,9 @@ ptr(const sensor_msgs::Image& image, int v)
 }
 
 inline sensor_msgs::Image
-create_empty_image(const ros::Time& stamp, const std::string& frame)
+create_empty_image(const ros::Time& stamp, const std::string& frame,
+		   const std::string& encoding
+					=sensor_msgs::image_encodings::RGB8)
 {
     using namespace	sensor_msgs;
 
@@ -98,7 +100,7 @@ create_empty_image(const ros::Time& stamp, const std::string& frame)
     image.header.frame_id = frame;
     image.height	  = 1;
     image.width		  = 0;
-    image.encoding	  = sensor_msgs::image_encodings::RGB8;
+    image.encoding	  = encoding;
     image.is_bigendian	  = false;
     image.step		  = 0;
     image.data.clear();
