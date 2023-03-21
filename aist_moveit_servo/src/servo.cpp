@@ -114,6 +114,8 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
      outgoing_cmd_debug_pub_(
 	 nh_.advertise<trajectory_t>(parameters_.command_out_topic + "_debug",
 				     ROS_QUEUE_SIZE)),
+     incoming_positions_debug_pub_(
+	 nh_.advertise<multi_array_t>("actual_positions", ROS_QUEUE_SIZE)),
      durations_pub_(nh_.advertise<DurationArray>("durations", 1)),
      drift_dimensions_srv_(
 	 nh_.advertiseService(ros::names::append(nh_.getNamespace(),
@@ -404,6 +406,12 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     durations_tmp.header.stamp = now;
     durations_pub_.publish(durations_tmp);
 
+    auto	joints = moveit::util::make_shared_from_pool<multi_array_t>();
+    joints->data.resize(numJoints());
+    for (size_t i = 0; i < numJoints(); ++i)
+	joints->data[i] = actual_positions_(i);
+    incoming_positions_debug_pub_.publish(joints);
+
     return true;
 }
 
@@ -421,6 +429,8 @@ Servo::updateJoints()
     actual_velocities_.resize(numJoints());
     robot_state_->copyJointGroupVelocities(jointGroup(),
 					   actual_velocities_.data());
+
+    ROS_DEBUG_STREAM_NAMED(logname(), "(" << logname() << ") joint updated");
 }
 
 //! Do servoing calculations for Cartesian twist commands

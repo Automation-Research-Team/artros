@@ -662,8 +662,8 @@ PoseTrackingServo<FF>::targetPoseCB(const pose_cp& target_pose)
 
     target_pose_ = target_pose;
 
-    // if (target_pose_.header.stamp == ros::Time(0))
-    // 	target_pose_.header.stamp = ros::Time::now();
+    ROS_DEBUG_STREAM_NAMED(logname(),
+			   "(" << logname() << ") target_pose received");
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t

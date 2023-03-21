@@ -48,7 +48,7 @@ command_out_topic: /$(arg controller)/command
 
 ## Collision checking for the entire robot body
 check_collisions:     true
-collision_check_rate: 10
+collision_check_rate: 50
 collision_check_type: threshold_distance
 
 # Parameters for "threshold_distance"-type collision checking

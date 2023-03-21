@@ -217,6 +217,7 @@ class Servo
     const ros::Publisher		worst_case_stop_time_pub_;
     const ros::Publisher		outgoing_cmd_pub_;
     const ros::Publisher		outgoing_cmd_debug_pub_;
+    const ros::Publisher		incoming_positions_debug_pub_;
     const ros::Publisher		durations_pub_;
     const ros::ServiceServer		drift_dimensions_srv_;
     const ros::ServiceServer		control_dimensions_srv_;
