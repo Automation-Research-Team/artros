@@ -55,6 +55,9 @@ namespace aist_moveit_servo
 ************************************************************************/
 planning_scene_monitor::PlanningSceneMonitorPtr
 createPlanningSceneMonitor(const std::string& robot_description,
+			   const std::string& move_group_name,
+			   const std::string& joint_states_topic,
+			   double update_period,
 			   const std::string& logname)
 {
     using	namespace planning_scene_monitor;
@@ -72,9 +75,21 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
 	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
 	false /* skip octomap monitor */);
-    monitor->startStateMonitor();
+    monitor->setStateUpdateFrequency(1.0/update_period);
+    monitor->startStateMonitor(joint_states_topic);
+    monitor->getStateMonitor()->enableCopyDynamics(true);
+    if (!monitor->getStateMonitor()
+		->waitForCompleteState(move_group_name,
+				       ROBOT_STATE_WAIT_TIME))
+    {
+	ROS_FATAL_NAMED(logname, "Timeout waiting for current state");
+	exit(EXIT_FAILURE);
+    }
 
-    ROS_INFO_STREAM_NAMED(logname, "PlanningSceneMonitor started");
+    ROS_INFO_STREAM_NAMED(logname,
+			  "PlanningSceneMonitor started: RobotState is updated at "
+			  << monitor->getStateUpdateFrequency()
+			  << "hz from topic[" << joint_states_topic << ']');
 
     return monitor;
 }
@@ -94,7 +109,9 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
      planning_scene_monitor_(createPlanningSceneMonitor(
 				 nh_.param<std::string>("robot_description",
 							"robot_description"),
-				 logname_)),
+				 parameters_.move_group_name,
+				 parameters_.joint_topic,
+				 parameters_.publish_period, logname_)),
      collision_checker_(nh_, parameters_, planning_scene_monitor_),
 
      collision_velocity_scale_sub_(internal_nh_.subscribe(
@@ -114,6 +131,8 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
      outgoing_cmd_debug_pub_(
 	 nh_.advertise<trajectory_t>(parameters_.command_out_topic + "_debug",
 				     ROS_QUEUE_SIZE)),
+     incoming_positions_debug_pub_(
+	 nh_.advertise<multi_array_t>("actual_positions", ROS_QUEUE_SIZE)),
      durations_pub_(nh_.advertise<DurationArray>("durations", 1)),
      drift_dimensions_srv_(
 	 nh_.advertiseService(ros::names::append(nh_.getNamespace(),
@@ -150,21 +169,6 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
      collision_velocity_scale_(nullptr),
      input_mtx_()
 {
-  // Confirm the planning scene monitor is ready to be used
-    if (!planning_scene_monitor_->getStateMonitor())
-    {
-	planning_scene_monitor_->startStateMonitor(parameters_.joint_topic);
-    }
-    planning_scene_monitor_->getStateMonitor()->enableCopyDynamics(true);
-
-    if (!planning_scene_monitor_->getStateMonitor()
-	->waitForCompleteState(parameters_.move_group_name,
-			       ROBOT_STATE_WAIT_TIME))
-    {
-	ROS_FATAL_NAMED(logname_, "Timeout waiting for current state");
-	exit(EXIT_FAILURE);
-    }
-
   // Setup joint_trajectory command to be published.
     joint_trajectory_.header.frame_id = parameters_.planning_frame;
     joint_trajectory_.header.stamp    = ros::Time(0);
@@ -404,6 +408,12 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     durations_tmp.header.stamp = now;
     durations_pub_.publish(durations_tmp);
 
+    auto	joints = moveit::util::make_shared_from_pool<multi_array_t>();
+    joints->data.resize(numJoints());
+    for (size_t i = 0; i < numJoints(); ++i)
+	joints->data[i] = actual_positions_(i);
+    incoming_positions_debug_pub_.publish(joints);
+
     return true;
 }
 
@@ -421,6 +431,8 @@ Servo::updateJoints()
     actual_velocities_.resize(numJoints());
     robot_state_->copyJointGroupVelocities(jointGroup(),
 					   actual_velocities_.data());
+
+    ROS_DEBUG_STREAM_NAMED(logname(), "(" << logname() << ") joint updated");
 }
 
 //! Do servoing calculations for Cartesian twist commands

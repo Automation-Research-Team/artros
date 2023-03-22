@@ -60,7 +60,9 @@ class OdometryFeedForwardServo
     bool	haveRecentFeedForward(const ros::Duration& timeout)
 								const	;
     pose_t	ff_pose(const pose_t& target_pose,
-			const ros::Duration& dt)		const	;
+    			const ros::Duration& dt)		const	;
+    // std::nullptr_t
+    // 		ff_pose(const pose_t&, const ros::Duration&)	const	;
 
   private:
     twist_t	getTwist()					const	;
@@ -114,12 +116,17 @@ OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
 				twist.twist.angular.y,
 				twist.twist.angular.z);
     const auto		d = dt.toSec();
-    Servo::isometry3_t	dT;
-    dT.linear()	     = angle_axis_t(d * angular.norm(), angular.normalized())
-		      .toRotationMatrix();
+    auto		dT = Servo::isometry3_t::Identity();
+    // dT.linear()	     = angle_axis_t(d * angular.norm(), angular.normalized())
+    // 		      .toRotationMatrix();
     dT.translation() = vector3_t(d * twist.twist.linear.x,
 				 d * twist.twist.linear.y,
 				 d * twist.twist.linear.z);
+    // const auto	aa = angle_axis_t(d * angular.norm(), angular.normalized());
+    // std::cerr << "*** aa.axis  = " << aa.axis().transpose() << std::endl;
+    // std::cerr << "*** aa.angle = " << aa.angle() << std::endl;
+    // std::cerr << "*** dT.trans = " << dT.translation().transpose()
+    // 	      << std::endl;
 
   // Correct target pose by twist.
     auto	dS = tf2::eigenToTransform(T.inverse() * dT.inverse() * T);
@@ -127,8 +134,14 @@ OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
     dS.child_frame_id = target_pose.header.frame_id;
     pose_t	pose;
     tf2::doTransform(target_pose, pose, dS);
+    // const auto	dSS = T.inverse() * dT.inverse() * T;
+    // std::cerr << "*** dS.trans = " << dSS.translation().transpose()
+    // 	      << std::endl
+    // 	      << "*** dS.liner = " << dSS.linear()
+    // 	      << std::endl;
 
     return  pose;
+  //return  nullptr;
 }
 
 OdometryFeedForwardServo::twist_t
