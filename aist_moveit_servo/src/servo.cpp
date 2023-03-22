@@ -694,8 +694,8 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
 	    const auto	bounded_velocity = std::clamp(velocity,
-						      16*bounds.min_velocity_,
-						      16*bounds.max_velocity_);
+						      bounds.min_velocity_,
+						      bounds.max_velocity_);
 	    bounding_scale = std::min(bounding_scale,
 				      bounded_velocity / velocity);
 	}
