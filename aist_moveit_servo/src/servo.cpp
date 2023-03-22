@@ -86,22 +86,23 @@ createPlanningSceneMonitor(const std::string& robot_description,
  *  public member functions
  */
 // Constructor for the class that handles servoing calculations
-Servo::Servo(const ros::NodeHandle& nh,
-	     const std::string& robot_description, const std::string& logname)
+Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
     :nh_(nh),
-     internal_nh_(nh, "internal"),
+     internal_nh_(nh_, "internal"),
      logname_(logname),
-     parameters_(nh, logname_),
-     planning_scene_monitor_(createPlanningSceneMonitor(robot_description,
-							logname_)),
-     collision_checker_(nh, parameters_, planning_scene_monitor_),
+     parameters_(nh_, logname_),
+     planning_scene_monitor_(createPlanningSceneMonitor(
+				 nh_.param<std::string>("robot_description",
+							"robot_description"),
+				 logname_)),
+     collision_checker_(nh_, parameters_, planning_scene_monitor_),
 
      collision_velocity_scale_sub_(internal_nh_.subscribe(
 				       "collision_velocity_scale",
 				       ROS_QUEUE_SIZE,
 				       &Servo::collisionVelocityScaleCB, this)),
-     status_pub_(nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
-					       ROS_QUEUE_SIZE)),
+     servo_status_pub_(nh_.advertise<std_msgs::Int8>(parameters_.status_topic,
+						     ROS_QUEUE_SIZE)),
      worst_case_stop_time_pub_(internal_nh_.advertise<flt64_t>(
 				   "worst_case_stop_time", ROS_QUEUE_SIZE)),
      outgoing_cmd_pub_(
@@ -113,6 +114,8 @@ Servo::Servo(const ros::NodeHandle& nh,
      outgoing_cmd_debug_pub_(
 	 nh_.advertise<trajectory_t>(parameters_.command_out_topic + "_debug",
 				     ROS_QUEUE_SIZE)),
+     incoming_positions_debug_pub_(
+	 nh_.advertise<multi_array_t>("actual_positions", ROS_QUEUE_SIZE)),
      durations_pub_(nh_.advertise<DurationArray>("durations", 1)),
      drift_dimensions_srv_(
 	 nh_.advertiseService(ros::names::append(nh_.getNamespace(),
@@ -122,10 +125,10 @@ Servo::Servo(const ros::NodeHandle& nh,
 	 nh_.advertiseService(ros::names::append(nh_.getNamespace(),
 						 "change_control_dimensions"),
 			      &Servo::changeControlDimensionsCB, this)),
-     reset_status_srv_(
+     reset_servo_status_srv_(
 	 nh_.advertiseService(ros::names::append(nh_.getNamespace(),
 						 "reset_servo_status"),
-			      &Servo::resetStatusCB, this)),
+			      &Servo::resetServoStatusCB, this)),
      durations_(),
      ddr_(nh_),
 
@@ -145,8 +148,8 @@ Servo::Servo(const ros::NodeHandle& nh,
      joint_trajectory_(),
      joint_indices_(),
 
-     status_(StatusCode::NO_WARNING),
-     collision_velocity_scale_(1.0),
+     servo_status_(StatusCode::NO_WARNING),
+     collision_velocity_scale_(nullptr),
      input_mtx_()
 {
   // Confirm the planning scene monitor is ready to be used
@@ -245,7 +248,7 @@ Servo::stop()
 void
 Servo::updateRobot()
 {
-    publishStatus();			// Publish servo status.
+    publishServoStatus();
     updateJoints();			// Read robot status.
     publishWorstCaseStopTime();
 }
@@ -403,6 +406,12 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     durations_tmp.header.stamp = now;
     durations_pub_.publish(durations_tmp);
 
+    auto	joints = moveit::util::make_shared_from_pool<multi_array_t>();
+    joints->data.resize(numJoints());
+    for (size_t i = 0; i < numJoints(); ++i)
+	joints->data[i] = actual_positions_(i);
+    incoming_positions_debug_pub_.publish(joints);
+
     return true;
 }
 
@@ -420,6 +429,8 @@ Servo::updateJoints()
     actual_velocities_.resize(numJoints());
     robot_state_->copyJointGroupVelocities(jointGroup(),
 					   actual_velocities_.data());
+
+    ROS_DEBUG_STREAM_NAMED(logname(), "(" << logname() << ") joint updated");
 }
 
 //! Do servoing calculations for Cartesian twist commands
@@ -430,6 +441,7 @@ Servo::setTrajectory(const twist_t& twist_cmd, const vector_t& positions)
 
   // Set uncontrolled dimensions to 0 in command frame
     {
+      // Guard control_dimensions_
 	const std::lock_guard<std::mutex>	lock(input_mtx_);
 
 	if (!control_dimensions_[0])
@@ -482,6 +494,7 @@ Servo::setTrajectory(const twist_t& twist_cmd, const vector_t& positions)
   // in the vector drift_dimensions
   // Work backwards through the 6-vector so indices don't get out of order
     {
+      // Guard drift_dimensions_
 	const std::lock_guard<std::mutex>	lock(input_mtx_);
 
 	for (auto dimension = jacobian.rows() - 1; dimension >= 0; --dimension)
@@ -636,18 +649,18 @@ Servo::velocityScalingFactorForSingularity(
 				  parameters_.lower_singularity_threshold)
 			       / (parameters_.hard_stop_singularity_threshold -
 				  parameters_.lower_singularity_threshold);
-	    status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
+	    servo_status_ = StatusCode::DECELERATE_FOR_SINGULARITY;
 	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, logname_,
-					   SERVO_STATUS_CODE_MAP.at(status_));
+					   SERVO_STATUS_CODE_MAP.at(servo_status_));
 	}
 
       // Very close to singularity, so halt.
 	else if (ini_condition > parameters_.hard_stop_singularity_threshold)
 	{
 	    velocity_scale = 0;
-	    status_ = StatusCode::HALT_FOR_SINGULARITY;
+	    servo_status_ = StatusCode::HALT_FOR_SINGULARITY;
 	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, logname_,
-					   SERVO_STATUS_CODE_MAP.at(status_));
+					   SERVO_STATUS_CODE_MAP.at(servo_status_));
 	}
     }
 
@@ -687,29 +700,23 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
     }
 
   // Convert back to joint angle increments.
-    // if (bound_scaling < 1.0)
-    //   std::cerr << "*** bound_scaling="
-    // 		<< bound_scaling << std::endl;
+    const auto	collision_velocity_scale = collisionVelocityScale();
+
+    delta_theta *= (bounding_scale *
+		    collision_velocity_scale * singularity_scale);
+
+    if (collision_velocity_scale <= 0)
     {
-	const std::lock_guard<std::mutex>	lock(input_mtx_);
+	servo_status_ = StatusCode::HALT_FOR_COLLISION;
 
-	delta_theta *= (bounding_scale *
-			collision_velocity_scale_ * singularity_scale);
+	ROS_WARN_STREAM_THROTTLE_NAMED(3, logname_, "Halting for collision!");
+    }
+    else if (collision_velocity_scale < 1)
+    {
+	servo_status_ = StatusCode::DECELERATE_FOR_COLLISION;
 
-	if (collision_velocity_scale_ <= 0)
-	{
-	    status_ = StatusCode::HALT_FOR_COLLISION;
-
-	    ROS_WARN_STREAM_THROTTLE_NAMED(3, logname_,
-					   "Halting for collision!");
-	}
-	else if (collision_velocity_scale_ < 1)
-	{
-	    status_ = StatusCode::DECELERATE_FOR_COLLISION;
-
-	    ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, logname_,
-					   SERVO_STATUS_CODE_MAP.at(status_));
-	}
+	ROS_WARN_STREAM_THROTTLE_NAMED(ROS_LOG_THROTTLE_PERIOD, logname_,
+				       SERVO_STATUS_CODE_MAP.at(servo_status_));
     }
 }
 
@@ -727,7 +734,7 @@ Servo::convertDeltasToTrajectory(const vector_t& positions,
     {
 	setPointsToTrajectory(actual_positions_,
 			      vector_t::Zero(delta_theta.size()), true);
-	status_ = StatusCode::JOINT_BOUND;
+	servo_status_ = StatusCode::JOINT_BOUND;
     }
 }
 
@@ -872,6 +879,7 @@ void
 Servo::initializeLowPassFilters(int half_order, double cutoff_frequency)
 {
     {
+      // Guard position_filters_
 	const std::lock_guard<std::mutex> lock(input_mtx_);
 
 	parameters_.low_pass_filter_half_order	 = half_order;
@@ -891,6 +899,7 @@ Servo::initializeLowPassFilters(int half_order, double cutoff_frequency)
 void
 Servo::applyLowPassFilters(vector_t& positions)
 {
+  // Guard position_filters_
     const std::lock_guard<std::mutex> lock(input_mtx_);
 
     for (size_t i = 0; i < position_filters_.size(); ++i)
@@ -901,6 +910,7 @@ Servo::applyLowPassFilters(vector_t& positions)
 void
 Servo::resetLowPassFilters()
 {
+  // Guard position_filters_
     const std::lock_guard<std::mutex> lock(input_mtx_);
 
     for (size_t i = 0; i < position_filters_.size(); ++i)
@@ -910,12 +920,23 @@ Servo::resetLowPassFilters()
 /*
  *  private member functions: callbacks
  */
+double
+Servo::collisionVelocityScale() const
+{
+  // Guard collision_velocity_scale_
+    const std::lock_guard<std::mutex> lock(input_mtx_);
+
+    return (collision_velocity_scale_ == nullptr ?
+	    1.0 : collision_velocity_scale_->data);
+}
+
 void
 Servo::collisionVelocityScaleCB(const flt64_cp& velocity_scale)
 {
+  // Guard collision_velocity_scale_
     const std::lock_guard<std::mutex> lock(input_mtx_);
 
-    collision_velocity_scale_ = velocity_scale->data;
+    collision_velocity_scale_ = velocity_scale;
 }
 
 //! Allow drift in certain dimensions
@@ -932,6 +953,7 @@ Servo::changeDriftDimensionsCB(
 		moveit_msgs::ChangeDriftDimensions::Request&  req,
 		moveit_msgs::ChangeDriftDimensions::Response& res)
 {
+  // Guard drift_dimensions_
     const std::lock_guard<std::mutex> lock(input_mtx_);
 
     drift_dimensions_[0] = req.drift_x_translation;
@@ -955,6 +977,7 @@ Servo::changeControlDimensionsCB(
 		moveit_msgs::ChangeControlDimensions::Request&  req,
 		moveit_msgs::ChangeControlDimensions::Response& res)
 {
+  // Guard control_dimensions_
     const std::lock_guard<std::mutex> lock(input_mtx_);
 
     control_dimensions_[0] = req.control_x_translation;
@@ -973,18 +996,17 @@ Servo::changeControlDimensionsCB(
  *  Servo status stuffs
  */
 void
-Servo::publishStatus() const
+Servo::publishServoStatus() const
 {
-    auto status_msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
-    status_msg->data = static_cast<int8_t>(status_);
-    status_pub_.publish(status_msg);
+    const auto	msg = moveit::util::make_shared_from_pool<std_msgs::Int8>();
+    msg->data = static_cast<int8_t>(servo_status_);
+    servo_status_pub_.publish(msg);
 }
 
 bool
-Servo::resetStatusCB(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
+Servo::resetServoStatusCB(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
-    status_ = StatusCode::NO_WARNING;
-    return true;
+    resetServoStatus();
 }
 
 /*

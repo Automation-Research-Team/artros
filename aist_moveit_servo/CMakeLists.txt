@@ -135,27 +135,48 @@ add_dependencies(
 )
 
 #
-#  linear_tracking_servo
+#  velocity_feedforward_servo
 #
 add_executable(
-  linear_tracking_servo
-  src/linear_tracking_servo.cpp
+  velocity_feedforward_servo
+  src/velocity_feedforward_servo.cpp
 )
 
 target_link_libraries(
-  linear_tracking_servo
+  velocity_feedforward_servo
   ${catkin_LIBRARIES}
   ${PROJECT_NAME}
 )
 
 add_dependencies(
-  linear_tracking_servo
+  velocity_feedforward_servo
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+)
+
+#
+#  odometry_feedforward_servo
+#
+add_executable(
+  odometry_feedforward_servo
+  src/odometry_feedforward_servo.cpp
+)
+
+target_link_libraries(
+  odometry_feedforward_servo
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+add_dependencies(
+  odometry_feedforward_servo
   ${PROJECT_NAME}_generate_messages_cpp
   ${catkin_EXPORTED_TARGETS}
 )
 
 install(
-  TARGETS servo_server pose_tracking_servo linear_tracking_servo
+  TARGETS servo_server pose_tracking_servo
+	  velocity_feedforward_servo odometry_feedforward_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
