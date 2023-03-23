@@ -266,7 +266,7 @@ class AISTBaseRoutines(object):
         elif key == 'named':
             pose_name = raw_input("  pose name? ")
             try:
-                self.go_to_named_pose(pose_name, robot_name)
+                self.go_to_named_pose(robot_name, pose_name)
             except rospy.ROSException as e:
                 rospy.logerr('Unknown pose: %s' % e)
         elif key == 'frame':
