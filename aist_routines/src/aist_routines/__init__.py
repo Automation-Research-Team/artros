@@ -71,7 +71,7 @@ def paramtuples(d):
 #  class AISTBaseRoutines                                            #
 ######################################################################
 class AISTBaseRoutines(object):
-    def __init__(self):
+    def __init__(self, reference_frame='', eef_step=None):
         super(AISTBaseRoutines, self).__init__()
 
         moveit_commander.roscpp_initialize(sys.argv)
@@ -79,9 +79,11 @@ class AISTBaseRoutines(object):
         rospy.sleep(1.0)        # Necessary for listner spinning up
 
         # MoveIt planning parameters
-        self._reference_frame = rospy.get_param('~moveit_pose_reference_frame',
+        self._reference_frame = reference_frame if reference_frame != '' else \
+                                rospy.get_param('~moveit_pose_reference_frame',
                                                 'workspace_center')
-        self._eef_step        = rospy.get_param('~moveit_eef_step', 0.0005)
+        self._eef_step        = eef_step if eef_step is not None else \
+                                rospy.get_param('~moveit_eef_step', 0.0005)
         rospy.loginfo('reference_frame = {}, eef_step = {}'
                       .format(self._reference_frame, self._eef_step))
 

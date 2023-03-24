@@ -48,15 +48,14 @@ from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
 #  class HandEyeCalibrationRoutines                                  #
 ######################################################################
 class HandEyeCalibrationRoutines(AISTBaseRoutines):
-    def __init__(self):
-        super(HandEyeCalibrationRoutines, self).__init__()
+    def __init__(self, robot_base_frame):
+        super(HandEyeCalibrationRoutines, self).__init__(robot_base_frame)
 
         self._camera_name          = rospy.get_param('~camera_name',
                                                      'a_phoxi_m_camera')
         self._robot_name           = rospy.get_param('~robot_name', 'b_bot')
         self._eye_on_hand          = rospy.get_param('~eye_on_hand', False)
-        self._robot_base_frame     = rospy.get_param('~robot_base_frame',
-                                                     'workspace_center')
+        self._robot_base_frame     = robot_base_frame
         self._robot_effector_frame = rospy.get_param('~robot_effector_frame',
                                                      'b_bot_flange')
         self._robot_effector_tip_frame \
@@ -306,5 +305,6 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 if __name__ == '__main__':
     rospy.init_node('run_calibration')
 
-    calibration = HandEyeCalibrationRoutines()
+    robot_base_frame = rospy.get_param('~robot_base_frame', 'workspace_center')
+    calibration = HandEyeCalibrationRoutines(robot_base_frame)
     calibration.run()
