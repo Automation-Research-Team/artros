@@ -155,7 +155,7 @@ class KittingRoutines(AISTBaseRoutines):
 
         # Search for graspabilities.
         if poses is None:
-            poses, _ = self.search_bin(bin_id)
+            poses = self.search_bin(bin_id).poses
 
         # Attempt to pick the item.
         nattempts = 0
@@ -173,11 +173,11 @@ class KittingRoutines(AISTBaseRoutines):
 
             if result == PickOrPlaceResult.SUCCESS:
                 self.place_at_frame(robot_name, part_props['destination'],
-                                    part_id, wait=False,
-                                    feedback_cb=self._pick_or_place_feedback_cb)
-                self._wait_for_approaching()
-                poses, _ = self.search_bin(bin_id)
-                result   = self.pick_or_place_wait_for_result()
+                                    part_id, wait=False)
+                self.pick_or_place_wait_for_status(
+                    PickOrPlaceFeedback.APPROACHING)
+                poses  = self.search_bin(bin_id).poses
+                result = self.pick_or_place_wait_for_result()
                 return result == PickOrPlaceResult.SUCCESS, poses
             elif result == PickOrPlaceResult.MOVE_FAILURE or \
                  result == PickOrPlaceResult.APPROACH_FAILURE:
@@ -210,20 +210,6 @@ class KittingRoutines(AISTBaseRoutines):
     # Utilities
     def _clear_fail_poses(self):
         self._fail_poses = []
-
-    def _wait_for_approaching(self):
-        self._moving = True
-        with self._condition:
-            while self._moving:  # Use loop for spurious wakeup
-                self._condition.wait()
-
-    def _pick_or_place_feedback_cb(self, feedback):
-        if self._moving and \
-           feedback.state not in (PickOrPlaceFeedback.UNKNOWN,
-                                  PickOrPlaceFeedback.MOVING):
-            with self._condition:
-                self._moving = False
-                self._condition.notifyAll()
 
     def _is_eye_on_hand(self, robot_name, camera_name):
         return camera_name == robot_name + '_camera'

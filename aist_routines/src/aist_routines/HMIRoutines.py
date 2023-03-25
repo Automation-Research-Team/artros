@@ -126,10 +126,11 @@ class HMIRoutines(KittingRoutines):
             self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
 
         # Search for graspabilities.
-        poses, _ = self.search_bin(bin_id, 0.0)
+        graspabilities = self.search_bin(bin_id, 0.0)
 
         # Attempt to sweep the item along y-axis.
-        pose = PoseStamped(poses.header, poses.poses[0])
+        pose = PoseStamped(graspabilities.poses.header,
+                           graspabilities.poses.poses[0])
         R    = tfs.quaternion_matrix((pose.pose.orientation.x,
                                       pose.pose.orientation.y,
                                       pose.pose.orientation.z,
@@ -160,7 +161,7 @@ class HMIRoutines(KittingRoutines):
 
         # Search for graspabilities.
         if poses is None:
-            poses, _ = self.search_bin(bin_id)
+            poses = self.search_bin(bin_id).poses
 
         # Attempt to pick the item.
         for p in poses.poses:
@@ -172,11 +173,11 @@ class HMIRoutines(KittingRoutines):
 
             if result == PickOrPlaceResult.SUCCESS:
                 self.place_at_frame(robot_name, part_props['destination'],
-                                    part_id, wait=False,
-                                    feedback_cb=self._pick_or_place_feedback_cb)
-                self._wait_for_approaching()
-                poses, _ = self.search_bin(bin_id)
-                result   = self.pick_or_place_wait_for_result()
+                                    part_id, wait=False)
+                self.pick_or_place_wait_for_status(
+                    PickOrPlaceFeedback.APPROACHING)
+                poses  = self.search_bin(bin_id).poses
+                result = self.pick_or_place_wait_for_result()
                 return result == PickOrPlaceResult.SUCCESS, poses
             elif result == PickOrPlaceResult.MOVE_FAILURE or \
                  result == PickOrPlaceResult.APPROACH_FAILURE:
@@ -216,8 +217,9 @@ class HMIRoutines(KittingRoutines):
         message    = '[Request testing] Please specify sweep direction.'
 
         # Search for graspabilities.
-        poses, _ = self.search_bin(bin_id)
-        pose     = PoseStamped(poses.header, poses.poses[0])
+        graspabilities = self.search_bin(bin_id)
+        pose           = PoseStamped(graspabilities.poses.header,
+                                     graspabilities.poses.poses[0])
 
         # Send request and receive response.
         res = self._request_help(robot_name, pose, part_id, message)

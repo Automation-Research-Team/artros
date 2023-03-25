@@ -495,24 +495,27 @@ class AISTBaseRoutines(object):
 
     def graspability_wait_for_result(self, orientation=None, max_slant=pi/4,
                                      target_frame='', marker_lifetime=0):
-        poses, gscores, contact_points \
-            = self._graspabilityClient.wait_for_result(orientation, max_slant)
+        graspabilities = self._graspabilityClient.wait_for_result(orientation,
+                                                                  max_slant)
 
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
-        contact_points = self._transform_points_to_target_frame(
-                                poses.header, contact_points, target_frame)
+        contact_points = graspabilities.contact_points
+        poses          = graspabilities.poses
+        contact_points = self._transform_points_to_target_frame(poses.header,
+                                                                contact_points,
+                                                                target_frame)
         poses          = self.transform_poses_to_target_frame(poses,
                                                               target_frame)
         for i, pose in enumerate(poses.poses):
             self.add_marker('graspability',
                             PoseStamped(poses.header, pose), contact_points[i],
-                            '{}[{:.3f}]'.format(i, gscores[i]),
+                            '{}[{:.3f}]'.format(i, graspabilities.gscores[i]),
                             lifetime=marker_lifetime)
         self.publish_marker()
 
-        return poses, gscores
+        return graspabilities
 
     def graspability_cancel_goal(self):
         self._graspabilityClient.cancel_goal()
@@ -571,6 +574,9 @@ class AISTBaseRoutines(object):
 
     def pick_or_place_cancel(self):
         return self._pick_or_place.cancel()
+
+    def pick_or_place_wait_for_status(self, status):
+        return self._pick_or_place.wait_for_status(status)
 
     # Sweep action stuffs
     def sweep(self, robot_name, target_pose, sweep_dir, part_id,

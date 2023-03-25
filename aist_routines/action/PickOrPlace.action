@@ -18,10 +18,10 @@ int32 DEPARTURE_FAILURE=4
 int32 result
 ---
 # Feedback
-int32 UNKNOWN=0
+int32 IDLING=0
 int32 MOVING=1
 int32 APPROACHING=2
 int32 GRASPING_OR_RELEASING=3
 int32 DEPARTING=4
 
-int32 state
+int32 status
