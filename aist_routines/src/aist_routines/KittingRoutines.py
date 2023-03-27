@@ -34,7 +34,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, threading
+import rospy
 from math              import pi, radians, degrees
 from geometry_msgs.msg import PoseStamped, QuaternionStamped, Quaternion
 from aist_routines     import AISTBaseRoutines
@@ -54,8 +54,6 @@ class KittingRoutines(AISTBaseRoutines):
         self._part_props         = rospy.get_param('~part_props')
         self._current_robot_name = None
         self._fail_poses         = []
-        self._condition          = threading.Condition()
-        self._moving             = False
         #self.go_to_named_pose('all_bots', 'home')
 
     def run(self):
