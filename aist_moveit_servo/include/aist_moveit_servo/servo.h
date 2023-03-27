@@ -84,8 +84,10 @@ createPlanningSceneMonitor(const std::string& robot_description)	;
 ************************************************************************/
 class Servo
 {
-  protected:
+  public:
     using isometry3_t	= Eigen::Isometry3d;
+
+  protected:
     using transform_t	= geometry_msgs::TransformStamped;
     using twist_t	= geometry_msgs::TwistStamped;
     using twist_cp	= geometry_msgs::TwistStampedConstPtr;
@@ -109,12 +111,10 @@ class Servo
     using lpf_t		= aist_utility::ButterworthLPF<double>;
 
   public:
-		Servo(const ros::NodeHandle& nh,
-		      const std::string& robot_description,
-		      const std::string& logname)			;
+		Servo(ros::NodeHandle& nh, const std::string& logname)	;
 		~Servo()						;
 
-    const ros::NodeHandle&
+    ros::NodeHandle&
 		nodeHandle()					const	;
     const std::string&
 		logname()					const	;
@@ -186,7 +186,7 @@ class Servo
 
     double	collisionVelocityScale()			const	;
     void	collisionVelocityScaleCB(const flt64_cp& velocity_scale);
-    
+
     bool	changeDriftDimensionsCB(
 			moveit_msgs::ChangeDriftDimensions::Request& req,
 			moveit_msgs::ChangeDriftDimensions::Response& res);
@@ -203,7 +203,7 @@ class Servo
     void	publishWorstCaseStopTime()			const	;
 
   private:
-    ros::NodeHandle			nh_;
+    ros::NodeHandle&			nh_;
     ros::NodeHandle			internal_nh_;
 
     const std::string			logname_;
@@ -217,6 +217,7 @@ class Servo
     const ros::Publisher		worst_case_stop_time_pub_;
     const ros::Publisher		outgoing_cmd_pub_;
     const ros::Publisher		outgoing_cmd_debug_pub_;
+    const ros::Publisher		incoming_positions_debug_pub_;
     const ros::Publisher		durations_pub_;
     const ros::ServiceServer		drift_dimensions_srv_;
     const ros::ServiceServer		control_dimensions_srv_;
@@ -254,12 +255,12 @@ class Servo
     mutable std::mutex			input_mtx_;
 };
 
-inline const ros::NodeHandle&
+inline ros::NodeHandle&
 Servo::nodeHandle() const
 {
     return nh_;
 }
-    
+
 inline const std::string&
 Servo::logname() const
 {
@@ -337,5 +338,5 @@ Servo::resetServoStatus()
 
     servo_status_ = StatusCode::NO_WARNING;
 }
-    
+
 }  // namespace aist_moveit_servo

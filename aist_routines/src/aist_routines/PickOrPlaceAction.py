@@ -33,9 +33,9 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-import actionlib
+import rospy, threading
 import numpy as np
+from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg  import Transform, Vector3, Quaternion
 from aist_routines.msg  import (PickOrPlaceAction, PickOrPlaceGoal,
@@ -49,19 +49,21 @@ class PickOrPlace(object):
     def __init__(self, routines):
         super(PickOrPlace, self).__init__()
 
-        self._routines = routines
-        self._server   = actionlib.SimpleActionServer("pickOrPlace",
-                                                      PickOrPlaceAction,
-                                                      self._execute_cb, False)
+        self._routines  = routines
+        self._condition = threading.Condition()
+        self._status    = PickOrPlaceFeedback.IDLING
+        self._server    = SimpleActionServer("pickOrPlace", PickOrPlaceAction,
+                                             self._execute_cb, False)
         self._server.start()
-        self._client = actionlib.SimpleActionClient("pickOrPlace",
-                                                    PickOrPlaceAction)
+        self._client    = SimpleActionClient("pickOrPlace", PickOrPlaceAction)
         self._client.wait_for_server()
 
     # Client stuffs
     def execute(self, robot_name, pose_stamped, pick, offset,
                 approach_offset, departure_offset, speed_fast, speed_slow,
                 wait=True, feedback_cb=None):
+        if not feedback_cb:
+            feedback_cb = self._feedback_cb
         goal = PickOrPlaceGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
@@ -82,6 +84,19 @@ class PickOrPlace(object):
         if self._client.get_state() in ( GoalStatus.PENDING,
                                          GoalStatus.ACTIVE ):
             self._client.cancel_goal()
+
+    def wait_for_status(self, status):
+        self._status = status                   # Set target status.
+        with self._condition:
+            # Loop for avoiding spurious wakeup
+            while self._status != PickOrPlaceFeedback.IDLING:
+                self._condition.wait()
+
+    def _feedback_cb(self, feedback):
+        if self._status == feedback.status:     # Reached target status?
+            with self._condition:
+                self._status = PickOrPlaceFeedback.IDLING
+                self._condition.notifyAll()
 
     # Server stuffs
     def shutdown(self):

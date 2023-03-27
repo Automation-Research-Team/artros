@@ -72,7 +72,6 @@ class PoseTrackingServo : public Servo
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-    using feed_forward_t = FF;
 
     struct PIDConfig
     {
@@ -83,8 +82,7 @@ class PoseTrackingServo : public Servo
     };
 
   public:
-		PoseTrackingServo(const ros::NodeHandle& nh,
-				  const std::string& robot_description,
+		PoseTrackingServo(ros::NodeHandle& nh,
 				  const std::string& logname)		;
 		~PoseTrackingServo()					;
 
@@ -141,8 +139,6 @@ class PoseTrackingServo : public Servo
     pose_cp			target_pose_;
     mutable std::mutex		target_pose_mtx_;
 
-    feed_forward_t		ff_;
-
   // Filters for input target pose
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
@@ -155,30 +151,26 @@ class PoseTrackingServo : public Servo
 };
 
 template <class FF>
-PoseTrackingServo<FF>::PoseTrackingServo(const ros::NodeHandle& nh,
-					 const std::string& robot_description,
+PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 					 const std::string& logname)
-    :Servo(nh, robot_description, logname),
-     nh_(nh),
+    :Servo(nh, logname),
 
-     reset_servo_status_(nh_.serviceClient<std_srvs::Empty>(
+     reset_servo_status_(nh.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
-     target_pose_sub_(nh_.subscribe(
+     target_pose_sub_(nh.subscribe(
 			  "/target_pose", 1,
 			  &PoseTrackingServo::targetPoseCB, this,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
-     target_pose_debug_pub_(nh_.advertise<pose_t>("desired_pose", 1)),
-     ee_pose_debug_pub_(nh_.advertise<pose_t>("actual_pose", 1)),
+     target_pose_debug_pub_(nh.advertise<pose_t>("desired_pose", 1)),
+     ee_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
      durations_(durations()),
-     ddr_(ros::NodeHandle(nh_, "pose_tracking")),
+     ddr_(ros::NodeHandle(nh, "pose_tracking")),
 
-     pose_tracking_srv_(nh_, "pose_tracking", false),
+     pose_tracking_srv_(nh, "pose_tracking", false),
      current_goal_(nullptr),
 
      target_pose_(nullptr),
      target_pose_mtx_(),
-
-     ff_(*this),
 
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
@@ -311,36 +303,43 @@ PoseTrackingServo<FF>::readROSParams()
   // within the node namespace, append the parameter namespace
   // to load the parameters correctly.
     std::string	parameter_ns;
-    auto	nh = (nh_.getParam("parameter_ns", parameter_ns) ?
-		      ros::NodeHandle(nh_, parameter_ns) : nh_);
+    auto&	nh = nodeHandle();
+    auto	parameter_nh = (nh.getParam("parameter_ns", parameter_ns) ?
+				ros::NodeHandle(nh, parameter_ns) : nh);
 
   // Setup input low-pass filter
     std::size_t error = 0;
-    error += !rosparam_shortcuts::get(logname(), nh,
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
 				      "input_low_pass_filter_half_order",
 				      input_low_pass_filter_half_order_);
-    error += !rosparam_shortcuts::get(logname(), nh,
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
 				      "input_low_pass_filter_cutoff_frequency",
 				      input_low_pass_filter_cutoff_frequency_);
 
   // Setup PID configurations
     double	windup_limit;
-    error += !rosparam_shortcuts::get(logname(), nh, "windup_limit",
-				      windup_limit);
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "windup_limit", windup_limit);
     linear_pid_config_.windup_limit  = windup_limit;
     angular_pid_config_.windup_limit = windup_limit;
 
-    error += !rosparam_shortcuts::get(logname(), nh, "linear_proportional_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "linear_proportional_gain",
 				      linear_pid_config_.k_p);
-    error += !rosparam_shortcuts::get(logname(), nh, "linear_integral_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "linear_integral_gain",
 				      linear_pid_config_.k_i);
-    error += !rosparam_shortcuts::get(logname(), nh, "linear_derivative_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "linear_derivative_gain",
 				      linear_pid_config_.k_d);
-    error += !rosparam_shortcuts::get(logname(), nh, "angular_proportional_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "angular_proportional_gain",
 				      angular_pid_config_.k_p);
-    error += !rosparam_shortcuts::get(logname(), nh, "angular_integral_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "angular_integral_gain",
 				      angular_pid_config_.k_i);
-    error += !rosparam_shortcuts::get(logname(), nh, "angular_derivative_gain",
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "angular_derivative_gain",
 				      angular_pid_config_.k_d);
 
     rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
@@ -384,7 +383,8 @@ PoseTrackingServo<FF>::tick()
 
   // Check that target pose is recent enough.
     if (!haveRecentTargetPose(current_goal_->timeout) ||
-	!ff_.haveRecentInput(current_goal_->timeout))
+	!static_cast<const FF&>(*this)
+	 .haveRecentFeedForward(current_goal_->timeout))
     {
     	doPostMotionReset();
 
@@ -441,9 +441,10 @@ PoseTrackingServo<FF>::tick()
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
 
-    publishTrajectory(twist_cmd, ff_.ff_pose(target_pose,
-					     ros::Duration(servoParameters()
-							   .publish_period)));
+    publishTrajectory(twist_cmd,
+		      static_cast<const FF&>(*this).ff_pose(
+			  target_pose,
+			  ros::Duration(servoParameters().publish_period)));
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
@@ -602,7 +603,7 @@ PoseTrackingServo<FF>::goalCB()
 {
     resetServoStatus();
     resetTargetPose();
-    ff_.resetInput();
+    static_cast<FF&>(*this).resetFeedForward();
 
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
@@ -614,7 +615,8 @@ PoseTrackingServo<FF>::goalCB()
 	 ros::Duration(0.001).sleep())
     {
 	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
-	    ff_.haveRecentInput(DEFAULT_INPUT_TIMEOUT))
+	    static_cast<const FF&>(*this)
+	    .haveRecentFeedForward(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(targetPose().pose);
 	    start();
@@ -660,8 +662,8 @@ PoseTrackingServo<FF>::targetPoseCB(const pose_cp& target_pose)
 
     target_pose_ = target_pose;
 
-    // if (target_pose_.header.stamp == ros::Time(0))
-    // 	target_pose_.header.stamp = ros::Time::now();
+    ROS_DEBUG_STREAM_NAMED(logname(),
+			   "(" << logname() << ") target_pose received");
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t

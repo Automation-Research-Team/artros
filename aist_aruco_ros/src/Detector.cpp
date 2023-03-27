@@ -121,7 +121,7 @@ Detector::Detector(const ros::NodeHandle& nh)
 
 	ROS_INFO_STREAM("Find a marker with ID[" << marker_id << ']');
     }
-    
+
   // Set minimum marker size and setup ddynamic_reconfigure service for it.
     _ddr.registerVariable<double>("min_marker_size",
 				  _marker_detector.getParameters().minSize,
@@ -381,6 +381,7 @@ Detector::publish_transform(ITER begin, ITER end,
 	    R = rigidity.R();
 	    t = rigidity.t();
 	}
+
 	tf2::Transform	transform(tf2::Matrix3x3(R(0, 0), R(0, 1), R(0, 2),
 						 R(1, 0), R(1, 1), R(1, 2),
 						 R(2, 0), R(2, 1), R(2, 2)),
