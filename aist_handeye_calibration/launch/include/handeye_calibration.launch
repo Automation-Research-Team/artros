@@ -24,7 +24,7 @@
 
   <!-- Set file names for configuration and calibrated parameters -->
   <arg name="config_file"
-       value="$(dirname)/../../config/$(arg config)/$(arg camera_name).yaml"/>
+       value="$(dirname)/../../config/$(arg camera_name).yaml"/>
   <arg name="calib_file"
        value="$(env HOME
 	      )/.ros/aist_handeye_calibration/$(arg camera_name).yaml"/>

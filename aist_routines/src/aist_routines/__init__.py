@@ -44,7 +44,7 @@ from tf import TransformListener, transformations as tfs
 import moveit_commander
 from moveit_commander.conversions import pose_to_list
 
-from geometry_msgs import msg as gmsg
+from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped, PoseArray
 
 from GripperClient     import GripperClient, VoidGripper
 from CameraClient      import CameraClient
@@ -71,7 +71,7 @@ def paramtuples(d):
 #  class AISTBaseRoutines                                            #
 ######################################################################
 class AISTBaseRoutines(object):
-    def __init__(self):
+    def __init__(self, reference_frame='', eef_step=None):
         super(AISTBaseRoutines, self).__init__()
 
         moveit_commander.roscpp_initialize(sys.argv)
@@ -79,9 +79,11 @@ class AISTBaseRoutines(object):
         rospy.sleep(1.0)        # Necessary for listner spinning up
 
         # MoveIt planning parameters
-        self._reference_frame = rospy.get_param('~moveit_pose_reference_frame',
+        self._reference_frame = reference_frame if reference_frame != '' else \
+                                rospy.get_param('~moveit_pose_reference_frame',
                                                 'workspace_center')
-        self._eef_step        = rospy.get_param('~moveit_eef_step', 0.0005)
+        self._eef_step        = eef_step if eef_step is not None else \
+                                rospy.get_param('~moveit_eef_step', 0.0005)
         rospy.loginfo('reference_frame = {}, eef_step = {}'
                       .format(self._reference_frame, self._eef_step))
 
@@ -160,6 +162,141 @@ class AISTBaseRoutines(object):
     def eef_step(self):
         return self._eef_step
 
+    # Interactive stuffs
+    def print_help_messages(self):
+        print('=== General commands ===')
+        print('  quit:        quit this program')
+        print('  robot:       select robot')
+        print('  ?|help:      print help messages')
+        print('=== Arm commands ===')
+        print('  X|Y|Z|R|P|W: select arm axis to be driven')
+        print('  +|-:         move arm by 10(mm)/10(deg) along the current axis')
+        print('  <numeric>:   move arm to the specified coordinate along the current axis')
+        print('  home:        move arm to the home position')
+        print('  back:        move arm to the back position')
+        print('  named:       move arm to the pose specified by name')
+        print('  frame:       move arm to the pose specified by frame')
+        print('  speed:       set speed')
+        print('  stop:        stop arm immediately')
+        print('=== Gripper commands ===')
+        print('  gripper:     select gripper')
+        print('  pregrasp:    pregrasp with the current gripper')
+        print('  grasp:       grasp with the current gripper')
+        print('  release:     release with the current gripper')
+
+    def interactive(self, key, robot_name, axis, speed=1.0):
+        def _is_num(s):
+            try:
+                float(s)
+            except ValueError:
+                return False
+            else:
+                return True
+
+        if key == 'quit':
+            self.go_to_named_pose(robot_name, 'home')  # Reset pose
+            rospy.signal_shutdown('manual shutdown')
+        elif key == 'robot':
+            robot_name = raw_input('  robot name? ')
+        elif key == '?' or key == 'help':
+            self.print_help_messages()
+            print('')
+
+        # Arm stuffs
+        elif key == 'X':
+            axis = 'X'
+        elif key == 'Y':
+            axis = 'Y'
+        elif key == 'Z':
+            axis = 'Z'
+        elif key == 'R':
+            axis = 'Roll'
+        elif key == 'P':
+            axis = 'Pitch'
+        elif key == 'W':
+            axis = 'Yaw'
+        elif key == '+':
+            offset = [0, 0, 0, 0, 0, 0]
+            if axis == 'X':
+                offset[0] = 0.01
+            elif axis == 'Y':
+                offset[1] = 0.01
+            elif axis == 'Z':
+                offset[2] = 0.01
+            elif axis == 'Roll':
+                offset[3] = radians(10)
+            elif axis == 'Pitch':
+                offset[4] = radians(10)
+            else:
+                offset[5] = radians(10)
+            self.move_relative(robot_name, offset, speed)
+        elif key == '-':
+            offset = [0, 0, 0, 0, 0, 0]
+            if axis == 'X':
+                offset[0] = -0.01
+            elif axis == 'Y':
+                offset[1] = -0.01
+            elif axis == 'Z':
+                offset[2] = -0.01
+            elif axis == 'Roll':
+                offset[3] = radians(-10)
+            elif axis == 'Pitch':
+                offset[4] = radians(-10)
+            else:
+                offset[5] = radians(-10)
+            self.move_relative(robot_name, offset, speed)
+        elif _is_num(key):
+            xyzrpy = self.xyzrpy_from_pose(self.get_current_pose(robot_name))
+            if axis == 'X':
+                xyzrpy[0] = float(key)
+            elif axis == 'Y':
+                xyzrpy[1] = float(key)
+            elif axis == 'Z':
+                xyzrpy[2] = float(key)
+            elif axis == 'Roll':
+                xyzrpy[3] = float(key)
+            elif axis == 'Pitch':
+                xyzrpy[4] = float(key)
+            else:
+                xyzrpy[5] = float(key)
+            self.go_to_pose_goal(robot_name, self.pose_from_xyzrpy(xyzrpy),
+                                 speed)
+        elif key == 'home':
+            self.go_to_named_pose(robot_name, "home")
+        elif key == 'back':
+            self.go_to_named_pose(robot_name, "back")
+        elif key == 'named':
+            pose_name = raw_input("  pose name? ")
+            try:
+                self.go_to_named_pose(robot_name, pose_name)
+            except rospy.ROSException as e:
+                rospy.logerr('Unknown pose: %s' % e)
+        elif key == 'frame':
+            frame = raw_input("  frame? ")
+            self.go_to_frame(robot_name, frame)
+        elif key == 'speed':
+            speed = float(raw_input("  speed value? "))
+        elif key == 'stop':
+            self.stop(robot_name)
+
+        # Gripper stuffs
+        elif key == 'gripper':
+            gripper_name = raw_input("  gripper name? ")
+            try:
+                self.set_gripper(robot_name, gripper_name)
+            except KeyError as e:
+                rospy.logerr('Unknown gripper: %s' % e)
+        elif key == 'pregrasp':
+            self.pregrasp(robot_name)
+        elif key == 'grasp':
+            self.grasp(robot_name)
+        elif key == 'release':
+            self.release(robot_name)
+
+        else:
+            print('  unknown command! [%s]' % key)
+        return robot_name, axis, speed
+
     # Basic motion stuffs
     def go_to_named_pose(self, robot_name, named_pose):
         group = self._cmd.get_group(robot_name)
@@ -178,10 +315,10 @@ class AISTBaseRoutines(object):
     def go_to_frame(self, robot_name, target_frame, offset=(0, 0, 0),
                     speed=1.0, accel=1.0,
                     end_effector_link='', high_precision=False, move_lin=True):
-        target_pose = gmsg.PoseStamped()
+        target_pose = PoseStamped()
         target_pose.header.frame_id = target_frame
-        target_pose.pose            = gmsg.Pose(gmsg.Point(0, 0, 0),
-                                                gmsg.Quaternion(0, 0, 0, 1))
+        target_pose.pose            = Pose(Point(0, 0, 0),
+                                           Quaternion(0, 0, 0, 1))
         return self.go_to_pose_goal(robot_name,
                                     self.effector_target_pose(target_pose,
                                                               offset),
@@ -196,8 +333,8 @@ class AISTBaseRoutines(object):
 
         if move_lin:
             return self.go_along_poses(robot_name,
-                                       gmsg.PoseArray(target_pose.header,
-                                                      [target_pose.pose]),
+                                       PoseArray(target_pose.header,
+                                                 [target_pose.pose]),
                                        speed, accel,
                                        end_effector_link, high_precision)
 
@@ -358,25 +495,27 @@ class AISTBaseRoutines(object):
 
     def graspability_wait_for_result(self, orientation=None, max_slant=pi/4,
                                      target_frame='', marker_lifetime=0):
-        poses, gscores, contact_points \
-            = self._graspabilityClient.wait_for_result(orientation, max_slant)
+        graspabilities = self._graspabilityClient.wait_for_result(orientation,
+                                                                  max_slant)
 
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
-        contact_points = self._transform_points_to_target_frame(
-                                poses.header, contact_points, target_frame)
+        contact_points = graspabilities.contact_points
+        poses          = graspabilities.poses
+        contact_points = self._transform_points_to_target_frame(poses.header,
+                                                                contact_points,
+                                                                target_frame)
         poses          = self.transform_poses_to_target_frame(poses,
                                                               target_frame)
         for i, pose in enumerate(poses.poses):
             self.add_marker('graspability',
-                            gmsg.PoseStamped(poses.header, pose),
-                            contact_points[i],
-                            '{}[{:.3f}]'.format(i, gscores[i]),
+                            PoseStamped(poses.header, pose), contact_points[i],
+                            '{}[{:.3f}]'.format(i, graspabilities.gscores[i]),
                             lifetime=marker_lifetime)
         self.publish_marker()
 
-        return poses, gscores
+        return graspabilities
 
     def graspability_cancel_goal(self):
         self._graspabilityClient.cancel_goal()
@@ -414,22 +553,20 @@ class AISTBaseRoutines(object):
 
     def pick_at_frame(self, robot_name, target_frame, part_id,
                       offset=(0, 0, 0), wait=True, feedback_cb=None):
-        target_pose = gmsg.PoseStamped()
+        target_pose = PoseStamped()
         target_pose.header.frame_id = target_frame
-        target_pose.pose = gmsg.Pose(gmsg.Point(*offset[0:3]),
-                                     gmsg.Quaternion(
-                                         *self._quaternion_from_offset(
-                                             offset[3:])))
+        target_pose.pose = Pose(Point(*offset[0:3]),
+                                Quaternion(
+                                    *self._quaternion_from_offset(offset[3:])))
         return self.pick(robot_name, target_pose, part_id, wait, feedback_cb)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
                        offset=(0, 0, 0), wait=True, feedback_cb=None):
-        target_pose = gmsg.PoseStamped()
+        target_pose = PoseStamped()
         target_pose.header.frame_id = target_frame
-        target_pose.pose = gmsg.Pose(gmsg.Point(*offset[0:3]),
-                                     gmsg.Quaternion(
-                                         *self._quaternion_from_offset(
-                                             offset[3:])))
+        target_pose.pose = Pose(Point(*offset[0:3]),
+                                Quaternion(
+                                    *self._quaternion_from_offset(offset[3:])))
         return self.place(robot_name, target_pose, part_id, wait, feedback_cb)
 
     def pick_or_place_wait_for_result(self):
@@ -437,6 +574,9 @@ class AISTBaseRoutines(object):
 
     def pick_or_place_cancel(self):
         return self._pick_or_place.cancel()
+
+    def pick_or_place_wait_for_status(self, status):
+        return self._pick_or_place.wait_for_status(status)
 
     # Sweep action stuffs
     def sweep(self, robot_name, target_pose, sweep_dir, part_id,
@@ -449,8 +589,8 @@ class AISTBaseRoutines(object):
         R[0:3, 0] = xdir/np.linalg.norm(xdir)
         R[0:3, 1] = sweep_dir/np.linalg.norm(sweep_dir)
         R[0:3, 2] = np.cross(R[0:3, 0], R[0:3, 1])
-        target_pose.pose.orientation = gmsg.Quaternion(
-                                            *tfs.quaternion_from_matrix(R))
+        target_pose.pose.orientation = Quaternion(
+                                           *tfs.quaternion_from_matrix(R))
         params = self._sweep_params[part_id]
         return self._sweep.execute(robot_name, target_pose,
                                    params['sweep_length'],
@@ -475,16 +615,16 @@ class AISTBaseRoutines(object):
                                            offset[0:3],
                                            self._quaternion_from_offset(
                                                offset[3:])))
-        return gmsg.PoseStamped(
-                 pose.header,
-                 gmsg.Pose(
-                     gmsg.Point(*tuple(tfs.translation_from_matrix(m44))),
-                     gmsg.Quaternion(*tuple(tfs.quaternion_from_matrix(m44)))))
+        return PoseStamped(
+                   pose.header,
+                   Pose(Point(*tuple(tfs.translation_from_matrix(m44))),
+                        Quaternion(*tuple(tfs.quaternion_from_matrix(m44)))))
 
     def transform_pose_to_target_frame(self, pose, target_frame=''):
-        poses = self.transform_poses_to_target_frame(
-                    gmsg.PoseArray(pose.header, [pose.pose]), target_frame)
-        return gmsg.PoseStamped(poses.header, poses.poses[0])
+        poses = self.transform_poses_to_target_frame(PoseArray(pose.header,
+                                                               [pose.pose]),
+                                                     target_frame)
+        return PoseStamped(poses.header, poses.poses[0])
 
     def transform_poses_to_target_frame(self, poses, target_frame=''):
         if target_frame == '':
@@ -500,7 +640,7 @@ class AISTBaseRoutines(object):
             rospy.logerr('AISTBaseRoutines.transform_poses_to_target_frame(): {}'.format(e))
             raise e
 
-        transformed_poses = gmsg.PoseArray()
+        transformed_poses = PoseArray()
         transformed_poses.header.frame_id = target_frame
         transformed_poses.header.stamp    = poses.header.stamp
         for pose in poses.poses:
@@ -515,36 +655,45 @@ class AISTBaseRoutines(object):
                              pose.orientation.z,
                              pose.orientation.w)))
             transformed_poses.poses.append(
-                gmsg.Pose(gmsg.Point(*tuple(tfs.translation_from_matrix(m44))),
-                          gmsg.Quaternion(
-                              *tuple(tfs.quaternion_from_matrix(m44)))))
+                Pose(Point(*tuple(tfs.translation_from_matrix(m44))),
+                     Quaternion(*tuple(tfs.quaternion_from_matrix(m44)))))
         return transformed_poses
 
-    def xyz_rpy(self, pose):
+    def xyzrpy_from_pose(self, pose, deg=True):
         transformed_pose = self.transform_pose_to_target_frame(pose).pose
         rpy = tfs.euler_from_quaternion((transformed_pose.orientation.x,
                                          transformed_pose.orientation.y,
                                          transformed_pose.orientation.z,
                                          transformed_pose.orientation.w))
+        if deg:
+            rpy = map(degrees, rpy)
         return [transformed_pose.position.x,
                 transformed_pose.position.y,
                 transformed_pose.position.z,
                 rpy[0], rpy[1], rpy[2]]
 
+    def pose_from_xyzrpy(self, xyzrpy, deg=True):
+        if deg:
+            xyzrpy[3:6] = map(radians, xyzrpy[3:6])
+        pose = PoseStamped()
+        pose.header.frame_id = self._reference_frame
+        pose.pose = Pose(Point(*xyzrpy[0:3]),
+                         Quaternion(*tfs.quaternion_from_euler(*xyzrpy[3:6])))
+        return pose
+
     def format_pose(self, target_pose):
-        xyzrpy = self.xyz_rpy(target_pose)
-        return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
-            xyzrpy[0], xyzrpy[1], xyzrpy[2],
-            degrees(xyzrpy[3]), degrees(xyzrpy[4]), degrees(xyzrpy[5]))
+        xyzrpy = self.xyzrpy_from_pose(target_pose)
+        return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]' \
+              .format(*xyzrpy)
 
     def effector_target_pose(self, target_pose, offset):
-        poses = self.effector_target_poses(
-                    gmsg.PoseArray(target_pose.header, [target_pose.pose]),
-                    [offset])
-        return gmsg.PoseStamped(poses.header, poses.poses[0])
+        poses = self.effector_target_poses(PoseArray(target_pose.header,
+                                                     [target_pose.pose]),
+                                           [offset])
+        return PoseStamped(poses.header, poses.poses[0])
 
     def effector_target_poses(self, target_poses, offsets):
-        poses = gmsg.PoseArray(target_poses.header, [])
+        poses = PoseArray(target_poses.header, [])
         for target_pose, offset in zip(target_poses.poses, offsets):
             T = tfs.concatenate_matrices(
                     self._listener.fromTranslationRotation(
@@ -561,10 +710,8 @@ class AISTBaseRoutines(object):
                     self._listener.fromTranslationRotation(
                         (0, 0, 0),
                         tfs.quaternion_from_euler(0, radians(90), 0)))
-            poses.poses.append(
-                          gmsg.Pose(
-                              gmsg.Point(*tfs.translation_from_matrix(T)),
-                              gmsg.Quaternion(*tfs.quaternion_from_matrix(T))))
+            poses.poses.append(Pose(Point(*tfs.translation_from_matrix(T)),
+                                    Quaternion(*tfs.quaternion_from_matrix(T))))
         return poses
 
     # Private functions
@@ -596,8 +743,8 @@ class AISTBaseRoutines(object):
             rospy.logerr('AISTBaseRoutines._transform_points_to_target_frame(): {}'.format(e))
             raise e
 
-        return [ gmsg.Point(*tuple(np.dot(mat44,
-                                          np.array((p.x, p.y, p.z, 1.0)))[:3]))
+        return [ Point(*tuple(np.dot(mat44,
+                                     np.array((p.x, p.y, p.z, 1.0)))[:3]))
                  for p in points ]
 
     def _quaternion_from_offset(self, offset):
