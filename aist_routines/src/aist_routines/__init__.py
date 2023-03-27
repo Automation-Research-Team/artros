@@ -501,16 +501,16 @@ class AISTBaseRoutines(object):
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
-        contact_points = graspabilities.contact_points
-        poses          = graspabilities.poses
-        contact_points = self._transform_points_to_target_frame(poses.header,
-                                                                contact_points,
-                                                                target_frame)
-        poses          = self.transform_poses_to_target_frame(poses,
-                                                              target_frame)
-        for i, pose in enumerate(poses.poses):
+        graspabilities.contact_points = self._transform_points_to_target_frame(
+                                            graspabilities.poses.header,
+                                            graspabilities.contact_points,
+                                            target_frame)
+        graspabilities.poses          = self.transform_poses_to_target_frame(
+                                            graspabilities.poses, target_frame)
+        for i, pose in enumerate(graspabilities.poses.poses):
             self.add_marker('graspability',
-                            PoseStamped(poses.header, pose), contact_points[i],
+                            PoseStamped(graspabilities.poses.header, pose),
+                            graspabilities.contact_points[i],
                             '{}[{:.3f}]'.format(i, graspabilities.gscores[i]),
                             lifetime=marker_lifetime)
         self.publish_marker()
