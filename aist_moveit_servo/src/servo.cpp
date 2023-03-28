@@ -77,7 +77,7 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	false /* skip octomap monitor */);
     monitor->setStateUpdateFrequency(1.0/update_period);
     monitor->startStateMonitor(joint_states_topic);
-    monitor->getStateMonitor()->enableCopyDynamics(true);
+    monitor->getStateMonitor()->enableCopyDynamics(true);  // Copy velocity also
     if (!monitor->getStateMonitor()
 		->waitForCompleteState(move_group_name,
 				       ROBOT_STATE_WAIT_TIME))
@@ -411,7 +411,7 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     auto	joints = moveit::util::make_shared_from_pool<multi_array_t>();
     joints->data.resize(numJoints());
     for (size_t i = 0; i < numJoints(); ++i)
-	joints->data[i] = actual_positions_(i);
+    	joints->data[i] = actual_positions_(i);
     incoming_positions_debug_pub_.publish(joints);
 
     return true;
@@ -421,8 +421,9 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
 void
 Servo::updateJoints()
 {
-    robot_state_ = planning_scene_monitor_->getStateMonitor()
-					  ->getCurrentState();
+    
+    std::tie(robot_state_, stamp_) = planning_scene_monitor_
+				   ->getStateMonitor()->getCurrentStateAndTime();
 
   // Keep original joint positions and velocities.
     actual_positions_.resize(numJoints());
@@ -432,7 +433,8 @@ Servo::updateJoints()
     robot_state_->copyJointGroupVelocities(jointGroup(),
 					   actual_velocities_.data());
 
-    ROS_DEBUG_STREAM_NAMED(logname(), "(" << logname() << ") joint updated");
+    ROS_DEBUG_STREAM_NAMED(logname(), "(" << logname() << ") joint updated@["
+			   << stamp_.sec << '.' << stamp_.nsec << ']');
 }
 
 //! Do servoing calculations for Cartesian twist commands
