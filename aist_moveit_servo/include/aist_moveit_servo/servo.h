@@ -227,6 +227,7 @@ class Servo
 
   // Incoming robot states
     moveit::core::RobotStatePtr		robot_state_;
+    ros::Time				stamp_;
     vector_t				actual_positions_;
     vector_t				actual_velocities_;
     vector_t				ff_positions_;
