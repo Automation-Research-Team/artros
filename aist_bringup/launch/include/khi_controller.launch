@@ -6,13 +6,15 @@
   <arg name="sim"/>
 
   <!-- Setup controller parameters. -->
+  <arg name="frequency"
+       value="$(eval 500 if device[-1] == 'WD002N' else 250)"/>
   <rosparam file="$(dirname)/../../config/khi_controller.yaml"
 	    subst_value="true"/>
 
   <!-- Load and start controllers. -->
   <node name="$(arg prefix)controller_spawner"
   	pkg="controller_manager" type="spawner"	respawn="false" output="screen"
-	args="$(arg prefix)controller"/>
+	args="$(arg prefix)controller joint_state_controller"/>
 
   <!-- <node name="$(arg prefix)stopped_spawner" -->
   <!-- 	pkg="controller_manager" type="spawner"	respawn="false" output="screen" -->

@@ -60,10 +60,10 @@
     <!-- Setup parameters and spawn joint_state_controller -->
     <rosparam file="$(dirname)/../../config/joint_state_controller.yaml"
               subst_value="true"/>
-    <node name="joint_state_controller_spawner"
-          pkg ="controller_manager" type="spawner"
-          args="joint_state_controller"
-          output="screen"/>
+    <node if="$(arg sim)"
+	  name="joint_state_controller_spawner"
+          pkg ="controller_manager" type="spawner" output="screen"
+          args="joint_state_controller"/>
 
     <group if="$(eval torobo_controllers.strip() != '')">
       <!-- Setup joint_state_controller parameters -->

@@ -6,7 +6,7 @@
 
   <!-- Set target offset pose -->
   <arg if="$(eval camera_name=='realsense')"
-       name="target_offset"	default="[0.1, 0.05, 0.05, -90, 90, 0]"/>
+       name="target_offset"	default="[0.2, 0.05, 0.05, -90, 90, 0]"/>
   <arg if="$(eval camera_name=='phoxi')"
        name="target_offset"	default="[0.1, 0.15, 0.35, -90, 90, 0]"/>
   <arg if="$(eval camera_name=='a_bot_inside_camera')"
@@ -28,18 +28,12 @@
 
   <arg if="$(eval plot == 'positions')"
        name="plot_args"
-       value="/arm_controller/command_debug/points[0]/positions[0]
-  	      /arm_controller/command_debug/points[0]/positions[1]
-  	      /arm_controller/command_debug/points[0]/positions[2]
-  	      /arm_controller/command_debug/points[0]/positions[3]
-  	      /arm_controller/command_debug/points[0]/positions[4]
-  	      /arm_controller/command_debug/points[0]/positions[5]
-  	      /arm_controller/state/actual/positions[0]
-  	      /arm_controller/state/actual/positions[1]
-  	      /arm_controller/state/actual/positions[2]
-  	      /arm_controller/state/actual/positions[3]
-  	      /arm_controller/state/actual/positions[4]
-  	      /arm_controller/state/actual/positions[5]"/>
+       value="/cloud_registrator/target_pose/pose/position/y
+	      /pose_tracking_servo/desired_pose/pose/position/y
+	      /pose_tracking_servo/actual_pose/pose/position/y
+	      /arm_controller/command_debug/points[0]/positions[0]
+	      /pose_tracking_servo/actual_positions/data[0]
+              /arm_controller/state/actual/positions[0]"/>
   <arg if="$(eval plot == 'joints')"
        name="plot_args"
        value="/pose_tracking_servo/target_pose_debug/pose/position/x
