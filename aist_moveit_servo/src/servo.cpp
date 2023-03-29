@@ -40,7 +40,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
-#include <cassert>
 #include <aist_moveit_servo/servo.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -50,6 +49,14 @@ static constexpr size_t	 ROS_LOG_THROTTLE_PERIOD = 30;	  // Seconds to throttle 
 
 namespace aist_moveit_servo
 {
+static void
+my_update_cb(const sensor_msgs::JointStateConstPtr& joint_state)
+{
+    ROS_INFO_STREAM("my_update_cb: [" << joint_state->header.stamp.sec
+		    << '.' << joint_state->header.stamp.nsec
+		    << "] " << joint_state->position[0]);
+}
+    
 /************************************************************************
 *  global functions							*
 ************************************************************************/
@@ -75,9 +82,11 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	PlanningSceneMonitor::DEFAULT_COLLISION_OBJECT_TOPIC,
 	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
 	false /* skip octomap monitor */);
-    monitor->setStateUpdateFrequency(1.0/update_period);
     monitor->startStateMonitor(joint_states_topic);
+    monitor->setStateUpdateFrequency(1.0/update_period);
+  //monitor->getStateMonitor()->addUpdateCallback(my_update_cb); // For debug
     monitor->getStateMonitor()->enableCopyDynamics(true);  // Copy velocity also
+
     if (!monitor->getStateMonitor()
 		->waitForCompleteState(move_group_name,
 				       ROBOT_STATE_WAIT_TIME))
@@ -131,8 +140,8 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
      outgoing_cmd_debug_pub_(
 	 nh_.advertise<trajectory_t>(parameters_.command_out_topic + "_debug",
 				     ROS_QUEUE_SIZE)),
-     incoming_positions_debug_pub_(
-	 nh_.advertise<multi_array_t>("actual_positions", ROS_QUEUE_SIZE)),
+     actual_positions_debug_pub_(
+	 nh_.advertise<joint_state_t>("actual_positions", ROS_QUEUE_SIZE)),
      durations_pub_(nh_.advertise<DurationArray>("durations", 1)),
      drift_dimensions_srv_(
 	 nh_.advertiseService(ros::names::append(nh_.getNamespace(),
@@ -408,11 +417,20 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     durations_tmp.header.stamp = now;
     durations_pub_.publish(durations_tmp);
 
-    auto	joints = moveit::util::make_shared_from_pool<multi_array_t>();
-    joints->data.resize(numJoints());
+    auto joint_state = moveit::util::make_shared_from_pool<joint_state_t>();
+    joint_state->header.frame_id = joint_trajectory_.header.frame_id;
+    joint_state->header.stamp    = stamp_;
+    joint_state->name = joint_trajectory_.joint_names;
+    joint_state->position.resize(numJoints());
+    joint_state->velocity.resize(numJoints());
+    joint_state->effort.resize(numJoints());
     for (size_t i = 0; i < numJoints(); ++i)
-    	joints->data[i] = actual_positions_(i);
-    incoming_positions_debug_pub_.publish(joints);
+    {
+    	joint_state->position[i] = actual_positions_(i);
+    	joint_state->velocity[i] = actual_velocities_(i);
+	joint_state->effort[i]   = 0;
+    }
+    actual_positions_debug_pub_.publish(joint_state);
 
     return true;
 }
@@ -422,8 +440,8 @@ void
 Servo::updateJoints()
 {
     
-    std::tie(robot_state_, stamp_) = planning_scene_monitor_
-				   ->getStateMonitor()->getCurrentStateAndTime();
+    std::tie(robot_state_, stamp_)
+	= planning_scene_monitor_->getStateMonitor()->getCurrentStateAndTime();
 
   // Keep original joint positions and velocities.
     actual_positions_.resize(numJoints());
@@ -433,8 +451,9 @@ Servo::updateJoints()
     robot_state_->copyJointGroupVelocities(jointGroup(),
 					   actual_velocities_.data());
 
-    ROS_DEBUG_STREAM_NAMED(logname(), "(" << logname() << ") joint updated@["
-			   << stamp_.sec << '.' << stamp_.nsec << ']');
+    ROS_DEBUG_STREAM_NAMED(logname(), "joint updated@["
+			   << stamp_.sec << '.' << stamp_.nsec
+			   << "] " << actual_positions_(0));
 }
 
 //! Do servoing calculations for Cartesian twist commands
