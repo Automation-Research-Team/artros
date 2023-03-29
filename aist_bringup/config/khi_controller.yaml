@@ -1,3 +1,7 @@
+joint_state_controller:
+  type:         joint_state_controller/JointStateController
+  publish_rate: &loop_hz $(arg frequency)
+
 $(arg prefix)controller:
   type: position_controllers/JointTrajectoryController
   action_ns: follow_joint_trajectory  # for moveit
@@ -17,7 +21,7 @@ $(arg prefix)controller:
     $(arg prefix)joint2: {trajectory: 0, goal: 0.2}
     $(arg prefix)joint3: {trajectory: 0, goal: 0.2}
     $(arg prefix)joint4: {trajectory: 0, goal: 0.2}
-  state_publish_rate:  200
+  state_publish_rate:  *loop_hz
   action_monitor_rate: 20
   #hold_trajectory_duration: 0
 
