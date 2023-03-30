@@ -140,8 +140,8 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
      outgoing_cmd_debug_pub_(
 	 nh_.advertise<trajectory_t>(parameters_.command_out_topic + "_debug",
 				     ROS_QUEUE_SIZE)),
-     actual_positions_debug_pub_(
-	 nh_.advertise<joint_state_t>("actual_positions", ROS_QUEUE_SIZE)),
+     actual_joint_state_debug_pub_(
+	 nh_.advertise<joint_state_t>("actual_joint_states", ROS_QUEUE_SIZE)),
      durations_pub_(nh_.advertise<DurationArray>("durations", 1)),
      drift_dimensions_srv_(
 	 nh_.advertiseService(ros::names::append(nh_.getNamespace(),
@@ -410,13 +410,15 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
 	outgoing_cmd_pub_.publish(joints);
     }
 
-  // For debug
+  // [For debug] Publish durations between events.
     const auto	now = ros::Time::now();
     durations_.cmd_out = (now - durations_.header.stamp).toSec();
     auto	durations_tmp = durations_;
     durations_tmp.header.stamp = now;
     durations_pub_.publish(durations_tmp);
 
+  // [For debug] Publish joint states subscribed
+  //		 by planning_scene_monitor::CurrentStateMonitor.
     auto joint_state = moveit::util::make_shared_from_pool<joint_state_t>();
     joint_state->header.frame_id = joint_trajectory_.header.frame_id;
     joint_state->header.stamp    = stamp_;
@@ -430,7 +432,7 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
     	joint_state->velocity[i] = actual_velocities_(i);
 	joint_state->effort[i]   = 0;
     }
-    actual_positions_debug_pub_.publish(joint_state);
+    actual_joint_state_debug_pub_.publish(joint_state);
 
     return true;
 }
@@ -715,8 +717,11 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
 	    const auto	bounded_velocity = std::clamp(velocity,
-						      16*bounds.min_velocity_,
-						      16*bounds.max_velocity_);
+	    					      8*bounds.min_velocity_,
+	    					      8*bounds.max_velocity_);
+	    // const auto	bounded_velocity = std::clamp(velocity,
+	    // 					      bounds.min_velocity_,
+	    // 					      bounds.max_velocity_);
 	    bounding_scale = std::min(bounding_scale,
 				      bounded_velocity / velocity);
 	}
@@ -728,6 +733,11 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
     delta_theta *= (bounding_scale *
 		    collision_velocity_scale * singularity_scale);
 
+    if (bounding_scale < 1)
+	ROS_WARN_STREAM_THROTTLE_NAMED(3, logname_,
+				       "Velocity bounded by scale value="
+				       << bounding_scale);
+	
     if (collision_velocity_scale <= 0)
     {
 	servo_status_ = StatusCode::HALT_FOR_COLLISION;

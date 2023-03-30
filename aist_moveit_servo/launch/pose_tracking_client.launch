@@ -32,7 +32,7 @@
 	      /pose_tracking_servo/desired_pose/pose/position/y
 	      /pose_tracking_servo/actual_pose/pose/position/y
 	      /arm_controller/command_debug/points[0]/positions[0]
-	      /pose_tracking_servo/actual_positions/data[0]
+	      /pose_tracking_servo/actual_joint_states/position[0]
               /joint_states/position[0]"/>
   <arg if="$(eval plot == 'joints')"
        name="plot_args"
