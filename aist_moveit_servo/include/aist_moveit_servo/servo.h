@@ -52,6 +52,7 @@
 #include <control_msgs/JointJog.h>
 #include <geometry_msgs/TwistStamped.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <sensor_msgs/JointState.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit_msgs/ChangeDriftDimensions.h>
@@ -101,6 +102,8 @@ class Servo
     using planning_scene_monitor_p
 			= planning_scene_monitor::PlanningSceneMonitorPtr;
     using joint_group_cp= const moveit::core::JointModelGroup*;
+    using joint_state_t	= sensor_msgs::JointState;
+    using joint_state_cp= sensor_msgs::JointStateConstPtr;
     using trajectory_t	= trajectory_msgs::JointTrajectory;
     using trajectory_cp	= trajectory_msgs::JointTrajectoryConstPtr;
     using multi_array_t	= std_msgs::Float64MultiArray;
@@ -217,7 +220,7 @@ class Servo
     const ros::Publisher		worst_case_stop_time_pub_;
     const ros::Publisher		outgoing_cmd_pub_;
     const ros::Publisher		outgoing_cmd_debug_pub_;
-    const ros::Publisher		incoming_positions_debug_pub_;
+    const ros::Publisher		actual_joint_state_debug_pub_;
     const ros::Publisher		durations_pub_;
     const ros::ServiceServer		drift_dimensions_srv_;
     const ros::ServiceServer		control_dimensions_srv_;

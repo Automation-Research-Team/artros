@@ -33,7 +33,7 @@
   	   from="/depth"	to="$(arg camera_name
   				    )/aligned_depth_to_color/image_raw"/>
     <rosparam file="$(find aist_handeye_calibration
-  		    )/config/toyota1/$(arg camera_name).yaml"/>
+  		    )/config/$(arg camera_name).yaml"/>
   </node>
 
   <!-- Spawn pose_tracking_servo -->
