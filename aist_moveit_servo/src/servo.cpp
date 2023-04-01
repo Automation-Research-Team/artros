@@ -83,8 +83,7 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
 	false /* skip octomap monitor */);
     monitor->startStateMonitor(joint_states_topic);
-    monitor->setStateUpdateFrequency(1.0/update_period);
-  //monitor->getStateMonitor()->addUpdateCallback(my_update_cb); // For debug
+    monitor->getStateMonitor()->addUpdateCallback(my_update_cb); // For debug
     monitor->getStateMonitor()->enableCopyDynamics(true);  // Copy velocity also
 
     if (!monitor->getStateMonitor()
@@ -95,10 +94,10 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	exit(EXIT_FAILURE);
     }
 
-    ROS_INFO_STREAM_NAMED(logname,
-			  "PlanningSceneMonitor started: RobotState is updated at "
-			  << monitor->getStateUpdateFrequency()
-			  << "hz from topic[" << joint_states_topic << ']');
+    ROS_INFO_STREAM_NAMED(
+	logname,
+	"PlanningSceneMonitor started: RobotState is updated from topic["
+	<< joint_states_topic << ']');
 
     return monitor;
 }
@@ -218,6 +217,9 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
 				  0.5, 100.0);
     ddr_.publishServicesTopics();
 
+  // Print robot model information.
+    robot_state_->getRobotModel()->printModelInfo(std::cerr);
+    
   // Show names of model frame and variables of the robot model.
     ROS_INFO_STREAM_NAMED(logname_, "model_frame: "
 			  << robot_state_->getRobotModel()->getModelFrame());
@@ -278,13 +280,18 @@ Servo::publishTrajectory(const twist_t& twist_cmd, const pose_t& ff_pose)
     tf2::doTransform(ff_pose, ff_pose_in_reference, Trt);
 
   // Solve IK for robot_state.
-    if (robot_state.setFromIK(jointGroup(), ff_pose_in_reference.pose,
-			      parameters_.ee_frame_name))
+    if (!robot_state.setFromIK(jointGroup(), ff_pose_in_reference.pose,
+			       parameters_.ee_frame_name))
     {
-	ff_positions_.resize(numJoints());
-	robot_state.copyJointGroupPositions(jointGroup(),
-					    ff_positions_.data());
+	ROS_WARN_STREAM_THROTTLE_NAMED(
+	    ROS_LOG_THROTTLE_PERIOD, logname_,
+	    "Failed to solve IK from incoming feedforward pose.");
+	    
+	return publishTrajectory(twist_cmd, nullptr);
     }
+
+    ff_positions_.resize(numJoints());
+    robot_state.copyJointGroupPositions(jointGroup(), ff_positions_.data());
 
     return publishTrajectory(twist_cmd, ff_positions_);
 }
@@ -643,11 +650,12 @@ Servo::velocityScalingFactorForSingularity(
     delta_x = vector_toward_singularity / scale;
 
   // Calculate a small change in joints
+    auto	new_robot_state = *robot_state_;
     vector_t	new_theta;
-    robot_state_->copyJointGroupPositions(jointGroup(), new_theta);
+    new_robot_state.copyJointGroupPositions(jointGroup(), new_theta);
     new_theta += pseudo_inverse * delta_x;
-    robot_state_->setJointGroupPositions(jointGroup(), new_theta);
-    matrix_t	new_jacobian = robot_state_->getJacobian(jointGroup());
+    new_robot_state.setJointGroupPositions(jointGroup(), new_theta);
+    matrix_t	new_jacobian = new_robot_state.getJacobian(jointGroup());
 
     Eigen::JacobiSVD<matrix_t>	new_svd(new_jacobian);
     const auto	new_condition = new_svd.singularValues()(0)
