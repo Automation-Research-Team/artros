@@ -278,7 +278,7 @@ PoseTrackingServo<FF>::~PoseTrackingServo()
 template <class FF> void
 PoseTrackingServo<FF>::run()
 {
-    ros::AsyncSpinner	spinner(8);
+    ros::AsyncSpinner	spinner(0);
     spinner.start();
 
     for (ros::Rate rate(1.0/servoParameters().publish_period);
