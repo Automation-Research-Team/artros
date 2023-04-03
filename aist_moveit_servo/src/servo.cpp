@@ -53,7 +53,8 @@ static void
 my_update_cb(const sensor_msgs::JointStateConstPtr& joint_state)
 {
     ROS_INFO_STREAM("my_update_cb: [" << joint_state->header.stamp.sec
-		    << '.' << joint_state->header.stamp.nsec
+		    << '.' << std::setw(9) << std::setfill('0')
+		    << joint_state->header.stamp.nsec
 		    << "] " << joint_state->position[0]);
 }
     
@@ -461,7 +462,9 @@ Servo::updateJoints()
 					   actual_velocities_.data());
 
     ROS_DEBUG_STREAM_NAMED(logname(), "joint updated@["
-			   << stamp_.sec << '.' << stamp_.nsec
+			   << stamp_.sec
+			   << '.' << std::setw(9) << std::setfill('0')
+			   << stamp_.nsec
 			   << "] " << actual_positions_(0));
 }
 
