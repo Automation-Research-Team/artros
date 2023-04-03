@@ -84,7 +84,7 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
 	false /* skip octomap monitor */);
     monitor->startStateMonitor(joint_states_topic);
-    monitor->getStateMonitor()->addUpdateCallback(my_update_cb); // For debug
+  //monitor->getStateMonitor()->addUpdateCallback(my_update_cb); // For debug
     monitor->getStateMonitor()->enableCopyDynamics(true);  // Copy velocity also
 
     if (!monitor->getStateMonitor()
