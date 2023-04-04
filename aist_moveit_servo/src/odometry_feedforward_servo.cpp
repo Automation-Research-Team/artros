@@ -106,6 +106,27 @@ OdometryFeedForwardServo::pose_t
 OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
 				  const ros::Duration& dt) const
 {
+#if 1
+  // Convert velocity in twist to the target frame.
+    const auto	twist = getTwist();
+    vector3_t	velocity(twist.twist.linear.x,
+			 twist.twist.linear.y,
+			 twist.twist.linear.z);
+    const auto	T = getFrameTransform(target_pose.header.frame_id,
+				      twist.header.frame_id);
+    velocity = T * velocity;
+    
+  // Correct the target pose by displacement predicted from the veloity.
+    const auto	d = dt.toSec();
+    vector3_t	dx = d * velocity;
+    auto	pose = target_pose;
+    // pose.pose.position.x -= dx(0);
+    // pose.pose.position.y -= dx(1);
+    // pose.pose.position.z -= dx(2);
+    std::cerr << "*** dx = (" << dx.transpose() << ')' << std::endl;
+
+    return pose;
+#else
   // Get transform to base frame.
     const auto	twist = getTwist();
     const auto	T     = getFrameTransform(twist.header.frame_id,
@@ -142,6 +163,7 @@ OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
 
     return  pose;
   //return  nullptr;
+#endif
 }
 
 OdometryFeedForwardServo::twist_t

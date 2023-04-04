@@ -441,10 +441,7 @@ PoseTrackingServo<FF>::tick()
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
 
-    publishTrajectory(twist_cmd,
-		      static_cast<const FF&>(*this).ff_pose(
-			  target_pose,
-			  ros::Duration(servoParameters().publish_period)));
+    publishTrajectory(twist_cmd, static_cast<const FF&>(*this).ff_twist());
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
