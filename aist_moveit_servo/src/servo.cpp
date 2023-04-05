@@ -297,6 +297,44 @@ Servo::publishTrajectory(const twist_t& twist_cmd, const pose_t& ff_pose)
     return publishTrajectory(twist_cmd, ff_positions_);
 }
 
+bool
+Servo::publishTrajectory(const twist_t& twist_cmd, const twist_t& twist_ff)
+{
+  // Transform given forwarding twist to ee_frame.
+    auto		robot_state = *robot_state_;
+    const auto		Tef = getFrameTransform(parameters_.ee_frame_name,
+						twist_ff.header.frame_id);
+    const matrix33_t	R   = Tef.matrix().block<3, 3>(0, 0);
+    const vector3_t	t   = Tef.matrix().block<3, 1>(0, 3);
+    const vector3_t	ang = R * vector3_t(twist_ff.twist.angular.x,
+					    twist_ff.twist.angular.y,
+					    twist_ff.twist.angular.z);
+    const vector3_t	lin = R * vector3_t(twist_ff.twist.linear.x,
+					    twist_ff.twist.linear.y,
+					    twist_ff.twist.linear.z)
+			    + t.cross(ang);
+    vector_t		twist_in_ee_frame(6);
+    twist_in_ee_frame.head(3) = lin;
+    twist_in_ee_frame.tail(3) = ang;
+
+  // Solve IK for robot_state.
+    if (!robot_state.setFromDiffIK(jointGroup(), twist_in_ee_frame,
+				   parameters_.ee_frame_name,
+				   parameters_.publish_period))
+    {
+	ROS_WARN_STREAM_THROTTLE_NAMED(
+	    ROS_LOG_THROTTLE_PERIOD, logname_,
+	    "Failed to solve IK from incoming feedforward twist.");
+	    
+	return publishTrajectory(twist_cmd, nullptr);
+    }
+
+    ff_positions_.resize(numJoints());
+    robot_state.copyJointGroupPositions(jointGroup(), ff_positions_.data());
+
+    return publishTrajectory(twist_cmd, ff_positions_);
+}
+
 /*
  *  private member functions
  */
