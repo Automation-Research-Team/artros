@@ -44,9 +44,6 @@ namespace aist_moveit_servo
 class VelocityFeedForwardServo
     : public PoseTrackingServo<VelocityFeedForwardServo>
 {
-  public:
-    using twist_t	= geometry_msgs::TwistStamped;
-    
   private:
     using super		= PoseTrackingServo<VelocityFeedForwardServo>;
     using vector3_t	= geometry_msgs::Vector3Stamped;

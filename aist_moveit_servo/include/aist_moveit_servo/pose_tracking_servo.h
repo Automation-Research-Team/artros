@@ -126,7 +126,7 @@ class PoseTrackingServo : public Servo
     void	resetTargetPose()					;
 
   // Current pose stuffs
-    pose_t	currentPose()					const	;
+    pose_t	actualPose()					const	;
 
   private:
   // ROS
@@ -134,7 +134,7 @@ class PoseTrackingServo : public Servo
     ros::ServiceClient		reset_servo_status_;
     const ros::Subscriber	target_pose_sub_;
     const ros::Publisher	target_pose_debug_pub_;
-    const ros::Publisher	ee_pose_debug_pub_;
+    const ros::Publisher	actual_pose_debug_pub_;
     DurationArray&		durations_;
     ddr_t			ddr_;
 
@@ -170,7 +170,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 			  &PoseTrackingServo::targetPoseCB, this,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
      target_pose_debug_pub_(nh.advertise<pose_t>("desired_pose", 1)),
-     ee_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
+     actual_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
      durations_(durations()),
      ddr_(ros::NodeHandle(nh, "pose_tracking")),
 
@@ -476,11 +476,11 @@ PoseTrackingServo<FF>::correctTargetPose(const raw_pose_t& offset) const
     target_pose.pose = input_smoothing_filter_.filter(target_pose.pose);
     aist_utility::normalize(target_pose.pose.orientation);
 
-  // If the target pose is not defined in planning frame, transform it.
+  // Transform the target pose to planning frame unless defined in it.
     if (target_pose.header.frame_id != servoParameters().planning_frame)
     {
-	auto Tpt = tf2::eigenToTransform(getFrameTransform(
-					     target_pose.header.frame_id));
+	auto	Tpt = tf2::eigenToTransform(getFrameTransform(
+						target_pose.header.frame_id));
 	Tpt.header.stamp    = target_pose.header.stamp;
 	Tpt.header.frame_id = servoParameters().planning_frame;
 	Tpt.child_frame_id  = target_pose.header.frame_id;
@@ -517,10 +517,7 @@ PoseTrackingServo<FF>::calculatePoseError(const pose_t& target_pose,
 
   // Publish target pose and current pose for debugging.
     target_pose_debug_pub_.publish(target_pose);
-    const auto	ee_pose = tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					 Tpe, ros::Time::now(),
-					 servoParameters().planning_frame));
-    ee_pose_debug_pub_.publish(ee_pose);
+    actual_pose_debug_pub_.publish(actualPose());
 }
 
 template <class FF> typename PoseTrackingServo<FF>::twist_t
@@ -597,7 +594,7 @@ template <class FF> void
 PoseTrackingServo<FF>::updateInputSmoothingFilter(double decay)
 {
     input_smoothing_filter_.initialize(decay);
-    input_smoothing_filter_.reset(currentPose().pose);
+    input_smoothing_filter_.reset(actualPose().pose);
 }
 
 // PID controller stuffs
@@ -722,8 +719,12 @@ PoseTrackingServo<FF>::resetTargetPose()
 
 // Current pose stuffs
 template <class FF> typename PoseTrackingServo<FF>::pose_t
-PoseTrackingServo<FF>::currentPose()
+PoseTrackingServo<FF>::actualPose() const
 {
+    return tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+			  getFrameTransform(servoParameters().ee_frame_name),
+			  getRobotStateStamp(),
+			  servoParameters().planning_frame));
 }
 
 }	// namespace aist_moveit_servo

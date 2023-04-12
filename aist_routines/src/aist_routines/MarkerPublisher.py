@@ -40,9 +40,9 @@ import collections
 from math import pi
 from tf   import transformations as tfs
 
-from geometry_msgs      import msg as gmsg
-from visualization_msgs import msg as vmsg
-from std_msgs           import msg as smsg
+from geometry_msgs.msg      import Vector3, Pose, Point, Quaternion
+from visualization_msgs.msg import Marker, MarkerArray
+from std_msgs.msg           import ColorRGBA
 
 ######################################################################
 #  class MarkerPublisher                                             #
@@ -66,12 +66,12 @@ class MarkerPublisher(object):
     def __init__(self):
         super(MarkerPublisher, self).__init__()
         self._pub = rospy.Publisher("visualization_marker",
-                                    vmsg.MarkerArray, queue_size=10)
-        self._markers  = vmsg.MarkerArray()
+                                    MarkerArray, queue_size=10)
+        self._markers = MarkerArray()
 
     def delete_all(self):
-        marker        = vmsg.Marker()
-        marker.action = vmsg.Marker.DELETEALL
+        marker        = Marker()
+        marker.action = Marker.DELETEALL
         marker.ns     = "markers"
         self._markers.markers = [marker]
         self.publish()
@@ -81,60 +81,59 @@ class MarkerPublisher(object):
             text="", lifetime=15):
         marker_prop = MarkerPublisher._marker_props[marker_type]
 
-        marker              = vmsg.Marker()
+        marker              = Marker()
         marker.header       = marker_pose.header
         marker.header.stamp = rospy.Time.now()
         marker.ns           = "markers"
-        marker.action       = vmsg.Marker.ADD
+        marker.action       = Marker.ADD
         marker.lifetime     = rospy.Duration(lifetime)
 
         if marker_prop.draw_axes:  # Draw frame axes?
             smax = max(*marker_prop.scale)
             smin = min(*marker_prop.scale)
 
-            marker.type  = vmsg.Marker.ARROW
+            marker.type  = Marker.ARROW
             marker.pose  = marker_pose.pose
-            marker.scale = gmsg.Vector3(2.5*smax, 0.5*smin, 0.5*smin)
-            marker.color = smsg.ColorRGBA(1.0, 0.0, 0.0, 0.8)    # red
+            marker.scale = Vector3(2.5*smax, 0.5*smin, 0.5*smin)
+            marker.color = ColorRGBA(1.0, 0.0, 0.0, 0.8)         # red
             marker.id    = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))  # x-axis
 
             marker.pose  = self._pose_rotated_by_rpy(marker_pose.pose,
                                                      0, 0, pi/2)
-            marker.color = smsg.ColorRGBA(0.0, 1.0, 0.0, 0.8)    # green
+            marker.color = ColorRGBA(0.0, 1.0, 0.0, 0.8)         # green
             marker.id    = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))  # y-axis
 
             marker.pose  = self._pose_rotated_by_rpy(marker_pose.pose,
                                                      0, -pi/2, 0)
-            marker.color = smsg.ColorRGBA(0.0, 0.0, 1.0, 0.8)    # blue
+            marker.color = ColorRGBA(0.0, 0.0, 1.0, 0.8)         # blue
             marker.id    = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))  # z-axis
 
         if endpoint is None:
-            marker.type  = vmsg.Marker.SPHERE
+            marker.type  = Marker.SPHERE
             marker.pose  = marker_pose.pose
-            marker.scale = gmsg.Vector3(*marker_prop.scale)
-            marker.color = smsg.ColorRGBA(*marker_prop.color)
+            marker.scale = Vector3(*marker_prop.scale)
+            marker.color = ColorRGBA(*marker_prop.color)
             marker.id    = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))
         else:
-            marker.type    = vmsg.Marker.LINE_LIST
-            marker.pose    = gmsg.Pose(gmsg.Point(0, 0, 0),
-                                       gmsg.Quaternion(0, 0, 0, 1))
+            marker.type    = Marker.LINE_LIST
+            marker.pose    = Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1))
             marker.points  = [marker_pose.pose.position, endpoint]
             marker.scale.x = 0.1*min(*marker_prop.scale)
             marker.scale.y = 0
             marker.scale.z = 0
-            marker.color   = smsg.ColorRGBA(*marker_prop.color)
+            marker.color   = ColorRGBA(*marker_prop.color)
             marker.id      = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))
 
-            marker.type  = vmsg.Marker.SPHERE
-            marker.pose  = gmsg.Pose(endpoint, marker_pose.pose.orientation)
+            marker.type  = Marker.SPHERE
+            marker.pose  = Pose(endpoint, marker_pose.pose.orientation)
             del marker.points[:]
-            marker.scale = gmsg.Vector3(*marker_prop.scale)
-            marker.color = smsg.ColorRGBA(*marker_prop.color)
+            marker.scale = Vector3(*marker_prop.scale)
+            marker.color = ColorRGBA(*marker_prop.color)
             marker.id    = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))
 
@@ -143,8 +142,8 @@ class MarkerPublisher(object):
             marker.scale.y = 0
             marker.scale.z = min(*marker_prop.scale)
             marker.pose.position.z -= (marker.scale.z + 0.001)
-            marker.type  = vmsg.Marker.TEXT_VIEW_FACING
-            marker.color = smsg.ColorRGBA(1.0, 1.0, 1.0, 0.8)  # white
+            marker.type  = Marker.TEXT_VIEW_FACING
+            marker.color = ColorRGBA(1.0, 1.0, 1.0, 0.8)  # white
             marker.text  = text
             marker.id    = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))
@@ -154,7 +153,7 @@ class MarkerPublisher(object):
 
     def _pose_rotated_by_rpy(self, pose, roll, pitch, yaw):
         pose_rotated = copy.deepcopy(pose)
-        pose_rotated.orientation = gmsg.Quaternion(
+        pose_rotated.orientation = Quaternion(
             *tfs.quaternion_multiply((pose.orientation.x, pose.orientation.y,
                                       pose.orientation.z, pose.orientation.w),
                                      tfs.quaternion_from_euler(roll,

@@ -128,6 +128,7 @@ class Servo
     isometry3_t	getFrameTransform(const std::string& parent,
 				  const std::string& child)	const	;
     isometry3_t	getFrameTransform(const std::string& frame)	const	;
+    ros::Time	getRobotStateStamp()				const	;
     void	changeRobotLinkCommandFrame(const std::string& frame)	;
 
     DurationArray&
@@ -302,6 +303,12 @@ inline Servo::isometry3_t
 Servo::getFrameTransform(const std::string& frame) const
 {
     return getFrameTransform(parameters_.planning_frame, frame);
+}
+
+inline ros::Time
+Servo::getRobotStateStamp() const
+{
+    return stamp_;
 }
 
 inline DurationArray&
