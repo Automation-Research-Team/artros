@@ -125,6 +125,9 @@ class PoseTrackingServo : public Servo
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
     void	resetTargetPose()					;
 
+  // Current pose stuffs
+    pose_t	currentPose()					const	;
+
   private:
   // ROS
     ros::NodeHandle		nh_;
@@ -594,7 +597,7 @@ template <class FF> void
 PoseTrackingServo<FF>::updateInputSmoothingFilter(double decay)
 {
     input_smoothing_filter_.initialize(decay);
-    input_smoothing_filter_.reset(targetPose().pose);
+    input_smoothing_filter_.reset(currentPose().pose);
 }
 
 // PID controller stuffs
@@ -715,6 +718,12 @@ PoseTrackingServo<FF>::resetTargetPose()
     const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
     target_pose_ = nullptr;
+}
+
+// Current pose stuffs
+template <class FF> typename PoseTrackingServo<FF>::pose_t
+PoseTrackingServo<FF>::currentPose()
+{
 }
 
 }	// namespace aist_moveit_servo
