@@ -45,6 +45,7 @@
 #include <control_toolbox/pid.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <aist_utility/butterworth_lpf.h>
+#include <aist_utility/first_order_lpf.h>
 #include <aist_utility/geometry_msgs.h>
 #include <aist_moveit_servo/servo.h>
 #include <aist_moveit_servo/status_codes.h>
@@ -72,7 +73,7 @@ class PoseTrackingServo : public Servo
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-
+    using order1_lpf_t	 = aist_utility::FirstOrderLPF<double, raw_pose_t>;
     struct PIDConfig
     {
 	double	k_p	     = 1;
@@ -103,6 +104,9 @@ class PoseTrackingServo : public Servo
   // Input low-pass filter stuffs
     void	updateInputLowPassFilter(int half_order,
 					 double cutoff_frequency)	;
+
+  // Input smoothing filter stuffs
+    void	updateInputSmoothingFilter(double decay_time)		;
 
   // PID stuffs
     void	updateLinearPIDs(double PIDConfig::* field,
@@ -143,6 +147,7 @@ class PoseTrackingServo : public Servo
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
     lpf_t			input_low_pass_filter_;
+    order1_lpf_t		input_smoothing_filter_;
 
   // PIDs
     PIDConfig			linear_pid_config_;
@@ -177,6 +182,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    servoParameters().publish_period),
+     input_smoothing_filter_(0.9),
 
      linear_pid_config_(),
      angular_pid_config_(),
@@ -221,6 +227,13 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 				      _1),
 				  "Cutoff frequency of input low pass filter",
 				  0.5, 100.0);
+    ddr_.registerVariable<double>("input_smoothing_filter_decay",
+				  input_smoothing_filter_.decay(),
+				  boost::bind(&PoseTrackingServo
+					      ::updateInputSmoothingFilter,
+					      this, _1),
+				  "Cutoff frequency of input low pass filter",
+				  0.1, 0.99);
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  linear_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
@@ -421,6 +434,7 @@ PoseTrackingServo<FF>::tick()
 	result.status = PoseTrackingResult::NO_ERROR;
 	pose_tracking_srv_.setSucceeded(result);
 	ROS_INFO_STREAM_NAMED(logname(), "(PoseTrackingServo) goal SUCCEEDED");
+
 	return;
     }
 
@@ -441,7 +455,10 @@ PoseTrackingServo<FF>::tick()
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
 
-    publishTrajectory(twist_cmd, static_cast<const FF&>(*this).ff_twist());
+    publishTrajectory(twist_cmd,
+		      static_cast<const FF&>(*this).ff_pose(
+			  target_pose,
+			  ros::Duration(servoParameters().publish_period)));
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
@@ -450,7 +467,10 @@ PoseTrackingServo<FF>::correctTargetPose(const raw_pose_t& offset) const
     auto	target_pose = targetPose();
 
   // Apply input low-pass filter
-    target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
+  //target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
+
+  // Apply input smoothing filter
+    target_pose.pose = input_smoothing_filter_.filter(target_pose.pose);
     aist_utility::normalize(target_pose.pose.orientation);
 
   // If the target pose is not defined in planning frame, transform it.
@@ -569,6 +589,14 @@ PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
     input_low_pass_filter_.reset(targetPose().pose);
 }
 
+// Smoothing filter stuffs
+template <class FF> void
+PoseTrackingServo<FF>::updateInputSmoothingFilter(double decay)
+{
+    input_smoothing_filter_.initialize(decay);
+    input_smoothing_filter_.reset(targetPose().pose);
+}
+
 // PID controller stuffs
 template <class FF> void
 PoseTrackingServo<FF>::updateLinearPIDs(double PIDConfig::* field,
@@ -616,6 +644,7 @@ PoseTrackingServo<FF>::goalCB()
 	    .haveRecentFeedForward(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(targetPose().pose);
+	    input_smoothing_filter_.reset(targetPose().pose);
 	    start();
 
 	    current_goal_ = pose_tracking_srv_.acceptNewGoal();

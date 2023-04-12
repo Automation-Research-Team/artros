@@ -57,7 +57,7 @@ my_update_cb(const sensor_msgs::JointStateConstPtr& joint_state)
 		    << joint_state->header.stamp.nsec
 		    << "] " << joint_state->position[0]);
 }
-    
+
 /************************************************************************
 *  global functions							*
 ************************************************************************/
@@ -220,7 +220,7 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
 
   // Print robot model information.
     robot_state_->getRobotModel()->printModelInfo(std::cerr);
-    
+
   // Show names of model frame and variables of the robot model.
     ROS_INFO_STREAM_NAMED(logname_, "model_frame: "
 			  << robot_state_->getRobotModel()->getModelFrame());
@@ -287,7 +287,7 @@ Servo::publishTrajectory(const twist_t& twist_cmd, const pose_t& ff_pose)
 	ROS_WARN_STREAM_THROTTLE_NAMED(
 	    ROS_LOG_THROTTLE_PERIOD, logname_,
 	    "Failed to solve IK from incoming feedforward pose.");
-	    
+
 	return publishTrajectory(twist_cmd, nullptr);
     }
 
@@ -325,7 +325,7 @@ Servo::publishTrajectory(const twist_t& twist_cmd, const twist_t& twist_ff)
 	ROS_WARN_STREAM_THROTTLE_NAMED(
 	    ROS_LOG_THROTTLE_PERIOD, logname_,
 	    "Failed to solve IK from incoming feedforward twist.");
-	    
+
 	return publishTrajectory(twist_cmd, nullptr);
     }
 
@@ -487,7 +487,7 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
 void
 Servo::updateJoints()
 {
-    
+
     std::tie(robot_state_, stamp_)
 	= planning_scene_monitor_->getStateMonitor()->getCurrentStateAndTime();
 
@@ -765,12 +765,12 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 	{
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
-	    const auto	bounded_velocity = std::clamp(velocity,
-	    					      8*bounds.min_velocity_,
-	    					      8*bounds.max_velocity_);
 	    // const auto	bounded_velocity = std::clamp(velocity,
-	    // 					      bounds.min_velocity_,
-	    // 					      bounds.max_velocity_);
+	    // 					      8*bounds.min_velocity_,
+	    // 					      8*bounds.max_velocity_);
+	    const auto	bounded_velocity = std::clamp(velocity,
+	    					      bounds.min_velocity_,
+	    					      bounds.max_velocity_);
 	    bounding_scale = std::min(bounding_scale,
 				      bounded_velocity / velocity);
 	}
@@ -786,7 +786,7 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 	ROS_WARN_STREAM_THROTTLE_NAMED(3, logname_,
 				       "Velocity bounded by scale value="
 				       << bounding_scale);
-	
+
     if (collision_velocity_scale <= 0)
     {
 	servo_status_ = StatusCode::HALT_FOR_COLLISION;
