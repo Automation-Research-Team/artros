@@ -53,10 +53,11 @@ static void
 my_update_cb(const sensor_msgs::JointStateConstPtr& joint_state)
 {
     ROS_INFO_STREAM("my_update_cb: [" << joint_state->header.stamp.sec
-		    << '.' << joint_state->header.stamp.nsec
+		    << '.' << std::setw(9) << std::setfill('0')
+		    << joint_state->header.stamp.nsec
 		    << "] " << joint_state->position[0]);
 }
-    
+
 /************************************************************************
 *  global functions							*
 ************************************************************************/
@@ -83,7 +84,6 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_WORLD_TOPIC,
 	false /* skip octomap monitor */);
     monitor->startStateMonitor(joint_states_topic);
-    monitor->setStateUpdateFrequency(1.0/update_period);
   //monitor->getStateMonitor()->addUpdateCallback(my_update_cb); // For debug
     monitor->getStateMonitor()->enableCopyDynamics(true);  // Copy velocity also
 
@@ -95,10 +95,10 @@ createPlanningSceneMonitor(const std::string& robot_description,
 	exit(EXIT_FAILURE);
     }
 
-    ROS_INFO_STREAM_NAMED(logname,
-			  "PlanningSceneMonitor started: RobotState is updated at "
-			  << monitor->getStateUpdateFrequency()
-			  << "hz from topic[" << joint_states_topic << ']');
+    ROS_INFO_STREAM_NAMED(
+	logname,
+	"PlanningSceneMonitor started: RobotState is updated from topic["
+	<< joint_states_topic << ']');
 
     return monitor;
 }
@@ -218,6 +218,9 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
 				  0.5, 100.0);
     ddr_.publishServicesTopics();
 
+  // Print robot model information.
+    robot_state_->getRobotModel()->printModelInfo(std::cerr);
+
   // Show names of model frame and variables of the robot model.
     ROS_INFO_STREAM_NAMED(logname_, "model_frame: "
 			  << robot_state_->getRobotModel()->getModelFrame());
@@ -278,13 +281,56 @@ Servo::publishTrajectory(const twist_t& twist_cmd, const pose_t& ff_pose)
     tf2::doTransform(ff_pose, ff_pose_in_reference, Trt);
 
   // Solve IK for robot_state.
-    if (robot_state.setFromIK(jointGroup(), ff_pose_in_reference.pose,
-			      parameters_.ee_frame_name))
+    if (!robot_state.setFromIK(jointGroup(), ff_pose_in_reference.pose,
+			       parameters_.ee_frame_name))
     {
-	ff_positions_.resize(numJoints());
-	robot_state.copyJointGroupPositions(jointGroup(),
-					    ff_positions_.data());
+	ROS_WARN_STREAM_THROTTLE_NAMED(
+	    ROS_LOG_THROTTLE_PERIOD, logname_,
+	    "Failed to solve IK from incoming feedforward pose.");
+
+	return publishTrajectory(twist_cmd, nullptr);
     }
+
+    ff_positions_.resize(numJoints());
+    robot_state.copyJointGroupPositions(jointGroup(), ff_positions_.data());
+
+    return publishTrajectory(twist_cmd, ff_positions_);
+}
+
+bool
+Servo::publishTrajectory(const twist_t& twist_cmd, const twist_t& twist_ff)
+{
+  // Transform given forwarding twist to ee_frame.
+    auto		robot_state = *robot_state_;
+    const auto		Tef = getFrameTransform(parameters_.ee_frame_name,
+						twist_ff.header.frame_id);
+    const matrix33_t	R   = Tef.matrix().block<3, 3>(0, 0);
+    const vector3_t	t   = Tef.matrix().block<3, 1>(0, 3);
+    const vector3_t	ang = R * vector3_t(twist_ff.twist.angular.x,
+					    twist_ff.twist.angular.y,
+					    twist_ff.twist.angular.z);
+    const vector3_t	lin = R * vector3_t(twist_ff.twist.linear.x,
+					    twist_ff.twist.linear.y,
+					    twist_ff.twist.linear.z)
+			    + t.cross(ang);
+    vector_t		twist_in_ee_frame(6);
+    twist_in_ee_frame.head(3) = lin;
+    twist_in_ee_frame.tail(3) = ang;
+
+  // Solve IK for robot_state.
+    if (!robot_state.setFromDiffIK(jointGroup(), twist_in_ee_frame,
+				   parameters_.ee_frame_name,
+				   parameters_.publish_period))
+    {
+	ROS_WARN_STREAM_THROTTLE_NAMED(
+	    ROS_LOG_THROTTLE_PERIOD, logname_,
+	    "Failed to solve IK from incoming feedforward twist.");
+
+	return publishTrajectory(twist_cmd, nullptr);
+    }
+
+    ff_positions_.resize(numJoints());
+    robot_state.copyJointGroupPositions(jointGroup(), ff_positions_.data());
 
     return publishTrajectory(twist_cmd, ff_positions_);
 }
@@ -441,7 +487,7 @@ Servo::publishTrajectory(const CMD& cmd, const vector_t& positions)
 void
 Servo::updateJoints()
 {
-    
+
     std::tie(robot_state_, stamp_)
 	= planning_scene_monitor_->getStateMonitor()->getCurrentStateAndTime();
 
@@ -454,7 +500,9 @@ Servo::updateJoints()
 					   actual_velocities_.data());
 
     ROS_DEBUG_STREAM_NAMED(logname(), "joint updated@["
-			   << stamp_.sec << '.' << stamp_.nsec
+			   << stamp_.sec
+			   << '.' << std::setw(9) << std::setfill('0')
+			   << stamp_.nsec
 			   << "] " << actual_positions_(0));
 }
 
@@ -643,11 +691,12 @@ Servo::velocityScalingFactorForSingularity(
     delta_x = vector_toward_singularity / scale;
 
   // Calculate a small change in joints
+    auto	new_robot_state = *robot_state_;
     vector_t	new_theta;
-    robot_state_->copyJointGroupPositions(jointGroup(), new_theta);
+    new_robot_state.copyJointGroupPositions(jointGroup(), new_theta);
     new_theta += pseudo_inverse * delta_x;
-    robot_state_->setJointGroupPositions(jointGroup(), new_theta);
-    matrix_t	new_jacobian = robot_state_->getJacobian(jointGroup());
+    new_robot_state.setJointGroupPositions(jointGroup(), new_theta);
+    matrix_t	new_jacobian = new_robot_state.getJacobian(jointGroup());
 
     Eigen::JacobiSVD<matrix_t>	new_svd(new_jacobian);
     const auto	new_condition = new_svd.singularValues()(0)
@@ -716,9 +765,12 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 	{
 	  // Clamp each joint velocity to a joint specific
 	  // [min_velocity, max_velocity] range.
+	    // const auto	bounded_velocity = std::clamp(velocity,
+	    // 					      8*bounds.min_velocity_,
+	    // 					      8*bounds.max_velocity_);
 	    const auto	bounded_velocity = std::clamp(velocity,
-						      bounds.min_velocity_,
-						      bounds.max_velocity_);
+	    					      bounds.min_velocity_,
+	    					      bounds.max_velocity_);
 	    bounding_scale = std::min(bounding_scale,
 				      bounded_velocity / velocity);
 	}
@@ -734,7 +786,7 @@ Servo::applyVelocityScaling(vector_t& delta_theta, double singularity_scale)
 	ROS_WARN_STREAM_THROTTLE_NAMED(3, logname_,
 				       "Velocity bounded by scale value="
 				       << bounding_scale);
-	
+
     if (collision_velocity_scale <= 0)
     {
 	servo_status_ = StatusCode::HALT_FOR_COLLISION;

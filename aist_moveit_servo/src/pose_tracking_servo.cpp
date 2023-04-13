@@ -60,6 +60,10 @@ struct NoFeedForwardServo : public PoseTrackingServo<NoFeedForwardServo>
 		{
 		    return nullptr;
 		}
+    auto	ff_twist() const
+		{
+		    return nullptr;
+		}
 };
 }	// namespace aist_moveit_servo
 

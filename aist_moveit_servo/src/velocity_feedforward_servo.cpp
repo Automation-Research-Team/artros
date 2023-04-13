@@ -48,7 +48,7 @@ class VelocityFeedForwardServo
     using super		= PoseTrackingServo<VelocityFeedForwardServo>;
     using vector3_t	= geometry_msgs::Vector3Stamped;
     using vector3_cp	= geometry_msgs::Vector3StampedConstPtr;
-
+    
   public:
 		VelocityFeedForwardServo(ros::NodeHandle& nh,
 					 const std::string& logname)	;
@@ -58,7 +58,8 @@ class VelocityFeedForwardServo
 								const	;
     pose_t	ff_pose(const pose_t& target_pose,
 			const ros::Duration& dt)		const	;
-
+    twist_t	ff_twist()					const	;
+    
   private:
     vector3_t	getVelocity()					const	;
     void	velocityCB(const vector3_cp& velocity)			;
@@ -118,6 +119,21 @@ VelocityFeedForwardServo::ff_pose(const pose_t& target_pose,
     pose.pose.position.z += d * velocity.vector.z;
 
     return  pose;
+}
+
+VelocityFeedForwardServo::twist_t
+VelocityFeedForwardServo::ff_twist() const
+{
+  // Convert the subscribed velocity to the frame describing the target pose.
+    auto	velocity = getVelocity();
+    twist_t	twist;
+    twist.header	  = velocity.header;
+    twist.twist.linear    = velocity.vector;
+    twist.twist.angular.x = 0;
+    twist.twist.angular.y = 0;
+    twist.twist.angular.z = 0;
+
+    return  twist;
 }
 
 VelocityFeedForwardServo::vector3_t

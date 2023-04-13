@@ -42,6 +42,6 @@
     <arg name="sim"			value="$(arg sim)"/>
     <arg name="unitless"		value="false"/>
     <arg name="traj"			value="$(arg traj)"/>
-  </include>	
+  </include>
 
 </launch>
