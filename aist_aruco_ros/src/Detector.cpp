@@ -484,6 +484,10 @@ Detector::view_vector(T u, T v) const
 template <class T> inline cv::Vec<T, 3>
 Detector::at(const image_t& depth_msg, int u, int v) const
 {
+    if (u < 0 || u >= int(depth_msg.width) ||
+	v < 0 || v >= int(depth_msg.height))
+	return {T(0), T(0), T(0)};
+
     const auto	xyz = view_vector<T>(u, v);
     const auto	d   = val<T>(depth_msg, u, v);
 
@@ -493,6 +497,10 @@ Detector::at(const image_t& depth_msg, int u, int v) const
 template <class T> inline cv::Vec<T, 3>
 Detector::at(const cloud_t& cloud_msg, int u, int v) const
 {
+    if (u < 0 || u >= int(cloud_msg.width) ||
+	v < 0 || v >= int(cloud_msg.height))
+	return {T(0), T(0), T(0)};
+
     sensor_msgs::PointCloud2ConstIterator<T>	xyz(cloud_msg, "x");
     xyz += (v * cloud_msg.width + u);
 

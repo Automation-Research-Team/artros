@@ -68,7 +68,7 @@ class KittingRoutines(AISTBaseRoutines):
                                               self.get_current_pose(
                                                   self._current_robot_name))) \
                      if self._current_robot_name else '>> '
-            key = raw_input(prompt)
+            key = input(prompt)
 
             try:
                 _, axis, _ = self.interactive(key, self._current_robot_name,
@@ -96,15 +96,15 @@ class KittingRoutines(AISTBaseRoutines):
         elif key == 'm':
             self.create_mask_image('a_phoxi_m_camera', len(self._bin_props))
         elif key == 's':
-            bin_id = 'bin_' + raw_input('  bin id? ')
+            bin_id = 'bin_' + input('  bin id? ')
             self.search_bin(bin_id)
         elif key == 'a':
-            bin_id = 'bin_' + raw_input('  bin id? ')
+            bin_id = 'bin_' + input('  bin id? ')
             self._clear_fail_poses()
             self.attempt_bin(bin_id)
             self.go_to_named_pose(self._current_robot_name, 'home')
         elif key == 'A':
-            bin_id = 'bin_' + raw_input('  bin id? ')
+            bin_id = 'bin_' + input('  bin id? ')
             remained = True
             poses    = None
             self._clear_fail_poses()

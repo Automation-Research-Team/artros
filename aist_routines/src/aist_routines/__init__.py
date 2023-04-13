@@ -46,11 +46,11 @@ from moveit_commander.conversions import pose_to_list
 
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped, PoseArray
 
-from GripperClient     import GripperClient, VoidGripper
-from CameraClient      import CameraClient
-from MarkerPublisher   import MarkerPublisher
-from PickOrPlaceAction import PickOrPlace
-from SweepAction       import Sweep
+from aist_routines.GripperClient     import GripperClient, VoidGripper
+from aist_routines.CameraClient      import CameraClient
+from aist_routines.MarkerPublisher   import MarkerPublisher
+from aist_routines.PickOrPlaceAction import PickOrPlace
+from aist_routines.SweepAction       import Sweep
 
 ######################################################################
 #  global functions                                                  #
@@ -672,19 +672,18 @@ class AISTBaseRoutines(object):
                                          transformed_pose.orientation.z,
                                          transformed_pose.orientation.w))
         if deg:
-            rpy = map(degrees, rpy)
+            rpy = list(map(degrees, rpy))
         return [transformed_pose.position.x,
                 transformed_pose.position.y,
                 transformed_pose.position.z,
                 rpy[0], rpy[1], rpy[2]]
 
     def pose_from_xyzrpy(self, xyzrpy, deg=True):
-        if deg:
-            xyzrpy[3:6] = map(radians, xyzrpy[3:6])
+        rpy = list(map(radians, xyzrpy[3:6])) if deg else xyzrpy[3:6]
         pose = PoseStamped()
         pose.header.frame_id = self._reference_frame
         pose.pose = Pose(Point(*xyzrpy[0:3]),
-                         Quaternion(*tfs.quaternion_from_euler(*xyzrpy[3:6])))
+                         Quaternion(*tfs.quaternion_from_euler(*rpy)))
         return pose
 
     def format_pose(self, target_pose):
