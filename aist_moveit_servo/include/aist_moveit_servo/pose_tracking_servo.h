@@ -644,7 +644,7 @@ PoseTrackingServo<FF>::goalCB()
 	    .haveRecentFeedForward(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(targetPose().pose);
-	    input_smoothing_filter_.reset(targetPose().pose);
+	    input_smoothing_filter_.reset(actualPose().pose);
 	    start();
 
 	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
