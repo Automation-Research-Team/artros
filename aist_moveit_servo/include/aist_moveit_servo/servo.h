@@ -111,6 +111,8 @@ class Servo
     using flt64_cp	= std_msgs::Float64ConstPtr;
     using vector_t	= Eigen::VectorXd;
     using matrix_t	= Eigen::MatrixXd;
+    using vector3_t	= Eigen::Vector3d;
+    using matrix33_t	= Eigen::Matrix3d;
     using lpf_t		= aist_utility::ButterworthLPF<double>;
 
   public:
@@ -126,6 +128,7 @@ class Servo
     isometry3_t	getFrameTransform(const std::string& parent,
 				  const std::string& child)	const	;
     isometry3_t	getFrameTransform(const std::string& frame)	const	;
+    ros::Time	getRobotStateStamp()				const	;
     void	changeRobotLinkCommandFrame(const std::string& frame)	;
 
     DurationArray&
@@ -137,6 +140,8 @@ class Servo
     void	updateRobot()						;
     bool	publishTrajectory(const twist_t& twist_cmd,
 				  const pose_t& ff_pose)		;
+    bool	publishTrajectory(const twist_t& twist_cmd,
+				  const twist_t& twist_ff)		;
     template <class CMD>
     bool	publishTrajectory(const CMD& cmd, std::nullptr_t)	;
     StatusCode	servoStatus()					const	;
@@ -298,6 +303,12 @@ inline Servo::isometry3_t
 Servo::getFrameTransform(const std::string& frame) const
 {
     return getFrameTransform(parameters_.planning_frame, frame);
+}
+
+inline ros::Time
+Servo::getRobotStateStamp() const
+{
+    return stamp_;
 }
 
 inline DurationArray&

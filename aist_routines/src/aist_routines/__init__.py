@@ -182,6 +182,7 @@ class AISTBaseRoutines(object):
         print('  gripper:     select gripper')
         print('  pregrasp:    pregrasp with the current gripper')
         print('  grasp:       grasp with the current gripper')
+        print('  postgrasp:   postgrasp with the current gripper')
         print('  release:     release with the current gripper')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
@@ -290,6 +291,8 @@ class AISTBaseRoutines(object):
             self.pregrasp(robot_name)
         elif key == 'grasp':
             self.grasp(robot_name)
+        elif key == 'postgrasp':
+            self.postgrasp(robot_name)
         elif key == 'release':
             self.release(robot_name)
 
@@ -448,6 +451,9 @@ class AISTBaseRoutines(object):
 
     def grasp(self, robot_name):
         return self.gripper(robot_name).grasp()
+
+    def postgrasp(self, robot_name):
+        return self.gripper(robot_name).postgrasp()
 
     def release(self, robot_name):
         return self.gripper(robot_name).release()

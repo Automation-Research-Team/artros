@@ -45,6 +45,7 @@
 #include <control_toolbox/pid.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <aist_utility/butterworth_lpf.h>
+#include <aist_utility/first_order_lpf.h>
 #include <aist_utility/geometry_msgs.h>
 #include <aist_moveit_servo/servo.h>
 #include <aist_moveit_servo/status_codes.h>
@@ -72,7 +73,7 @@ class PoseTrackingServo : public Servo
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-
+    using order1_lpf_t	 = aist_utility::FirstOrderLPF<double, raw_pose_t>;
     struct PIDConfig
     {
 	double	k_p	     = 1;
@@ -104,6 +105,9 @@ class PoseTrackingServo : public Servo
     void	updateInputLowPassFilter(int half_order,
 					 double cutoff_frequency)	;
 
+  // Input smoothing filter stuffs
+    void	updateInputSmoothingFilter(double decay_time)		;
+
   // PID stuffs
     void	updateLinearPIDs(double PIDConfig::* field,
 				 double value)				;
@@ -121,13 +125,16 @@ class PoseTrackingServo : public Servo
     bool	haveRecentTargetPose(const ros::Duration& timeout) const;
     void	resetTargetPose()					;
 
+  // Current pose stuffs
+    pose_t	actualPose()					const	;
+
   private:
   // ROS
     ros::NodeHandle		nh_;
     ros::ServiceClient		reset_servo_status_;
     const ros::Subscriber	target_pose_sub_;
     const ros::Publisher	target_pose_debug_pub_;
-    const ros::Publisher	ee_pose_debug_pub_;
+    const ros::Publisher	actual_pose_debug_pub_;
     DurationArray&		durations_;
     ddr_t			ddr_;
 
@@ -143,6 +150,7 @@ class PoseTrackingServo : public Servo
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
     lpf_t			input_low_pass_filter_;
+    order1_lpf_t		input_smoothing_filter_;
 
   // PIDs
     PIDConfig			linear_pid_config_;
@@ -162,7 +170,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 			  &PoseTrackingServo::targetPoseCB, this,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
      target_pose_debug_pub_(nh.advertise<pose_t>("desired_pose", 1)),
-     ee_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
+     actual_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
      durations_(durations()),
      ddr_(ros::NodeHandle(nh, "pose_tracking")),
 
@@ -177,6 +185,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    servoParameters().publish_period),
+     input_smoothing_filter_(0.9),
 
      linear_pid_config_(),
      angular_pid_config_(),
@@ -221,6 +230,13 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 				      _1),
 				  "Cutoff frequency of input low pass filter",
 				  0.5, 100.0);
+    ddr_.registerVariable<double>("input_smoothing_filter_decay",
+				  input_smoothing_filter_.decay(),
+				  boost::bind(&PoseTrackingServo
+					      ::updateInputSmoothingFilter,
+					      this, _1),
+				  "Cutoff frequency of input low pass filter",
+				  0.1, 0.99);
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  linear_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
@@ -421,6 +437,7 @@ PoseTrackingServo<FF>::tick()
 	result.status = PoseTrackingResult::NO_ERROR;
 	pose_tracking_srv_.setSucceeded(result);
 	ROS_INFO_STREAM_NAMED(logname(), "(PoseTrackingServo) goal SUCCEEDED");
+
 	return;
     }
 
@@ -453,14 +470,17 @@ PoseTrackingServo<FF>::correctTargetPose(const raw_pose_t& offset) const
     auto	target_pose = targetPose();
 
   // Apply input low-pass filter
-    target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
+  //target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
+
+  // Apply input smoothing filter
+    target_pose.pose = input_smoothing_filter_.filter(target_pose.pose);
     aist_utility::normalize(target_pose.pose.orientation);
 
-  // If the target pose is not defined in planning frame, transform it.
+  // Transform the target pose to planning frame unless defined in it.
     if (target_pose.header.frame_id != servoParameters().planning_frame)
     {
-	auto Tpt = tf2::eigenToTransform(getFrameTransform(
-					     target_pose.header.frame_id));
+	auto	Tpt = tf2::eigenToTransform(getFrameTransform(
+						target_pose.header.frame_id));
 	Tpt.header.stamp    = target_pose.header.stamp;
 	Tpt.header.frame_id = servoParameters().planning_frame;
 	Tpt.child_frame_id  = target_pose.header.frame_id;
@@ -497,10 +517,7 @@ PoseTrackingServo<FF>::calculatePoseError(const pose_t& target_pose,
 
   // Publish target pose and current pose for debugging.
     target_pose_debug_pub_.publish(target_pose);
-    const auto	ee_pose = tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
-					 Tpe, ros::Time::now(),
-					 servoParameters().planning_frame));
-    ee_pose_debug_pub_.publish(ee_pose);
+    actual_pose_debug_pub_.publish(actualPose());
 }
 
 template <class FF> typename PoseTrackingServo<FF>::twist_t
@@ -572,6 +589,14 @@ PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
     input_low_pass_filter_.reset(targetPose().pose);
 }
 
+// Smoothing filter stuffs
+template <class FF> void
+PoseTrackingServo<FF>::updateInputSmoothingFilter(double decay)
+{
+    input_smoothing_filter_.initialize(decay);
+    input_smoothing_filter_.reset(actualPose().pose);
+}
+
 // PID controller stuffs
 template <class FF> void
 PoseTrackingServo<FF>::updateLinearPIDs(double PIDConfig::* field,
@@ -619,6 +644,7 @@ PoseTrackingServo<FF>::goalCB()
 	    .haveRecentFeedForward(DEFAULT_INPUT_TIMEOUT))
 	{
 	    input_low_pass_filter_.reset(targetPose().pose);
+	    input_smoothing_filter_.reset(actualPose().pose);
 	    start();
 
 	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
@@ -689,6 +715,16 @@ PoseTrackingServo<FF>::resetTargetPose()
     const std::lock_guard<std::mutex>	lock(target_pose_mtx_);
 
     target_pose_ = nullptr;
+}
+
+// Current pose stuffs
+template <class FF> typename PoseTrackingServo<FF>::pose_t
+PoseTrackingServo<FF>::actualPose() const
+{
+    return tf2::toMsg(tf2::Stamped<Eigen::Isometry3d>(
+			  getFrameTransform(servoParameters().ee_frame_name),
+			  getRobotStateStamp(),
+			  servoParameters().planning_frame));
 }
 
 }	// namespace aist_moveit_servo

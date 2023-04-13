@@ -176,7 +176,7 @@ add_dependencies(
 
 install(
   TARGETS servo_server pose_tracking_servo
-	  velocity_feedforward_servo odometry_feedforward_servo
+	  velocity_feedforward_servo #odometry_feedforward_servo
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

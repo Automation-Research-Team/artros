@@ -59,10 +59,10 @@ class OdometryFeedForwardServo
     void	resetFeedForward()					;
     bool	haveRecentFeedForward(const ros::Duration& timeout)
 								const	;
-    pose_t	ff_pose(const pose_t& target_pose,
-    			const ros::Duration& dt)		const	;
-    // std::nullptr_t
-    // 		ff_pose(const pose_t&, const ros::Duration&)	const	;
+    // pose_t	ff_pose(const pose_t& target_pose,
+    // 			const ros::Duration& dt)		const	;
+    std::nullptr_t
+    		ff_pose(const pose_t&, const ros::Duration&)	const	;
 
   private:
     twist_t	getTwist()					const	;
@@ -72,6 +72,7 @@ class OdometryFeedForwardServo
     const ros::Subscriber	odometry_sub_;
     odometry_cp			odometry_;
     mutable std::mutex		odometry_mtx_;
+    const ros::Publisher	ff_pose_debug_pub_;
 };
 
 OdometryFeedForwardServo::OdometryFeedForwardServo(ros::NodeHandle& nh,
@@ -80,7 +81,8 @@ OdometryFeedForwardServo::OdometryFeedForwardServo(ros::NodeHandle& nh,
      odometry_sub_(nh.subscribe("/odom", 1,
 				&OdometryFeedForwardServo::odometryCB, this)),
      odometry_(nullptr),
-     odometry_mtx_()
+     odometry_mtx_(),
+     ff_pose_debug_pub_(nh.advertise<pose_t>("ff_pose", 1))
 {
 }
 
@@ -102,10 +104,54 @@ OdometryFeedForwardServo::haveRecentFeedForward(
 	    ros::Time::now() - odometry_->header.stamp < timeout);
 }
 
-OdometryFeedForwardServo::pose_t
+  //OdometryFeedForwardServo::pose_t
+std::nullptr_t
 OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
 				  const ros::Duration& dt) const
 {
+#if 1
+  // Convert the subscribed velocity to the frame describing the target pose.
+    auto	twist = getTwist();
+    auto	T = tf2::eigenToTransform(getFrameTransform(
+					      target_pose.header.frame_id,
+					      twist.header.frame_id));
+    auto	velocity = twist.twist.linear;
+    T.header	     = target_pose.header;
+    T.child_frame_id = twist.header.frame_id;
+    tf2::doTransform(velocity, velocity, T);
+
+  // Correct the target pose by a displacement predicted from the velocity.
+    const auto	d    = dt.toSec();
+    auto	pose = target_pose;
+    // pose.pose.position.x -= d * velocity.x;
+    // pose.pose.position.y -= d * velocity.y;
+    // pose.pose.position.z -= d * velocity.z;
+
+    ff_pose_debug_pub_.publish(pose);
+
+    return nullptr;
+  //return  pose;
+
+  // // Convert velocity in twist to the target frame.
+  //   const auto	twist = getTwist();
+  //   vector3_t	velocity(twist.twist.linear.x,
+  // 			 twist.twist.linear.y,
+  // 			 twist.twist.linear.z);
+  //   const auto	T = getFrameTransform(target_pose.header.frame_id,
+  // 				      twist.header.frame_id);
+  //   velocity = T * velocity;
+
+  // // Correct the target pose by displacement predicted from the veloity.
+  //   const auto	d = dt.toSec();
+  //   vector3_t	dx = d * velocity;
+  //   auto	pose = target_pose;
+  //   // pose.pose.position.x -= dx(0);
+  //   // pose.pose.position.y -= dx(1);
+  //   // pose.pose.position.z -= dx(2);
+  //   std::cerr << "*** dx = (" << dx.transpose() << ')' << std::endl;
+
+  //   return pose;
+#else
   // Get transform to base frame.
     const auto	twist = getTwist();
     const auto	T     = getFrameTransform(twist.header.frame_id,
@@ -140,8 +186,9 @@ OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
     // 	      << "*** dS.liner = " << dSS.linear()
     // 	      << std::endl;
 
-    return  pose;
-  //return  nullptr;
+  //return  pose;
+    return  nullptr;
+#endif
 }
 
 OdometryFeedForwardServo::twist_t
