@@ -99,7 +99,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             prompt = '{:>5}:{}>> '.format(axis, self.format_pose(
                                                     self.get_current_pose(
                                                         self._robot_name)))
-            key = raw_input(prompt)
+            key = input(prompt)
             _, axis, _ = self.interactive(key, self._robot_name, axis,
                                           self._speed)
 
@@ -109,14 +109,14 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         print('=== Calibration commands ===')
         print('  init:  go to initial pose')
         print('  calib: do calibration')
-        print('  RET:   go to marker')
+        print('  check: go to marker')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'init':
             self.go_to_initpose()
         elif key == 'calib':
             self.calibrate()
-        elif key == '':
+        elif key == 'check':
             self.go_to_marker()
         else:
             return super(HandEyeCalibrationRoutines, self) \
@@ -239,7 +239,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             print('  world  <= effector ' + self.format_pose(pose))
 
             n = len(self._get_sample_list().cMo)
-            print('  {} samples taken').format(n)
+            print('  {} samples taken'.format(n))
 
         return True
 
@@ -284,8 +284,8 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         pTb = tfs.concatenate_matrices(pTe, eTc, cTb)
 
         # Convert the transform to xyz-rpy representation.
-        xyz  = map(float, tfs.translation_from_matrix(pTb))
-        rpy  = map(float, tfs.euler_from_matrix(pTb))
+        xyz  = list(map(float, tfs.translation_from_matrix(pTb)))
+        rpy  = list(map(float, tfs.euler_from_matrix(pTb)))
         data = {'parent': camera_parent_frame,
                 'child' : camera_base_frame,
                 'origin': xyz + rpy}
