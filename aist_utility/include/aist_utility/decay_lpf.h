@@ -34,24 +34,23 @@
 // Author: Toshio Ueshiba
 //
 /*!
- *  \file	first_order_lpf.h
+ *  \file	decay_lpf.h
  *  \author	Toshio Ueshiba
- *  \brief	First order low-pass filter
+ *  \brief	First order decay filter
  */
 #pragma once
 
 #include <cmath>
-#include <vector>
 
 namespace aist_utility
 {
 /*!
-  Butterworth low-pass filter of even order
+  Decay filter
   \param S	type of coefficients
   \param T	type of signal to be filtered
 */
 template <class S, class T=S>
-class FirstOrderLPF
+class DecayLPF
 {
   public:
     using element_type	= S;	//!< type of coefficients
@@ -59,41 +58,39 @@ class FirstOrderLPF
 
   public:
   /*!
-    1階ローパスフィルタを生成
-    \param decay	カットオフ周波数fcをサンプリング周波数fsで正規化した値
-			すなわちfc/fs
+    Decayローパスフィルタを生成
+    \param decay	半減期Tに対するサンプリング周期dtの割合すなわちdt/T
   */
-    explicit	FirstOrderLPF(element_type decay)
-		{
-		    initialize(decay);
-		}
+    explicit		DecayLPF(element_type decay)
+			{
+			    initialize(decay);
+			}
 
-    void	initialize(element_type decay)
-		{
-		    _decay = decay;
-		}
+    void		initialize(element_type decay)
+			{
+			    _r = std::pow(2.0, -decay);
+			}
 
-    element_type
-		decay() const
-		{
-		    return _decay;
-		}
+    element_type	decay() const
+			{
+			    return -std::log2(_r);
+			}
 
-    value_type	filter(const value_type& x) const
-		{
-		    _y1 = (1 - _decay)*x + _decay*_y1;
+    value_type		filter(const value_type& x) const
+			{
+			    _y1 = (1 - _r)*x + _r*_y1;
 
-		    return _y1;
-		}
+			    return _y1;
+			}
 
-    void	reset(const value_type& x)
-		{
-		    _y1 = x;
-		}
+    void		reset(const value_type& x)
+			{
+			    _y1 = x;
+			}
 
   private:
-    element_type	_decay;
+    element_type	_r;
     mutable value_type	_y1;		// output value in previous step
 };
 
-}  // namespace moveit_servo
+}  // namespace aist_utility

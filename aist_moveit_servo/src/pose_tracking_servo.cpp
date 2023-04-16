@@ -51,8 +51,8 @@ struct NoFeedForwardServo : public PoseTrackingServo<NoFeedForwardServo>
 		    :PoseTrackingServo<NoFeedForwardServo>(nh, logname)
 		{}
 
-    void	resetFeedForward()					{}
-    bool	haveRecentFeedForward(const ros::Duration&) const
+    void	resetFeedForwardInput()					{}
+    bool	haveRecentFeedForwardInput(const ros::Duration&) const
 		{
 		    return true;
 		}

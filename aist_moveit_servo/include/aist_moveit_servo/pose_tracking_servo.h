@@ -44,13 +44,16 @@
 #include <rosparam_shortcuts/rosparam_shortcuts.h>
 #include <control_toolbox/pid.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <aist_utility/butterworth_lpf.h>
-#include <aist_utility/first_order_lpf.h>
-#include <aist_utility/geometry_msgs.h>
 #include <aist_moveit_servo/servo.h>
 #include <aist_moveit_servo/status_codes.h>
 #include <aist_moveit_servo/PoseTrackingAction.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
+#include <aist_utility/geometry_msgs.h>
+#if defined(USE_BUTTERWORTH_LPF)
+#  include <aist_utility/butterworth_lpf.h>
+#else
+#  include <aist_utility/decay_lpf.h>
+#endif
 
 // Conventions:
 // Calculations are done in the planning_frame unless otherwise noted.
@@ -72,8 +75,11 @@ class PoseTrackingServo : public Servo
     using vector3_t	 = Eigen::Vector3d;
     using angle_axis_t	 = Eigen::AngleAxisd;
     using pid_t		 = control_toolbox::Pid;
+#if defined(USE_BUTTERWORTH_LPF)
     using lpf_t		 = aist_utility::ButterworthLPF<double, raw_pose_t>;
-    using order1_lpf_t	 = aist_utility::FirstOrderLPF<double, raw_pose_t>;
+#else
+    using lpf_t		 = aist_utility::DecayLPF<double, raw_pose_t>;
+#endif
     struct PIDConfig
     {
 	double	k_p	     = 1;
@@ -94,6 +100,7 @@ class PoseTrackingServo : public Servo
     void	tick()							;
     pose_t	correctTargetPose(const raw_pose_t& offset)	const	;
     void	calculatePoseError(const pose_t& target_pose,
+				   const pose_t& actual_pose,
 				   vector3_t& positional_error,
 				   angle_axis_t& angular_error)	const	;
     twist_t	calculateTwistCommand(const vector3_t& positional_error,
@@ -102,11 +109,12 @@ class PoseTrackingServo : public Servo
     void	doPostMotionReset()					;
 
   // Input low-pass filter stuffs
+#if defined(USE_BUTTERWORTH_LPF)
     void	updateInputLowPassFilter(int half_order,
 					 double cutoff_frequency)	;
-
-  // Input smoothing filter stuffs
-    void	updateInputSmoothingFilter(double decay_time)		;
+#else
+    void	updateInputLowPassFilter(double half_life)		;
+#endif
 
   // PID stuffs
     void	updateLinearPIDs(double PIDConfig::* field,
@@ -128,6 +136,10 @@ class PoseTrackingServo : public Servo
   // Current pose stuffs
     pose_t	actualPose()					const	;
 
+  // FeedForward pose stuffs
+    void	publishFeedForwardPose(const pose_t& ff_pose)	const	;
+    void	publishFeedForwardPose(std::nullptr_t)		const	;
+
   private:
   // ROS
     ros::NodeHandle		nh_;
@@ -135,6 +147,7 @@ class PoseTrackingServo : public Servo
     const ros::Subscriber	target_pose_sub_;
     const ros::Publisher	target_pose_debug_pub_;
     const ros::Publisher	actual_pose_debug_pub_;
+    const ros::Publisher	ff_pose_debug_pub_;
     DurationArray&		durations_;
     ddr_t			ddr_;
 
@@ -147,10 +160,11 @@ class PoseTrackingServo : public Servo
     mutable std::mutex		target_pose_mtx_;
 
   // Filters for input target pose
+#if defined(USE_BUTTERWORTH_LPF)
     int				input_low_pass_filter_half_order_;
     double			input_low_pass_filter_cutoff_frequency_;
+#endif
     lpf_t			input_low_pass_filter_;
-    order1_lpf_t		input_smoothing_filter_;
 
   // PIDs
     PIDConfig			linear_pid_config_;
@@ -171,6 +185,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 			  ros::TransportHints().reliable().tcpNoDelay(true))),
      target_pose_debug_pub_(nh.advertise<pose_t>("desired_pose", 1)),
      actual_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
+     ff_pose_debug_pub_(nh.advertise<pose_t>("ff_pose", 1)),
      durations_(durations()),
      ddr_(ros::NodeHandle(nh, "pose_tracking")),
 
@@ -179,24 +194,20 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 
      target_pose_(nullptr),
      target_pose_mtx_(),
-
+#if defined(USE_BUTTERWORTH_LPF)
      input_low_pass_filter_half_order_(3),
      input_low_pass_filter_cutoff_frequency_(7.0),
      input_low_pass_filter_(input_low_pass_filter_half_order_,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    servoParameters().publish_period),
-     input_smoothing_filter_(0.9),
-
+#else
+     input_low_pass_filter_(servoParameters().publish_period/0.01),
+#endif
      linear_pid_config_(),
      angular_pid_config_(),
      pids_()
 {
     readROSParams();
-
-  // Initialize input lowpass-filter
-    input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
-				      input_low_pass_filter_cutoff_frequency_ *
-				      servoParameters().publish_period);
 
   // Initialize PID controllers
     for (size_t i = 0; i < 3; ++i)
@@ -213,6 +224,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
     pose_tracking_srv_.start();
 
   // Setup dynamic reconfigure server
+#if defined(USE_BUTTERWORTH_LPF)
     ddr_.registerVariable<int>("input_lowpass_filter_half_order",
 			       input_low_pass_filter_half_order_,
 			       boost::bind(
@@ -220,7 +232,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 				   ::updateInputLowPassFilter,
 				   this, _1,
 				   input_low_pass_filter_cutoff_frequency_),
-			       "Half order of input low pass filter", 1, 5);
+			       "Half order of input low-pass filter", 1, 5);
     ddr_.registerVariable<double>("input_lowpass_filter_cutoff_frequency",
 				  input_low_pass_filter_cutoff_frequency_,
 				  boost::bind(
@@ -228,15 +240,18 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 				      ::updateInputLowPassFilter,
 				      this, input_low_pass_filter_half_order_,
 				      _1),
-				  "Cutoff frequency of input low pass filter",
+				  "Cutoff frequency of input low-pass filter",
 				  0.5, 100.0);
-    ddr_.registerVariable<double>("input_smoothing_filter_decay",
-				  input_smoothing_filter_.decay(),
+#else
+    ddr_.registerVariable<double>("input_low_pass_filter_half_life",
+				  servoParameters().publish_period
+				  /input_low_pass_filter_.decay(),
 				  boost::bind(&PoseTrackingServo
-					      ::updateInputSmoothingFilter,
+					      ::updateInputLowPassFilter,
 					      this, _1),
-				  "Cutoff frequency of input low pass filter",
-				  0.1, 0.99);
+				  "Half-life of input low-pass filter",
+				  0.005, 0.1);
+#endif
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  linear_pid_config_.k_p,
 				  boost::bind(&PoseTrackingServo
@@ -325,12 +340,14 @@ PoseTrackingServo<FF>::readROSParams()
 
   // Setup input low-pass filter
     std::size_t error = 0;
+#if defined(USE_BUTTERWORTH_LPF)
     error += !rosparam_shortcuts::get(logname(), parameter_nh,
 				      "input_low_pass_filter_half_order",
 				      input_low_pass_filter_half_order_);
     error += !rosparam_shortcuts::get(logname(), parameter_nh,
 				      "input_low_pass_filter_cutoff_frequency",
 				      input_low_pass_filter_cutoff_frequency_);
+#endif
 
   // Setup PID configurations
     double	windup_limit;
@@ -366,6 +383,9 @@ PoseTrackingServo<FF>::tick()
 {
     updateRobot();
 
+    const auto		actual_pose = actualPose();
+    actual_pose_debug_pub_.publish(actual_pose);
+
     if (!pose_tracking_srv_.isActive())
 	return;
 
@@ -400,7 +420,7 @@ PoseTrackingServo<FF>::tick()
   // Check that target pose is recent enough.
     if (!haveRecentTargetPose(current_goal_->timeout) ||
 	!static_cast<const FF&>(*this)
-	 .haveRecentFeedForward(current_goal_->timeout))
+	 .haveRecentFeedForwardInput(current_goal_->timeout))
     {
     	doPostMotionReset();
 
@@ -420,7 +440,8 @@ PoseTrackingServo<FF>::tick()
   // Compute positional and angular errors.
     vector3_t		positional_error;
     angle_axis_t	angular_error;
-    calculatePoseError(target_pose, positional_error, angular_error);
+    calculatePoseError(target_pose, actual_pose,
+		       positional_error, angular_error);
 
   // Check if goal tolerance is satisfied.
     if (std::abs(positional_error(0)) <
@@ -454,27 +475,24 @@ PoseTrackingServo<FF>::tick()
   // to the Servo object, for execution
     const auto	twist_cmd = calculateTwistCommand(positional_error,
 						  angular_error);
+    const auto	ff_pose   = static_cast<const FF&>(*this).ff_pose(
+			      target_pose,
+			      ros::Duration(servoParameters().publish_period));
 
     durations_.twist_out = (ros::Time::now() -
 			    durations_.header.stamp).toSec();
 
-    publishTrajectory(twist_cmd,
-		      static_cast<const FF&>(*this).ff_pose(
-			  target_pose,
-			  ros::Duration(servoParameters().publish_period)));
+  // Publish target pose, actual pose and feedforwad pose for debugging.
+    target_pose_debug_pub_.publish(target_pose);
+    publishFeedForwardPose(ff_pose);
+
+    publishTrajectory(twist_cmd, ff_pose);
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
 PoseTrackingServo<FF>::correctTargetPose(const raw_pose_t& offset) const
 {
     auto	target_pose = targetPose();
-
-  // Apply input low-pass filter
-  //target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
-
-  // Apply input smoothing filter
-    target_pose.pose = input_smoothing_filter_.filter(target_pose.pose);
-    aist_utility::normalize(target_pose.pose.orientation);
 
   // Transform the target pose to planning frame unless defined in it.
     if (target_pose.header.frame_id != servoParameters().planning_frame)
@@ -498,26 +516,31 @@ PoseTrackingServo<FF>::correctTargetPose(const raw_pose_t& offset) const
     tf2::fromMsg(offset, offset_transform);
     tf2::toMsg(target_transform * offset_transform, target_pose.pose);
 
+  // Apply input low-pass filter
+    target_pose.pose = input_low_pass_filter_.filter(target_pose.pose);
+    aist_utility::normalize(target_pose.pose.orientation);
+
     return target_pose;
 }
 
 template <class FF> void
 PoseTrackingServo<FF>::calculatePoseError(const pose_t& target_pose,
+					  const pose_t& actual_pose,
 					  vector3_t& positional_error,
 					  angle_axis_t& angular_error) const
 {
-    const auto	Tpe = getFrameTransform(servoParameters().ee_frame_name);
-    positional_error(0) = target_pose.pose.position.x - Tpe.translation()(0);
-    positional_error(1) = target_pose.pose.position.y - Tpe.translation()(1);
-    positional_error(2) = target_pose.pose.position.z - Tpe.translation()(2);
+    positional_error(0) = target_pose.pose.position.x
+			- actual_pose.pose.position.x;
+    positional_error(1) = target_pose.pose.position.y
+			- actual_pose.pose.position.y;
+    positional_error(2) = target_pose.pose.position.z
+			- actual_pose.pose.position.z;
 
     Eigen::Quaterniond	q_desired;
-    tf2::convert(target_pose.pose.orientation, q_desired);
-    angular_error = q_desired * Eigen::Quaterniond(Tpe.rotation()).inverse();
-
-  // Publish target pose and current pose for debugging.
-    target_pose_debug_pub_.publish(target_pose);
-    actual_pose_debug_pub_.publish(actualPose());
+    tf2::fromMsg(target_pose.pose.orientation, q_desired);
+    Eigen::Quaterniond	q_actual;
+    tf2::fromMsg(actual_pose.pose.orientation, q_actual);
+    angular_error = q_desired * q_actual.inverse();
 }
 
 template <class FF> typename PoseTrackingServo<FF>::twist_t
@@ -575,6 +598,7 @@ PoseTrackingServo<FF>::stopMotion()
 }
 
 // Low-pass filter stuffs
+#if defined(USE_BUTTERWORTH_LPF)
 template <class FF> void
 PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
 						double cutoff_frequency)
@@ -583,19 +607,19 @@ PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
     input_low_pass_filter_cutoff_frequency_ = cutoff_frequency;
 
     input_low_pass_filter_.initialize(input_low_pass_filter_half_order_,
-				      input_low_pass_filter_cutoff_frequency_*
-				      servoParameters().publish_period);
-
-    input_low_pass_filter_.reset(targetPose().pose);
+				      input_low_pass_filter_cutoff_frequency_
+				      *servoParameters().publish_period);
+    input_low_pass_filter_.reset(actualPose().pose);
 }
-
-// Smoothing filter stuffs
+#else
 template <class FF> void
-PoseTrackingServo<FF>::updateInputSmoothingFilter(double decay)
+PoseTrackingServo<FF>::updateInputLowPassFilter(double half_life)
 {
-    input_smoothing_filter_.initialize(decay);
-    input_smoothing_filter_.reset(actualPose().pose);
+    input_low_pass_filter_.initialize(servoParameters().publish_period
+				      /half_life);
+    input_low_pass_filter_.reset(actualPose().pose);
 }
+#endif
 
 // PID controller stuffs
 template <class FF> void
@@ -628,7 +652,7 @@ PoseTrackingServo<FF>::goalCB()
 {
     resetServoStatus();
     resetTargetPose();
-    static_cast<FF&>(*this).resetFeedForward();
+    static_cast<FF&>(*this).resetFeedForwardInput();
 
   // Wait a bit for a target pose message to arrive.
   // The target pose may get updated by new messages as the robot moves
@@ -641,10 +665,14 @@ PoseTrackingServo<FF>::goalCB()
     {
 	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
 	    static_cast<const FF&>(*this)
-	    .haveRecentFeedForward(DEFAULT_INPUT_TIMEOUT))
+	    .haveRecentFeedForwardInput(DEFAULT_INPUT_TIMEOUT))
 	{
-	    input_low_pass_filter_.reset(targetPose().pose);
-	    input_smoothing_filter_.reset(actualPose().pose);
+	  // If input low-pass filter was initialized with target pose,
+	  // the initial feed-forwarded pose calculated from the filter output
+	  // would be very different from the actual pose, which will cause
+	  // sudden jump of outgoing joint positions. Therefore we initialize
+	  // the filter with actual pose.
+	    input_low_pass_filter_.reset(actualPose().pose);
 	    start();
 
 	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
@@ -689,7 +717,7 @@ PoseTrackingServo<FF>::targetPoseCB(const pose_cp& target_pose)
     target_pose_ = target_pose;
 
     ROS_DEBUG_STREAM_NAMED(logname(),
-			   "(" << logname() << ") target_pose received");
+			   "(PoseTrackingServo) target_pose received");
 }
 
 template <class FF> typename PoseTrackingServo<FF>::pose_t
@@ -725,6 +753,18 @@ PoseTrackingServo<FF>::actualPose() const
 			  getFrameTransform(servoParameters().ee_frame_name),
 			  getRobotStateStamp(),
 			  servoParameters().planning_frame));
+}
+
+// FeedForward pose stuffs
+template <class FF> void
+PoseTrackingServo<FF>::publishFeedForwardPose(const pose_t& ff_pose) const
+{
+    ff_pose_debug_pub_.publish(ff_pose);
+}
+
+template <class FF> void
+PoseTrackingServo<FF>::publishFeedForwardPose(std::nullptr_t) const
+{
 }
 
 }	// namespace aist_moveit_servo
