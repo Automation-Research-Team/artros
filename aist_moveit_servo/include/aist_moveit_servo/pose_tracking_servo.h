@@ -444,13 +444,16 @@ PoseTrackingServo<FF>::tick()
 		       positional_error, angular_error);
 
   // Check if goal tolerance is satisfied.
-    if (std::abs(positional_error(0)) <
-	current_goal_->positional_tolerance[0] &&
-	std::abs(positional_error(1)) <
-	current_goal_->positional_tolerance[1] &&
-	std::abs(positional_error(2)) <
-	current_goal_->positional_tolerance[2] &&
-	std::abs(angular_error.angle()) < current_goal_->angular_tolerance)
+    const auto	success = (std::abs(positional_error(0)) <
+			   current_goal_->positional_tolerance[0] &&
+			   std::abs(positional_error(1)) <
+			   current_goal_->positional_tolerance[1] &&
+			   std::abs(positional_error(2)) <
+			   current_goal_->positional_tolerance[2] &&
+			   std::abs(angular_error.angle()) <
+			   current_goal_->angular_tolerance);
+
+    if (current_goal_->terminate_on_success && success)
     {
 	doPostMotionReset();
 
@@ -468,6 +471,7 @@ PoseTrackingServo<FF>::tick()
     feedback.positional_error[1] = positional_error(1);
     feedback.positional_error[2] = positional_error(2);
     feedback.angular_error	 = angular_error.angle();
+    feedback.success		 = success;
     feedback.status		 = static_cast<int8_t>(servo_status);
     pose_tracking_srv_.publishFeedback(feedback);
 

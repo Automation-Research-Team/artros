@@ -2,6 +2,7 @@
 geometry_msgs/Pose target_offset
 float64[3]         positional_tolerance
 float64            angular_tolerance
+bool		   terminate_on_success
 duration           timeout
 ---
 # Result
@@ -25,4 +26,5 @@ int8 HALT_FOR_JOINT_BOUND=5
 
 float64[3] positional_error
 float64    angular_error
+bool	   success
 int8       status

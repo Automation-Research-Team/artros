@@ -77,12 +77,13 @@ class PoseTrackingClient(object):
 
     def send_goal(self, target_offset,
                   positional_tolerance=(0, 0, 0), angular_tolerance=0,
-                  timeout=rospy.Duration(0.5),
+                  terminate_on_success=False, timeout=rospy.Duration(0.5),
                   done_cb=None, active_cb=None, feedback_cb=None):
         self._pose_tracking.send_goal(
             PoseTrackingGoal(target_offset=target_offset,
                              positional_tolerance=positional_tolerance,
                              angular_tolerance=angular_tolerance,
+                             terminate_on_success=terminate_on_success,
                              timeout=timeout),
             done_cb=done_cb, active_cb=active_cb, feedback_cb=feedback_cb)
 
