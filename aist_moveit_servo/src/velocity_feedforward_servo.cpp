@@ -48,18 +48,18 @@ class VelocityFeedForwardServo
     using super		= PoseTrackingServo<VelocityFeedForwardServo>;
     using vector3_t	= geometry_msgs::Vector3Stamped;
     using vector3_cp	= geometry_msgs::Vector3StampedConstPtr;
-    
+
   public:
 		VelocityFeedForwardServo(ros::NodeHandle& nh,
 					 const std::string& logname)	;
 
-    void	resetFeedForward()					;
-    bool	haveRecentFeedForward(const ros::Duration& timeout)
+    void	resetFeedForwardInput()					;
+    bool	haveRecentFeedForwardInput(const ros::Duration& timeout)
 								const	;
     pose_t	ff_pose(const pose_t& target_pose,
 			const ros::Duration& dt)		const	;
     twist_t	ff_twist()					const	;
-    
+
   private:
     vector3_t	getVelocity()					const	;
     void	velocityCB(const vector3_cp& velocity)			;
@@ -81,7 +81,7 @@ VelocityFeedForwardServo::VelocityFeedForwardServo(ros::NodeHandle& nh,
 }
 
 void
-VelocityFeedForwardServo::resetFeedForward()
+VelocityFeedForwardServo::resetFeedForwardInput()
 {
     const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
@@ -89,8 +89,8 @@ VelocityFeedForwardServo::resetFeedForward()
 }
 
 bool
-VelocityFeedForwardServo::haveRecentFeedForward(
-				const ros::Duration& timeout) const
+VelocityFeedForwardServo::haveRecentFeedForwardInput(const ros::Duration&
+						     timeout) const
 {
     const std::lock_guard<std::mutex>	lock(velocity_mtx_);
 
