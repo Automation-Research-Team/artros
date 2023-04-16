@@ -81,7 +81,6 @@ class KittingRoutines(AISTBaseRoutines):
         if self._current_robot_name:
             super(KittingRoutines, self).print_help_messages()
         print('=== Kitting commands ===')
-        print('  b: Create a backgroud image')
         print('  m: Create a mask image')
         print('  s: Search graspabilities')
         print('  a: Attempt to pick and place')
@@ -91,9 +90,7 @@ class KittingRoutines(AISTBaseRoutines):
         print('  B: Move all robots to back')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 'b':
-            self.create_background_image('a_phoxi_m_camera')
-        elif key == 'm':
+        if key == 'm':
             self.create_mask_image('a_phoxi_m_camera', len(self._bin_props))
         elif key == 's':
             bin_id = 'bin_' + input('  bin id? ')
