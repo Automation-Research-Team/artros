@@ -201,7 +201,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 			    input_low_pass_filter_cutoff_frequency_ *
 			    servoParameters().publish_period),
 #else
-     input_low_pass_filter_(servoParameters().publish_period/0.01),
+     input_low_pass_filter_(servoParameters().publish_period/0.08),
 #endif
      linear_pid_config_(),
      angular_pid_config_(),
@@ -250,7 +250,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 					      ::updateInputLowPassFilter,
 					      this, _1),
 				  "Half-life of input low-pass filter",
-				  0.005, 0.1);
+				  0.01, 0.5);
 #endif
     ddr_.registerVariable<double>("linear_proportional_gain",
 				  linear_pid_config_.k_p,
