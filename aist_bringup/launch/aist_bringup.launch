@@ -5,7 +5,6 @@
   <arg name="scene"			default=""/>
   <arg name="joint_state_frequency"	default="50"/>
   <arg name="robot_state_frequency"	default="50"/>
-  <arg name="moveit_config"		default="$(find aist_moveit_config)"/>
   <arg name="rviz_config"		default=""/>
 
   <!-- Setup "aist" configuration -->
@@ -51,7 +50,7 @@
   <!-- Start MoveIt! -->
   <include file="$(dirname)/include/move_group.launch">
     <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
-    <arg name="moveit_config"		value="$(arg moveit_config)"/>
+    <arg name="moveit_config"		value="$(find aist_moveit_config)"/>
     <arg name="vis"			value="$(arg sim)"/>
     <arg name="rviz_config"		value="$(arg rviz_config)"/>
   </include>

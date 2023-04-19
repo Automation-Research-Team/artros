@@ -15,7 +15,7 @@
   <!-- </include> -->
 
   <!-- Start cameras -->
-  <include file="$(aist_bringup)/launch/aist_cameras.launch">
+  <include file="$(find aist_bringup)/launch/aist_cameras.launch">
     <arg name="sim"			value="$(arg sim)"/>
   </include>
   
@@ -30,8 +30,8 @@
 
   <!-- Start rviz -->
   <include file="$(find aist_bringup)/launch/include/rviz.launch">
-    <arg name="moveit_config"		value="$(find aist_moveit_config"/>
-    <arg name="rviz_config"		value="$(arg rviz_config)"/>
+    <arg name="moveit_config"	value="$(find aist_moveit_config)"/>
+    <arg name="rviz_config"	value="$(dirname)/$(arg rviz_config).rviz"/>
   </include>
 
 </launch>
