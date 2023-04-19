@@ -26,12 +26,10 @@
   </include>
 
   <!-- Launch rviz with appropriate launch-prefix and config file. -->
-  <node if="$(arg vis)"
-	name="$(anon rviz)" pkg="rviz" type="rviz"
-	args="$(eval '-d ' + (moveit_config + '/launch/moveit.rviz'
-			      if rviz_config == '' else rviz_config))"
-	output="screen">
-    <rosparam file="$(arg moveit_config)/config/kinematics.yaml"/>
-  </node>
+  <include if="$(arg vis)"
+	   file="$(dirname)/rviz.launch">
+    <arg name="moveit_config"	value="$(arg moveit_config)"/>
+    <arg name="rviz_config"	value="$(arg rviz_config)"/>
+  </include>
 
 </launch>

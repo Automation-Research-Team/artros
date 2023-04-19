@@ -5,15 +5,20 @@
   <arg name="rviz_config"	default="kitting"/>
 
   <!-- Start robots -->
-  <arg name="config"	value="aist"/>
-  <arg name="scene"	value="kitting"/>
-  <include file="$(find aist_bringup)/launch/$(arg config)_bringup.launch">
-    <arg name="scene"		value="$(arg scene)"/>
-    <arg name="sim"		value="$(arg sim)"/>
-    <arg name="rviz_config"	value="$(find aist_routines
-				       )/launch/$(arg rviz_config).rviz"/>
-  </include>
+  <!-- <arg name="config"	value="aist"/> -->
+  <!-- <arg name="scene"	value="kitting"/> -->
+  <!-- <include file="$(find aist_bringup)/launch/$(arg config)_bringup.launch"> -->
+  <!--   <arg name="scene"		value="$(arg scene)"/> -->
+  <!--   <arg name="sim"		value="$(arg sim)"/> -->
+  <!--   <arg name="rviz_config"	value="$(find aist_routines -->
+  <!-- 				       )/launch/$(arg rviz_config).rviz"/> -->
+  <!-- </include> -->
 
+  <!-- Start cameras -->
+  <include file="$(aist_bringup)/launch/aist_cameras.launch">
+    <arg name="sim"			value="$(arg sim)"/>
+  </include>
+  
   <!-- Start graspability server -->
   <arg name="camera_name"	value="a_phoxi_m_camera"/>
   <include file="$(find aist_graspability)/launch/run.launch">
@@ -21,6 +26,12 @@
     <arg name="image_topic"		value="$(arg camera_name)/texture"/>
     <arg name="depth_topic"		value="$(arg camera_name)/depth_map"/>
     <arg name="normal_topic"		value="$(arg camera_name)/normal_map"/>
+  </include>
+
+  <!-- Start rviz -->
+  <include file="$(find aist_bringup)/launch/include/rviz.launch">
+    <arg name="moveit_config"		value="$(find aist_moveit_config"/>
+    <arg name="rviz_config"		value="$(arg rviz_config)"/>
   </include>
 
 </launch>
