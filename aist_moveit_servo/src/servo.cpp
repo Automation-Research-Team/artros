@@ -538,21 +538,21 @@ Servo::setTrajectory(const twist_t& twist_cmd, const vector_t& positions)
 	    cmd.header.frame_id = parameters_.robot_link_command_frame;
 
 	const auto	Tpc = getFrameTransform(cmd.header.frame_id);
-	Eigen::Vector3d	translation(cmd.twist.linear.x,
-				    cmd.twist.linear.y,
-				    cmd.twist.linear.z);
+	Eigen::Vector3d	linear(cmd.twist.linear.x,
+			       cmd.twist.linear.y,
+			       cmd.twist.linear.z);
 	Eigen::Vector3d angular(cmd.twist.angular.x,
 				cmd.twist.angular.y,
 				cmd.twist.angular.z);
 
-	translation = Tpc.linear() * translation;
-	angular	    = Tpc.linear() * angular;
+	linear  = Tpc.linear() * linear;
+	angular = Tpc.linear() * angular;
 
       // Put these components back into a TwistStamped
 	cmd.header.frame_id = parameters_.planning_frame;
-	cmd.twist.linear.x  = translation(0);
-	cmd.twist.linear.y  = translation(1);
-	cmd.twist.linear.z  = translation(2);
+	cmd.twist.linear.x  = linear(0);
+	cmd.twist.linear.y  = linear(1);
+	cmd.twist.linear.z  = linear(2);
 	cmd.twist.angular.x = angular(0);
 	cmd.twist.angular.y = angular(1);
 	cmd.twist.angular.z = angular(2);
@@ -1089,6 +1089,8 @@ bool
 Servo::resetServoStatusCB(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
     resetServoStatus();
+
+    return true;
 }
 
 /*

@@ -26,5 +26,5 @@ int8 HALT_FOR_JOINT_BOUND=5
 
 float64[3] positional_error
 float64    angular_error
-bool	   success
-int8       status
+bool	   within_tolerance
+int8       servo_status

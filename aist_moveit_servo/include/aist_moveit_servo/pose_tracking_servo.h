@@ -154,6 +154,8 @@ class PoseTrackingServo : public Servo
   // Action server stuffs
     server_t			pose_tracking_srv_;
     goal_cp			current_goal_;
+    ros::Time			stamp_goal_accepted_;
+    size_t			nframes_within_tolerance_;
 
   // Target pose stuffs
     pose_cp			target_pose_;
@@ -191,6 +193,8 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 
      pose_tracking_srv_(nh, "pose_tracking", false),
      current_goal_(nullptr),
+     stamp_goal_accepted_(ros::Time(0)),
+     nframes_within_tolerance_(0),
 
      target_pose_(nullptr),
      target_pose_mtx_(),
@@ -383,7 +387,7 @@ PoseTrackingServo<FF>::tick()
 {
     updateRobot();
 
-    const auto		actual_pose = actualPose();
+    const auto	actual_pose = actualPose();
     actual_pose_debug_pub_.publish(actual_pose);
 
     if (!pose_tracking_srv_.isActive())
@@ -422,14 +426,16 @@ PoseTrackingServo<FF>::tick()
 	!static_cast<const FF&>(*this)
 	 .haveRecentFeedForwardInput(current_goal_->timeout))
     {
-    	doPostMotionReset();
+	if (ros::Time::now() - stamp_goal_accepted_ > current_goal_->timeout)
+	{
+	    doPostMotionReset();
 
-	PoseTrackingResult	result;
-	result.status = PoseTrackingResult::INPUT_TIMEOUT;
-    	pose_tracking_srv_.setAborted(result);
-        ROS_ERROR_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ABORTED["
-    			       << "The target pose was not updated recently."
-			       << ']');
+	    PoseTrackingResult	result;
+	    result.status = PoseTrackingResult::INPUT_TIMEOUT;
+	    pose_tracking_srv_.setAborted(result);
+	    ROS_ERROR_STREAM_NAMED(logname(),
+				   "(PoseTrackingServo) goal ABORTED[The target pose was not updated recently.]");
+	}
 
 	return;
     }
@@ -444,16 +450,21 @@ PoseTrackingServo<FF>::tick()
 		       positional_error, angular_error);
 
   // Check if goal tolerance is satisfied.
-    const auto	success = (std::abs(positional_error(0)) <
-			   current_goal_->positional_tolerance[0] &&
-			   std::abs(positional_error(1)) <
-			   current_goal_->positional_tolerance[1] &&
-			   std::abs(positional_error(2)) <
-			   current_goal_->positional_tolerance[2] &&
-			   std::abs(angular_error.angle()) <
-			   current_goal_->angular_tolerance);
+    const auto	within_tolerance = (std::abs(positional_error(0)) <
+				    current_goal_->positional_tolerance[0] &&
+				    std::abs(positional_error(1)) <
+				    current_goal_->positional_tolerance[1] &&
+				    std::abs(positional_error(2)) <
+				    current_goal_->positional_tolerance[2] &&
+				    std::abs(angular_error.angle()) <
+				    current_goal_->angular_tolerance);
 
-    if (current_goal_->terminate_on_success && success)
+    if (within_tolerance)
+	++nframes_within_tolerance_;
+    else
+	nframes_within_tolerance_ = 0;
+
+    if (current_goal_->terminate_on_success && nframes_within_tolerance_ > 10)
     {
 	doPostMotionReset();
 
@@ -471,8 +482,8 @@ PoseTrackingServo<FF>::tick()
     feedback.positional_error[1] = positional_error(1);
     feedback.positional_error[2] = positional_error(2);
     feedback.angular_error	 = angular_error.angle();
-    feedback.success		 = success;
-    feedback.status		 = static_cast<int8_t>(servo_status);
+    feedback.within_tolerance	 = within_tolerance;
+    feedback.servo_status	 = static_cast<int8_t>(servo_status);
     pose_tracking_srv_.publishFeedback(feedback);
 
   // Compute servo command from PID controller output and send it
@@ -658,47 +669,18 @@ PoseTrackingServo<FF>::goalCB()
     resetTargetPose();
     static_cast<FF&>(*this).resetFeedForwardInput();
 
-  // Wait a bit for a target pose message to arrive.
-  // The target pose may get updated by new messages as the robot moves
-  // (in a callback function).
-    const ros::Duration	DEFAULT_INPUT_TIMEOUT(0.5);
+  // If input low-pass filter was initialized with target pose,
+  // the initial feed-forwarded pose calculated from the filter output
+  // would be very different from the actual pose, which will cause
+  // sudden jump of outgoing joint positions. Therefore we initialize
+  // the filter with actual pose.
+    input_low_pass_filter_.reset(actualPose().pose);
+    start();
 
-    for (const auto start_time = ros::Time::now();
-	 ros::Time::now() - start_time < DEFAULT_INPUT_TIMEOUT;
-	 ros::Duration(0.001).sleep())
-    {
-	if (haveRecentTargetPose(DEFAULT_INPUT_TIMEOUT) &&
-	    static_cast<const FF&>(*this)
-	    .haveRecentFeedForwardInput(DEFAULT_INPUT_TIMEOUT))
-	{
-	  // If input low-pass filter was initialized with target pose,
-	  // the initial feed-forwarded pose calculated from the filter output
-	  // would be very different from the actual pose, which will cause
-	  // sudden jump of outgoing joint positions. Therefore we initialize
-	  // the filter with actual pose.
-	    input_low_pass_filter_.reset(actualPose().pose);
-	    start();
-
-	    current_goal_ = pose_tracking_srv_.acceptNewGoal();
-	    ROS_INFO_STREAM_NAMED(logname(),
-				  "(PoseTrackingServo) goal ACCEPTED");
-
-	    if (pose_tracking_srv_.isPreemptRequested())
-		preemptCB();
-
-	    return;
-	}
-    }
-
-  // No target pose available recently.
-  // Once accept the pending goal and then abort it immediately.
-    current_goal_ = pose_tracking_srv_.acceptNewGoal();
-    PoseTrackingResult	result;
-    result.status = PoseTrackingResult::INPUT_TIMEOUT;
-    pose_tracking_srv_.setAborted(result);
-
-    ROS_ERROR_STREAM_NAMED(logname(),
-			   "(PoseTrackingServo) Cannot accept goal because no target pose available recently.");
+    stamp_goal_accepted_      = ros::Time::now();
+    nframes_within_tolerance_ = 0;
+    current_goal_	      = pose_tracking_srv_.acceptNewGoal();
+    ROS_INFO_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ACCEPTED");
 }
 
 template <class FF> void

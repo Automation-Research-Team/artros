@@ -216,9 +216,9 @@ class PickOrPlace(object):
         result.result = PickOrPlaceResult.SUCCESS
         self._server.set_succeeded(result, "Succeeded")
 
-    def _check_if_canceled(self, state):
-        self._server.publish_feedback(PickOrPlaceFeedback(state))
+    def _check_if_canceled(self, status):
+        self._server.publish_feedback(PickOrPlaceFeedback(status))
         if self._server.is_preempt_requested():
-            self._server.set_preempted(PickOrPlaceResult(state))
+            self._server.set_preempted(PickOrPlaceResult(status))
             return True
         return False
