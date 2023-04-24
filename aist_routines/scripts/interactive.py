@@ -59,7 +59,7 @@ class InteractiveRoutines(AISTBaseRoutines):
                    .format(axis,
                            self.format_pose(self.get_current_pose(robot_name)),
                            speed, robot_name)
-            key = raw_input(prompt)
+            key = input(prompt)
             robot_name, axis, speed = self.interactive(key, robot_name,
                                                        axis, speed)
 

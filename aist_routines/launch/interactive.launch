@@ -1,12 +1,18 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="config"		default="nedo_ur5e"/>
-  <arg name="robot_name"	default="e_bot"/>
+  <arg name="sim"		default="false"/>
+  <arg name="config"		default="aist"/>
+  <arg name="robot_name"	default="a_bot"/>
   <!-- <arg name="camera_name"	default="a_phoxi_m_camera"/> -->
   <arg name="camera_name"	default=""/>
   <arg name="speed"		default="0.1"/>
   <arg name="ns"		default="/"/>
+
+  <!-- Start cameras -->
+  <include file="$(find aist_bringup)/launch/aist_cameras.launch">
+    <arg name="sim"		value="$(arg sim)"/>
+  </include>
 
   <!-- Start client -->
   <node ns="$(arg ns)" name="interactive"
@@ -16,5 +22,11 @@
     <param name="camera_name"	value="$(arg camera_name)"/>
     <param name="speed"		value="$(arg speed)"/>
   </node>
+
+  <!-- Start rviz -->
+  <include file="$(find aist_bringup)/launch/include/rviz.launch">
+    <arg name="moveit_config"	value="$(eval find(arg('config')
+  						   + '_moveit_config'))"/>
+  </include>
 
 </launch>
