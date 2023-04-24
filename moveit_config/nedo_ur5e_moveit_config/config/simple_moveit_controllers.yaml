@@ -1,0 +1,29 @@
+controller_list:
+  - name: /e_bot/scaled_pos_joint_traj_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - e_bot_shoulder_pan_joint
+      - e_bot_shoulder_lift_joint
+      - e_bot_elbow_joint
+      - e_bot_wrist_1_joint
+      - e_bot_wrist_2_joint
+      - e_bot_wrist_3_joint
+  - name: e_bot_gripper_controller
+    action_ns: gripper_action
+    type: GripperCommand
+    default: True
+    joints:
+      - e_bot_gripper_finger_joint
+  - name: joint_group_vel_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - e_bot_shoulder_pan_joint
+      - e_bot_shoulder_lift_joint
+      - e_bot_elbow_joint
+      - e_bot_wrist_1_joint
+      - e_bot_wrist_2_joint
+      - e_bot_wrist_3_joint

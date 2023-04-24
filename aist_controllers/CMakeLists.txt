@@ -28,6 +28,7 @@ find_package(catkin REQUIRED
     actionlib
     kdl_parser
     trac_ik_lib
+    nlopt
     control_toolbox
     aist_utility
     message_generation
@@ -124,6 +125,14 @@ add_dependencies(
 
 install(
   TARGETS point_head_tracker pose_head_tracker pose_group_tracker
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(
+  PROGRAMS
+    scripts/pose_head_client.py
+    scripts/btlpf.py
+    scripts/point_head_client.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

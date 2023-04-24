@@ -24,7 +24,6 @@ find_package(catkin REQUIRED
     trajectory_msgs
     control_msgs
     actionlib
-    trac_ik_lib
     moveit_msgs
     moveit_ros_planning_interface
     rosparam_shortcuts

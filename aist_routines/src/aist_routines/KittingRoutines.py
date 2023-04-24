@@ -74,7 +74,7 @@ class KittingRoutines(AISTBaseRoutines):
                 _, axis, _ = self.interactive(key, self._current_robot_name,
                                               axis, 1.0)
             except Exception as e:
-                print(e.message)
+                print(e)
 
     # Interactive stuffs
     def print_help_messages(self):

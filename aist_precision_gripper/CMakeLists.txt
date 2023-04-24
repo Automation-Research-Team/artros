@@ -27,3 +27,8 @@ catkin_package(
     control_msgs
     sensor_msgs
 )
+
+catkin_install_python(
+  PROGRAMS scripts/precision_gripper_controller.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

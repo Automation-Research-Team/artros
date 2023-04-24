@@ -40,3 +40,8 @@ catkin_package(
     actionlib_msgs
     std_msgs
 )
+
+catkin_install_python(
+  PROGRAMS scripts/suction_controller.py scripts/suction_controller_client.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

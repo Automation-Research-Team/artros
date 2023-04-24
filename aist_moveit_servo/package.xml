@@ -31,9 +31,6 @@
   <depend>control_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>orocos_kdl</depend>
-  <depend>kdl_parser</depend>
-  <depend>trac_ik_lib</depend>
   <depend>moveit_msgs</depend>
   <depend>moveit_ros_planning_interface</depend>
   <depend>rosparam_shortcuts</depend>

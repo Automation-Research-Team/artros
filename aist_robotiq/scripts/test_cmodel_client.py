@@ -60,7 +60,7 @@ if __name__ == '__main__':
         print('  <numeric>: Open gripper with a specified gap value')
         print('  q:         Quit\n')
 
-        key = raw_input('>> ')
+        key = input('>> ')
         if key == 'g':
             result = gripper.grasp()
         elif key == 'r':

@@ -1,0 +1,9 @@
+child: realsenseD435_connector_link
+origin:
+- 0.0
+- 0.7
+- 0.6
+- 0.0
+- 0.5
+- -1.57
+parent: magripper_realsense_flange

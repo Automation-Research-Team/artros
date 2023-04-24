@@ -15,7 +15,7 @@ def create_objects(scene, robot):
 
   p = PoseStamped()
   p.header.frame_id = robot.get_planning_frame()
-  
+
   """
   p.pose.position.x =  0.8
   p.pose.position.y =  0.0
@@ -174,4 +174,3 @@ if __name__ == '__main__':
 
   rospy.spin()
   roscpp_shutdown()
-
