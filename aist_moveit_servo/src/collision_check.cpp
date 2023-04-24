@@ -36,6 +36,7 @@
  *      Created   : 1/11/2019
  *      Author    : Brian O'Neil, Andy Zelenak, Blake Anderson
  */
+#include <moveit/version.h>
 #include <aist_moveit_servo/collision_check.h>
 #include <aist_moveit_servo/make_shared_from_pool.h>
 
@@ -133,7 +134,7 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 
 	collision_detection::CollisionResult	collision_result;
 	collision_result.clear();
-#if defined(MELODIC)
+#if MOVEIT_VERSION < MOVEIT_VERSION_CHECK(1, 1, 0)
 	scene_ro->getCollisionWorld()
 		->checkRobotCollision(collision_request, collision_result,
 				      *scene_ro->getCollisionRobot(),
@@ -150,7 +151,7 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
       // Self-collisions and scene collisions are checked separately
       // so different thresholds can be used
 	collision_result.clear();
-#if defined(MELODIC)
+#if MOVEIT_VERSION < MOVEIT_VERSION_CHECK(1, 1, 0)
 	scene_ro->getCollisionRobotUnpadded()
 		->checkSelfCollision(collision_request, collision_result,
 				     *current_state, acm_);
