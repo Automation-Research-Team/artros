@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 # Reads every STL file in the meshes folder and saves it as a PLY file.
 

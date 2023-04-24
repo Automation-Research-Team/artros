@@ -67,3 +67,11 @@ install(
   RUNTIME
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+catkin_install_python(
+  PROGRAMS
+    scripts/drealsense.py
+    scripts/select_camera.py
+    scripts/select_realsense_camera.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

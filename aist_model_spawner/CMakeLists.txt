@@ -69,3 +69,8 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${QT_LIBRARIES}
 )
+
+catkin_install_python(
+  PROGRAMS scripts/test.py scripts/model_spawner.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

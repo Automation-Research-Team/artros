@@ -95,3 +95,8 @@ install(
   RUNTIME
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+catkin_install_python(
+  PROGRAMS scripts/image_feeder.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

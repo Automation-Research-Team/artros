@@ -125,6 +125,14 @@ target_link_libraries(plane_detector
 #############
 ## Install ##
 #############
+install(
+  TARGETS
+    calibrator calibrator_test plane_detector
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 catkin_install_python(
   PROGRAMS
     scripts/run_calibration.py
@@ -132,14 +140,6 @@ catkin_install_python(
     scripts/tool_calibration.py
     scripts/publish_calibration.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
-install(
-  TARGETS
-    calibrator calibrator_test plane_detector
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 ## Mark cpp header files for installation

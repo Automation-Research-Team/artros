@@ -97,3 +97,8 @@ install(FILES aist_ftsensor_plugin.xml
               config/ftsensor_controller.yaml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
+
+catkin_install_python(
+  PROGRAMS scripts/run_calibration.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

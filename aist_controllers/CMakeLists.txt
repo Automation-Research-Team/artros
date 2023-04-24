@@ -128,6 +128,14 @@ install(
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+catkin_install_python(
+  PROGRAMS
+    scripts/pose_head_client.py
+    scripts/btlpf.py
+    scripts/point_head_client.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 #install(
 #  DIRECTORY launch
 #  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
