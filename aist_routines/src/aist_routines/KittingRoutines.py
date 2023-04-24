@@ -35,11 +35,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from math              import pi, radians, degrees
-from geometry_msgs.msg import PoseStamped, QuaternionStamped, Quaternion
-from aist_routines     import AISTBaseRoutines
-from aist_routines.msg import (PickOrPlaceResult, PickOrPlaceFeedback,
-                               SweepResult)
+from math                import pi, radians, degrees
+from geometry_msgs.msg   import PoseStamped, QuaternionStamped, Quaternion
+from aist_routines       import AISTBaseRoutines
+from aist_routines.msg   import (PickOrPlaceResult, PickOrPlaceFeedback,
+                                 SweepResult)
+from aist_utility.compat import *
 
 ######################################################################
 #  class KittingRoutines                                             #
@@ -68,7 +69,7 @@ class KittingRoutines(AISTBaseRoutines):
                                               self.get_current_pose(
                                                   self._current_robot_name))) \
                      if self._current_robot_name else '>> '
-            key = input(prompt)
+            key = raw_input(prompt)
 
             try:
                 _, axis, _ = self.interactive(key, self._current_robot_name,
@@ -93,15 +94,15 @@ class KittingRoutines(AISTBaseRoutines):
         if key == 'm':
             self.create_mask_image('a_phoxi_m_camera', len(self._bin_props))
         elif key == 's':
-            bin_id = 'bin_' + input('  bin id? ')
+            bin_id = 'bin_' + raw_input('  bin id? ')
             self.search_bin(bin_id)
         elif key == 'a':
-            bin_id = 'bin_' + input('  bin id? ')
+            bin_id = 'bin_' + raw_input('  bin id? ')
             self._clear_fail_poses()
             self.attempt_bin(bin_id)
             self.go_to_named_pose(self._current_robot_name, 'home')
         elif key == 'A':
-            bin_id = 'bin_' + input('  bin id? ')
+            bin_id = 'bin_' + raw_input('  bin id? ')
             remained = True
             poses    = None
             self._clear_fail_poses()

@@ -36,10 +36,11 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from math          import radians
-from tf            import transformations as tfs
-from geometry_msgs import msg as gmsg
-from aist_routines import AISTBaseRoutines
+from math                import radians
+from tf                  import transformations as tfs
+from geometry_msgs       import msg as gmsg
+from aist_routines       import AISTBaseRoutines
+from aist_utility.compat import *
 
 ######################################################################
 #  class CheckCalibrationRoutines                                    #

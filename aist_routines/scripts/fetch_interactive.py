@@ -41,6 +41,7 @@ from math                import radians
 from geometry_msgs       import msg as gmsg
 from tf                  import transformations as tfs
 from aist_routines.fetch import FetchRoutines
+from aist_utility.compat import *
 
 ######################################################################
 #  global functions                                                  #

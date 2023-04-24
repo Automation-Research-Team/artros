@@ -48,6 +48,7 @@ from finger_pointing_msgs.msg      import (RequestHelpAction, RequestHelpGoal,
 from actionlib                     import SimpleActionClient
 from visualization_msgs.msg        import Marker
 from std_msgs.msg                  import ColorRGBA
+from aist_utility.compat           import *
 
 ######################################################################
 #  class HMIRoutines                                                 #
@@ -88,12 +89,12 @@ class HMIRoutines(KittingRoutines):
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'w':
-            bin_id = 'bin_' + input('  bin id? ')
+            bin_id = 'bin_' + raw_input('  bin id? ')
             self._clear_fail_poses()
             self.sweep_bin(bin_id)
             self.go_to_named_pose(self._current_robot_name, 'home')
         elif key == 'r':
-            bin_id = 'bin_' + input('  bin id? ')
+            bin_id = 'bin_' + raw_input('  bin id? ')
             self.request_help_bin()
         else:
             return super(HMIRoutines, self).interactive(key, robot_name, axis,

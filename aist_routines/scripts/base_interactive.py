@@ -39,6 +39,7 @@ import rospy
 import argparse
 
 from aist_routines.MoveBaseRoutines import MoveBaseRoutines
+from aist_utility.compat            import *
 
 ######################################################################
 #  global functions                                                  #

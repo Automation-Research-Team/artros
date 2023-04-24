@@ -41,6 +41,7 @@ from tf                          import transformations as tfs
 from geometry_msgs.msg           import Pose, Point, Quaternion
 from aist_moveit_servo           import PoseTrackingClient
 from controller_manager_msgs.srv import SwitchController
+from aist_utility.compat         import *
 
 ######################################################################
 #  class InteractivePoseTrackingClient                               #

@@ -37,10 +37,11 @@
 #
 import rospy, copy
 import moveit_msgs.msg
-from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
-from tf                import transformations as tfs
-from math              import radians, degrees
-from aist_routines     import AISTBaseRoutines
+from geometry_msgs.msg   import PoseStamped, Pose, Point, Quaternion
+from tf                  import transformations as tfs
+from math                import radians, degrees
+from aist_routines       import AISTBaseRoutines
+from aist_utility.compat import *
 
 ######################################################################
 #  class ToolCalibrationRoutines                                     #

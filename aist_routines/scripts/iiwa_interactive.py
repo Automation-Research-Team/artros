@@ -46,7 +46,8 @@ from moveit_commander import PlanningSceneInterface
 
 from tf import transformations as tfs
 from math import radians, degrees
-from aist_routines.iiwa import IiwaRoutines
+from aist_routines.iiwa  import IiwaRoutines
+from aist_utility.compat import *
 
 ######################################################################
 #  global functions                                                  #

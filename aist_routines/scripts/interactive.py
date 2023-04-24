@@ -36,7 +36,8 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from aist_routines import AISTBaseRoutines
+from aist_routines       import AISTBaseRoutines
+from aist_utility.compat import *
 
 ######################################################################
 #  class InteractiveRoutines                                         #
@@ -59,7 +60,7 @@ class InteractiveRoutines(AISTBaseRoutines):
                    .format(axis,
                            self.format_pose(self.get_current_pose(robot_name)),
                            speed, robot_name)
-            key = input(prompt)
+            key = raw_input(prompt)
             robot_name, axis, speed = self.interactive(key, robot_name,
                                                        axis, speed)
 

@@ -42,6 +42,7 @@ from geometry_msgs.msg               import (PoseStamped,
                                              Pose, Point, Quaternion)
 from aist_controllers.PoseHeadClient import PoseHeadClient
 from controller_manager_msgs.srv     import SwitchController
+from aist_utility.compat             import *
 
 ######################################################################
 #  class InteractivePoseHeadClient                                   #

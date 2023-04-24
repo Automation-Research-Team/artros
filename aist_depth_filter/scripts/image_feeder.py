@@ -36,9 +36,10 @@
 # Author: Toshio Ueshiba
 #
 import os, sys, glob, rospy, json, pprint, skimage, cv2
-from cv_bridge         import CvBridge
-from sensor_msgs       import msg as smsg
-from aist_depth_filter import DepthFilterClient
+from cv_bridge           import CvBridge
+from sensor_msgs         import msg as smsg
+from aist_depth_filter   import DepthFilterClient
+from aist_utility.compat import *
 
 #########################################################################
 #  class ImageFeeder                                                    #

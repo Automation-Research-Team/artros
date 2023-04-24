@@ -41,7 +41,8 @@ import tf
 import tf_conversions
 import geometry_msgs.msg
 
-from aist_routines import AISTBaseRoutines
+from aist_routines       import AISTBaseRoutines
+from aist_utility.compat import *
 
 def is_num(s):
     try:

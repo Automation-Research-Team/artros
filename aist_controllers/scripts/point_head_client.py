@@ -37,6 +37,7 @@
 #
 import rospy, threading
 from aist_controllers.PointHeadClient import PointHeadClient
+from aist_utility.compat              import *
 
 ######################################################################
 #  class InteractivePointHeadClient                                  #

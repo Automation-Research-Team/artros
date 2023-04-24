@@ -43,6 +43,7 @@ from tf                           import transformations as tfs
 from aist_routines                import AISTBaseRoutines
 from aist_handeye_calibration.srv import GetSampleList, ComputeCalibration
 from aist_handeye_calibration.msg import TakeSampleAction, TakeSampleGoal
+from aist_utility.compat          import *
 
 ######################################################################
 #  class HandEyeCalibrationRoutines                                  #
@@ -99,7 +100,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             prompt = '{:>5}:{}>> '.format(axis, self.format_pose(
                                                     self.get_current_pose(
                                                         self._robot_name)))
-            key = input(prompt)
+            key = raw_input(prompt)
             _, axis, _ = self.interactive(key, self._robot_name, axis,
                                           self._speed)
 

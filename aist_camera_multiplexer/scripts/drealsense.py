@@ -2,6 +2,7 @@
 
 import rospy
 from aist_camera_multiplexer import RealSenseMultiplexerClient
+from aist_utility.compat     import *
 
 #########################################################################
 #  main                                                                 #

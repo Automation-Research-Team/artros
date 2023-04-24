@@ -51,6 +51,7 @@ from aist_routines.CameraClient      import CameraClient
 from aist_routines.MarkerPublisher   import MarkerPublisher
 from aist_routines.PickOrPlaceAction import PickOrPlace
 from aist_routines.SweepAction       import Sweep
+from aist_utility.compat             import *
 
 ######################################################################
 #  global functions                                                  #

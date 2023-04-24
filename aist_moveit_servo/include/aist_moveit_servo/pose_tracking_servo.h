@@ -142,7 +142,6 @@ class PoseTrackingServo : public Servo
 
   private:
   // ROS
-    ros::NodeHandle		nh_;
     ros::ServiceClient		reset_servo_status_;
     const ros::Subscriber	target_pose_sub_;
     const ros::Publisher	target_pose_debug_pub_;
