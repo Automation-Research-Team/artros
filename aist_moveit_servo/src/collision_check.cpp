@@ -133,21 +133,22 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 
 	collision_detection::CollisionResult	collision_result;
 	collision_result.clear();
-	scene_ro->getCollisionEnv()
+	scene_ro->getCollisionWorld()
 		->checkRobotCollision(collision_request, collision_result,
-				      *current_state);
+				      *scene_ro->getCollisionRobot(),
+				      *current_state, acm_);
 	collision_detected	|= collision_result.collision;
 	scene_collision_distance = collision_result.distance;
-	collision_result.print();
 
       // Self-collisions and scene collisions are checked separately
       // so different thresholds can be used
 	collision_result.clear();
-	scene_ro->getCollisionEnvUnpadded()
+	scene_ro->getCollisionRobotUnpadded()
 		->checkSelfCollision(collision_request, collision_result,
 				     *current_state, acm_);
 	collision_detected	|= collision_result.collision;
 	self_collision_distance  = collision_result.distance;
+
 	collision_result.print();
     }  // Unlock PlanningScene
 
