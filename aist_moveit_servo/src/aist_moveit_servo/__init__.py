@@ -25,8 +25,8 @@ class PoseTrackingClient(object):
 
         timeout = rospy.Duration(5)
 
-        self._condition       = threading.Condition()
-        self._within_tolerace = False
+        self._condition        = threading.Condition()
+        self._within_tolerance = False
         rospy.wait_for_service(server + '/reset_servo_status', timeout)
         self._reset_servo_status \
             = rospy.ServiceProxy(server + '/reset_servo_status', Empty)
