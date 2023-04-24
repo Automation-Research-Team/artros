@@ -216,7 +216,7 @@ Servo::Servo(ros::NodeHandle& nh, const std::string& logname)
 				      _1),
 				  "Cutoff frequency of low pass filter",
 				  0.5, 100.0);
-    ddr_.publishServicesTopics();
+    ddr_.publishServicesTopicsAndUpdateConfigData();
 
   // Print robot model information.
     robot_state_->getRobotModel()->printModelInfo(std::cerr);

@@ -1,19 +1,20 @@
 #################################
 # PID parameters for pose seeking
 #################################
+pose_tracking:
+  # Input low-pass filter
+  input_low_pass_filter_half_order:        3
+  input_low_pass_filter_cutoff_frequency: 20.0
+  input_low_pass_filter_half_life:         0.15
 
-# Input low-pass filter
-input_low_pass_filter_half_order: 3
-input_low_pass_filter_cutoff_frequency: 20.0
+  # Maximum value of error integral for all PID controllers
+  windup_limit: 0.05
 
-# Maximum value of error integral for all PID controllers
-windup_limit: 0.05
+  # PID gains
+  linear_proportional_gain: 30.0
+  linear_integral_gain:      1.0
+  linear_derivative_gain:    0.0
 
-# PID gains
-linear_proportional_gain: 30.0
-linear_integral_gain: 1.0
-linear_derivative_gain: 0.0
-
-angular_proportional_gain: 10.0
-angular_integral_gain: 1.0
-angular_derivative_gain: 0.0
+  angular_proportional_gain: 10.0
+  angular_integral_gain:      1.0
+  angular_derivative_gain:    0.0

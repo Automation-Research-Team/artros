@@ -97,18 +97,23 @@ class PoseTrackingClient(object):
     def cancel_all_goals(self):
         self._pose_tracking.cancel_all_goals()
 
-    def wait_for_tolerance_state_changed(self, within_tolerance):
-        self._within_tolerance = not within_tolerance
+    def wait_for_result(self, timeout=rospy.Duration()):
+        if self._pose_tracking.wait_for_result(timeout):
+            return self._pose_tracking.get_result()
+        return None
+
+    def wait_for_tolerance_satisfied(self):
+        self._within_tolerance = False
         with self._condition:
             # Loop for checking spurious wakeup.
-            while self._within_tolerance != within_tolerance:
+            while not self._within_tolerance:
                 self._condition.wait()    # Wait until notified.
 
     def get_state(self):
         return self._pose_tracking.get_state()
 
     def _feedback_cb(self, feedback):
-        if feedback.within_tolerance != self._within_tolerance:
+        if feedback.within_tolerance:
             with self._condition:
-                self._within_tolerance = feedback.within_tolerance
+                self._within_tolerance = True
                 self._condition.notifyAll()

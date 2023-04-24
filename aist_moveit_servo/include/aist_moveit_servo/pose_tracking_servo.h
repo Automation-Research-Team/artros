@@ -96,7 +96,7 @@ class PoseTrackingServo : public Servo
     void	run()							;
 
   private:
-    void	readROSParams()						;
+    void	readROSParams(const ros::NodeHandle& parameter_nh)	;
     void	tick()							;
     pose_t	correctTargetPose(const raw_pose_t& offset)	const	;
     void	calculatePoseError(const pose_t& target_pose,
@@ -142,6 +142,7 @@ class PoseTrackingServo : public Servo
 
   private:
   // ROS
+    const ros::NodeHandle	parameter_nh_;
     ros::ServiceClient		reset_servo_status_;
     const ros::Subscriber	target_pose_sub_;
     const ros::Publisher	target_pose_debug_pub_;
@@ -154,7 +155,8 @@ class PoseTrackingServo : public Servo
     server_t			pose_tracking_srv_;
     goal_cp			current_goal_;
     ros::Time			stamp_goal_accepted_;
-    size_t			nframes_within_tolerance_;
+    int				nframes_within_tolerance_;
+    int				min_nframes_within_tolerance_;
 
   // Target pose stuffs
     pose_cp			target_pose_;
@@ -178,6 +180,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 					 const std::string& logname)
     :Servo(nh, logname),
 
+     parameter_nh_(nh, "pose_tracking"),
      reset_servo_status_(nh.serviceClient<std_srvs::Empty>(
 			     "reset_servo_status")),
      target_pose_sub_(nh.subscribe(
@@ -188,12 +191,13 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
      actual_pose_debug_pub_(nh.advertise<pose_t>("actual_pose", 1)),
      ff_pose_debug_pub_(nh.advertise<pose_t>("ff_pose", 1)),
      durations_(durations()),
-     ddr_(ros::NodeHandle(nh, "pose_tracking")),
+     ddr_(parameter_nh_),
 
      pose_tracking_srv_(nh, "pose_tracking", false),
      current_goal_(nullptr),
      stamp_goal_accepted_(ros::Time(0)),
      nframes_within_tolerance_(0),
+     min_nframes_within_tolerance_(5),
 
      target_pose_(nullptr),
      target_pose_mtx_(),
@@ -210,12 +214,7 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
      angular_pid_config_(),
      pids_()
 {
-    readROSParams();
-
-  // Initialize PID controllers
-    for (size_t i = 0; i < 3; ++i)
-	updatePID(linear_pid_config_, pids_[i]);
-    updatePID(angular_pid_config_, pids_[3]);
+    readROSParams(parameter_nh_);
 
   // Setup action server
     pose_tracking_srv_.registerGoalCallback(boost::bind(
@@ -298,7 +297,13 @@ PoseTrackingServo<FF>::PoseTrackingServo(ros::NodeHandle& nh,
 					      this, &PIDConfig::k_d, _1),
 				  "Derivative gain for rotation",
 				  0.0, 20.0);
-    ddr_.publishServicesTopics();
+
+    ddr_.registerVariable<int>("min_nframes_within_tolerance",
+			       &min_nframes_within_tolerance_,
+			       "Minimum #frames within tolerance",
+			       1, 50);
+
+    ddr_.publishServicesTopicsAndUpdateConfigData();
 
     ROS_INFO_STREAM_NAMED(logname, "(PoseTrackingServo) server started");
 }
@@ -329,18 +334,8 @@ PoseTrackingServo<FF>::run()
  *  private member functions
  */
 template <class FF> void
-PoseTrackingServo<FF>::readROSParams()
+PoseTrackingServo<FF>::readROSParams(const ros::NodeHandle& parameter_nh)
 {
-  // Optional parameter sub-namespace specified in the launch file.
-  // All other parameters will be read from this namespace.
-  // If parameters have been loaded into sub-namespace
-  // within the node namespace, append the parameter namespace
-  // to load the parameters correctly.
-    std::string	parameter_ns;
-    auto&	nh = nodeHandle();
-    auto	parameter_nh = (nh.getParam("parameter_ns", parameter_ns) ?
-				ros::NodeHandle(nh, parameter_ns) : nh);
-
   // Setup input low-pass filter
     std::size_t error = 0;
 #if defined(USE_BUTTERWORTH_LPF)
@@ -377,6 +372,10 @@ PoseTrackingServo<FF>::readROSParams()
     error += !rosparam_shortcuts::get(logname(), parameter_nh,
 				      "angular_derivative_gain",
 				      angular_pid_config_.k_d);
+
+    error += !rosparam_shortcuts::get(logname(), parameter_nh,
+				      "min_nframes_within_tolerance",
+				      min_nframes_within_tolerance_);
 
     rosparam_shortcuts::shutdownIfError(ros::this_node::getName(), error);
 }
@@ -463,7 +462,8 @@ PoseTrackingServo<FF>::tick()
     else
 	nframes_within_tolerance_ = 0;
 
-    if (current_goal_->terminate_on_success && nframes_within_tolerance_ > 10)
+    if (current_goal_->terminate_on_success
+	&& nframes_within_tolerance_ > min_nframes_within_tolerance_)
     {
 	doPostMotionReset();
 
@@ -629,6 +629,8 @@ PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
 template <class FF> void
 PoseTrackingServo<FF>::updateInputLowPassFilter(double half_life)
 {
+    std::cerr << "*** Update: " << half_life << std::endl;
+
     input_low_pass_filter_.initialize(servoParameters().publish_period
 				      /half_life);
     input_low_pass_filter_.reset(actualPose().pose);
@@ -656,6 +658,9 @@ PoseTrackingServo<FF>::updateAngularPID(double PIDConfig::* field,
 template <class FF> void
 PoseTrackingServo<FF>::updatePID(const PIDConfig& pid_config, pid_t& pid)
 {
+    std::cerr << "*** updatePID: " << pid_config.k_p
+	      << ',' << pid_config.k_i << ',' << pid_config.k_d << std::endl;
+
     pid.initPid(pid_config.k_p, pid_config.k_i, pid_config.k_d,
 		pid_config.windup_limit, -pid_config.windup_limit, true);
 }
