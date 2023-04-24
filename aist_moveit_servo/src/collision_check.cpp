@@ -107,7 +107,7 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 	    << timer_event.profile.last_duration.toSec()
 	    << " ("
 	    << period_.toSec() << ")");
-    
+
     if (paused_)
 	return;
 
@@ -133,19 +133,32 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 
 	collision_detection::CollisionResult	collision_result;
 	collision_result.clear();
+#if defined(MELODIC)
 	scene_ro->getCollisionWorld()
 		->checkRobotCollision(collision_request, collision_result,
 				      *scene_ro->getCollisionRobot(),
 				      *current_state, acm_);
+#else
+	scene_ro->getCollisionEnv()
+		->checkRobotCollision(collision_request, collision_result,
+				      *current_state);
+	collision_result.print();
+#endif
 	collision_detected	|= collision_result.collision;
 	scene_collision_distance = collision_result.distance;
 
       // Self-collisions and scene collisions are checked separately
       // so different thresholds can be used
 	collision_result.clear();
+#if defined(MELODIC)
 	scene_ro->getCollisionRobotUnpadded()
 		->checkSelfCollision(collision_request, collision_result,
 				     *current_state, acm_);
+#else
+	scene_ro->getCollisionEnvUnpadded()
+		->checkSelfCollision(collision_request, collision_result,
+				     *current_state, acm_);
+#endif
 	collision_detected	|= collision_result.collision;
 	self_collision_distance  = collision_result.distance;
 
@@ -176,7 +189,7 @@ CollisionCheck::run(const ros::TimerEvent& timer_event)
 	{
 	  // velocity_scale = e ^ k * (collision_distance - threshold)
 	  // k = - ln(0.001) / collision_proximity_threshold
-	  // 
+	  //
 	  // velocity_scale should equal one
 	  // when collision_distance is at collision_proximity_threshold.
 	  // velocity_scale should equal 0.001
