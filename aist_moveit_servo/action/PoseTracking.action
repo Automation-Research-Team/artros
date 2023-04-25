@@ -6,17 +6,10 @@ bool		   terminate_on_success
 duration           timeout
 ---
 # Result
-int8 INPUT_TIMEOUT=-1
-int8 NO_ERROR=0
-int8 DECELERATE_FOR_SINGULARITY=1
-int8 HALT_FOR_SINGULARITY=2
-int8 DECELERATE_FOR_COLLISION=3
-int8 HALT_FOR_COLLISION=4
-int8 HALT_FOR_JOINT_BOUND=5
-
 int8 status
 ---
 # Feedback
+int8 INPUT_TIMEOUT=-1
 int8 NO_WARNING=0
 int8 DECELERATE_FOR_SINGULARITY=1
 int8 HALT_FOR_SINGULARITY=2
@@ -27,4 +20,4 @@ int8 HALT_FOR_JOINT_BOUND=5
 float64[3] positional_error
 float64    angular_error
 bool	   within_tolerance
-int8       servo_status
+int8       status

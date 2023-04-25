@@ -394,9 +394,9 @@ PoseTrackingServo<FF>::tick()
     durations_.tick_begin = (ros::Time::now() -
 			     durations_.header.stamp).toSec();
 
+  // Check that servo status is not emergency.
     const auto	servo_status = servoStatus();
 
-  // Check that servo status is not emergency.
     switch (servo_status)
     {
       case servo_status_t::HALT_FOR_SINGULARITY:
@@ -405,8 +405,12 @@ PoseTrackingServo<FF>::tick()
       {
 	doPostMotionReset();
 
+	PoseTrackingFeedback	feedback;
+	feedback.status = static_cast<int8_t>(servo_status);
+	pose_tracking_srv_.publishFeedback(feedback);
+
 	PoseTrackingResult	result;
-	result.status = static_cast<int8_t>(servo_status);
+	result.status = feedback.status;
 	pose_tracking_srv_.setAborted(result);
 	ROS_ERROR_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ABORTED["
 			       << SERVO_STATUS_CODE_MAP.at(servo_status)
@@ -428,8 +432,12 @@ PoseTrackingServo<FF>::tick()
 	{
 	    doPostMotionReset();
 
+	    PoseTrackingFeedback	feedback;
+	    feedback.status = PoseTrackingFeedback::INPUT_TIMEOUT;
+	    pose_tracking_srv_.publishFeedback(feedback);
+
 	    PoseTrackingResult	result;
-	    result.status = PoseTrackingResult::INPUT_TIMEOUT;
+	    result.status = feedback.status;
 	    pose_tracking_srv_.setAborted(result);
 	    ROS_ERROR_STREAM_NAMED(logname(),
 				   "(PoseTrackingServo) goal ABORTED[The target pose was not updated recently.]");
@@ -462,19 +470,6 @@ PoseTrackingServo<FF>::tick()
     else
 	nframes_within_tolerance_ = 0;
 
-    if (current_goal_->terminate_on_success
-	&& nframes_within_tolerance_ > min_nframes_within_tolerance_)
-    {
-	doPostMotionReset();
-
-	PoseTrackingResult	result;
-	result.status = PoseTrackingResult::NO_ERROR;
-	pose_tracking_srv_.setSucceeded(result);
-	ROS_INFO_STREAM_NAMED(logname(), "(PoseTrackingServo) goal SUCCEEDED");
-
-	return;
-    }
-
   // Publish tracking result as feedback.
     PoseTrackingFeedback	feedback;
     feedback.positional_error[0] = positional_error(0);
@@ -482,8 +477,21 @@ PoseTrackingServo<FF>::tick()
     feedback.positional_error[2] = positional_error(2);
     feedback.angular_error	 = angular_error.angle();
     feedback.within_tolerance	 = within_tolerance;
-    feedback.servo_status	 = static_cast<int8_t>(servo_status);
+    feedback.status		 = static_cast<int8_t>(servo_status);
     pose_tracking_srv_.publishFeedback(feedback);
+
+    if (current_goal_->terminate_on_success &&
+	nframes_within_tolerance_ > min_nframes_within_tolerance_)
+    {
+	doPostMotionReset();
+
+	PoseTrackingResult	result;
+	result.status = PoseTrackingFeedback::NO_WARNING;
+	pose_tracking_srv_.setSucceeded(result);
+	ROS_INFO_STREAM_NAMED(logname(), "(PoseTrackingServo) goal SUCCEEDED");
+
+	return;
+    }
 
   // Compute servo command from PID controller output and send it
   // to the Servo object, for execution

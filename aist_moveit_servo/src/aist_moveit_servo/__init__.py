@@ -12,7 +12,8 @@
 import rospy, threading
 from actionlib             import SimpleActionClient
 from actionlib_msgs.msg    import GoalStatus
-from aist_moveit_servo.msg import PoseTrackingAction, PoseTrackingGoal
+from aist_moveit_servo.msg import (PoseTrackingAction, PoseTrackingGoal,
+                                   PoseTrackingFeedback)
 from std_srvs.srv          import Empty
 from moveit_msgs.srv       import ChangeDriftDimensions, ChangeControlDimensions
 
@@ -25,8 +26,8 @@ class PoseTrackingClient(object):
 
         timeout = rospy.Duration(5)
 
-        self._condition        = threading.Condition()
-        self._within_tolerance = False
+        self._condition = threading.Condition()
+        self._feedback  = None
         rospy.wait_for_service(server + '/reset_servo_status', timeout)
         self._reset_servo_status \
             = rospy.ServiceProxy(server + '/reset_servo_status', Empty)
@@ -80,6 +81,8 @@ class PoseTrackingClient(object):
     def send_goal(self, target_offset,
                   positional_tolerance=(0, 0, 0), angular_tolerance=0,
                   terminate_on_success=False, timeout=rospy.Duration(0.5)):
+        self._status           = PoseTrackingFeedback.NO_WARNING
+        self._within_tolerance = False
         self._pose_tracking.send_goal(
             PoseTrackingGoal(target_offset=target_offset,
                              positional_tolerance=positional_tolerance,
@@ -99,21 +102,25 @@ class PoseTrackingClient(object):
 
     def wait_for_result(self, timeout=rospy.Duration()):
         if self._pose_tracking.wait_for_result(timeout):
-            return self._pose_tracking.get_result()
+            return self._pose_tracking.get_result().status
         return None
 
     def wait_for_tolerance_satisfied(self):
-        self._within_tolerance = False
+        self._feedback = None
         with self._condition:
-            # Loop for checking spurious wakeup.
-            while not self._within_tolerance:
-                self._condition.wait()    # Wait until notified.
+            while self._feedback is None:  # Loop for checking spurious wakeup.
+                self._condition.wait()     # Wait until notified.
+        return self._feedback.status
 
     def get_state(self):
         return self._pose_tracking.get_state()
 
     def _feedback_cb(self, feedback):
-        if feedback.within_tolerance:
+        if feedback.status in (PoseTrackingFeedback.INPUT_TIMEOUT,
+                               PoseTrackingFeedback.HALT_FOR_SINGULARITY,
+                               PoseTrackingFeedback.HALT_FOR_COLLISION,
+                               PoseTrackingFeedback.HALT_FOR_JOINT_BOUND) or \
+           feedback.within_tolerance:
             with self._condition:
-                self._within_tolerance = True
+                self._feedback = feedback
                 self._condition.notifyAll()
