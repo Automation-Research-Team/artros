@@ -80,7 +80,8 @@ class PoseTrackingClient(object):
 
     def send_goal(self, target_offset,
                   positional_tolerance=(0, 0, 0), angular_tolerance=0,
-                  terminate_on_success=False, timeout=rospy.Duration(0.5)):
+                  terminate_on_success=False, timeout=rospy.Duration(0.5),
+                  done_cb=None):
         self._status           = PoseTrackingFeedback.NO_WARNING
         self._within_tolerance = False
         self._pose_tracking.send_goal(
@@ -89,7 +90,7 @@ class PoseTrackingClient(object):
                              angular_tolerance=angular_tolerance,
                              terminate_on_success=terminate_on_success,
                              timeout=timeout),
-            feedback_cb=self._feedback_cb)
+            done_cb=done_cb, feedback_cb=self._feedback_cb)
 
     def cancel_goal(self, wait=False):
         if self.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
