@@ -405,10 +405,6 @@ PoseTrackingServo<FF>::tick()
       {
 	doPostMotionReset();
 
-	PoseTrackingFeedback	feedback;
-	feedback.status = static_cast<int8_t>(servo_status);
-	pose_tracking_srv_.publishFeedback(feedback);
-
 	PoseTrackingResult	result;
 	result.status = feedback.status;
 	pose_tracking_srv_.setAborted(result);
@@ -431,10 +427,6 @@ PoseTrackingServo<FF>::tick()
 	if (ros::Time::now() - stamp_goal_accepted_ > current_goal_->timeout)
 	{
 	    doPostMotionReset();
-
-	    PoseTrackingFeedback	feedback;
-	    feedback.status = PoseTrackingFeedback::INPUT_TIMEOUT;
-	    pose_tracking_srv_.publishFeedback(feedback);
 
 	    PoseTrackingResult	result;
 	    result.status = feedback.status;
@@ -464,21 +456,10 @@ PoseTrackingServo<FF>::tick()
 				    current_goal_->positional_tolerance[2] &&
 				    std::abs(angular_error.angle()) <
 				    current_goal_->angular_tolerance);
-
     if (within_tolerance)
 	++nframes_within_tolerance_;
     else
 	nframes_within_tolerance_ = 0;
-
-  // Publish tracking result as feedback.
-    PoseTrackingFeedback	feedback;
-    feedback.positional_error[0] = positional_error(0);
-    feedback.positional_error[1] = positional_error(1);
-    feedback.positional_error[2] = positional_error(2);
-    feedback.angular_error	 = angular_error.angle();
-    feedback.within_tolerance	 = within_tolerance;
-    feedback.status		 = static_cast<int8_t>(servo_status);
-    pose_tracking_srv_.publishFeedback(feedback);
 
     if (current_goal_->terminate_on_success &&
 	nframes_within_tolerance_ > min_nframes_within_tolerance_)
@@ -492,6 +473,16 @@ PoseTrackingServo<FF>::tick()
 
 	return;
     }
+
+  // Publish tracking result as feedback.
+    PoseTrackingFeedback	feedback;
+    feedback.positional_error[0] = positional_error(0);
+    feedback.positional_error[1] = positional_error(1);
+    feedback.positional_error[2] = positional_error(2);
+    feedback.angular_error	 = angular_error.angle();
+    feedback.within_tolerance	 = within_tolerance;
+    feedback.status		 = static_cast<int8_t>(servo_status);
+    pose_tracking_srv_.publishFeedback(feedback);
 
   // Compute servo command from PID controller output and send it
   // to the Servo object, for execution

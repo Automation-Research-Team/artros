@@ -106,12 +106,27 @@ class PoseTrackingClient(object):
             return self._pose_tracking.get_result().status
         return None
 
-    def wait_for_tolerance_satisfied(self):
+    def wait_for_tolerance_satisfied(self, timeout=rospy.Duration()):
+        timeout_time = rospy.get_rostime() + timeout
+        loop_period  = rospy.Duration(0.1)
         self._feedback = None
         with self._condition:
-            while self._feedback is None:  # Loop for checking spurious wakeup.
-                self._condition.wait()     # Wait until notified.
-        return self._feedback.status
+            while self._feedback is None:
+                if self.get_state() not in (GoalStatus.PENDING,
+                                            GoalStatus.ACTIVE):
+                    return False
+
+                if timeout > rospy.Duration():
+                    time_left = timeout_time - rospy.get_rostime()
+                    if time_left <= 0:
+                        break
+                    if time_left > loop_period:
+                        time_left = loop_period
+                else:
+                    time_left = loop_period
+                self._condition.wait(time_left.to_sec())
+
+        return True
 
     def get_state(self):
         return self._pose_tracking.get_state()
