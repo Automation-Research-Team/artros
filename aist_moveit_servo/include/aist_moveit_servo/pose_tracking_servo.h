@@ -406,7 +406,7 @@ PoseTrackingServo<FF>::tick()
 	doPostMotionReset();
 
 	PoseTrackingResult	result;
-	result.status = feedback.status;
+	result.status = static_cast<int8_t>(servo_status);
 	pose_tracking_srv_.setAborted(result);
 	ROS_ERROR_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ABORTED["
 			       << SERVO_STATUS_CODE_MAP.at(servo_status)
@@ -429,7 +429,7 @@ PoseTrackingServo<FF>::tick()
 	    doPostMotionReset();
 
 	    PoseTrackingResult	result;
-	    result.status = feedback.status;
+	    result.status = PoseTrackingFeedback::INPUT_TIMEOUT;
 	    pose_tracking_srv_.setAborted(result);
 	    ROS_ERROR_STREAM_NAMED(logname(),
 				   "(PoseTrackingServo) goal ABORTED[The target pose was not updated recently.]");

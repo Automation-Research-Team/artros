@@ -80,17 +80,16 @@ class PoseTrackingClient(object):
 
     def send_goal(self, target_offset,
                   positional_tolerance=(0, 0, 0), angular_tolerance=0,
-                  terminate_on_success=False, timeout=rospy.Duration(0.5),
+                  terminate_on_success=False, servo_timeout=rospy.Duration(0.5),
                   done_cb=None):
-        self._status           = PoseTrackingFeedback.NO_WARNING
-        self._within_tolerance = False
-        self._pose_tracking.send_goal(
-            PoseTrackingGoal(target_offset=target_offset,
-                             positional_tolerance=positional_tolerance,
-                             angular_tolerance=angular_tolerance,
-                             terminate_on_success=terminate_on_success,
-                             timeout=timeout),
-            done_cb=done_cb, feedback_cb=self._feedback_cb)
+        self._feedback = None
+        self._pose_tracking.send_goal(PoseTrackingGoal(target_offset,
+                                                       positional_tolerance,
+                                                       angular_tolerance,
+                                                       terminate_on_success,
+                                                       servo_timeout),
+                                      done_cb=done_cb,
+                                      feedback_cb=self._feedback_cb)
 
     def cancel_goal(self, wait=False):
         if self.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
@@ -114,29 +113,24 @@ class PoseTrackingClient(object):
             while self._feedback is None:
                 if self.get_state() not in (GoalStatus.PENDING,
                                             GoalStatus.ACTIVE):
-                    return False
+                    break
 
                 if timeout > rospy.Duration():
                     time_left = timeout_time - rospy.get_rostime()
-                    if time_left <= 0:
+                    if time_left <= rospy.Duration():
                         break
                     if time_left > loop_period:
                         time_left = loop_period
                 else:
                     time_left = loop_period
                 self._condition.wait(time_left.to_sec())
-
-        return True
+        return self._feedback
 
     def get_state(self):
         return self._pose_tracking.get_state()
 
     def _feedback_cb(self, feedback):
-        if feedback.status in (PoseTrackingFeedback.INPUT_TIMEOUT,
-                               PoseTrackingFeedback.HALT_FOR_SINGULARITY,
-                               PoseTrackingFeedback.HALT_FOR_COLLISION,
-                               PoseTrackingFeedback.HALT_FOR_JOINT_BOUND) or \
-           feedback.within_tolerance:
+        if feedback.within_tolerance:
             with self._condition:
                 self._feedback = feedback
                 self._condition.notifyAll()
