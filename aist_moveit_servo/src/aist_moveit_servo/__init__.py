@@ -114,7 +114,9 @@ class PoseTrackingClient(object):
             while self._feedback is None:
                 if self.get_state() not in (GoalStatus.PENDING,
                                             GoalStatus.ACTIVE):
-                    break
+                    print('*** (wait_for_tolerance_satisfied) state=%d',
+                          self.get_state())
+                    return None
 
                 if timeout > rospy.Duration():
                     time_left = timeout_time - rospy.get_rostime()
