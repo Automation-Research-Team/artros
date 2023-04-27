@@ -3,6 +3,7 @@ geometry_msgs/Pose target_offset
 float64[3]         positional_tolerance
 float64            angular_tolerance
 bool		   terminate_on_success
+bool               reset_input_lpf
 duration           timeout
 ---
 # Result
