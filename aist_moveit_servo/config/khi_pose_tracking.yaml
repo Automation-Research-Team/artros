@@ -18,3 +18,5 @@ pose_tracking:
   angular_proportional_gain: 30.0 #100.0
   angular_integral_gain:      0.5 #5.0
   angular_derivative_gain:    0.5 #2.5
+
+  min_nframes_within_tolerance: 5

@@ -61,6 +61,9 @@ class OdometryFeedForwardServo
 								const	;
     pose_t	ff_pose(const pose_t& target_pose,
     			const ros::Duration& dt)		const	;
+    // std::nullptr_t
+    // 		ff_pose(const pose_t& target_pose,
+    // 			const ros::Duration& dt)		const	;
 
   private:
     twist_t	getTwist()					const	;
@@ -101,6 +104,7 @@ OdometryFeedForwardServo::haveRecentFeedForwardInput(const ros::Duration&
 }
 
 OdometryFeedForwardServo::pose_t
+  //std::nullptr_t
 OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
 				  const ros::Duration& dt) const
 {
@@ -123,6 +127,7 @@ OdometryFeedForwardServo::ff_pose(const pose_t& target_pose,
     pose.pose.position.z -= d * velocity.z;
 
     return  pose;
+  //return nullptr;
 
   // // Convert velocity in twist to the target frame.
   //   const auto	twist = getTwist();
