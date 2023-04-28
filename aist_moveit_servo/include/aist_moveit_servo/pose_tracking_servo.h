@@ -672,17 +672,19 @@ PoseTrackingServo<FF>::goalCB()
     resetTargetPose();
     static_cast<FF&>(*this).resetFeedForwardInput();
 
+    stamp_goal_accepted_      = ros::Time::now();
+    nframes_within_tolerance_ = 0;
+    current_goal_	      = pose_tracking_srv_.acceptNewGoal();
+
   // If input low-pass filter was initialized with target pose,
   // the initial feed-forwarded pose calculated from the filter output
   // would be very different from the actual pose, which will cause
   // sudden jump of outgoing joint positions. Therefore we initialize
   // the filter with actual pose.
-    input_low_pass_filter_.reset(actualPose().pose);
+    if (current_goal_->reset_input_lpf)
+	input_low_pass_filter_.reset(actualPose().pose);
     start();
 
-    stamp_goal_accepted_      = ros::Time::now();
-    nframes_within_tolerance_ = 0;
-    current_goal_	      = pose_tracking_srv_.acceptNewGoal();
     ROS_INFO_STREAM_NAMED(logname(), "(PoseTrackingServo) goal ACCEPTED");
 }
 
