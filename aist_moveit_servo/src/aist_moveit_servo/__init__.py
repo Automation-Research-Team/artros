@@ -20,14 +20,15 @@ from moveit_msgs.srv       import ChangeDriftDimensions, ChangeControlDimensions
 ######################################################################
 #  class PoseTrackingClient                                          #
 ######################################################################
-class PoseTrackingClient(object):
+class PoseTrackingClient(SimpleActionClient):
     def __init__(self, server="/pose_tracking_servo"):
-        super(PoseTrackingClient, self).__init__()
+        SimpleActionClient.__init__(self, server + '/pose_tracking',
+                                    PoseTrackingAction)
 
         timeout = rospy.Duration(5)
 
-        self._condition = threading.Condition()
-        self._feedback  = None
+        self._condition        = threading.Condition()
+        self._within_tolerance = False
         rospy.wait_for_service(server + '/reset_servo_status', timeout)
         self._reset_servo_status \
             = rospy.ServiceProxy(server + '/reset_servo_status', Empty)
@@ -42,16 +43,10 @@ class PoseTrackingClient(object):
             = rospy.ServiceProxy(server + '/change_control_dimensions',
                                  ChangeControlDimensions)
 
-        self._pose_tracking = SimpleActionClient(server + '/pose_tracking',
-                                                 PoseTrackingAction)
-        if not self._pose_tracking.wait_for_server(timeout=timeout):
+        if not self.wait_for_server(timeout=timeout):
             raise rospy.ROSExceptioon('failed to connect to action ')
 
         rospy.loginfo('(PoseTrackingClient) connected to server[%s]', server)
-
-    @property
-    def is_connected(self):
-        return self._pose_tracking is not None
 
     def reset_servo_status(self):
         self._reset_servo_status()
@@ -82,58 +77,37 @@ class PoseTrackingClient(object):
                   positional_tolerance=(0, 0, 0), angular_tolerance=0,
                   terminate_on_success=False, reset_input_lpf=True,
                   servo_timeout=rospy.Duration(0.5), done_cb=None):
-        self._feedback = None
-        self._pose_tracking.send_goal(PoseTrackingGoal(target_offset,
-                                                       positional_tolerance,
-                                                       angular_tolerance,
-                                                       terminate_on_success,
-                                                       reset_input_lpf,
-                                                       servo_timeout),
-                                      done_cb=done_cb,
-                                      feedback_cb=self._feedback_cb)
+        SimpleActionClient.send_goal(
+            self,
+            PoseTrackingGoal(target_offset, positional_tolerance,
+                             angular_tolerance, terminate_on_success,
+                             reset_input_lpf, servo_timeout),
+            done_cb=done_cb, feedback_cb=self._feedback_cb)
 
-    def cancel_goal(self, wait=False):
-        if self.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
-            self._pose_tracking.cancel_goal()
-            if wait:
-                self._pose_tracking.wait_for_result()
-
-    def cancel_all_goals(self):
-        self._pose_tracking.cancel_all_goals()
-
-    def wait_for_result(self, timeout=rospy.Duration()):
-        if self._pose_tracking.wait_for_result(timeout):
-            return self._pose_tracking.get_result().status
-        return None
-
-    def wait_for_tolerance_satisfied(self, timeout=rospy.Duration()):
+    def wait_for_tolerance_state(self, within_tolerance,
+                                 timeout=rospy.Duration()):
         timeout_time = rospy.get_rostime() + timeout
         loop_period  = rospy.Duration(0.1)
-        self._feedback = None
+        self._within_tolerance = not within_tolerance
         with self._condition:
-            while self._feedback is None:
+            while self._within_tolerance != within_tolerance:
                 if self.get_state() not in (GoalStatus.PENDING,
                                             GoalStatus.ACTIVE):
-                    print('*** (wait_for_tolerance_satisfied) state=%d',
-                          self.get_state())
-                    return None
+                    break                       # servo preempted or aborted
 
                 if timeout > rospy.Duration():
                     time_left = timeout_time - rospy.get_rostime()
                     if time_left <= rospy.Duration():
-                        break
+                        break                   # timeout expired
                     if time_left > loop_period:
                         time_left = loop_period
                 else:
                     time_left = loop_period
                 self._condition.wait(time_left.to_sec())
-        return self._feedback
-
-    def get_state(self):
-        return self._pose_tracking.get_state()
+        return self._within_tolerance == within_tolerance
 
     def _feedback_cb(self, feedback):
-        if feedback.within_tolerance:
+        if feedback.within_tolerance != self._within_tolerance:
             with self._condition:
-                self._feedback = feedback
-                self._condition.notifyAll()
+                self._within_tolerance = feedback.within_tolerance
+                self._condition.notify()
