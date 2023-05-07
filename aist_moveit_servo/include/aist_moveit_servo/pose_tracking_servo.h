@@ -457,12 +457,15 @@ PoseTrackingServo<FF>::tick()
 				    std::abs(angular_error.angle()) <
 				    current_goal_->angular_tolerance);
     if (within_tolerance)
-	++nframes_within_tolerance_;
+    {
+	if (nframes_within_tolerance_ < std::numeric_limits<int>::max())
+	    ++nframes_within_tolerance_;
+    }
     else
 	nframes_within_tolerance_ = 0;
 
     if (current_goal_->terminate_on_success &&
-	nframes_within_tolerance_ > min_nframes_within_tolerance_)
+	nframes_within_tolerance_ >= min_nframes_within_tolerance_)
     {
 	doPostMotionReset();
 
