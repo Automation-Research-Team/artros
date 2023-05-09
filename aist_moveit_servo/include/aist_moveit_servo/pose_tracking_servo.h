@@ -631,8 +631,6 @@ PoseTrackingServo<FF>::updateInputLowPassFilter(int half_order,
 template <class FF> void
 PoseTrackingServo<FF>::updateInputLowPassFilter(double half_life)
 {
-    std::cerr << "*** Update: " << half_life << std::endl;
-
     input_low_pass_filter_.initialize(servoParameters().publish_period
 				      /half_life);
     input_low_pass_filter_.reset(actualPose().pose);
@@ -660,9 +658,6 @@ PoseTrackingServo<FF>::updateAngularPID(double PIDConfig::* field,
 template <class FF> void
 PoseTrackingServo<FF>::updatePID(const PIDConfig& pid_config, pid_t& pid)
 {
-    std::cerr << "*** updatePID: " << pid_config.k_p
-	      << ',' << pid_config.k_i << ',' << pid_config.k_d << std::endl;
-
     pid.initPid(pid_config.k_p, pid_config.k_i, pid_config.k_d,
 		pid_config.windup_limit, -pid_config.windup_limit, true);
 }
