@@ -76,7 +76,7 @@ class PoseTrackingClient(SimpleActionClient):
     def send_goal(self, target_offset,
                   positional_tolerance=(0, 0, 0), angular_tolerance=0,
                   terminate_on_success=False, reset_input_lpf=True,
-                  servo_timeout=rospy.Duration(0.5), done_cb=None):
+                  servo_timeout=rospy.Duration(1.0), done_cb=None):
         SimpleActionClient.send_goal(
             self,
             PoseTrackingGoal(target_offset, positional_tolerance,
