@@ -39,7 +39,7 @@ import collections
 import rospy
 import numpy as np
 
-from math import pi, radians, degrees
+from math import pi, radians, degrees, cos, sin, sqrt
 from tf import TransformListener, transformations as tfs
 import moveit_commander
 from moveit_commander.conversions import pose_to_list
@@ -490,20 +490,23 @@ class AISTBaseRoutines(object):
         return self._graspabilityClient.create_mask_image(nmasks)
 
     def graspability_send_goal(self, robot_name, part_id, mask_id,
+                               desired_orientation=None, max_slant=pi/4,
                                one_shot=True):
-        self.delete_all_markers()
         params = self._graspability_params[part_id]
         self._graspabilityClient.set_parameters(params)
 
         # Send goal first to be ready for subscribing image,
         self._graspabilityClient.send_goal(mask_id,
                                            self.gripper(robot_name).type,
-                                           one_shot)
+                                           desired_orientation, max_slant,
+                                           None if one_shot else
+                                           self._graspability_feedback_cb)
 
-    def graspability_wait_for_result(self, orientation=None, max_slant=pi/4,
-                                     target_frame='', marker_lifetime=0):
-        graspabilities = self._graspabilityClient.wait_for_result(orientation,
-                                                                  max_slant)
+    def graspability_cancel_goal(self):
+        self._graspabilityClient.cancel_goal()
+
+    def graspability_wait_for_result(self, target_frame='', marker_lifetime=0):
+        graspabilities = self._graspabilityClient.wait_for_result()
 
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
@@ -514,6 +517,49 @@ class AISTBaseRoutines(object):
                                             target_frame)
         graspabilities.poses          = self.transform_poses_to_target_frame(
                                             graspabilities.poses, target_frame)
+        self._graspability_publish_marker(graspabilities, marker_lifetime)
+        return graspabilities
+
+    def graspability_fix_orientations(self, graspabilities,
+                                      desired_orientation, max_slant=pi/4):
+        poses = graspabilities.poses
+        q = self._listener.transformQuaternion(poses.header.frame_id,
+                                               desired_orientation)
+        if max_slant > 0.0:
+            up = tfs.quaternion_matrix((q.quaternion.x,
+                                        q.quaternion.y,
+                                        q.quaternion.z,
+                                        q.quaternion.w))[0:3, 2]
+            for pose in poses.poses:
+                pose.orientation = self._fix_orientation(pose.orientation,
+                                                         up, max_slant)
+        else:
+            for pose in poses.poses:
+                pose.orientation = q.quaternion
+        return graspabilities
+
+    def _fix_orientation(self, orientation, up, max_slant):
+        T = tfs.quaternion_matrix((orientation.x, orientation.y,
+                                   orientation.z, orientation.w))
+        normal = T[0:3, 2]      # local Z-axis at the graspability point
+        a = np.dot(normal, up)
+        b = cos(max_slant)
+        if a < b:
+            p = sqrt((1.0 - b*b)/(1.0 - a*a))
+            q = b - a*p
+            R = np.identity(4, dtype=np.float32)
+            R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
+            R[0:3, 1] = self._normalize(np.cross(R[0:3, 2], T[0:3, 0]))
+            R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
+            return Quaternion(*tfs.quaternion_from_matrix(R))
+        else:
+            return orientation
+
+    def _normalize(self, x):
+        return x / sqrt(np.dot(x, x))
+
+    def _graspability_publish_marker(self, graspabilities, marker_lifetime=0):
+        self.delete_all_markers()
         for i, pose in enumerate(graspabilities.poses.poses):
             self.add_marker('graspability',
                             PoseStamped(graspabilities.poses.header, pose),
@@ -522,10 +568,8 @@ class AISTBaseRoutines(object):
                             lifetime=marker_lifetime)
         self.publish_marker()
 
-        return graspabilities
-
-    def graspability_cancel_goal(self):
-        self._graspabilityClient.cancel_goal()
+    def _graspability_feedback_cb(self, feedback):
+        self._graspability_publish_marker(feedback.graspabilities)
 
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,

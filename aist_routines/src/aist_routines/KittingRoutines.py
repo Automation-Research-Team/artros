@@ -122,16 +122,20 @@ class KittingRoutines(AISTBaseRoutines):
 
     # Commands
     def search_bin(self, bin_id, max_slant=pi/4):
-        bin_props  = self._bin_props[bin_id]
-        part_props = self._part_props[bin_props['part_id']]
+        bin_props           = self._bin_props[bin_id]
+        part_props          = self._part_props[bin_props['part_id']]
         self.graspability_send_goal(part_props['robot_name'],
-                                    bin_props['part_id'], bin_props['mask_id'])
+                                    bin_props['part_id'], bin_props['mask_id'],
+                                    desired_orientation, max_slant)
         self.camera(part_props['camera_name']).trigger_frame()
 
-        orientation = QuaternionStamped()
-        orientation.header.frame_id = self.reference_frame
-        orientation.quaternion = Quaternion(0, 0, 0, 1)
-        return self.graspability_wait_for_result(orientation, max_slant)
+        desired_orientation = QuaternionStamped()
+        desired_orientation.header.frame_id = self.reference_frame
+        desired_orientation.quaternion      = Quaternion(0, 0, 0, 1)
+
+        return self.graspability_fix_orientations(
+                   self.graspability_wait_for_result(),
+                   desired_orientation, max_slant)
 
     def attempt_bin(self, bin_id, poses=None, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
