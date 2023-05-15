@@ -490,7 +490,6 @@ class AISTBaseRoutines(object):
         return self._graspabilityClient.create_mask_image(nmasks)
 
     def graspability_send_goal(self, robot_name, part_id, mask_id,
-                               desired_orientation=None, max_slant=pi/4,
                                one_shot=True):
         params = self._graspability_params[part_id]
         self._graspabilityClient.set_parameters(params)
@@ -498,7 +497,6 @@ class AISTBaseRoutines(object):
         # Send goal first to be ready for subscribing image,
         self._graspabilityClient.send_goal(mask_id,
                                            self.gripper(robot_name).type,
-                                           desired_orientation, max_slant,
                                            None if one_shot else
                                            self._graspability_feedback_cb)
 
