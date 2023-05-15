@@ -122,10 +122,11 @@ class KittingRoutines(AISTBaseRoutines):
 
     # Commands
     def search_bin(self, bin_id, max_slant=pi/4):
-        bin_props           = self._bin_props[bin_id]
-        part_props          = self._part_props[bin_props['part_id']]
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
         self.graspability_send_goal(part_props['robot_name'],
-                                    bin_props['part_id'], bin_props['mask_id'])
+                                    part_id, bin_props['mask_id'])
         self.camera(part_props['camera_name']).trigger_frame()
 
         desired_orientation = QuaternionStamped()
