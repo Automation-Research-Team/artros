@@ -503,8 +503,7 @@ class AISTBaseRoutines(object):
     def graspability_cancel_goal(self):
         self._graspabilityClient.cancel_goal()
 
-    def graspability_wait_for_result(self, target_frame='',
-                                     graspability_filter=None,
+    def graspability_wait_for_result(self, target_frame='', pose_filter=None,
                                      marker_lifetime=0):
         graspabilities = self._graspabilityClient.wait_for_result()
 
@@ -517,8 +516,21 @@ class AISTBaseRoutines(object):
                                             target_frame)
         graspabilities.poses          = self.transform_poses_to_target_frame(
                                             graspabilities.poses, target_frame)
-        if graspability_filter is not None:
-            graspabilities = graspability_filter(graspabilities)
+        if pose_filter is not None:
+            poses          = []
+            gscores        = []
+            contact_points = []
+            for pose, gscore, contact_point \
+                in zip(graspabilities.poses.poses, graspabilities.gscores,
+                       graspabilities.contact_points):
+                filtered_pose = pose_filter(pose)
+                if filtered_pose is not None:
+                    poses.append(filtered_pose)
+                    gscores.append(gscore)
+                    contact_points.append(contact_point)
+            graspabilities.poses.poses    = poses
+            graspabilities.gscores        = gscores
+            graspabilities.contact_points = contact_points
         self._graspability_publish_marker(graspabilities, marker_lifetime)
         return graspabilities
 

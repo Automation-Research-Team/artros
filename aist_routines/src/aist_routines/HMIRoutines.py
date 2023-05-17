@@ -144,7 +144,8 @@ class HMIRoutines(KittingRoutines):
                    bin_id,
                    0 if self.using_hmi_graspability_params else max_slant)
 
-    def attempt_bin(self, bin_id, poses=None, place_offset=0.0, max_attempts=5):
+    def attempt_bin(self, bin_id,
+                    poses=None, place_offset=0.0, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
@@ -197,14 +198,14 @@ class HMIRoutines(KittingRoutines):
                 return True, None
 
         print('*** No graspabilities')
+        self.go_to_named_pose(self._current_robot_name,
+                              'intermediate_pose_to_place_item')
 
         if self.using_hmi_graspability_params:
             self._restore_original_graspability_params(bin_id)
             return False, None
         else:
             self._set_hmi_graspability_params(bin_id)
-            self.go_to_named_pose(self._current_robot_name,
-                                  'intermediate_pose_to_place_item')
             return True, None
 
     def request_help_bin(self, bin_id):

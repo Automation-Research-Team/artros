@@ -132,12 +132,12 @@ class KittingRoutines(AISTBaseRoutines):
         self.graspability_send_goal(part_props['robot_name'],
                                     part_id, bin_props['mask_id'])
         self.camera(part_props['camera_name']).trigger_frame()
-        return self.graspability_wait_for_result(
-                   bin_props['name'],
-                   lambda graspabilities, max_slant=max_slant:
-                       self._graspability_filter(graspabilities, max_slant))
+        return self.graspability_wait_for_result(bin_props['name'],
+                                                 self._pose_filter(
+                                                     max_slant=max_slant))
 
-    def attempt_bin(self, bin_id, poses=None, place_offset=0.0, max_attempts=5):
+    def attempt_bin(self, bin_id,
+                    poses=None, place_offset=0.0, max_attempts=5):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
@@ -230,28 +230,14 @@ class KittingRoutines(AISTBaseRoutines):
             return False
         return True
 
-    def _graspability_filter(self, graspabilities, max_slant):
-        g = Graspabilities()
-        g.poses.header = graspabilities.poses.header
-        g.file_prefix  = graspabilities.file_prefix
+    def _pose_filter(self, pose, max_slant):
+        if pose.position.z < 0.0:
+            return None
 
-        for pose, gscore, contact_point in zip(graspabilities.poses.poses,
-                                               graspabilities.gscores,
-                                               graspabilities.contact_points):
-            if pose.position.z > 0.0:
-                pose.orientation = self._fix_orientation(pose.orientation,
-                                                         (0, 0, 1),
-                                                         max_slant)
-                g.poses.poses.append(pose)
-                g.gscores.append(gscore)
-                g.contact_points.append(contact_point)
-        return g
-
-    def _fix_orientation(self, orientation, up, max_slant):
-        T = tfs.quaternion_matrix((orientation.x, orientation.y,
-                                   orientation.z, orientation.w))
+        T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
+                                   pose.orientation.z, pose.orientation.w))
         normal = T[0:3, 2]      # local Z-axis at the graspability point
-        up     = np.array(up)
+        up     = np.array((0, 0, 1))
         a = np.dot(normal, up)
         b = cos(max_slant)
         if a < b:
@@ -261,9 +247,8 @@ class KittingRoutines(AISTBaseRoutines):
             R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
             R[0:3, 1] = self._normalize(np.cross(R[0:3, 2], T[0:3, 0]))
             R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
-            return Quaternion(*tfs.quaternion_from_matrix(R))
-        else:
-            return orientation
+            pose.orientation = Quaternion(*tfs.quaternion_from_matrix(R))
+        return pose
 
     def _normalize(self, x):
         return x / sqrt(np.dot(x, x))
