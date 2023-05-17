@@ -503,7 +503,9 @@ class AISTBaseRoutines(object):
     def graspability_cancel_goal(self):
         self._graspabilityClient.cancel_goal()
 
-    def graspability_wait_for_result(self, target_frame='', marker_lifetime=0):
+    def graspability_wait_for_result(self, target_frame='',
+                                     graspability_filter=None,
+                                     marker_lifetime=0):
         graspabilities = self._graspabilityClient.wait_for_result()
 
         #  We have to transform the poses to reference frame before moving
@@ -515,46 +517,10 @@ class AISTBaseRoutines(object):
                                             target_frame)
         graspabilities.poses          = self.transform_poses_to_target_frame(
                                             graspabilities.poses, target_frame)
+        if graspability_filter is not None:
+            graspabilities = graspability_filter(graspabilities)
         self._graspability_publish_marker(graspabilities, marker_lifetime)
         return graspabilities
-
-    def graspability_fix_orientations(self, graspabilities,
-                                      desired_orientation, max_slant=pi/4):
-        poses = graspabilities.poses
-        q = self._listener.transformQuaternion(poses.header.frame_id,
-                                               desired_orientation)
-        if max_slant > 0.0:
-            up = tfs.quaternion_matrix((q.quaternion.x,
-                                        q.quaternion.y,
-                                        q.quaternion.z,
-                                        q.quaternion.w))[0:3, 2]
-            for pose in poses.poses:
-                pose.orientation = self._fix_orientation(pose.orientation,
-                                                         up, max_slant)
-        else:
-            for pose in poses.poses:
-                pose.orientation = q.quaternion
-        return graspabilities
-
-    def _fix_orientation(self, orientation, up, max_slant):
-        T = tfs.quaternion_matrix((orientation.x, orientation.y,
-                                   orientation.z, orientation.w))
-        normal = T[0:3, 2]      # local Z-axis at the graspability point
-        a = np.dot(normal, up)
-        b = cos(max_slant)
-        if a < b:
-            p = sqrt((1.0 - b*b)/(1.0 - a*a))
-            q = b - a*p
-            R = np.identity(4, dtype=np.float32)
-            R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
-            R[0:3, 1] = self._normalize(np.cross(R[0:3, 2], T[0:3, 0]))
-            R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
-            return Quaternion(*tfs.quaternion_from_matrix(R))
-        else:
-            return orientation
-
-    def _normalize(self, x):
-        return x / sqrt(np.dot(x, x))
 
     def _graspability_publish_marker(self, graspabilities, marker_lifetime=0):
         self.delete_all_markers()
