@@ -132,9 +132,10 @@ class KittingRoutines(AISTBaseRoutines):
         self.graspability_send_goal(part_props['robot_name'],
                                     part_id, bin_props['mask_id'])
         self.camera(part_props['camera_name']).trigger_frame()
-        return self.graspability_wait_for_result(bin_props['name'],
-                                                 self._pose_filter(
-                                                     max_slant=max_slant))
+        return self.graspability_wait_for_result(
+                   bin_props['name'],
+                   lambda pose, max_slant=max_slant:
+                       self._pose_filter(pose, max_slant))
 
     def attempt_bin(self, bin_id,
                     poses=None, place_offset=0.0, max_attempts=5):
