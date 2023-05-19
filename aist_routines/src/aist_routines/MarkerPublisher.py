@@ -83,7 +83,6 @@ class MarkerPublisher(object):
 
         marker              = Marker()
         marker.header       = marker_pose.header
-        marker.header.stamp = rospy.Time.now()
         marker.ns           = "markers"
         marker.action       = Marker.ADD
         marker.lifetime     = rospy.Duration(lifetime)
