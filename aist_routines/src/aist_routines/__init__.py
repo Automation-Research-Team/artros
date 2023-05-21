@@ -90,6 +90,11 @@ class AISTBaseRoutines(object):
 
         # MoveIt RobotCommander
         self._cmd = moveit_commander.RobotCommander('robot_description')
+        print('*** planning_frame=%s' % self._cmd.get_planning_frame())
+        for group_name in self._cmd.get_group_names():
+            group = self._cmd.get_group(group_name)
+            print('*** [%s] pose_reference_frame=%s'
+                  % (group_name, group.get_pose_reference_frame()))
 
         # Grippers
         d = rospy.get_param('~grippers', {})
@@ -303,7 +308,7 @@ class AISTBaseRoutines(object):
 
     # Basic motion stuffs
     def go_to_named_pose(self, robot_name, named_pose):
-        group = self._cmd.get_group(robot_name)
+        group = self._cmd.get_group(robot_name)  # get MoveGroupCommander
         try:
             group.set_named_target(named_pose)
         except moveit_commander.exception.MoveItCommanderException as e:
@@ -476,10 +481,9 @@ class AISTBaseRoutines(object):
     def delete_all_markers(self):
         self._markerPublisher.delete_all()
 
-    def add_marker(self, marker_type, pose_stamped, endpoint=None,
+    def add_marker(self, marker_type, pose, endpoint=None,
                    text='', lifetime=15):
-        self._markerPublisher.add(marker_type, pose_stamped,
-                                  endpoint, text, lifetime)
+        self._markerPublisher.add(marker_type, pose, endpoint, text, lifetime)
 
     def publish_marker(self):
         self._markerPublisher.publish()

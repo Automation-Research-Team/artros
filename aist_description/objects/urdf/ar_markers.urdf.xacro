@@ -78,4 +78,13 @@
     </xacro:ar_marker>
   </xacro:macro>
 
+  <xacro:macro name="ar_marker_76_4"
+	       params="prefix parent marker_id thickness *origin">
+    <xacro:ar_marker prefix="${prefix}" parent="${parent}"
+		     marker_id="${marker_id}" size="0.076"
+		     margin="0.004" thickness="${thickness}">
+      <xacro:insert_block name="origin"/>
+    </xacro:ar_marker>
+  </xacro:macro>
+
 </robot>

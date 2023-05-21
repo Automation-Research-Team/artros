@@ -5,7 +5,7 @@
   <arg name="serial_no"			default=""/>
   <arg name="camera_name"		default="a_bot_camera"/>
   <arg name="marker_map_dir"		default="$(dirname)/../config"/>
-  <arg name="marker_map"		default="markermap-17-26-32-256"/>
+  <arg name="marker_map"		default="markermap-17_26_32_256"/>
   <!-- <arg name="marker_map"		default=""/> -->
   <arg name="marker_id"			default="26"/>
   <arg name="planarity_tolerance"	default="0.005"/>

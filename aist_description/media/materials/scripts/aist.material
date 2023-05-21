@@ -166,3 +166,31 @@ material Aruco/marker-17_26_32_256-150-5
     }
   }
 }
+
+material Aruco/marker-17_26_32_256-34-4
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+	texture aruco-17_26_32_256-34-4.png
+      }
+    }
+  }
+}
+
+material Aruco/marker-1_18-28-3
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+	texture aruco-1_18-28-3.png
+      }
+    }
+  }
+}
