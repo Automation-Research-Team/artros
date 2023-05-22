@@ -167,7 +167,7 @@ material Aruco/marker-17_26_32_256-150-5
   }
 }
 
-material Aruco/marker-17_26_32_256-34-4
+material Aruco/marker-17_26_32_256-76-4
 {
   technique
   {
@@ -175,7 +175,7 @@ material Aruco/marker-17_26_32_256-34-4
     {
       texture_unit
       {
-	texture aruco-17_26_32_256-34-4.png
+	texture aruco-17_26_32_256-76-4.png
       }
     }
   }
