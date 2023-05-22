@@ -87,4 +87,44 @@
     </xacro:ar_marker>
   </xacro:macro>
 
+  <xacro:macro name="ar_rect_marker"
+	       params="prefix parent marker_id size margin thickness *origin">
+    <joint name="${prefix}ar_marker_joint" type="fixed">
+      <parent link="${parent}" />
+      <child  link="${prefix}ar_marker" />
+      <xacro:insert_block name="origin" />
+    </joint>
+
+    <link name="${prefix}ar_marker">
+      <visual name="${prefix}ar_marker_visual">
+	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi/2}"/>
+        <geometry>
+          <box size="${2*size + 4*margin} ${size + 2*margin} ${thickness}" />
+        </geometry>
+      </visual>
+      <collision name="${prefix}ar_marker_collision">
+	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi/2}"/>
+        <geometry>
+          <box size="${2*size + 4*margin} ${size + 2*margin} ${thickness}" />
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- For Gazebo, material of AR marker is defined in
+         aist_description/media/material. You also need to export
+         gazebo_media_path in package.xml. -->
+    <gazebo reference="${prefix}ar_marker">
+      <material>Aruco/marker-${marker_id}-${int(1000*size)}-${int(1000*margin)}</material>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="ar_rect_marker_28_3"
+	       params="prefix parent marker_id thickness *origin">
+    <xacro:ar_rect_marker prefix="${prefix}" parent="${parent}"
+			  marker_id="${marker_id}" size="0.028"
+			  margin="0.003" thickness="${thickness}">
+      <xacro:insert_block name="origin"/>
+    </xacro:ar_rect_marker>
+  </xacro:macro>
+
 </robot>
