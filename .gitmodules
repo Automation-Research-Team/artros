@@ -14,6 +14,3 @@
 [submodule "third_party/ur_robot_driver"]
 	path = third_party/ur_robot_driver
 	url = https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
-[submodule "third_party/aruco"]
-	path = third_party/aruco
-	url = https://gitlab.com/art-aist/aruco
