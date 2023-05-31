@@ -129,23 +129,24 @@ class MarkerPublisher(object):
             marker.id      = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))
 
-            marker.type  = Marker.SPHERE
-            marker.pose  = Pose(endpoint, marker_pose.pose.orientation)
-            del marker.points[:]
-            marker.scale = Vector3(*marker_prop.scale)
-            marker.color = ColorRGBA(*marker_prop.color)
-            marker.id    = len(self._markers.markers)
+            marker.type   = Marker.SPHERE
+            marker.pose   = Pose(endpoint, marker_pose.pose.orientation)
+            marker.points = []
+            marker.scale  = Vector3(*marker_prop.scale)
+            marker.color  = ColorRGBA(*marker_prop.color)
+            marker.id     = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))
 
         if text != "":
             marker.scale.x = 0
             marker.scale.y = 0
             marker.scale.z = min(*marker_prop.scale)
+            marker.pose    = copy.deepcopy(marker.pose)
             marker.pose.position.z -= (marker.scale.z + 0.001)
-            marker.type  = Marker.TEXT_VIEW_FACING
-            marker.color = ColorRGBA(1.0, 1.0, 1.0, 0.8)  # white
-            marker.text  = text
-            marker.id    = len(self._markers.markers)
+            marker.type    = Marker.TEXT_VIEW_FACING
+            marker.color   = ColorRGBA(1.0, 1.0, 1.0, 0.8)  # white
+            marker.text    = text
+            marker.id      = len(self._markers.markers)
             self._markers.markers.append(copy.deepcopy(marker))
 
     def publish(self):
