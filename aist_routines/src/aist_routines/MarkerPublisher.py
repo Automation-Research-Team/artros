@@ -82,8 +82,8 @@ class MarkerPublisher(object):
         marker_prop = MarkerPublisher._marker_props[marker_type]
 
         marker              = Marker()
-        marker.header       = marker_pose.header
-        #marker.header.stamp = rospy.Time.now()
+        marker.header       = copy.deepcopy(marker_pose.header)
+        marker.header.stamp = rospy.Time.now()
         marker.ns           = "markers"
         marker.action       = Marker.ADD
         marker.lifetime     = rospy.Duration(lifetime)
@@ -93,7 +93,7 @@ class MarkerPublisher(object):
             smin = min(*marker_prop.scale)
 
             marker.type  = Marker.ARROW
-            marker.pose  = marker_pose.pose
+            marker.pose  = copy.deepcopy(marker_pose.pose)
             marker.scale = Vector3(2.5*smax, 0.5*smin, 0.5*smin)
             marker.color = ColorRGBA(1.0, 0.0, 0.0, 0.8)         # red
             marker.id    = len(self._markers.markers)
@@ -113,7 +113,7 @@ class MarkerPublisher(object):
 
         if endpoint is None:
             marker.type  = Marker.SPHERE
-            marker.pose  = marker_pose.pose
+            marker.pose  = copy.deepcopy(marker_pose.pose)
             marker.scale = Vector3(*marker_prop.scale)
             marker.color = ColorRGBA(*marker_prop.color)
             marker.id    = len(self._markers.markers)
@@ -141,7 +141,7 @@ class MarkerPublisher(object):
             marker.scale.x = 0
             marker.scale.y = 0
             marker.scale.z = min(*marker_prop.scale)
-            marker.pose    = copy.deepcopy(marker.pose)
+            marker.pose    = copy.deepcopy(marker_pose.pose)
             marker.pose.position.z -= (marker.scale.z + 0.001)
             marker.type    = Marker.TEXT_VIEW_FACING
             marker.color   = ColorRGBA(1.0, 1.0, 1.0, 0.8)  # white
