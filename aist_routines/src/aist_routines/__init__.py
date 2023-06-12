@@ -511,6 +511,9 @@ class AISTBaseRoutines(object):
                                      marker_lifetime=0):
         graspabilities = self._graspabilityClient.wait_for_result()
 
+        print('*** graspability stamp: [{:0>10}.{:0>9}]'
+              .format(graspabilities.poses.header.stamp.secs,
+                      graspabilities.poses.header.stamp.nsecs))
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
