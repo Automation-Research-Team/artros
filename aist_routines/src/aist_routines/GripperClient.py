@@ -455,4 +455,6 @@ class MagswitchGripper(GripperClient):
             = clip(self._parameters['sensitivity'], -30, 30)
         self._goal.command.position = clip(position, 0, 100)
         self._client.send_goal(self._goal)
+        rospy.loginfo('(MagswitchGripper) send command with position[%d]',
+                      position)
         return self.wait(timeout)
