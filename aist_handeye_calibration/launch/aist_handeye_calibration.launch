@@ -23,7 +23,17 @@
 	pkg="aist_camera_multiplexer" type="select_realsense_camera.py"
 	args="$(arg camera_name)"/>
 
-  <!-- Launch devices and calibrator -->
+  <!-- Start controllers for robots, cameras and other sensors -->
+  <include file="$(find aist_bringup)/launch/$(arg config)_bringup.launch">
+    <arg name="scene" value="$(arg config)_calibration" unless="$(arg check)"/>
+    <arg name="scene" value="" if="$(arg check)"/>
+    <arg name="sim"   value="$(arg sim)"/>
+    <arg name="rviz_config"
+  	 value="$(find aist_handeye_calibration
+  		)/launch/include/handeye_calibration.rviz"/>
+  </include>
+
+  <!-- Launch ArUco and calibrator -->
   <include file="$(dirname)/include/handeye_calibration.launch">
     <arg name="config"			value="aist"/>
 

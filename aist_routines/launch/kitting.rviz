@@ -7,9 +7,9 @@ Panels:
         - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planning Request1
         - /TF1/Frames1
-        - /DepthCloud1/Auto Size1
+        - /PhoXiDepthCloud1/Auto Size1
       Splitter Ratio: 0.4169986844062805
-    Tree Height: 1171
+    Tree Height: 495
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -25,10 +25,9 @@ Panels:
     Name: Views
     Splitter Ratio: 0.5
   - Class: rviz/Time
-    Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: MultiplexerRGB
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -66,8 +65,6 @@ Visualization Manager:
       MoveIt_Planning_Time: 5
       MoveIt_Use_Cartesian_Path: false
       MoveIt_Use_Constraint_Aware_IK: true
-      MoveIt_Warehouse_Host: 127.0.0.1
-      MoveIt_Warehouse_Port: 33829
       MoveIt_Workspace:
         Center:
           X: 0
@@ -861,6 +858,7 @@ Visualization Manager:
         State Display Time: 0.05 s
         Trail Step Size: 1
         Trajectory Topic: /move_group/display_planned_path
+        Use Sim Time: false
       Planning Metrics:
         Payload: 1
         Show Joint Torques: false
@@ -1669,6 +1667,8 @@ Visualization Manager:
       Velocity_Scaling_Factor: 1
     - Class: rviz/TF
       Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
@@ -1720,6 +1720,8 @@ Visualization Manager:
           Value: false
         a_bot_gripper_tip_link:
           Value: true
+        a_bot_inside_camera_aligned_depth_to_color_frame:
+          Value: true
         a_bot_inside_camera_color_frame:
           Value: true
         a_bot_inside_camera_color_optical_frame:
@@ -1740,6 +1742,8 @@ Visualization Manager:
           Value: false
         a_bot_inside_camera_right_ir_optical_frame:
           Value: false
+        a_bot_outside_camera_aligned_depth_to_color_frame:
+          Value: true
         a_bot_outside_camera_color_frame:
           Value: true
         a_bot_outside_camera_color_optical_frame:
@@ -2034,6 +2038,7 @@ Visualization Manager:
           Value: true
         world:
           Value: false
+      Marker Alpha: 1
       Marker Scale: 0.15000000596046448
       Name: TF
       Show Arrows: false
@@ -2082,10 +2087,12 @@ Visualization Manager:
                                           {}
                                         a_bot_inside_camera_connector_link:
                                           a_bot_inside_camera_link:
+                                            a_bot_inside_camera_aligned_depth_to_color_frame:
+                                              a_bot_inside_camera_color_optical_frame:
+                                                {}
+                                            a_bot_inside_camera_color_frame:
+                                              {}
                                             a_bot_inside_camera_depth_frame:
-                                              a_bot_inside_camera_color_frame:
-                                                a_bot_inside_camera_color_optical_frame:
-                                                  {}
                                               a_bot_inside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_inside_camera_left_ir_frame:
@@ -2096,10 +2103,12 @@ Visualization Manager:
                                                   {}
                                         a_bot_outside_camera_connector_link:
                                           a_bot_outside_camera_link:
+                                            a_bot_outside_camera_aligned_depth_to_color_frame:
+                                              a_bot_outside_camera_color_optical_frame:
+                                                {}
+                                            a_bot_outside_camera_color_frame:
+                                              {}
                                             a_bot_outside_camera_depth_frame:
-                                              a_bot_outside_camera_color_frame:
-                                                a_bot_outside_camera_color_optical_frame:
-                                                  {}
                                               a_bot_outside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_outside_camera_left_ir_frame:
@@ -2353,14 +2362,6 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
-    - Class: rviz/MarkerArray
-      Enabled: true
-      Marker Topic: /visualization_marker
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
     - Alpha: 1
       Auto Size:
         Auto Size Factor: 1
@@ -2384,7 +2385,7 @@ Visualization Manager:
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
-      Name: DepthCloud
+      Name: PhoXiDepthCloud
       Occlusion Compensation:
         Occlusion Time-Out: 30
         Value: false
@@ -2397,14 +2398,50 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /get_screen_corners/marker
-      Name: Marker
+    - Alpha: 1
+      Auto Size:
+        Auto Size Factor: 1
+        Value: true
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/DepthCloud
+      Color: 255; 255; 255
+      Color Image Topic: /camera_multiplexer/image
+      Color Transformer: RGB8
+      Color Transport Hint: raw
+      Decay Time: 0
+      Depth Map Topic: /camera_multiplexer/depth
+      Depth Map Transport Hint: raw
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: RealsenseDepthCloud
+      Occlusion Compensation:
+        Occlusion Time-Out: 30
+        Value: false
+      Position Transformer: XYZ
+      Queue Size: 5
+      Selectable: true
+      Size (Pixels): 3
+      Style: Flat Squares
+      Topic Filter: true
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /visualization_marker
+      Name: MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -2439,6 +2476,7 @@ Visualization Manager:
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
       Focal Point:
         X: 0.2672925293445587
         Y: 0.022577999159693718
@@ -2450,13 +2488,12 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.0797967910766602
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
       Yaw: 0.29994574189186096
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 2132
+  Height: 1043
   Hide Left Dock: false
   Hide Right Dock: true
   MotionPlanning:
@@ -2467,7 +2504,7 @@ Window Geometry:
     collapsed: false
   PhoxiTexture:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000002f3000007fafc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000004ed0000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000001800500068006f0078006900540065007800740075007200650100000530000001730000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d0075006c007400690070006c006500780065007200520047004201000006a90000018e0000001600fffffffb0000000a0049006d00610067006501000001e7000000f80000000000000000fb0000000a0049006d00610067006501000002e50000011d0000000000000000000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f000004f300fffffffb0000000800540069006d0065010000000000000450000000000000000000000c07000007fa00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001f3000003b9fc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afc0000003d000002490000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001f300fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb0000001800500068006f007800690054006500780074007500720065010000028c000000ac0000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb000000120020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c00690064006500720000000000ffffffff0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb0000001c004d0075006c007400690070006c0065007800650072005200470042010000033e000000b80000001600fffffffb0000000a0049006d00610067006501000001e7000000f80000000000000000fb0000000a0049006d00610067006501000002e50000011d0000000000000000000000010000010f000003ccfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000003cc000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074f0000003efc0100000002fb0000000800540069006d006500000000000000074f0000041800fffffffb0000000800540069006d0065010000000000000450000000000000000000000587000003b900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -2476,6 +2513,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 3840
-  X: 4480
+  Width: 1920
+  X: 2560
   Y: 0

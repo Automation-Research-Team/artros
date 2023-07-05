@@ -44,6 +44,7 @@
   <include file="$(dirname)/include/move_group.launch">
     <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
     <arg name="moveit_config"		value="$(arg moveit_config)"/>
+    <arg name="vis"			value="$(arg sim)"/>
     <arg name="rviz_config"		value="$(arg rviz_config)"/>
   </include>
 
