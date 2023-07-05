@@ -153,7 +153,7 @@ class URRobot(object):
         start_time = rospy.Time.now()
         while not rospy.is_shutdown() and \
               rospy.Time.now() - start_time < timeout:
-            res = self._dashboard_clients['unlock_protective_stop']()
+            res = self._unlock_protective_stop()
             if res.success:
                 break
             rospy.sleep(0.2)
@@ -306,6 +306,20 @@ class URRoutines(AISTBaseRoutines):
         d = rospy.get_param('~robots', {})
         for robot_name in d:
             self._ur_robots[robot_name] = URRobot(robot_name)
+
+    # Interactive stuffs
+    def print_help_messages(self):
+        super(URRoutines, self).print_help_messages()
+        print('=== UR specific commands ===')
+        print('  activate: Activate external control URCap')
+        print('  s: Search graspabilities')
+        print('  a: Attempt to pick and place')
+        print('  A: Repeat attempts to pick and place')
+        print('  d: Perform small demo')
+        print('  H: Move all robots to home')
+        print('  B: Move all robots to back')
+
+    def interactive(self, key, robot_name, axis, speed=1.0):
 
     def activate_external_control(self):
         for ur_robot in self._ur_robots:
