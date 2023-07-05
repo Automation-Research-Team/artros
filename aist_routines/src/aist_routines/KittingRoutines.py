@@ -38,7 +38,8 @@ import rospy, numpy as np
 from tf                    import transformations as tfs
 from math                  import pi, radians, degrees, cos, sin, sqrt
 from geometry_msgs.msg     import PoseStamped, QuaternionStamped, Quaternion
-from aist_routines         import AISTBaseRoutines
+from aist_routines.ur      import URRoutines
+#from aist_routines         import AISTBaseRoutines
 from aist_routines.msg     import (PickOrPlaceResult, PickOrPlaceFeedback,
                                    SweepResult)
 from aist_utility.compat   import *
@@ -47,7 +48,7 @@ from aist_graspability.msg import Graspabilities
 ######################################################################
 #  class KittingRoutines                                             #
 ######################################################################
-class KittingRoutines(AISTBaseRoutines):
+class KittingRoutines(URRoutines):
     """Implements kitting routines for aist robot system."""
 
     def __init__(self):

@@ -145,7 +145,7 @@ class URScriptPublisher(object):
             template = ""
             program_line = file.read(1024)
             while program_line:
-                template += program_line
+                template += str(program_line)
                 program_line = file.read(1024)
             return template
 
