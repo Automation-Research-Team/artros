@@ -36,7 +36,8 @@
 import rospy
 from aist_routines                   import AISTBaseRoutines
 from aist_routines.URScriptPublisher import URScriptPublisher
-from controller_manager_msgs.srv     import ListControllers, SwitchController
+from controller_manager_msgs.srv     import (ListControllers, SwitchController,
+                                             SwitchControllerRequest)
 from std_srvs.srv                    import Trigger, TriggerRequest
 from ur_dashboard_msgs.srv           import (GetLoadedProgram,
                                              IsProgramRunning, Load)
@@ -59,20 +60,20 @@ class URRobot(object):
         self._urscript_publisher = URScriptPublisher(robot_name)
 
         self._list_controllers   = rospy.ServiceProxy(controller_manager
-                                                      + 'list_conbtrollers',
+                                                      + 'list_controllers',
                                                       ListControllers)
         self._switch_controller  = rospy.ServiceProxy(controller_manager
                                                       + 'switch_controller',
-                                                      ListControllers)
+                                                      SwitchController)
 
         self._set_paylod         = rospy.ServiceProxy(hw_interface
                                                       + 'set_payload',
                                                       SetPayload)
         self._set_speed_slider   = rospy.ServiceProxy(hw_interface
                                                       + 'set_speed_slider',
-                                                      SetSpeedSliderFraction),
+                                                      SetSpeedSliderFraction)
         self._set_io             = rospy.ServiceProxy(hw_interface + 'set_io',
-                                                      SetIO),
+                                                      SetIO)
 
         self._get_loaded_program = rospy.ServiceProxy(dashboard
                                                       + 'get_loaded_program',
@@ -91,7 +92,7 @@ class URRobot(object):
         self._connect            = rospy.ServiceProxy(dashboard + 'connect',
                                                       Trigger)
         self._close_popup        = rospy.ServiceProxy(dashboard + 'close_popup',
-                                                      Trigger),
+                                                      Trigger)
         self._unlock_protective_stop \
             = rospy.ServiceProxy(dashboard + 'unlock_protective_stop', Trigger)
 
@@ -119,7 +120,10 @@ class URRobot(object):
                     rospy.logwarn('Force restart of controller')
                     req = SwitchControllerRequest()
                     req.start_controllers = [controller_name]
-                    req.strictness = 1
+                    req.stop_controllers  = []
+                    req.strictness        = SwitchControllerRequest.BEST_EFFORT
+                    req.start_asap        = True
+                    req.timeout           = 1.0
                     res = self._switch_controller.call(req)
                     rospy.sleep(1)
                     return res.ok
@@ -132,9 +136,6 @@ class URRobot(object):
     ###
     ###  SafetyMode stuffs
     ###
-    def _safety_mode_cb(self, msg):
-        self._safety_mode = msg.mode
-
     def is_running_normally(self):
         """
         Returns true if the robot is running (no protective stop, not turned off etc).
@@ -162,6 +163,9 @@ class URRobot(object):
         self._stop()
         return res.success
 
+    def _safety_mode_cb(self, msg):
+        self._safety_mode = msg.mode
+
     ###
     ###  Payload stuffs
     ###
@@ -181,9 +185,6 @@ class URRobot(object):
     ###
     ###  robot_program_running stuffs
     ###
-    def _robot_program_running_cb(self, msg):
-        self._robot_program_running = msg.data
-
     def wait_for_control_status_to_turn_on(self, timeout):
         start_time = rospy.Time.now()
         while not rospy.is_shutdown() and \
@@ -193,17 +194,18 @@ class URRobot(object):
             rospy.sleep(.1)
         return False
 
-    def activate_external_control(self, program_name='ROS_external_control.urp',
-                             max_retries=10):
+    def activate_external_control(self, program_name='ExternalControl.urp',
+                                  max_retries=10):
         # Check if URCap is already running on UR
         if self._robot_program_running:
             try:
                 self._set_speed_slider(1.0)
                 return True
-            except:
+            except Exception as e:
+                rospy.logerr(str(e))
                 rospy.logerr('Robot was not found or the robot is not a UR!')
                 return False
-        rospy.loginfo('ros_control is not running')
+        rospy.loginfo('program is not running')
 
         if not self.load_program(program_name, max_retries):
             rospy.logwarn('Failed to load program[%s]', program_name)
@@ -212,17 +214,18 @@ class URRobot(object):
         for i in range(max_retries):
             try:
                 rospy.loginfo('Play program[%s]', program_name)
-                res = self._play()
-                rospy.loginfo('Enter wait_for_control_status_to_turn_on')
-                self.wait_for_control_status_to_turn_on(2.0)
-                rospy.loginfo('Exited wait_for_control_status_to_turn_on')
-
+                if not self._play().success:
+                    continue
+                rospy.loginfo('Succesfully started program')
+                if not self.wait_for_control_status_to_turn_on(rospy.Duration(2.0)):
+                    continue
+                rospy.loginfo('Confirmed program is running')
                 if self.switch_controller('scaled_pos_joint_traj_controller'):
-                    rospy.loginfo('Successfully activated ROS control')
+                    rospy.loginfo('Successfully activated external control')
                     self._set_speed_slider(1.0)
                     return True
-            except:
-                pass
+            except Exception as e:
+                rospy.logerr(str(e))
 
             rospy.logwarn('Trying to restart URCap program on UR to restart controllers on ROS side')
             self._stop()
@@ -230,17 +233,13 @@ class URRobot(object):
         rospy.logerr()
         return False
 
+    def _robot_program_running_cb(self, msg):
+        print('_robot_program_running_cb: %s' % str(msg.data))
+        self._robot_program_running = msg.data
+
     ###
     ###  Load/execute program stuffs
     ###
-    def load_and_execute_program(self, program_name='',
-                                 skip_external_activation=False):
-        if not skip_external_activation:
-            self.activate_external_control()
-        if not self.load_program(program_name):
-            return False
-        return self.execute_program()
-
     def load_program(self, program_name='', max_retries=10):
         # Try to stop running program
         self._stop()
@@ -274,7 +273,7 @@ class URRobot(object):
                      program_name)
         return False
 
-    def execute_program(self):
+    def exec_program(self):
         # Run the program
         try:
             if self._play().success:
@@ -311,19 +310,54 @@ class URRoutines(AISTBaseRoutines):
     def print_help_messages(self):
         super(URRoutines, self).print_help_messages()
         print('=== UR specific commands ===')
-        print('  activate: Activate external control URCap')
-        print('  s: Search graspabilities')
-        print('  a: Attempt to pick and place')
-        print('  A: Repeat attempts to pick and place')
-        print('  d: Perform small demo')
-        print('  H: Move all robots to home')
-        print('  B: Move all robots to back')
+        print('  activate:   Activate external control URCap')
+        print('  load_prog:  Load program')
+        print('  exec_prog:  Execute loaded program')
+        print('  stop_prog:  Stop running program')
+        print('  connect:    Connect dashboard')
+        print('  disconnect: Disconnect dashboard')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
+        if key == 'activate':
+            self.activate_external_control()
+        elif key == 'load_prog':
+            self.load_program()
+        elif key == 'exec_prog':
+            self.exec_program()
+        elif key == 'stop_prog':
+            self.stop_program()
+        elif key == 'connect':
+            self.connect_dashboard()
+        elif key == 'disconnect':
+            self.disconnect_dashboard()
+        else:
+            return super(URRoutines, self).interactive(key, robot_name,
+                                                       axis, speed)
+        return robot_name, axis, speed
 
     def activate_external_control(self):
-        for ur_robot in self._ur_robots:
+        for ur_robot in self._ur_robots.values():
             ur_robot.activate_external_control()
+
+    def load_program(self):
+        for ur_robot in self._ur_robots.values():
+            ur_robot.load_program('ExternalControl.urp')
+
+    def exec_program(self):
+        for ur_robot in self._ur_robots.values():
+            ur_robot.exec_program()
+
+    def stop_program(self):
+        for ur_robot in self._ur_robots.values():
+            ur_robot._stop()
+
+    def connect_dashboard(self):
+        for ur_robot in self._ur_robots.values():
+            ur_robot._connect()
+
+    def disconnect_dashboard(self):
+        for ur_robot in self._ur_robots.values():
+            ur_robot._quit()
 
     # UR script motions
     def ur_movej(self, robot_name,

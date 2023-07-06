@@ -49,7 +49,7 @@ class URScriptPublisher(object):
         self._robot_name = robot_name
         self._listener   = tf.TransformListener()
         self._publisher  = rospy.Publisher('/' + robot_name +
-                                           '_controller/ur_driver/URScript',
+                                           'ur_hardware_interface/script_command',
                                            std_msgs.msg.String, queue_size=1)
         self._movej_template \
             = self._read_template('movej.script')
@@ -210,7 +210,7 @@ class URScriptPublisher(object):
 
     def _is_program_running(self):
         msg = rospy.wait_for_message('/' + self._robot_name +
-                                     '_controller/ur_driver/robot_mode_state',
+                                     '/ur_hardware_interface/robot_mode_state',
                                      ur_msgs.msg.RobotModeDataMsg)
         if msg:
             return msg.is_program_running
