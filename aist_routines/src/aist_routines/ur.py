@@ -217,7 +217,8 @@ class URRobot(object):
                 if not self._play().success:
                     continue
                 rospy.loginfo('Succesfully started program')
-                if not self.wait_for_control_status_to_turn_on(rospy.Duration(2.0)):
+                if not self.wait_for_control_status_to_turn_on(
+                        rospy.Duration(2.0)):
                     continue
                 rospy.loginfo('Confirmed program is running')
                 if self.switch_controller('scaled_pos_joint_traj_controller'):
@@ -234,7 +235,6 @@ class URRobot(object):
         return False
 
     def _robot_program_running_cb(self, msg):
-        print('_robot_program_running_cb: %s' % str(msg.data))
         self._robot_program_running = msg.data
 
     ###
@@ -310,12 +310,12 @@ class URRoutines(AISTBaseRoutines):
     def print_help_messages(self):
         super(URRoutines, self).print_help_messages()
         print('=== UR specific commands ===')
-        print('  activate:   Activate external control URCap')
-        print('  load_prog:  Load program')
-        print('  exec_prog:  Execute loaded program')
-        print('  stop_prog:  Stop running program')
-        print('  connect:    Connect dashboard')
-        print('  disconnect: Disconnect dashboard')
+        print('  activate:    Activate external control URCap')
+        print('  load_prog:   Load program')
+        print('  exec_prog:   Execute loaded program')
+        print('  stop_prog:   Stop running program')
+        print('  connect:     Connect dashboard')
+        print('  disconnect:  Disconnect dashboard')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         if key == 'activate':

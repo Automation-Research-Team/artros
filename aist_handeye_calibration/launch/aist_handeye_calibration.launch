@@ -2,40 +2,40 @@
 <launch>
 
   <arg name="sim"			default="false"/>
+  <arg name="config"			default="aist"/>
   <arg name="camera_name"		default="a_phoxi_m_camera"/>
   <arg name="check"			default="false"/>
   <arg name="use_dual_quaternion"	default="true"/>
 
-  <!-- Set camera topic names -->
-  <arg name="camera_info_topic"
-       value="$(eval 'camera_info' if 'phoxi' in camera_name
-	      else 'color/camera_info')"/>
-  <arg name="image_topic"
-       value="$(eval 'texture' if 'phoxi' in camera_name
-	      else 'color/image_raw')"/>
-  <arg name="depth_topic"
-       value="$(eval 'depth_map' if 'phoxi' in camera_name
-	      else 'aligned_depth_to_color/image_raw')"/>
+  <arg name="is_phoxi_camera"		value="$(eval 'phoxi' in camera_name)"/>
 
-  <!-- Turn on laser only for a camera to be calibrated -->
-  <node unless="$(eval 'phoxi' in camera_name)"
-	name="select_realsense_camera"
-	pkg="aist_camera_multiplexer" type="select_realsense_camera.py"
-	args="$(arg camera_name)"/>
-
-  <!-- Start controllers for robots, cameras and other sensors -->
-  <include file="$(find aist_bringup)/launch/$(arg config)_bringup.launch">
-    <arg name="scene" value="$(arg config)_calibration" unless="$(arg check)"/>
-    <arg name="scene" value="" if="$(arg check)"/>
-    <arg name="sim"   value="$(arg sim)"/>
-    <arg name="rviz_config"
-  	 value="$(find aist_handeye_calibration
-  		)/launch/include/handeye_calibration.rviz"/>
+  <!-- Start cameras -->
+  <include if="$(eval config=='aist')"
+	   file="$(find aist_bringup)/launch/aist_cameras.launch">
+    <arg unless="$(arg is_phoxi_camera)"
+	 name="active_camera_name"	value="$(arg camera_name)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="manager"			value=""/>
   </include>
+
+  <!-- Set camera topic names -->
+  <arg if="$(arg is_phoxi_camera)"
+       name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
+  <arg if="$(arg is_phoxi_camera)"
+       name="image_topic"	value="$(arg camera_name)/texture"/>
+  <arg if="$(arg is_phoxi_camera)"
+       name="depth_topic"	value="$(arg camera_name)/depth_map"/>
+  <arg unless="$(arg is_phoxi_camera)"
+       name="camera_info_topic"	value="$(arg camera_name)/color/camera_info"/>
+  <arg unless="$(arg is_phoxi_camera)"
+       name="image_topic"	value="$(arg camera_name)/color/image_raw"/>
+  <arg unless="$(arg is_phoxi_camera)"
+       name="depth_topic"	value="$(arg camera_name
+				       )/aligned_depth_to_color/image_raw"/>
 
   <!-- Launch ArUco and calibrator -->
   <include file="$(dirname)/include/handeye_calibration.launch">
-    <arg name="config"			value="aist"/>
+    <arg name="config"			value="$(arg config)"/>
 
     <arg name="camera_info_topic"	value="$(arg camera_info_topic)"/>
     <arg name="image_topic"		value="$(arg image_topic)"/>
@@ -45,6 +45,14 @@
     <arg name="camera_name"		value="$(arg camera_name)"/>
     <arg name="check"			value="$(arg check)"/>
     <arg name="use_dual_quaternion"	value="$(arg use_dual_quaternion)"/>
+  </include>
+
+  <!-- Start rviz -->
+  <include file="$(find aist_bringup)/launch/include/rviz.launch">
+    <arg name="moveit_config"	value="$(find aist_moveit_config)"/>
+    <arg name="rviz_config"
+  	 value="$(find aist_handeye_calibration
+  		)/launch/include/handeye_calibration.rviz"/>
   </include>
 
 </launch>
