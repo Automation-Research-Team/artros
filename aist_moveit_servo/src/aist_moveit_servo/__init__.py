@@ -16,6 +16,7 @@ from aist_moveit_servo.msg import (PoseTrackingAction, PoseTrackingGoal,
                                    PoseTrackingFeedback)
 from std_srvs.srv          import Empty
 from moveit_msgs.srv       import ChangeDriftDimensions, ChangeControlDimensions
+from math                  import degrees
 
 ######################################################################
 #  class PoseTrackingClient                                          #
@@ -85,19 +86,22 @@ class PoseTrackingClient(SimpleActionClient):
             done_cb=done_cb, feedback_cb=self._feedback_cb)
 
     def wait_for_tolerance_state(self, within_tolerance,
-                                 timeout=rospy.Duration()):
-        timeout_time = rospy.get_rostime() + timeout
+                                 timeout=rospy.Duration(0)):
+        timeout_time = rospy.Time.now() + timeout
         loop_period  = rospy.Duration(0.1)
         self._within_tolerance = not within_tolerance
+        print('Wait for tolerance %s' \
+              % ('SATISFIED' if within_tolerance else 'VIOLATED'))
         with self._condition:
             while self._within_tolerance != within_tolerance:
                 if self.get_state() not in (GoalStatus.PENDING,
                                             GoalStatus.ACTIVE):
                     break                       # servo preempted or aborted
-
-                if timeout > rospy.Duration():
-                    time_left = timeout_time - rospy.get_rostime()
-                    if time_left <= rospy.Duration():
+                print('self._within_tolerance=%s' \
+                      % ('True' if self._within_tolerance else 'False'))
+                if timeout > rospy.Duration(0):
+                    time_left = timeout_time - rospy.Time.now()
+                    if time_left <= rospy.Duration(0):
                         break                   # timeout expired
                     if time_left > loop_period:
                         time_left = loop_period
@@ -109,5 +113,11 @@ class PoseTrackingClient(SimpleActionClient):
     def _feedback_cb(self, feedback):
         if feedback.within_tolerance != self._within_tolerance:
             with self._condition:
+                print('Notify that tolerance %s, err=[%f,%f,%f; %f]' \
+                      % ('SATISFIED' if feedback.within_tolerance else 'VIOLATED',
+                         feedback.positional_error[0],
+                         feedback.positional_error[1],
+                         feedback.positional_error[2],
+                         degrees(feedback.angular_error)))
                 self._within_tolerance = feedback.within_tolerance
                 self._condition.notify()
