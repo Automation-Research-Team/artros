@@ -32,6 +32,7 @@
       <arg name="camera"		value="$(arg camera_name)"/>
       <arg name="tf_prefix"		value="$(arg camera_name)"/>
       <arg name="publish_tf"		value="$(arg publish_tf)"/>
+      <arg name="enable_sync"		value="true"/>
       <arg name="enable_depth"		value="$(arg enable_depth)"/>
       <arg name="enable_infra1"		value="false"/>
       <arg name="enable_infra2"		value="false"/>
