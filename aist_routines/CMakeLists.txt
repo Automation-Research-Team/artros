@@ -55,5 +55,7 @@ catkin_install_python(
     scripts/fetch_interactive.py
     scripts/test.py
     scripts/test_wrist_cameras.py
+    scripts/ros2nep.py
+    scripts/camera_script.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
