@@ -556,61 +556,68 @@ class AISTBaseRoutines(object):
 
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
-             wait=True, feedback_cb=None):
+             wait=True, done_cb=None, active_cb=None):
         params = self._picking_params[part_id]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
             self.gripper(robot_name).parameters = params['gripper_parameters']
-        return self._pick_or_place.execute(robot_name, target_pose, True,
-                                           params['grasp_offset'],
-                                           params['approach_offset'],
-                                           params['departure_offset'],
-                                           params['speed_fast'],
-                                           params['speed_slow'],
-                                           wait, feedback_cb)
+        return self._pick_or_place.send_goal(robot_name, target_pose, True,
+                                             params['grasp_offset'],
+                                             params['approach_offset'],
+                                             params['departure_offset'],
+                                             params['speed_fast'],
+                                             params['speed_slow'],
+                                             wait, done_cb, active_cb)
 
     def place(self, robot_name, target_pose, part_id,
-              wait=True, feedback_cb=None):
+              wait=True, done_cb=None, active_cb=None):
         params = self._picking_params[part_id]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
             self.gripper(robot_name).parameters = params['gripper_parameters']
-        return self._pick_or_place.execute(robot_name, target_pose, False,
-                                           params['place_offset'],
-                                           params['approach_offset'],
-                                           params['departure_offset'],
-                                           params['speed_fast'],
-                                           params['speed_slow'],
-                                           wait, feedback_cb)
+        return self._pick_or_place.send_goal(robot_name, target_pose, False,
+                                             params['place_offset'],
+                                             params['approach_offset'],
+                                             params['departure_offset'],
+                                             params['speed_fast'],
+                                             params['speed_slow'],
+                                             wait, done_cb, active_cb)
 
     def pick_at_frame(self, robot_name, target_frame, part_id,
-                      offset=(0, 0, 0), wait=True, feedback_cb=None):
+                      offset=(0, 0, 0),
+                      wait=True, done_cb=None, active_cb=None):
         target_pose = PoseStamped()
         target_pose.header.frame_id = target_frame
         target_pose.pose = Pose(Point(*offset[0:3]),
                                 Quaternion(
                                     *self._quaternion_from_offset(offset[3:])))
-        return self.pick(robot_name, target_pose, part_id, wait, feedback_cb)
+        return self.pick(robot_name, target_pose, part_id,
+                         wait, done_cb, active_cb)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
-                       offset=(0, 0, 0), wait=True, feedback_cb=None):
+                       offset=(0, 0, 0),
+                       wait=True, done_cb=None, active_cb=None):
         target_pose = PoseStamped()
         target_pose.header.frame_id = target_frame
         target_pose.pose = Pose(Point(*offset[0:3]),
                                 Quaternion(
                                     *self._quaternion_from_offset(offset[3:])))
-        return self.place(robot_name, target_pose, part_id, wait, feedback_cb)
+        return self.place(robot_name, target_pose, part_id,
+                          wait, done_cb, active_cb)
 
-    def pick_or_place_wait_for_result(self):
-        return self._pick_or_place.wait_for_result()
+    def pick_or_place_wait_for_result(self, timeout=rospy.Duration()):
+        if self._pick_or_place.wait_for_result(timeout):
+            return self._pick_or_place.get_result().result
+        else:
+            return None
 
     def pick_or_place_cancel(self):
-        return self._pick_or_place.cancel()
+        self._pick_or_place.cancel_goal()
 
-    def pick_or_place_wait_for_status(self, status):
-        return self._pick_or_place.wait_for_status(status)
+    def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
+        return self._pick_or_place.wait_for_stage(stage, timeout)
 
     # Sweep action stuffs
     def sweep(self, robot_name, target_pose, sweep_dir, part_id,

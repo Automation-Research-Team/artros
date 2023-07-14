@@ -177,7 +177,7 @@ class KittingRoutines(URRoutines):
                 self.place_at_frame(robot_name, part_props['destination'],
                                     part_id, offset=(0.0, place_offset, 0.0),
                                     wait=False)
-                self.pick_or_place_wait_for_status(
+                self.pick_or_place_wait_for_stage(
                     PickOrPlaceFeedback.APPROACHING)
                 poses  = self.search_bin(bin_id).poses
                 result = self.pick_or_place_wait_for_result()

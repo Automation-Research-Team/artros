@@ -45,25 +45,22 @@ from tf                 import transformations as tfs
 ######################################################################
 #  class PickOrPlace                                                 #
 ######################################################################
-class PickOrPlace(object):
+class PickOrPlace(SimpleActionClient):
     def __init__(self, routines):
-        super(PickOrPlace, self).__init__()
+        SimpleActionClient.__init__(self, "pickOrPlace", PickOrPlaceAction)
 
         self._routines  = routines
         self._condition = threading.Condition()
-        self._status    = PickOrPlaceFeedback.IDLING
+        self._stage     = None
         self._server    = SimpleActionServer("pickOrPlace", PickOrPlaceAction,
                                              self._execute_cb, False)
         self._server.start()
-        self._client    = SimpleActionClient("pickOrPlace", PickOrPlaceAction)
-        self._client.wait_for_server()
+        self.wait_for_server()
 
     # Client stuffs
-    def execute(self, robot_name, pose_stamped, pick, offset,
-                approach_offset, departure_offset, speed_fast, speed_slow,
-                wait=True, feedback_cb=None):
-        if not feedback_cb:
-            feedback_cb = self._feedback_cb
+    def send_goal(self, robot_name, pose_stamped, pick, offset,
+                  approach_offset, departure_offset, speed_fast, speed_slow,
+                  wait=True, done_cb=None, active_cb=None):
         goal = PickOrPlaceGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
@@ -73,29 +70,33 @@ class PickOrPlace(object):
         goal.departure_offset = self._create_transform(departure_offset)
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
-        self._client.send_goal(goal, feedback_cb=feedback_cb)
-        return self.wait_for_result() if wait else None
+        SimpleActionClient.send_goal(self, goal,
+                                     done_cb, active_cb, self._feedback_cb)
+        if wait:
+            self.wait_for_result()
+            return self.get_result().result
+        else:
+            return None
 
-    def wait_for_result(self):
-        self._client.wait_for_result()
-        return self._client.get_result().result
-
-    def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
-            self._client.cancel_goal()
-
-    def wait_for_status(self, status):
-        self._status = status                   # Set target status.
+    def wait_for_stage(self, stage, timeout=rospy.Duration()):
+        self._stage = stage                 # Set stage to be waited for
+        timeout_time = rospy.get_rostime() + timeout
+        loop_period  = rospy.Duration(0.1)
         with self._condition:
-            # Loop for avoiding spurious wakeup
-            while self._status != PickOrPlaceFeedback.IDLING:
-                self._condition.wait()
+            while self._stage:              # Loop for avoiding spurious wakeup
+                time_left = timeout_time - rospy.get_rostime()
+                if timeout   >  rospy.Duration(0.0) and \
+                   time_left <= rospy.Duration(0.0):
+                    break
+                if time_left > loop_period or timeout == rospy.Duration():
+                    time_left = loop_period
+                self._condition.wait(time_left.to_sec())
+        return self._stage is None
 
     def _feedback_cb(self, feedback):
-        if self._status == feedback.status:     # Reached target status?
+        if self._stage == feedback.stage:   # Reached stage to be waited for?
             with self._condition:
-                self._status = PickOrPlaceFeedback.IDLING
+                self._stage = None
                 self._condition.notifyAll()
 
     # Server stuffs
