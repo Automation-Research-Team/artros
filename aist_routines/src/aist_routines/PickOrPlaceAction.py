@@ -47,20 +47,29 @@ from tf                 import transformations as tfs
 ######################################################################
 class PickOrPlace(SimpleActionClient):
     def __init__(self, routines):
-        SimpleActionClient.__init__(self, "pickOrPlace", PickOrPlaceAction)
+        SimpleActionClient.__init__(self, 'pick_or_place', PickOrPlaceAction)
 
-        self._routines  = routines
-        self._condition = threading.Condition()
-        self._stage     = None
-        self._server    = SimpleActionServer("pickOrPlace", PickOrPlaceAction,
-                                             self._execute_cb, False)
+        self._routines      = routines
+        self._current_stage = PickOrPlaceFeedback.IDLING
+        self._target_stage  = None
+        self._condition     = threading.Condition()
+        self._server        = SimpleActionServer('pick_or_place',
+                                                 PickOrPlaceAction,
+                                                 self._execute_cb, False)
+        self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
         self.wait_for_server()
+
+    @property
+    def current_stage(self):
+        return self._current_stage
 
     # Client stuffs
     def send_goal(self, robot_name, pose_stamped, pick, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
                   wait=True, done_cb=None, active_cb=None):
+        self._current_stage = PickOrPlaceFeedback.IDLING
+        self._target_stage  = PickOrPlaceFeedback.IDLING
         goal = PickOrPlaceGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
@@ -79,24 +88,25 @@ class PickOrPlace(SimpleActionClient):
             return None
 
     def wait_for_stage(self, stage, timeout=rospy.Duration()):
-        self._stage = stage                 # Set stage to be waited for
+        self._target_stage = stage          # Set stage to be waited for
         timeout_time = rospy.get_rostime() + timeout
         loop_period  = rospy.Duration(0.1)
         with self._condition:
-            while self._stage:              # Loop for avoiding spurious wakeup
+            # Loop to avoid spurious wakeup
+            while self._current_stage != self._target_stage:
                 time_left = timeout_time - rospy.get_rostime()
                 if timeout   >  rospy.Duration(0.0) and \
                    time_left <= rospy.Duration(0.0):
-                    break
+                    return False            # Timeout has expired
                 if time_left > loop_period or timeout == rospy.Duration():
                     time_left = loop_period
                 self._condition.wait(time_left.to_sec())
-        return self._stage is None
+        return True
 
     def _feedback_cb(self, feedback):
-        if self._stage == feedback.stage:   # Reached stage to be waited for?
+        self._current_stage = feedback.stage
+        if self._current_stage == self._target_stage:
             with self._condition:
-                self._stage = None
                 self._condition.notifyAll()
 
     # Server stuffs
@@ -112,15 +122,15 @@ class PickOrPlace(SimpleActionClient):
         return Transform(Vector3(*xyz), Quaternion(*q))
 
     def _execute_cb(self, goal):
-        rospy.loginfo("*** Do %s ***", "picking" if goal.pick else "placing")
+        rospy.loginfo('*** Do %s ***', 'picking' if goal.pick else 'placing')
         routines = self._routines
         gripper  = routines.gripper(goal.robot_name)
         result   = PickOrPlaceResult()
 
         # Go to approach pose.
-        rospy.loginfo("--- Go to approach pose. ---")
-        if self._check_if_canceled(PickOrPlaceFeedback.MOVING):
-            return
+        rospy.loginfo('--- Go to approach pose. ---')
+        self._server.publish_feedback(PickOrPlaceFeedback(
+                                        PickOrPlaceFeedback.MOVING))
         scaling_factor = goal.speed_fast if goal.pick else goal.speed_slow
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
@@ -136,14 +146,14 @@ class PickOrPlace(SimpleActionClient):
                              scaling_factor, scaling_factor)
         if not success:
             result.result = PickOrPlaceResult.MOVE_FAILURE
-            self._server.set_aborted(result, "Failed to go to approach pose")
+            self._server.set_aborted(result, 'Failed to go to approach pose')
             return
 
         # Approach pick/place pose.
-        rospy.loginfo("--- Go to %s pose. ---",
-                      "pick" if goal.pick else "place")
-        if self._check_if_canceled(PickOrPlaceFeedback.APPROACHING):
-            return
+        rospy.loginfo('--- Go to %s pose. ---',
+                      'pick' if goal.pick else 'place')
+        self._server.publish_feedback(PickOrPlaceFeedback(
+                                        PickOrPlaceFeedback.APPROACHING))
         if goal.pick:
             gripper.pregrasp(-1)               # Pregrasp (not wait)
         target_pose \
@@ -155,21 +165,21 @@ class PickOrPlace(SimpleActionClient):
                                              goal.offset.rotation.y,
                                              goal.offset.rotation.z,
                                              goal.offset.rotation.w))
-        routines.add_marker("pick_pose" if goal.pick else "place_pose",
+        routines.add_marker('pick_pose' if goal.pick else 'place_pose',
                             target_pose)
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
         if not success:
             result.result = PickOrPlaceResult.APPROACH_FAILURE
-            self._server.set_aborted(result, "Failed to approach target")
+            self._server.set_aborted(result, 'Failed to approach target')
             if goal.pick:
                 gripper.release()
             return
 
         # Grasp/release at pick/place pose.
-        if self._check_if_canceled(PickOrPlaceFeedback.GRASPING_OR_RELEASING):
-            return
+        self._server.publish_feedback(PickOrPlaceFeedback(
+                                        PickOrPlaceFeedback.GRASP_OR_RELEASING))
         if goal.pick:
             gripper.wait()                      # Wait for pregrasp completed
             gripper.grasp()
@@ -177,10 +187,9 @@ class PickOrPlace(SimpleActionClient):
             gripper.release()
 
         # Go back to departure(pick) or approach(place) pose.
-        rospy.loginfo("--- Go back to departure pose. ---")
-
-        if self._check_if_canceled(PickOrPlaceFeedback.DEPARTING):
-            return
+        rospy.loginfo('--- Go back to departure pose. ---')
+        self._server.publish_feedback(PickOrPlaceFeedback(
+                                        PickOrPlaceFeedback.DEPARTING))
         if goal.pick:
             gripper.postgrasp(-1)    # Postgrap (not wait)
             offset         = goal.departure_offset
@@ -201,25 +210,25 @@ class PickOrPlace(SimpleActionClient):
                                                  scaling_factor, scaling_factor)
         if not success:
             result.result = PickOrPlaceResult.DEPARTURE_FAILURE
-            self._server.set_aborted(result, "Failed to depart from target")
+            self._server.set_aborted(result, 'Failed to depart from target')
             gripper.release()
             return
 
         if goal.pick and not gripper.wait():  # Wait for postgrasp completed
-            rospy.logwarn("--- Pick failed. ---")
+            rospy.logwarn('--- Pick failed. ---')
             result.result = PickOrPlaceResult.GRASP_FAILURE
-            self._server.set_aborted(result, "Failed to grasp")
+            self._server.set_aborted(result, 'Failed to grasp')
             gripper.release()
             return
 
-        rospy.loginfo("--- %s succeeded. ---",
-                      "Pick" if goal.pick else "Place")
+        rospy.loginfo('--- %s succeeded. ---',
+                      'Pick' if goal.pick else 'Place')
         result.result = PickOrPlaceResult.SUCCESS
-        self._server.set_succeeded(result, "Succeeded")
+        self._server.set_succeeded(result, 'Succeeded')
 
-    def _check_if_canceled(self, status):
-        self._server.publish_feedback(PickOrPlaceFeedback(status))
-        if self._server.is_preempt_requested():
-            self._server.set_preempted(PickOrPlaceResult(status))
-            return True
-        return False
+    def _preempt_cb(self):
+        goal = self.current_goal.get_goal()
+        self._routines.stop(goal.robot_name)
+        self._server.set_preempted()
+        rospy.logwarn('--- %s cancelled. ---',
+                      'Pick' if goal.pick else 'Place')
