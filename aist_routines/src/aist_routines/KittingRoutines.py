@@ -210,6 +210,21 @@ class KittingRoutines(URRoutines):
 
         self.go_to_named_pose(self._current_robot_name, 'home')
 
+    # Server of PickAllAction
+    def _execute_cb(self, goal):
+        remained     = True
+        poses        = None
+        place_offset = 0.020
+        self._clear_fail_poses()
+        while remained:
+            remained, poses = self.attempt_bin(bin_id, poses, place_offset)
+            place_offset = -place_offset
+        self.go_to_named_pose(self._current_robot_name, 'home')
+
+    def _preempt_cb(self):
+        self.pick_or_place_cancel()
+        self._server.set_preempted()
+
     # Utilities
     def _clear_fail_poses(self):
         self._fail_poses = []

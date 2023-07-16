@@ -607,6 +607,9 @@ class AISTBaseRoutines(object):
         return self.place(robot_name, target_pose, part_id,
                           wait, done_cb, active_cb)
 
+    def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
+        return self._pick_or_place.wait_for_stage(stage, timeout)
+
     def pick_or_place_wait_for_result(self, timeout=rospy.Duration()):
         if self._pick_or_place.wait_for_result(timeout):
             return self._pick_or_place.get_result().result
@@ -615,9 +618,6 @@ class AISTBaseRoutines(object):
 
     def pick_or_place_cancel(self):
         self._pick_or_place.cancel_goal()
-
-    def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
-        return self._pick_or_place.wait_for_stage(stage, timeout)
 
     # Sweep action stuffs
     def sweep(self, robot_name, target_pose, sweep_dir, part_id,

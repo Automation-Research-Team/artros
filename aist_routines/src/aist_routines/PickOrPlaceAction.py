@@ -125,12 +125,13 @@ class PickOrPlace(SimpleActionClient):
         rospy.loginfo('*** Do %s ***', 'picking' if goal.pick else 'placing')
         routines = self._routines
         gripper  = routines.gripper(goal.robot_name)
+        feedback = PickOrPlaceFeedback()
         result   = PickOrPlaceResult()
 
         # Go to approach pose.
         rospy.loginfo('--- Go to approach pose. ---')
-        self._server.publish_feedback(PickOrPlaceFeedback(
-                                        PickOrPlaceFeedback.MOVING))
+        feedback.stage = PickOrPlaceFeedback.MOVING
+        self._server.publish_feedback(feedback)
         scaling_factor = goal.speed_fast if goal.pick else goal.speed_slow
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
@@ -144,6 +145,8 @@ class PickOrPlace(SimpleActionClient):
                                   goal.approach_offset.rotation.z,
                                   goal.approach_offset.rotation.w)),
                              scaling_factor, scaling_factor)
+        if not self._server.is_active():
+            return
         if not success:
             result.result = PickOrPlaceResult.MOVE_FAILURE
             self._server.set_aborted(result, 'Failed to go to approach pose')
@@ -152,8 +155,8 @@ class PickOrPlace(SimpleActionClient):
         # Approach pick/place pose.
         rospy.loginfo('--- Go to %s pose. ---',
                       'pick' if goal.pick else 'place')
-        self._server.publish_feedback(PickOrPlaceFeedback(
-                                        PickOrPlaceFeedback.APPROACHING))
+        feedback.stage = PickOrPlaceFeedback.APPROACHING
+        self._server.publish_feedback(feedback)
         if goal.pick:
             gripper.pregrasp(-1)               # Pregrasp (not wait)
         target_pose \
@@ -170,6 +173,8 @@ class PickOrPlace(SimpleActionClient):
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
+        if not self._server.is_active():
+            return
         if not success:
             result.result = PickOrPlaceResult.APPROACH_FAILURE
             self._server.set_aborted(result, 'Failed to approach target')
@@ -178,8 +183,8 @@ class PickOrPlace(SimpleActionClient):
             return
 
         # Grasp/release at pick/place pose.
-        self._server.publish_feedback(PickOrPlaceFeedback(
-                                        PickOrPlaceFeedback.GRASP_OR_RELEASING))
+        feedback.stage = PickOrPlaceFeedback.GRASPING_OR_RELEASING
+        self._server.publish_feedback(feedback)
         if goal.pick:
             gripper.wait()                      # Wait for pregrasp completed
             gripper.grasp()
@@ -188,8 +193,8 @@ class PickOrPlace(SimpleActionClient):
 
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo('--- Go back to departure pose. ---')
-        self._server.publish_feedback(PickOrPlaceFeedback(
-                                        PickOrPlaceFeedback.DEPARTING))
+        feedback.stage = PickOrPlaceFeedback.DEPARTING
+        self._server.publish_feedback(feedback)
         if goal.pick:
             gripper.postgrasp(-1)    # Postgrap (not wait)
             offset         = goal.departure_offset
@@ -208,6 +213,8 @@ class PickOrPlace(SimpleActionClient):
                                                       offset.rotation.z,
                                                       offset.rotation.w)),
                                                  scaling_factor, scaling_factor)
+        if not self._server.is_active():
+            return
         if not success:
             result.result = PickOrPlaceResult.DEPARTURE_FAILURE
             self._server.set_aborted(result, 'Failed to depart from target')
