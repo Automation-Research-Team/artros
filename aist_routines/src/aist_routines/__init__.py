@@ -616,7 +616,7 @@ class AISTBaseRoutines(object):
         else:
             return None
 
-    def pick_or_place_cancel(self):
+    def pick_or_place_cancel_goal(self):
         self._pick_or_place.cancel_goal()
 
     # Sweep action stuffs

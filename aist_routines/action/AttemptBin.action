@@ -1,0 +1,16 @@
+# Goal
+string bin_id
+bool   once     # Pick only one item if true
+---
+# Result
+int32 SUCCESS=0
+int32 PICK_FAILURE=1
+int32 PLACE_FAILURE=2
+
+int32 result
+---
+# Feedback
+int32 PICKING=0
+int32 PLACING=1
+
+int32 stage
