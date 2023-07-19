@@ -35,12 +35,17 @@
 #
 import rospy, threading
 import numpy as np
-from actionlib          import SimpleActionServer, SimpleActionClient
-from actionlib_msgs.msg import GoalStatus
-from geometry_msgs.msg  import Transform, Vector3, Quaternion
-from aist_routines.msg  import (AttemptBinAction, AttemptBinGoal,
-                                AttemptBinResult, AttemptBinFeedback)
-from tf                 import transformations as tfs
+from math                  import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg     import (PoseStamped, QuaternionStamped,
+                                   Transform, Vector3, Quaternion)
+from actionlib             import SimpleActionServer, SimpleActionClient
+from actionlib_msgs.msg    import GoalStatus
+from aist_routines.msg     import (PickOrPlaceResult, PickOrPlaceFeedback,
+                                   SweepResult,
+                                   AttemptBinAction, AttemptBinGoal,
+                                   AttemptBinResult, AttemptBinFeedback)
+from aist_graspability.msg import Graspabilities
+from tf                    import transformations as tfs
 
 ######################################################################
 #  class AttemptBin                                                  #
@@ -49,21 +54,47 @@ class AttemptBin(SimpleActionClient):
     def __init__(self, routines):
         SimpleActionClient.__init__(self, "attempt_bin", AttemptBinAction)
 
-        self._routines  = routines
-        self._condition = threading.Condition()
-        self._stage     = None
-        self._server    = SimpleActionServer("attempt_bin", AttemptBinAction,
-                                             self._execute_cb, False)
+        self._routines           = routines
+        self._bin_props          = rospy.get_param('~bin_props')
+        self._part_props         = rospy.get_param('~part_props')
+        self._current_robot_name = None
+        self._fail_poses         = []
+        self._condition          = threading.Condition()
+        self._stage              = None
+        self._server             = SimpleActionServer("attempt_bin",
+                                                      AttemptBinAction,
+                                                      self._execute_cb, False)
+        self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
         self.wait_for_server()
 
-    # Client stuffs
-    def send_goal(self, bin_id, once, done_cb=None, active_cb=None):
-        SimpleActionClient.send_goal(self, AttemptBin(bin_id, once),
-                                     self._done_cb)
+    @property
+    def current_robot_name(self):
+        return self._current_robot_name
 
-    def _done_cb(self, status, result):
-        self.go_to_named_pose(self._current_robot_name, 'home')
+    # Graspability stuffs
+    def create_mask_image(self, camera_name):
+        self._routines.create_mask_image(camera_name, len(self._bin_props))
+
+    def search_bin(self, bin_id, max_slant=pi/4):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        routines   = self._routines
+        routines.graspability_send_goal(part_props['robot_name'],
+                                        part_id, bin_props['mask_id'])
+        routines.camera(part_props['camera_name']).trigger_frame()
+        return routines.graspability_wait_for_result(
+                   bin_props['name'],
+                   lambda pose, max_slant=max_slant:
+                       self._pose_filter(pose, max_slant))
+
+    # Client stuffs
+    def send_goal(self, bin_id, once, max_attempts,
+                  done_cb=None, active_cb=None):
+        SimpleActionClient.send_goal(self,
+                                     AttemptBinGoal(bin_id, once, max_attempts),
+                                     done_cb, active_cb)
 
     # Server stuffs
     def shutdown(self):
@@ -76,7 +107,7 @@ class AttemptBin(SimpleActionClient):
         self._clear_fail_poses()
         while remained:
             remained, poses = self._attempt_bin(goal.bin_id, poses,
-                                                place_offset)
+                                                place_offset, goal.max_attempts)
             if not self._server.is_active():
                 return
             if goal.once:
@@ -85,17 +116,17 @@ class AttemptBin(SimpleActionClient):
         self._server.set_succeeded()
         rospy.loginfo('(AttemptBin) SUCCEEDED')
 
-    def _attempt_bin(self, bin_id, poses, place_offset)
-        bin_props  = self._bin_props[goal.bin_id]
+    def _attempt_bin(self, bin_id, poses, place_offset, max_attempts):
+        bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
         robot_name = part_props['robot_name']
         routines   = self._routines
 
         # If using a different robot from the former, move it back to home.
-        if self._current_robot_name is not None and \
-           self._current_robot_name != robot_name:
-            routines.go_to_named_pose(self._current_robot_name, 'back')
+        if self.current_robot_name is not None and \
+           self.current_robot_name != robot_name:
+            routines.go_to_named_pose(self.current_robot_name, 'back')
         self._current_robot_name = robot_name
 
         # Move to 0.15m above the bin if the camera is mounted on the robot.
@@ -104,7 +135,7 @@ class AttemptBin(SimpleActionClient):
 
         # Search for graspabilities.
         if poses is None:
-            poses = routines.search_bin(bin_id).poses
+            poses = self.search_bin(bin_id).poses
 
         if not self._server.is_active():
             return False, None
@@ -123,8 +154,6 @@ class AttemptBin(SimpleActionClient):
             if not self._server.is_active():
                 break
 
-            print('*** pick_result=%d' % result)
-
             if result == PickOrPlaceResult.SUCCESS:
                 routines.place_at_frame(robot_name, part_props['destination'],
                                         part_id,
@@ -132,7 +161,7 @@ class AttemptBin(SimpleActionClient):
                                         wait=False)
                 routines.pick_or_place_wait_for_stage(
                     PickOrPlaceFeedback.APPROACHING)
-                poses  = routines.search_bin(bin_id).poses
+                poses  = self.search_bin(bin_id).poses
                 result = routines.pick_or_place_wait_for_result()
                 if not self._server.is_active():
                     break
@@ -154,3 +183,48 @@ class AttemptBin(SimpleActionClient):
         self._routines.pick_or_place_cancel_goal()
         self._server.set_preempted()
         rospy.logwarn('(AttemptBin) CANCELLED')
+
+    # Utilities
+    def _clear_fail_poses(self):
+        self._fail_poses = []
+
+    def _is_eye_on_hand(self, robot_name, camera_name):
+        return camera_name == robot_name + '_camera'
+
+    def _is_close_to_fail_poses(self, pose):
+        for fail_pose in self._fail_poses:
+            if self._is_close_to_fail_pose(pose, fail_pose, 0.005):
+                return True
+        return False
+
+    def _is_close_to_fail_pose(self, pose, fail_pose, tolerance):
+        position      = pose.pose.position
+        fail_position = fail_pose.pose.position
+        if abs(position.x - fail_position.x) > tolerance or \
+           abs(position.y - fail_position.y) > tolerance or \
+           abs(position.z - fail_position.z) > tolerance:
+            return False
+        return True
+
+    def _pose_filter(self, pose, max_slant):
+        if pose.position.z < 0.002:
+            return None
+
+        T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
+                                   pose.orientation.z, pose.orientation.w))
+        normal = T[0:3, 2]      # local Z-axis at the graspability point
+        up     = np.array((0, 0, 1))
+        a = np.dot(normal, up)
+        b = cos(max_slant)
+        if a < b:
+            p = sqrt((1.0 - b*b)/(1.0 - a*a))
+            q = b - a*p
+            R = np.identity(4, dtype=np.float32)
+            R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
+            R[0:3, 1] = self._normalize(np.cross(R[0:3, 2], T[0:3, 0]))
+            R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
+            pose.orientation = Quaternion(*tfs.quaternion_from_matrix(R))
+        return pose
+
+    def _normalize(self, x):
+        return x / sqrt(np.dot(x, x))

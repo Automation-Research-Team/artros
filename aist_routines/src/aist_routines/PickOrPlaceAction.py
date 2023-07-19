@@ -234,7 +234,7 @@ class PickOrPlace(SimpleActionClient):
         self._server.set_succeeded(result, 'Succeeded')
 
     def _preempt_cb(self):
-        goal = self.current_goal.get_goal()
+        goal = self._server.current_goal.get_goal()
         self._routines.stop(goal.robot_name)
         self._server.set_preempted()
         rospy.logwarn('--- %s cancelled. ---',
