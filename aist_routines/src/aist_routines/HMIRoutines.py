@@ -188,7 +188,7 @@ class HMIRoutines(KittingRoutines):
                                      graspabilities.poses.poses[0])
 
         # Send request and receive response.
-        res = self.request_help(robot_name, pose, part_id, message)
+        res = self._request_help(robot_name, pose, part_id, message)
         if res.pointing_state == pointing.SWEEP_RES:
             self._publish_marker('finger',
                                  res.header, res.finger_pos, res.finger_dir)
