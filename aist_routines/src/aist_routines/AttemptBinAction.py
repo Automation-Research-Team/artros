@@ -152,7 +152,7 @@ class AttemptBin(SimpleActionClient):
 
             result = routines.pick(robot_name, pose, part_id)
             if not self._server.is_active():
-                break
+                return False, None
 
             if result == PickOrPlaceResult.SUCCESS:
                 routines.place_at_frame(robot_name, part_props['destination'],
@@ -164,7 +164,7 @@ class AttemptBin(SimpleActionClient):
                 poses  = self.search_bin(bin_id).poses
                 result = routines.pick_or_place_wait_for_result()
                 if not self._server.is_active():
-                    break
+                    return False, None
                 return result == PickOrPlaceResult.SUCCESS, poses
             elif result == PickOrPlaceResult.MOVE_FAILURE or \
                  result == PickOrPlaceResult.APPROACH_FAILURE:
@@ -172,7 +172,7 @@ class AttemptBin(SimpleActionClient):
             elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self._server.set_aborted()
                 rospy.logerr('(AttemptBin) Failed to depart from pick/place pose')
-                break
+                return False, None
             elif result == PickOrPlaceResult.GRASP_FAILURE:
                 self._fail_poses.append(pose)
                 nattempts += 1

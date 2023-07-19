@@ -97,10 +97,10 @@ class KittingRoutines(URRoutines):
             self._attempt_bin.search_bin(bin_id)
         elif key == 'a':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
+            self.attempt_bin(bin_id, True, 5)
         elif key == 'A':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
+            self.attempt_bin(bin_id, False, 5)
         elif key == 'c':
             self._attempt_bin.cancel_goal()
         elif key == 'd':
@@ -115,6 +115,9 @@ class KittingRoutines(URRoutines):
         return robot_name, axis, speed
 
     # Commands
+    def attempt_bin(self, bin_id, once, max_attempts):
+        self._attempt_bin.send_goal(bin_id, once, max_attempts, self._done_cb)
+
     def demo(self):
         bin_ids = ('bin_1', 'bin_4', 'bin_5')
 #        bin_ids = ('bin_1', 'bin_4')
