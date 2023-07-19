@@ -34,10 +34,13 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+import rospy, numpy as np
+from math                           import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg              import Quaternion
 from aist_routines.ur               import URRoutines
 from aist_routines.AttemptBinAction import AttemptBin
 from aist_utility.compat            import *
+from tf                             import transformations as tfs
 
 ######################################################################
 #  class KittingRoutines                                             #
@@ -45,11 +48,12 @@ from aist_utility.compat            import *
 class KittingRoutines(URRoutines):
     """Implements kitting routines for aist robot system."""
 
-    def __init__(self):
+    def __init__(self, do_error_recovery=False):
         super(KittingRoutines, self).__init__()
 
-        self._attempt_bin = AttemptBin(self)
-        #self.go_to_named_pose('all_bots', 'home')
+        self._bin_props   = rospy.get_param('~bin_props')
+        self._part_props  = rospy.get_param('~part_props')
+        self._attempt_bin = AttemptBin(self, do_error_recovery)
 
     @property
     def current_robot_name(self):
@@ -91,16 +95,16 @@ class KittingRoutines(URRoutines):
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'm':
-            self._attempt_bin.create_mask_image('a_phoxi_m_camera')
+            self.create_mask_image('a_phoxi_m_camera', len(self._bin_props))
         elif key == 's':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self._attempt_bin.search_bin(bin_id)
+            self.search_bin(bin_id)
         elif key == 'a':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self.attempt_bin(bin_id, True, 5)
+            self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
         elif key == 'A':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self.attempt_bin(bin_id, False, 5)
+            self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
         elif key == 'c':
             self._attempt_bin.cancel_goal()
         elif key == 'd':
@@ -115,12 +119,20 @@ class KittingRoutines(URRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def attempt_bin(self, bin_id, once, max_attempts):
-        self._attempt_bin.send_goal(bin_id, once, max_attempts, self._done_cb)
+    def search_bin(self, bin_id, max_slant=pi/4):
+        bin_props  = self._bin_props[bin_id]
+        part_id    = bin_props['part_id']
+        part_props = self._part_props[part_id]
+        self.graspability_send_goal(part_props['robot_name'],
+                                    part_id, bin_props['mask_id'])
+        self.camera(part_props['camera_name']).trigger_frame()
+        return self.graspability_wait_for_result(
+                   bin_props['name'],
+                   lambda pose, max_slant=max_slant:
+                       self._pose_filter(pose, max_slant))
 
     def demo(self):
         bin_ids = ('bin_1', 'bin_4', 'bin_5')
-#        bin_ids = ('bin_1', 'bin_4')
 
         while True:
             completed = False
@@ -135,5 +147,28 @@ class KittingRoutines(URRoutines):
         self.go_to_named_pose(self.current_robot_name, 'home')
 
     # Utilities
+    def _pose_filter(self, pose, max_slant):
+        if pose.position.z < 0.002:
+            return None
+
+        T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
+                                   pose.orientation.z, pose.orientation.w))
+        normal = T[0:3, 2]      # local Z-axis at the graspability point
+        up     = np.array((0, 0, 1))
+        a = np.dot(normal, up)
+        b = cos(max_slant)
+        if a < b:
+            p = sqrt((1.0 - b*b)/(1.0 - a*a))
+            q = b - a*p
+            R = np.identity(4, dtype=np.float32)
+            R[0:3, 2] = p*normal + q*up                   # fixed Z-axis
+            R[0:3, 1] = self._normalize(np.cross(R[0:3, 2], T[0:3, 0]))
+            R[0:3, 0] = np.cross(R[0:3, 1], R[0:3, 2])
+            pose.orientation = Quaternion(*tfs.quaternion_from_matrix(R))
+        return pose
+
+    def _normalize(self, x):
+        return x / sqrt(np.dot(x, x))
+
     def _done_cb(self, state, result):
         self.go_to_named_pose(self.current_robot_name, 'home')
