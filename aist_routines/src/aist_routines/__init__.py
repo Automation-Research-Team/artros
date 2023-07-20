@@ -621,7 +621,7 @@ class AISTBaseRoutines(object):
 
     # Sweep action stuffs
     def sweep(self, robot_name, target_pose, sweep_dir, part_id,
-              wait=True, feedback_cb=None):
+              wait=True, done_cb=None, active_cb=None):
         R = tfs.quaternion_matrix((target_pose.pose.orientation.x,
                                    target_pose.pose.orientation.y,
                                    target_pose.pose.orientation.z,
@@ -633,14 +633,26 @@ class AISTBaseRoutines(object):
         target_pose.pose.orientation = Quaternion(
                                            *tfs.quaternion_from_matrix(R))
         params = self._sweep_params[part_id]
-        return self._sweep.execute(robot_name, target_pose,
-                                   params['sweep_length'],
-                                   params['sweep_offset'],
-                                   params['approach_offset'],
-                                   params['departure_offset'],
-                                   params['speed_fast'],
-                                   params['speed_slow'],
-                                   wait, feedback_cb)
+        return self._sweep.send_goal(robot_name, target_pose,
+                                     params['sweep_length'],
+                                     params['sweep_offset'],
+                                     params['approach_offset'],
+                                     params['departure_offset'],
+                                     params['speed_fast'],
+                                     params['speed_slow'],
+                                     wait, done_cb, active_cb)
+
+    def sweep_wait_for_stage(self, stage, timeout=rospy.Duration()):
+        return self._sweep.wait_for_stage(stage, timeout)
+
+    def sweep_wait_for_result(self, timeout=rospy.Duration()):
+        if self._sweep.wait_for_result(timeout):
+            return self._sweep.get_result().result
+        else:
+            return None
+
+    def sweep_cancel_goal(self):
+        self._sweep.cancel_goal()
 
     # Utility functions
     def shift_pose(self, pose, offset):

@@ -34,11 +34,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from geometry_msgs.msg     import (PoseStamped, QuaternionStamped,
-                                   Transform, Vector3, Quaternion)
-from actionlib             import SimpleActionServer, SimpleActionClient
-from aist_routines.msg     import (PickOrPlaceResult, PickOrPlaceFeedback,
-                                   AttemptBinAction, AttemptBinGoal)
+from geometry_msgs.msg import (PoseStamped, QuaternionStamped,
+                               Transform, Vector3, Quaternion)
+from actionlib         import SimpleActionServer, SimpleActionClient
+from aist_routines.msg import (PickOrPlaceResult, PickOrPlaceFeedback,
+                               AttemptBinAction, AttemptBinGoal,
+                               AttemptBinFeedback)
 
 ######################################################################
 #  class AttemptBin                                                  #
@@ -123,11 +124,16 @@ class AttemptBin(SimpleActionClient):
             if self._is_close_to_fail_poses(pose):
                 continue
 
+            feedback = AttemptBinFeedback()
+            feedback.stage = AttemptBinFeedback.PICKING
+            self._server.publish_feedback(feedback)
             result = routines.pick(robot_name, pose, part_id)
             if not self._server.is_active():
                 return False, None
 
             if result == PickOrPlaceResult.SUCCESS:
+                feedback.stage = AttemptBinFeedback.PLACING
+                self._server.publish_feedback(feedback)
                 routines.place_at_frame(robot_name, part_props['destination'],
                                         part_id,
                                         offset=(0.0, place_offset, 0.0),

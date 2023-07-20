@@ -33,9 +33,8 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
-import actionlib
-import numpy as np
+import rospy, numpy as np
+from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg  import Transform, Vector3, Quaternion
 from aist_routines.msg  import (SweepAction, SweepGoal,
@@ -45,21 +44,25 @@ from tf                 import transformations as tfs
 ######################################################################
 #  class Sweep                                                       #
 ######################################################################
-class Sweep(object):
+class Sweep(SimpleActionClient):
     def __init__(self, routines):
-        super(Sweep, self).__init__()
+        SimpleActionClient.__init__(self, 'sweep', SweepAction)
 
-        self._routines = routines
-        self._server   = actionlib.SimpleActionServer("sweep", SweepAction,
-                                                      self._execute_cb, False)
+        self._routines      = routines
+        self._current_stage = SweepFeedback.IDLING
+        self._target_stage  = None
+        self._condition     = threading.Condition()
+        self._server        = SimpleActionServer("sweep", SweepAction,
+                                                 self._execute_cb, False)
+        self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
-        self._client = actionlib.SimpleActionClient("sweep", SweepAction)
-        self._client.wait_for_server()
+        self.wait_for_server()
 
     # Client stuffs
-    def execute(self, robot_name, pose_stamped, sweep_length,
-                sweep_offset, approach_offset, departure_offset,
-                speed_fast, speed_slow, wait=True, feedback_cb=None):
+    def send_goal(self, robot_name, pose_stamped, sweep_length,
+                  sweep_offset, approach_offset, departure_offset,
+                  speed_fast, speed_slow,
+                  wait=True, done_cb=None, active_cb=None):
         goal = SweepGoal()
         goal.robot_name       = robot_name
         goal.pose             = pose_stamped
@@ -69,19 +72,35 @@ class Sweep(object):
         goal.departure_offset = self._create_transform(departure_offset)
         goal.speed_fast       = speed_fast
         goal.speed_slow       = speed_slow
-        self._client.send_goal(goal, feedback_cb=feedback_cb)
-        return self.wait_for_result() if wait else None
-
-    def wait_for_result(self, timeout=rospy.Duration(0)):
-        if self._client.wait_for_result(timeout):
-            return self._client.get_result().result
+        SimpleActionClient.send_goal(self, goal,
+                                     done_cb, active_cb, self._feedback_cb)
+        if wait:
+            self.wait_for_result()
+            return self.get_result().result
         else:
             return None
 
-    def cancel(self):
-        if self._client.get_state() in ( GoalStatus.PENDING,
-                                         GoalStatus.ACTIVE ):
-            self._client.cancel_goal()
+    def wait_for_stage(self, stage, timeout=rospy.Duration()):
+        self._target_stage = stage          # Set stage to be waited for
+        timeout_time = rospy.get_rostime() + timeout
+        loop_period  = rospy.Duration(0.1)
+        with self._condition:
+            # Loop to avoid spurious wakeup
+            while self._current_stage != self._target_stage:
+                time_left = timeout_time - rospy.get_rostime()
+                if timeout   >  rospy.Duration(0.0) and \
+                   time_left <= rospy.Duration(0.0):
+                    return False            # Timeout has expired
+                if time_left > loop_period or timeout == rospy.Duration():
+                    time_left = loop_period
+                self._condition.wait(time_left.to_sec())
+        return True
+
+    def _feedback_cb(self, feedback):
+        self._current_stage = feedback.stage
+        if self._current_stage == self._target_stage:
+            with self._condition:
+                self._condition.notifyAll()
 
     # Server stuffs
     def shutdown(self):
@@ -98,10 +117,13 @@ class Sweep(object):
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do sweeping ***")
         routines = self._routines
+        feedback = SweepFeedback()
         result   = SweepResult()
 
         # Go to approach pose.
         rospy.loginfo("--- Go to approach pose. ---")
+        feedback.stage = SweepFeedback.MOVING
+        self._server.publish_feedback(feedback)
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
                              routines.effector_target_pose(
@@ -114,12 +136,16 @@ class Sweep(object):
                                   goal.approach_offset.rotation.z,
                                   goal.approach_offset.rotation.w)),
                              goal.speed_fast)
+        if not self._server.is_active():
+            return
         if not success:
             result.result = SweepResult.MOVE_FAILURE
             self._server.set_aborted(result, "Failed to go to approach pose")
             return
 
         # Approach sweep pose.
+        feedback.stage = PickOrPlaceFeedback.APPROACHING
+        self._server.publish_feedback(feedback)
         target_pose = routines.effector_target_pose(
                           goal.pose,
                           (goal.sweep_offset.translation.x,
@@ -133,6 +159,8 @@ class Sweep(object):
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
+        if not self._server.is_active():
+            return
         if not success:
             result.result = SweepResult.APPROACH_FAILURE
             self._server.set_aborted(result, "Failed to approach target")
@@ -140,6 +168,8 @@ class Sweep(object):
 
         # Sweep.
         rospy.loginfo("--- Sweep. ---")
+        feedback.stage = PickOrPlaceFeedback.SWEEPING
+        self._server.publish_feedback(feedback)
         target_pose = routines.effector_target_pose(
                           goal.pose,
                           (goal.sweep_offset.translation.x,
@@ -153,6 +183,8 @@ class Sweep(object):
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
                                                  goal.speed_slow)
+        if not self._server.is_active():
+            return
         if not success:
             result.result = SweepResult.SWEEP_FAILURE
             self._server.set_aborted(result, "Failed to sweep")
@@ -160,7 +192,8 @@ class Sweep(object):
 
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo("--- Go back to departure pose. ---")
-
+        feedback.stage = PickOrPlaceFeedback.DEPARTING
+        self._server.publish_feedback(feedback)
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
                              routines.effector_target_pose(
@@ -173,14 +206,18 @@ class Sweep(object):
                                   goal.departure_offset.rotation.z,
                                   goal.departure_offset.rotation.w)),
                              goal.speed_fast)
+        if not self._server.is_active():
+            return
         if not success:
             result.result = SweepResult.DEPARTURE_FAILURE
             self._server.set_aborted(result, "Failed to depart from target")
             return
 
-        if success:
-            result.result = SweepResult.SUCCESS
-            self._server.set_succeeded(result, "Succeeded")
-        else:
-            result.result = SweepResult.GRASP_FAILURE
-            self._server.set_aborted(result, "Failed to grasp")
+        result.result = SweepResult.SUCCESS
+        self._server.set_succeeded(result, "Succeeded")
+
+    def _preempt_cb(self):
+        goal = self._server.current_goal.get_goal()
+        self._routines.stop(goal.robot_name)
+        self._server.set_preempted()
+        rospy.logwarn('--- Sweep cancelled. ---')
