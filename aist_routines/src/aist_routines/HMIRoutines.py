@@ -232,7 +232,7 @@ class HMIRoutines(KittingRoutines):
         elif res.pointing_state == pointing.RECAPTURE_RES:
             rospy.loginfo('(hmi_demo) Recapture required.')
         else:
-            rospy.logerr('(hmi_demo) Unknown command received!')
+            rospy.logerr('(hmi_demo) Preempted!')
         return False                            # No more requests required.
 
     def _request_help(self, robot_name, pose, part_id, message):

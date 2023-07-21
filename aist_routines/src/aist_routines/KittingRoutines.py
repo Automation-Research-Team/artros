@@ -171,4 +171,5 @@ class KittingRoutines(URRoutines):
         return x / sqrt(np.dot(x, x))
 
     def _done_cb(self, state, result):
+        rospy.sleep(1)          # Pause required after cancelling arm motion
         self.go_to_named_pose(self.current_robot_name, 'home')

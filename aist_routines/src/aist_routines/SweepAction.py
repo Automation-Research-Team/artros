@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, numpy as np
+import rospy, threading, numpy as np
 from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg  import Transform, Vector3, Quaternion
@@ -144,7 +144,7 @@ class Sweep(SimpleActionClient):
             return
 
         # Approach sweep pose.
-        feedback.stage = PickOrPlaceFeedback.APPROACHING
+        feedback.stage = SweepFeedback.APPROACHING
         self._server.publish_feedback(feedback)
         target_pose = routines.effector_target_pose(
                           goal.pose,
@@ -168,7 +168,7 @@ class Sweep(SimpleActionClient):
 
         # Sweep.
         rospy.loginfo("--- Sweep. ---")
-        feedback.stage = PickOrPlaceFeedback.SWEEPING
+        feedback.stage = SweepFeedback.SWEEPING
         self._server.publish_feedback(feedback)
         target_pose = routines.effector_target_pose(
                           goal.pose,
@@ -192,7 +192,7 @@ class Sweep(SimpleActionClient):
 
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo("--- Go back to departure pose. ---")
-        feedback.stage = PickOrPlaceFeedback.DEPARTING
+        feedback.stage = SweepFeedback.DEPARTING
         self._server.publish_feedback(feedback)
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,

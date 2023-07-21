@@ -176,6 +176,7 @@ class AttemptBin(SimpleActionClient):
 
     def _preempt_cb(self):
         self._routines.pick_or_place_cancel_goal()
+        self._routines.pick_or_place_wait_for_result()
         self._server.set_preempted()
         rospy.logwarn('(AttemptBin) CANCELLED')
 
