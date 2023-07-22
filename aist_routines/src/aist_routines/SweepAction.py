@@ -77,8 +77,6 @@ class Sweep(SimpleActionClient):
         if wait:
             self.wait_for_result()
             return self.get_result().result
-        else:
-            return None
 
     def wait_for_stage(self, stage, timeout=rospy.Duration()):
         self._target_stage = stage          # Set stage to be waited for
@@ -219,5 +217,5 @@ class Sweep(SimpleActionClient):
     def _preempt_cb(self):
         goal = self._server.current_goal.get_goal()
         self._routines.stop(goal.robot_name)
-        self._server.set_preempted()
+        self._server.set_preempted(SweepResult(SweepResult.PREEMPTED))
         rospy.logwarn('--- Sweep cancelled. ---')

@@ -44,16 +44,19 @@ from aist_routines.msg import (PickOrPlaceResult, PickOrPlaceFeedback,
 #  class AttemptBin                                                  #
 ######################################################################
 class AttemptBin(SimpleActionClient):
-    def __init__(self, routines, do_error_recovery):
+    def __init__(self, routines,
+                 do_error_recovery=None, cancel_error_recovery=None):
         SimpleActionClient.__init__(self, "attempt_bin", AttemptBinAction)
 
-        self._routines           = routines
-        self._do_error_recovery  = do_error_recovery
-        self._current_robot_name = None
-        self._fail_poses         = []
-        self._server             = SimpleActionServer("attempt_bin",
-                                                      AttemptBinAction,
-                                                      self._execute_cb, False)
+        self._routines              = routines
+        self._do_error_recovery     = do_error_recovery
+        self._cancel_error_recovery = cancel_error_recovery
+        self._current_robot_name    = None
+        self._fail_poses            = []
+        self._server                = SimpleActionServer("attempt_bin",
+                                                         AttemptBinAction,
+                                                         self._execute_cb,
+                                                         False)
         self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
         self.wait_for_server()
@@ -63,10 +66,11 @@ class AttemptBin(SimpleActionClient):
         return self._current_robot_name
 
     # Client stuffs
-    def send_goal(self, bin_id, once, max_attempts,
+    def send_goal(self, bin_id, pick_all, max_attempts,
                   done_cb=None, active_cb=None):
         SimpleActionClient.send_goal(self,
-                                     AttemptBinGoal(bin_id, once, max_attempts),
+                                     AttemptBinGoal(bin_id, pick_all,
+                                                    max_attempts),
                                      done_cb, active_cb)
 
     # Server stuffs
@@ -83,7 +87,7 @@ class AttemptBin(SimpleActionClient):
                                                 place_offset, goal.max_attempts)
             if not self._server.is_active():
                 return
-            if goal.once:
+            if not goal.pick_all:
                 break
             place_offset = -place_offset
         self._server.set_succeeded()
@@ -139,8 +143,8 @@ class AttemptBin(SimpleActionClient):
                 if not self._server.is_active():
                     return False, None
                 return place_result == PickOrPlaceResult.SUCCESS, poses
-            elif pick_result == PickOrPlaceResult.MOVE_FAILURE or \
-                 pick_result == PickOrPlaceResult.APPROACH_FAILURE:
+            elif pick_result in (PickOrPlaceResult.MOVE_FAILURE,
+                                 PickOrPlaceResult.APPROACH_FAILURE):
                 self._fail_poses.append(pose)
             elif pick_result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self._server.set_aborted()
@@ -148,17 +152,8 @@ class AttemptBin(SimpleActionClient):
                 return False, None
             elif pick_result == PickOrPlaceResult.GRASP_FAILURE:
                 if self._do_error_recovery:
-                    message = 'Picking failed! Please sepcify sweep direction.'
-                    while True:
-                        sweep_result = routines.request_help_and_sweep(
-                                           robot_name, pose, part_id, message)
-                        if sweep_result == SweepResult.SUCCESS:
-                            break
-                        elif sweep_result == SweepResult.DEPARTURE_FAILURE:
-                            self._server.set_aborted()
-                            rospy.logerr('(AttemptBin) Failed to depart from sweep pose')
-                            break
-                        message = 'Planning for sweeping failed! Please specify another sweep direction'
+                    if not self._do_error_recovery(robot_name, pose, part_id):
+                        self._server.set_aborted()
                     routines.restore_original_graspability_params(bin_id)
                     return True, None
                 else:
@@ -177,9 +172,8 @@ class AttemptBin(SimpleActionClient):
 
     def _preempt_cb(self):
         self._routines.pick_or_place_cancel_goal()
-        if self._do_error_recovery:
-            self._routines.request_help_cancel_goal()
-            self._routines.sweep_cancel_goal()
+        if self._cancel_error_recovery:
+            self._cancel_error_recovery()
         self._server.set_preempted()
         rospy.logwarn('(AttemptBin) CANCELLED')
 

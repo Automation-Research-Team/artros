@@ -1,6 +1,6 @@
 # Goal
 string bin_id
-bool   once          # Pick only one item if true
+bool   pick_all      # Pick all items if true
 uint32 max_attempts  # Maximum number of attempts per picking try
 ---
 # Result
