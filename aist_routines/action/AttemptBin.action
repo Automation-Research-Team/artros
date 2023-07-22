@@ -6,10 +6,3 @@ uint32 max_attempts  # Maximum number of attempts per picking try
 # Result
 ---
 # Feedback
-int32 IDLING=0
-int32 PICKING=1
-int32 PLACING=2
-int32 REQUESTING=3
-int32 SWEEPING=4
-
-int32 stage

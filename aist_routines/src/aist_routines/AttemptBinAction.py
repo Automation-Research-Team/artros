@@ -38,8 +38,7 @@ from geometry_msgs.msg import (PoseStamped, QuaternionStamped,
                                Transform, Vector3, Quaternion)
 from actionlib         import SimpleActionServer, SimpleActionClient
 from aist_routines.msg import (PickOrPlaceResult, PickOrPlaceFeedback,
-                               AttemptBinAction, AttemptBinGoal,
-                               AttemptBinFeedback)
+                               AttemptBinAction, AttemptBinGoal)
 
 ######################################################################
 #  class AttemptBin                                                  #
@@ -124,39 +123,41 @@ class AttemptBin(SimpleActionClient):
             if self._is_close_to_fail_poses(pose):
                 continue
 
-            feedback = AttemptBinFeedback()
-            feedback.stage = AttemptBinFeedback.PICKING
-            self._server.publish_feedback(feedback)
-            result = routines.pick(robot_name, pose, part_id)
+            pick_result = routines.pick(robot_name, pose, part_id)
             if not self._server.is_active():
                 return False, None
 
-            if result == PickOrPlaceResult.SUCCESS:
-                feedback.stage = AttemptBinFeedback.PLACING
-                self._server.publish_feedback(feedback)
+            if pick_result == PickOrPlaceResult.SUCCESS:
                 routines.place_at_frame(robot_name, part_props['destination'],
                                         part_id,
                                         offset=(0.0, place_offset, 0.0),
                                         wait=False)
                 routines.pick_or_place_wait_for_stage(
                     PickOrPlaceFeedback.APPROACHING)
-                poses  = routines.search_bin(bin_id).poses
-                result = routines.pick_or_place_wait_for_result()
+                poses        = routines.search_bin(bin_id).poses
+                place_result = routines.pick_or_place_wait_for_result()
                 if not self._server.is_active():
                     return False, None
-                return result == PickOrPlaceResult.SUCCESS, poses
-            elif result == PickOrPlaceResult.MOVE_FAILURE or \
-                 result == PickOrPlaceResult.APPROACH_FAILURE:
+                return place_result == PickOrPlaceResult.SUCCESS, poses
+            elif pick_result == PickOrPlaceResult.MOVE_FAILURE or \
+                 pick_result == PickOrPlaceResult.APPROACH_FAILURE:
                 self._fail_poses.append(pose)
-            elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
+            elif pick_result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self._server.set_aborted()
                 rospy.logerr('(AttemptBin) Failed to depart from pick/place pose')
                 return False, None
-            elif result == PickOrPlaceResult.GRASP_FAILURE:
+            elif pick_result == PickOrPlaceResult.GRASP_FAILURE:
                 if self._do_error_recovery:
                     message = 'Picking failed! Please sepcify sweep direction.'
-                    while routines.request_help_and_sweep(robot_name, pose,
-                                                          part_id, message):
+                    while True:
+                        sweep_result = routines.request_help_and_sweep(
+                                           robot_name, pose, part_id, message)
+                        if sweep_result == SweepResult.SUCCESS:
+                            break
+                        elif sweep_result == SweepResult.DEPARTURE_FAILURE:
+                            self._server.set_aborted()
+                            rospy.logerr('(AttemptBin) Failed to depart from sweep pose')
+                            break
                         message = 'Planning for sweeping failed! Please specify another sweep direction'
                     routines.restore_original_graspability_params(bin_id)
                     return True, None
@@ -176,7 +177,9 @@ class AttemptBin(SimpleActionClient):
 
     def _preempt_cb(self):
         self._routines.pick_or_place_cancel_goal()
-        self._routines.pick_or_place_wait_for_result()
+        if self._do_error_recovery:
+            self._routines.request_help_cancel_goal()
+            self._routines.sweep_cancel_goal()
         self._server.set_preempted()
         rospy.logwarn('(AttemptBin) CANCELLED')
 

@@ -222,18 +222,13 @@ class HMIRoutines(KittingRoutines):
             sweep_dir = self._compute_sweep_dir(pose, res)  # Compute direction
             self._publish_marker('sweep', pose.header, pose.pose.position,
                                  Vector3(*sweep_dir))
-            result = self.sweep(robot_name, pose, sweep_dir, part_id)
-            if result == SweepResult.MOVE_FAILURE or \
-               result == SweepResult.APPROACH_FAILURE:
-                return True                     # Need to send request again
-            elif result == SweepResult.DEPARTURE_FAILURE:
-                raise RuntimeError('Failed to depart from sweep pose')
+            return self.sweep(robot_name, pose, sweep_dir, part_id)
 
         elif res.pointing_state == pointing.RECAPTURE_RES:
             rospy.loginfo('(hmi_demo) Recapture required.')
         else:
             rospy.logerr('(hmi_demo) Preempted!')
-        return False                            # No more requests required.
+        return SweepResult.SUCCESS              # No more requests required.
 
     def _request_help(self, robot_name, pose, part_id, message):
         """
