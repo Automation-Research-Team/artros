@@ -93,14 +93,12 @@ is_valid(T val)
 /************************************************************************
 *  class DepthFilter							*
 ************************************************************************/
-DepthFilter::DepthFilter(const ros::NodeHandle& nh)
-    :_nh(nh),
-     _saveBG_srv(_nh.advertiseService("saveBG",
-				      &DepthFilter::saveBG_cb, this)),
-     _capture_srv(_nh.advertiseService("capture",
-				       &DepthFilter::capture_cb, this)),
-     _it(_nh),
-     _camera_info_sub(_nh, "/camera_info", 1),
+DepthFilter::DepthFilter(ros::NodeHandle& nh)
+    :_saveBG_srv(nh.advertiseService("saveBG", &DepthFilter::saveBG_cb, this)),
+     _capture_srv(nh.advertiseService("capture",
+				      &DepthFilter::capture_cb, this)),
+     _it(nh),
+     _camera_info_sub(nh, "/camera_info", 1),
      _image_sub( _it, "/image",  1),
      _depth_sub( _it, "/depth",  1),
      _normal_sub(_it, "/normal", 1),
@@ -110,13 +108,13 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
      _depth_pub( _it.advertise("depth",  1)),
      _normal_pub(_it.advertise("normal", 1)),
      _colored_normal_pub(_it.advertise("colored_normal", 1)),
-     _plane_pub(_nh.advertise<cloud_t>("base_plane", 1)),
-     _camera_info_pub(_nh.advertise<camera_info_t>("camera_info", 1)),
-     _file_info_pub(_nh.advertise<file_info_t>("file_info", 1)),
-     _detect_plane_srv(_nh, "detect_plane",
+     _plane_pub(nh.advertise<cloud_t>("base_plane", 1)),
+     _camera_info_pub(nh.advertise<camera_info_t>("camera_info", 1)),
+     _file_info_pub(nh.advertise<file_info_t>("file_info", 1)),
+     _detect_plane_srv(nh, "detect_plane",
 		       boost::bind(&DepthFilter::detect_plane_cb, this, _1),
 		       false),
-     _ddr(_nh),
+     _ddr(nh),
      _camera_info_org(nullptr),
      _camera_info(),
      _image_org(nullptr),
@@ -125,16 +123,16 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
      _depth_bg(nullptr),
      _depth(),
      _normal(),
-     _threshBG(_nh.param("thresh_bg", 0.0)),
-     _near(_nh.param("near", 0.0)),
-     _far(_nh.param("far", 4.0)),
-     _top(_nh.param("top", 0)),
-     _bottom(_nh.param("bottom", 2048)),
-     _left(_nh.param("left", 0)),
-     _right(_nh.param("right", 3072)),
-     _scale(_nh.param("scale", 1.0)),
-     _window_radius(_nh.param("window_radius", 0)),
-     _threshPlane(_nh.param("thresh_plane", 0.001))
+     _threshBG(nh.param("thresh_bg", 0.0)),
+     _near(nh.param("near", 0.0)),
+     _far(nh.param("far", 4.0)),
+     _top(nh.param("top", 0)),
+     _bottom(nh.param("bottom", 2048)),
+     _left(nh.param("left", 0)),
+     _right(nh.param("right", 3072)),
+     _scale(nh.param("scale", 1.0)),
+     _window_radius(nh.param("window_radius", 0)),
+     _threshPlane(nh.param("thresh_plane", 0.001))
 {
   // Setup DetectPlane action server.
     _detect_plane_srv.registerPreemptCallback(
@@ -182,7 +180,7 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
     _ddr.registerVariable<double>("thresh_plane", &_threshPlane,
 				  "Threshold for plane fitting", 0.0, 0.01);
 
-    if (_nh.param("subscribe_normal", true))
+    if (nh.param("subscribe_normal", true))
     {
 	_sync.registerCallback(&DepthFilter::filter_with_normal_cb, this);
     }
@@ -197,12 +195,6 @@ DepthFilter::DepthFilter(const ros::NodeHandle& nh)
     }
 
     _ddr.publishServicesTopics();
-}
-
-void
-DepthFilter::run()
-{
-    ros::spin();
 }
 
 template <class T> void
