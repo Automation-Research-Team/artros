@@ -45,28 +45,28 @@ namespace aist_camera_multiplexer
 /************************************************************************
 *  class Multiplexer::Subscribers					*
 ************************************************************************/
-Multiplexer::Subscribers::Subscribers(Multiplexer* multiplexer,
+Multiplexer::Subscribers::Subscribers(ros::NodeHandle& nh,
+				      Multiplexer* multiplexer,
 				      const std::string& camera_name)
     :_camera_name(camera_name),
-     _it(multiplexer->_nh),
-     _image_sub( _it.subscribe(_camera_name + "/image", 1,
-			       boost::bind(&Multiplexer::image_cb,
-					   multiplexer, _1,
-					   multiplexer->ncameras()))),
-     _depth_sub( _it.subscribe(_camera_name + "/depth", 1,
-			       boost::bind(&Multiplexer::depth_cb,
-					   multiplexer, _1,
-					   multiplexer->ncameras()))),
-     _normal_sub(_it.subscribe(_camera_name + "/normal", 1,
-			       boost::bind(&Multiplexer::normal_cb,
-					   multiplexer, _1,
-					   multiplexer->ncameras()))),
-     _cloud_sub(multiplexer->_nh.subscribe<cloud_t>(
+     _image_sub(multiplexer->_it.subscribe(
+		    _camera_name + "/image", 1,
+		    boost::bind(&Multiplexer::image_cb,
+				multiplexer, _1, multiplexer->ncameras()))),
+     _depth_sub(multiplexer->_it.subscribe(
+		    _camera_name + "/depth", 1,
+		    boost::bind(&Multiplexer::depth_cb,
+				multiplexer, _1, multiplexer->ncameras()))),
+     _normal_sub(multiplexer->_it.subscribe(
+		     _camera_name + "/normal", 1,
+		     boost::bind(&Multiplexer::normal_cb,
+				 multiplexer, _1, multiplexer->ncameras()))),
+     _cloud_sub(nh.subscribe<cloud_t>(
 			  _camera_name + "/pointcloud", 1,
 			  boost::bind(&Multiplexer::cloud_cb,
 				      multiplexer, _1,
 				      multiplexer->ncameras()))),
-     _camera_info_sub(multiplexer->_nh.subscribe<camera_info_t>(
+     _camera_info_sub(nh.subscribe<camera_info_t>(
 			  _camera_name + "/camera_info", 1,
 			  boost::bind(&Multiplexer::camera_info_cb,
 				      multiplexer, _1,
@@ -83,20 +83,19 @@ Multiplexer::Subscribers::camera_name() const
 /************************************************************************
 *  class Multiplexer							*
 ************************************************************************/
-Multiplexer::Multiplexer(const ros::NodeHandle& nh)
-    :_nh(nh),
-     _subscribers(),
+Multiplexer::Multiplexer(ros::NodeHandle& nh)
+    :_subscribers(),
      _camera_number(0),
-     _ddr(_nh),
-     _it(_nh),
+     _ddr(nh),
+     _it(nh),
      _image_pub( _it.advertise("image",  1)),
      _depth_pub( _it.advertise("depth",  1)),
      _normal_pub(_it.advertise("normal", 1)),
-     _cloud_pub(_nh.advertise<cloud_t>("pointcloud", 1)),
-     _camera_info_pub(_nh.advertise<camera_info_t>("camera_info", 1))
+     _cloud_pub(nh.advertise<cloud_t>("pointcloud", 1)),
+     _camera_info_pub(nh.advertise<camera_info_t>("camera_info", 1))
 {
     std::vector<std::string>	camera_names;
-    if (!_nh.getParam("camera_names", camera_names))
+    if (!nh.getParam("camera_names", camera_names))
     {
 	ROS_ERROR_STREAM("(Multiplexer) no camera names specified.");
 	return;
@@ -105,9 +104,10 @@ Multiplexer::Multiplexer(const ros::NodeHandle& nh)
     std::map<std::string, std::string>	enum_cameras;
     for (const auto& camera_name : camera_names)
     {
-	std::cerr << camera_name << std::endl;
 	enum_cameras[camera_name] = camera_name;
-	_subscribers.emplace_back(new Subscribers(this, camera_name));
+	_subscribers.emplace_back(new Subscribers(nh, this, camera_name));
+	ROS_INFO_STREAM("(Multiplexer) subscribe camera["
+			<< camera_name << ']');
     }
 
     _ddr.registerEnumVariable<std::string>(
@@ -115,12 +115,6 @@ Multiplexer::Multiplexer(const ros::NodeHandle& nh)
 	boost::bind(&Multiplexer::activate_camera, this, _1),
 	"Currently active camera", enum_cameras);
     _ddr.publishServicesTopicsAndUpdateConfigData();
-}
-
-void
-Multiplexer::run()
-{
-    ros::spin();
 }
 
 int
