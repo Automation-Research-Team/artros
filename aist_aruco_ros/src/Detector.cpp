@@ -69,37 +69,36 @@ rosCameraInfo2ArucoCamParams(const sensor_msgs::CameraInfo& camera_info,
 /************************************************************************
 *  class Detector							*
 ************************************************************************/
-Detector::Detector(const ros::NodeHandle& nh)
-    :_nh(nh),
-     _broadcaster(),
-     _marker_frame(_nh.param<std::string>("marker_frame", "marker_frame")),
-     _it(_nh),
+Detector::Detector(ros::NodeHandle& nh)
+    :_broadcaster(),
+     _marker_frame(nh.param<std::string>("marker_frame", "marker_frame")),
+     _it(nh),
      _image_sub(_it, "/image", 1),
      _depth_sub(_it, "/depth", 1),
-     _cloud_sub(_nh, "/pointcloud", 1),
-     _camera_info_sub(_nh, "/camera_info", 1),
+     _cloud_sub( nh, "/pointcloud", 1),
+     _camera_info_sub(nh, "/camera_info", 1),
      _depth_sync(_image_sub, _depth_sub, _camera_info_sub, 3),
      _cloud_sync(_cloud_sub, _camera_info_sub, 3),
      _camParam(),
-     _useRectifiedImages(_nh.param("image_is_rectified", false)),
+     _useRectifiedImages(nh.param("image_is_rectified", false)),
      _rightToLeft(),
      _result_pub(_it.advertise("result", 1)),
-     _debug_pub(_it.advertise("debug",  1)),
-     _pose_pub(_nh.advertise<geometry_msgs::PoseStamped>("pose", 100)),
-     _ddr(_nh),
+     _debug_pub( _it.advertise("debug",  1)),
+     _pose_pub(nh.advertise<geometry_msgs::PoseStamped>("pose", 100)),
+     _ddr(nh),
      _marker_detector(),
-     _marker_size(_nh.param("marker_size", 0.05)),
+     _marker_size(nh.param("marker_size", 0.05)),
      _useSimilarity(false),
      _planarityTolerance(0.001)
 {
   // Restore marker map if specified.
-    if (const auto marker_map_name = _nh.param<std::string>("marker_map", "");
+    if (const auto marker_map_name = nh.param<std::string>("marker_map", "");
 	marker_map_name != "")
     {
-	const auto	mMapFile = _nh.param("marker_map_dir",
-					     ros::package::getPath(
-						 "aist_aruco_ros")
-					     + "/config")
+	const auto	mMapFile = nh.param("marker_map_dir",
+					    ros::package::getPath(
+						"aist_aruco_ros")
+					    + "/config")
 				 + '/' + marker_map_name + ".yaml";
 	_marker_map.readFromFile(mMapFile);
 	_marker_size = cv::norm(_marker_map[0].points[0] -
@@ -107,7 +106,7 @@ Detector::Detector(const ros::NodeHandle& nh)
 
 	ROS_INFO_STREAM("Find a marker map[" << marker_map_name << ']');
     }
-    else if (const auto marker_id = _nh.param<int>("marker_id", 0);
+    else if (const auto marker_id = nh.param<int>("marker_id", 0);
 	     marker_id > 0)
     {
 	const auto	half_size = _marker_size/2;
@@ -147,8 +146,8 @@ Detector::Detector(const ros::NodeHandle& nh)
     ROS_INFO_STREAM("Detection mode: " << _marker_detector.getDetectionMode());
 
   // Set dictionary and setup ddynamic_reconfigure service for it.
-    const auto	dictType = _nh.param<int>("dictionary",
-					  aruco::Dictionary::ARUCO);
+    const auto	dictType = nh.param<int>("dictionary",
+					 aruco::Dictionary::ARUCO);
     set_dictionary(dictType);
 
     std::map<std::string, int>
@@ -191,12 +190,6 @@ Detector::Detector(const ros::NodeHandle& nh)
   // Register callback for marker detection.
     _depth_sync.registerCallback(&Detector::detect_marker_from_depth_cb, this);
     _cloud_sync.registerCallback(&Detector::detect_marker_from_cloud_cb, this);
-}
-
-void
-Detector::run()
-{
-    ros::spin();
 }
 
 void
