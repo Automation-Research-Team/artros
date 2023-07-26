@@ -38,10 +38,11 @@
 import rospy, os
 import numpy as np
 import lib_robotis_xm430 as xm430
-from sensor_msgs  import msg as smsg
-from control_msgs import msg as cmsg
-from actionlib    import SimpleActionServer
-from collections  import namedtuple
+from sensor_msgs.msg  import JointState
+from control_msgs.msg import (GripperCommandAction, GripperCommandGoal,
+                              GripperCommandResult, GripperCommandFeedback)
+from actionlib        import SimpleActionServer
+from collections      import namedtuple
 
 #########################################################################
 #  class PrecisionGripperController                                     #
@@ -81,11 +82,10 @@ class PrecisionGripperController(object):
         # Publish joint state
         self._joint_name      = rospy.get_param('~joint_name', 'finger_joint')
         self._joint_state_pub = rospy.Publisher('/joint_states',
-                                                smsg.JointState, queue_size=1)
+                                                JointState, queue_size=1)
 
         # Define the action
-        self._server = SimpleActionServer('~gripper_cmd',
-                                          cmsg.GripperCommandAction,
+        self._server = SimpleActionServer('~gripper_cmd', GripperCommandAction,
                                           auto_start=False)
         self._server.register_goal_callback(self._goal_cb)
         self._server.register_preempt_callback(self._preempt_cb)
@@ -110,7 +110,7 @@ class PrecisionGripperController(object):
             return
 
         # Publish joint states
-        joint_state = smsg.JointState()
+        joint_state = JointState()
         joint_state.header.stamp = rospy.Time.now()
         joint_state.name         = [self._joint_name]
         joint_state.position     = [self._position(status)]
@@ -123,18 +123,18 @@ class PrecisionGripperController(object):
             rospy.loginfo(status)
 
             self._server.publish_feedback(
-                cmsg.GripperCommandFeedback(*self._status_values(status)))
+                GripperCommandFeedback(*self._status_values(status)))
 
             if self._is_moving(status):
                 self._last_movement_time = rospy.Time.now()
             elif self._reached_goal(status):
                 rospy.loginfo('(%s) reached goal' % self._name)
                 self._server.set_succeeded(
-                    cmsg.GripperCommandResult(*self._status_values(status)))
+                    GripperCommandResult(*self._status_values(status)))
             elif self._stalled(status):
                 rospy.loginfo('(%s) stalled' % self._name)
                 self._server.set_succeeded(
-                    cmsg.GripperCommandResult(*self._status_values(status)))
+                    GripperCommandResult(*self._status_values(status)))
 
     def _goal_cb(self):
         goal = self._server.accept_new_goal()  # requested goal
