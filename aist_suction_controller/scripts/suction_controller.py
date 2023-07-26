@@ -36,71 +36,72 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-import actionlib
-from aist_suction_controller import msg as amsg
-from ur_msgs                 import msg as umsg, srv as usrv
-from std_msgs                import msg as smsg
+from actionlib                   import SimpleActionServer
+from aist_suction_controller.msg import (SuctionControlAction,
+                                         SuctionControlResult)
+from ur_msgs.msg                 import IOStates
+from ur_msgs.srv                 import SetIO
+from std_msgs.msg                import Bool
 
 class SuctionController(object):
     def __init__(self):
         super(SuctionController, self).__init__()
 
         # Subscribe I/O states
-        self._in_state  = dict()
-        self._out_state = dict()
-        self._io_state_sub \
-            = rospy.Subscriber("ur_hardware_interface/io_states",
-                               umsg.IOStates, self._io_state_cb, queue_size=1)
-
-        self._set_io = rospy.ServiceProxy('ur_hardware_interface/set_io',
-                                          usrv.SetIO)
+        self._in_state     = dict()
+        self._out_state    = dict()
+        self._io_state_sub = rospy.Subscriber(
+                                'ur_hardware_interface/io_states',
+                                IOStates, self._io_state_cb, queue_size=1)
+        self._set_io       = rospy.ServiceProxy('ur_hardware_interface/set_io',
+                                                SetIO)
 
         # initialize ur_control table
-        self._in_port_names          = dict()
-        self._digital_in_port        = dict()
-        self._digital_out_port_vac   = dict()
-        self._digital_out_port_blow  = dict()
-        self._tool_suction_pubs = dict()
+        self._in_port_names         = dict()
+        self._digital_in_port       = dict()
+        self._digital_out_port_vac  = dict()
+        self._digital_out_port_blow = dict()
+        self._tool_suction_pubs     = dict()
         for tool in rospy.get_param('~suction_control'):
             name = tool['name']
             self._in_port_names[tool['digital_in_port']] = name
             self._digital_in_port[name]       = tool['digital_in_port']
             self._digital_out_port_vac[name]  = tool['digital_out_port_vac']
             self._digital_out_port_blow[name] = tool['digital_out_port_blow']
-            self._tool_suction_pubs[name] \
-                = rospy.Publisher(name + '/suctioned', smsg.Bool, queue_size=1)
+            self._tool_suction_pubs[name]     = rospy.Publisher(
+                                                    name + '/suctioned', Bool,
+                                                    queue_size=1)
 
         # for operation_mode
         self._operation_mode_in_port_names = dict()
-        self._operation_mode_pubs   = dict()
+        self._operation_mode_pubs          = dict()
         for mode in rospy.get_param('~operation_mode'):
             name = mode['name']
             self._operation_mode_in_port_names[mode['digital_in_port']] = name
-            self._operation_mode_pubs[name] \
-                = rospy.Publisher(name, smsg.Bool, queue_size=1)
+            self._operation_mode_pubs[name] = rospy.Publisher(name, Bool,
+                                                              queue_size=1)
 
-        self._as = actionlib.SimpleActionServer(
-                        '~suction', amsg.SuctionControlAction,
-                        execute_cb=self._suction_control_cb, auto_start=False)
-        self._as.start()
+        # action server for suction control
+        self._suction_srv = SimpleActionServer('~suction',
+                                               SuctionControlAction,
+                                               self._suction_control_cb, False)
+        self._suction_srv.start()
 
     def _io_state_cb(self, data):
         for read_in_status in data.digital_in_states:
             self._in_state[read_in_status.pin] = read_in_status.state
             if read_in_status.pin in self._in_port_names:
                 self._tool_suction_pubs[self._in_port_names[
-                    read_in_status.pin]].publish(
-                        smsg.Bool(read_in_status.state))
+                    read_in_status.pin]].publish(Bool(read_in_status.state))
             if read_in_status.pin in self._operation_mode_in_port_names:
                 self._operation_mode_pubs[self._operation_mode_in_port_names[
-                    read_in_status.pin]].publish(
-                        smsg.Bool(read_in_status.state))
+                    read_in_status.pin]].publish(Bool(read_in_status.state))
 
         for read_out_status in data.digital_out_states:
             self._out_state[read_out_status.pin] = read_out_status.state
 
     def _suction_control_cb(self, goal):
-        res = amsg.SuctionControlResult()
+        res = SuctionControlResult()
         res.success = True
 
         # yaml file check
@@ -120,7 +121,7 @@ class SuctionController(object):
             res.success = False
 
         if not res.success:
-            self._as.set_aborted(res)
+            self._suction_srv.set_aborted(res)
             return
 
         vac_port  = self._digital_out_port_vac[goal.tool_name]
@@ -149,9 +150,9 @@ class SuctionController(object):
                 res.success = False
 
         if res.success:
-            self._as.set_succeeded(res)
+            self._suction_srv.set_succeeded(res)
         else:
-            self._as.set_aborted(res)
+            self._suction_srv.set_aborted(res)
 
     def _set_out_pin_switch(self, port, state):
         success = True
