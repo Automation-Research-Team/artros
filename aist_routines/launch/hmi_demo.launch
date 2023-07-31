@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="rviz_config"	default="hmi_demo"/>
+  <arg name="nep"		default="false"/>
 
   <!-- Start kitting servers -->
   <include file="$(dirname)/kitting.launch">
@@ -9,20 +10,42 @@
     <arg name="rviz_config"	value="$(arg rviz_config)"/>
   </include>
 
-  <!-- Start live camera -->
-  <node name="live_camera"
-  	pkg="usb_cam" type="usb_cam_node" output="screen">
-    <rosparam file="$(dirname)/../config/live_camera.yaml"/>
-  </node>
-
   <!-- Start hmi_demo server -->
   <node name="hmi_server"
   	pkg="aist_routines" type="hmi_server.py" output="screen"/>
 
-  <!-- Start rosbridge server -->
-  <arg name="port"	value="9090"/>
-  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
-    <arg name="port"	value="$(arg port)"/>
-  </include>
+  <group unless="$(arg nep)">
+    <!-- Start live camera -->
+    <node name="live_camera"
+	  pkg="usb_cam" type="usb_cam_node" output="screen">
+      <rosparam file="$(dirname)/../config/live_camera.yaml"/>
+    </node>
+
+    <!-- Start rosbridge server -->
+    <arg name="port"	value="9090"/>
+    <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+      <arg name="port"	value="$(arg port)"/>
+    </include>
+  </group>
+
+  <group if="$(arg nep)">
+    <!-- Start live camera -->
+    <node name="live_camera" pkg="aist_routines" type="camera_script.py"
+	  output="screen"/>
+
+    <!-- Start ROS to NEP bridge -->
+    <arg name="nep_ip"	value="163.220.51.108"/>
+    <node name="ros2nep"
+	  pkg="aist_routines" type="ros2nep.py" args="$(arg nep_ip)"
+	  output="screen"/>
+
+    <node name="getPointing"
+	  pkg="aist_routines" type="getPointing.py"
+	  output="screen"/>
+
+    <node name="setRequestHelp"
+	  pkg="aist_routines" type="setRequestHelp.py"
+	  output="screen"/>
+  </group>
 
 </launch>

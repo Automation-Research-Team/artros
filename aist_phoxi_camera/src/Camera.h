@@ -81,7 +81,7 @@ class Camera
     };
 
   public:
-		Camera(const ros::NodeHandle& nh,
+		Camera(ros::NodeHandle& nh,
 		       const std::string& nodelet_name)			;
 		~Camera()						;
 
@@ -157,7 +157,6 @@ class Camera
 		}
 
   private:
-    ros::NodeHandle				_nh;
     const std::string				_nodelet_name;
 
     pho::api::PhoXiFactory			_factory;

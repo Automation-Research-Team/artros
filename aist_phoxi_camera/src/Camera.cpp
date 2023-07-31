@@ -50,7 +50,7 @@
 #          define HAVE_LED_POWER
 #          define HAVE_LED_SHUTTER_MULTIPLIER
 #	   if PHO_SOFTWARE_VERSION_MINOR >= 9
-#            define HAVE_COLOR
+#            define HAVE_COLOR_CAMERA
 #          endif
 #        endif
 #      endif
@@ -168,20 +168,19 @@ scale_copy(const uint16_t* in, const uint16_t* ie, float* out, float scale)
 /************************************************************************
 *  class Camera								*
 ************************************************************************/
-Camera::Camera(const ros::NodeHandle& nh, const std::string& nodelet_name)
+Camera::Camera(ros::NodeHandle& nh, const std::string& nodelet_name)
     :
 #if defined(PROFILE)
      profiler_t(8),
 #endif
-     _nh(nh),
      _nodelet_name(nodelet_name),
      _factory(),
      _device(nullptr),
      _frame(nullptr),
-     _frame_id(_nh.param<std::string>("frame", "sensor")),
-     _color_camera_frame_id(_nh.param<std::string>("color_camera_frame",
-						   "color_camera_frame")),
-     _rate(_nh.param<double>("rate", 10.0)),
+     _frame_id(nh.param<std::string>("frame", "sensor")),
+     _color_camera_frame_id(nh.param<std::string>("color_camera_frame",
+						  "color_camera_frame")),
+     _rate(nh.param<double>("rate", 10.0)),
      _denseCloud(false),
      _intensityScale(0.5),
      _is_color_camera(false),
@@ -195,32 +194,32 @@ Camera::Camera(const ros::NodeHandle& nh, const std::string& nodelet_name)
      _cinfo(new cinfo_t),
      _color_camera_image(new image_t),
      _color_camera_cinfo(new cinfo_t),
-     _ddr(_nh),
-     _trigger_frame_server(_nh.advertiseService("trigger_frame",
-						&Camera::trigger_frame,	this)),
-     _save_frame_server(_nh.advertiseService("save_frame",
-					     &Camera::save_frame, this)),
-     _save_settings_server(_nh.advertiseService("save_settings",
-						&Camera::save_settings, this)),
-     _restore_settings_server(_nh.advertiseService("restore_settings",
-						   &Camera::restore_settings,
-						   this)),
-     _it(_nh),
-     _cloud_publisher(	       _nh.advertise<cloud_t>("pointcloud",	1)),
+     _ddr(nh),
+     _trigger_frame_server(nh.advertiseService("trigger_frame",
+					       &Camera::trigger_frame,	this)),
+     _save_frame_server(nh.advertiseService("save_frame",
+					    &Camera::save_frame, this)),
+     _save_settings_server(nh.advertiseService("save_settings",
+					       &Camera::save_settings, this)),
+     _restore_settings_server(nh.advertiseService("restore_settings",
+						  &Camera::restore_settings,
+						  this)),
+     _it(nh),
+     _cloud_publisher(	        nh.advertise<cloud_t>("pointcloud",	1)),
      _normal_map_publisher(    _it.advertise("normal_map",		1)),
      _depth_map_publisher(     _it.advertise("depth_map",		1)),
      _confidence_map_publisher(_it.advertise("confidence_map",		1)),
      _event_map_publisher(     _it.advertise("event_map",		1)),
      _texture_publisher(       _it.advertise("texture",			1)),
-     _camera_info_publisher(   _nh.advertise<cinfo_t>("camera_info",	1)),
+     _camera_info_publisher(    nh.advertise<cinfo_t>("camera_info",	1)),
      _color_camera_publisher(  _it.advertiseCamera("color/image",	1)),
      _broadcaster()
 {
     using namespace	pho::api;
 
   // Search for a device with specified ID.
-    auto	id = _nh.param<std::string>("id",
-					    "InstalledExamples-basic-example");
+    auto	id = nh.param<std::string>("id",
+					   "InstalledExamples-basic-example");
     for (size_t pos; (pos = id.find('\"')) != std::string::npos; )
 	id.erase(pos, 1);
 
@@ -256,7 +255,7 @@ Camera::Camera(const ros::NodeHandle& nh, const std::string& nodelet_name)
 			<< _device->HardwareIdentification.GetValue()
 			<< ") Initializing configuration.");
 
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
   // Check if color is supported.
     _is_color_camera = (_device->SupportedColorCapturingModes->size() > 0);
 #endif
@@ -910,7 +909,7 @@ Camera::setup_ddr_common()
 #  endif
 #endif
 
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
     if (_is_color_camera)
     {
       // 4. ColorSettings
@@ -1059,7 +1058,7 @@ Camera::setup_ddr_common()
 			&FrameOutputSettings::SendTexture, _1, true,
 			"SendTexture"),
 	    "Publish texture if set.", false, true, "output_settings");
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
     if (_is_color_camera)
 	_ddr.registerVariable<bool>(
 	    "send_color_camera_image",
@@ -1167,7 +1166,7 @@ Camera::set_member(T& member, T value, const std::string& name)
 			<< ") set " << name << " to " << member);
 }
 
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
 void
 Camera::set_color_resolution(int idx)
 {
@@ -1546,7 +1545,7 @@ Camera::publish_frame()
     publish_image(_event_map, now, image_encodings::TYPE_32FC1, 1,
 		  _frame->EventMap, _event_map_publisher);
     profiler_start(5);
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
     if (_is_color_camera)
 	publish_image(_texture, now, image_encodings::RGB8, _intensityScale,
 		      _frame->TextureRGB, _texture_publisher);
@@ -1561,7 +1560,7 @@ Camera::publish_frame()
 
   // Publish color_camera.
     profiler_start(7);
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
     if (_is_color_camera)
 	publish_color_camera(now);
 #endif
@@ -1667,7 +1666,7 @@ Camera::publish_cloud(const ros::Time& stamp, float distanceScale)
     if (_device->OutputSettings->SendTexture)
     {
 	PointCloud2Iterator<uint8_t> bgr(*_cloud, "rgb");
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
 	if (_is_color_camera && !_frame->TextureRGB.Empty())
 	{
 	    for (int v = 0; v < phoxi_cloud.Size.Height; ++v)
@@ -1783,7 +1782,7 @@ Camera::publish_camera_info(const ros::Time& stamp)
     _camera_info_publisher.publish(_cinfo);
 }
 
-#if defined(HAVE_COLOR)
+#if defined(HAVE_COLOR_CAMERA)
 void
 Camera::publish_color_camera(const ros::Time& stamp)
 {

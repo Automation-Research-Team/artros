@@ -54,10 +54,10 @@ class HMIServer(object):
         super(HMIServer, self).__init__()
 
         self._seq              = 0
-        self._no_req           = request_help(robot_name='unknown robot name',
-                                              item_id='unknown part ID',
+        self._no_req           = request_help(robot_name='unknown_robot_name',
+                                              item_id='unknown_part_ID',
                                               request=request_help.NO_REQ,
-                                              message='no requests')
+                                              message='no_requests')
         self._curr_req         = self._no_req
         self._request_help_pub = rospy.Publisher('/help', request_help,
                                                  queue_size=10)
@@ -121,7 +121,9 @@ class HMIServer(object):
         Set state of the goal to PREEMPTED and revert _curr_req to _no_req
         upon a cancel request from the action client.
         """
-        self._request_help_srv.set_preempted()
+        pointing_msg = pointing()
+        pointing_msg.pointing_state = pointing.NO_RES
+        self._request_help_srv.set_preempted(RequestHelpResult(pointing_msg))
         self._curr_req = self._no_req           # Revert to _no_req
         rospy.loginfo('(hmi_server) PREEMPTED current goal')
 

@@ -128,8 +128,6 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         self._move(self._initpose, self._robot_effector_frame)
 
     def calibrate(self):
-        self.continuous_shot(self._camera_name, False)
-
         if self._reset:
             self._reset()
 

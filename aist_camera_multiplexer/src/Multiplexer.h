@@ -64,14 +64,13 @@ class Multiplexer
     class Subscribers
     {
       public:
-	Subscribers(Multiplexer* multiplexer,
+	Subscribers(ros::NodeHandle& nh, Multiplexer* multiplexer,
 		    const std::string& camera_name)			;
 
 	const std::string&	camera_name()			const	;
 
       private:
 	const std::string		_camera_name;
-	image_transport::ImageTransport	_it;
 	image_transport::Subscriber	_image_sub;
 	image_transport::Subscriber	_depth_sub;
 	image_transport::Subscriber	_normal_sub;
@@ -83,9 +82,7 @@ class Multiplexer
     using ddynamic_reconfigure_t = ddynamic_reconfigure::DDynamicReconfigure;
 
   public:
-    Multiplexer(const ros::NodeHandle& nh)				;
-
-    void	run()							;
+    Multiplexer(ros::NodeHandle& nh)					;
 
   private:
     int		ncameras()					const	;
@@ -102,8 +99,6 @@ class Multiplexer
 			 int camera_number)			const	;
 
   private:
-    ros::NodeHandle			_nh;
-
     std::vector<subscribers_cp>		_subscribers;
     int					_camera_number;
 

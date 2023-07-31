@@ -83,9 +83,7 @@ class DepthFilter
     using server_t	 = actionlib::SimpleActionServer<action_t>;
 
   public:
-    DepthFilter(const ros::NodeHandle& nh)				;
-
-    void	run()							;
+		DepthFilter(ros::NodeHandle& nh)			;
 
   private:
     template <class T>

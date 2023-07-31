@@ -23,10 +23,4 @@
     <param name="speed"		value="$(arg speed)"/>
   </node>
 
-  <!-- Start rviz -->
-  <include file="$(find aist_bringup)/launch/include/rviz.launch">
-    <arg name="moveit_config"	value="$(eval find(arg('config')
-  						   + '_moveit_config'))"/>
-  </include>
-
 </launch>

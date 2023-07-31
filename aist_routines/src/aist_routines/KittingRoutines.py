@@ -35,29 +35,30 @@
 # Author: Toshio Ueshiba
 #
 import rospy, numpy as np
-from tf                    import transformations as tfs
-from math                  import pi, radians, degrees, cos, sin, sqrt
-from geometry_msgs.msg     import PoseStamped, QuaternionStamped, Quaternion
-from aist_routines         import AISTBaseRoutines
-from aist_routines.msg     import (PickOrPlaceResult, PickOrPlaceFeedback,
-                                   SweepResult)
-from aist_utility.compat   import *
-from aist_graspability.msg import Graspabilities
+from math                           import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg              import Quaternion
+from aist_routines.ur               import URRoutines
+from aist_routines.AttemptBinAction import AttemptBin
+from aist_utility.compat            import *
+from tf                             import transformations as tfs
 
 ######################################################################
 #  class KittingRoutines                                             #
 ######################################################################
-class KittingRoutines(AISTBaseRoutines):
+class KittingRoutines(URRoutines):
     """Implements kitting routines for aist robot system."""
 
-    def __init__(self):
+    def __init__(self, do_error_recovery=None, cancel_error_recovery=None):
         super(KittingRoutines, self).__init__()
 
-        self._bin_props          = rospy.get_param('~bin_props')
-        self._part_props         = rospy.get_param('~part_props')
-        self._current_robot_name = None
-        self._fail_poses         = []
-        #self.go_to_named_pose('all_bots', 'home')
+        self._bin_props   = rospy.get_param('~bin_props')
+        self._part_props  = rospy.get_param('~part_props')
+        self._attempt_bin = AttemptBin(self, do_error_recovery,
+                                       cancel_error_recovery)
+
+    @property
+    def current_robot_name(self):
+        return self._attempt_bin.current_robot_name
 
     def run(self):
         axis = 'Y'
@@ -69,25 +70,26 @@ class KittingRoutines(AISTBaseRoutines):
             prompt = '{:>5}:{}>> '.format(axis,
                                           self.format_pose(
                                               self.get_current_pose(
-                                                  self._current_robot_name))) \
-                     if self._current_robot_name else '>> '
+                                                  self.current_robot_name))) \
+                     if self.current_robot_name else '>> '
             key = raw_input(prompt)
 
             try:
-                _, axis, _ = self.interactive(key, self._current_robot_name,
+                _, axis, _ = self.interactive(key, self.current_robot_name,
                                               axis, 1.0)
             except Exception as e:
                 print(e)
 
     # Interactive stuffs
     def print_help_messages(self):
-        if self._current_robot_name:
+        if self.current_robot_name:
             super(KittingRoutines, self).print_help_messages()
         print('=== Kitting commands ===')
         print('  m: Create a mask image')
         print('  s: Search graspabilities')
         print('  a: Attempt to pick and place')
         print('  A: Repeat attempts to pick and place')
+        print('  c: Cancel attempts to pick and place')
         print('  d: Perform small demo')
         print('  H: Move all robots to home')
         print('  B: Move all robots to back')
@@ -100,19 +102,12 @@ class KittingRoutines(AISTBaseRoutines):
             self.search_bin(bin_id)
         elif key == 'a':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self._clear_fail_poses()
-            self.attempt_bin(bin_id)
-            self.go_to_named_pose(self._current_robot_name, 'home')
+            self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
         elif key == 'A':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            remained     = True
-            poses        = None
-            place_offset = 0.020
-            self._clear_fail_poses()
-            while remained:
-                remained, poses = self.attempt_bin(bin_id, poses, place_offset)
-                place_offset = -place_offset
-            self.go_to_named_pose(self._current_robot_name, 'home')
+            self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
+        elif key == 'c':
+            self._attempt_bin.cancel_goal()
         elif key == 'd':
             self.demo()
         elif key == 'H':
@@ -137,100 +132,22 @@ class KittingRoutines(AISTBaseRoutines):
                    lambda pose, max_slant=max_slant:
                        self._pose_filter(pose, max_slant))
 
-    def attempt_bin(self, bin_id,
-                    poses=None, place_offset=0.0, max_attempts=5):
-        bin_props  = self._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        robot_name = part_props['robot_name']
-
-        # If using a different robot from the former, move it back to home.
-        if self._current_robot_name is not None and \
-           self._current_robot_name != robot_name:
-            self.go_to_named_pose(self._current_robot_name, 'back')
-        self._current_robot_name = robot_name
-
-        # Move to 0.15m above the bin if the camera is mounted on the robot.
-        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
-            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
-
-        # Search for graspabilities.
-        if poses is None:
-            poses = self.search_bin(bin_id).poses
-
-        # Attempt to pick the item.
-        nattempts = 0
-        for p in poses.poses:
-            if nattempts == max_attempts:
-                break
-
-            pose = PoseStamped(poses.header, p)
-            if self._is_close_to_fail_poses(pose):
-                continue
-
-            result = self.pick(robot_name, pose, part_id)
-
-            print('*** pick_result=%d' % result)
-
-            if result == PickOrPlaceResult.SUCCESS:
-                self.place_at_frame(robot_name, part_props['destination'],
-                                    part_id, offset=(0.0, place_offset, 0.0),
-                                    wait=False)
-                self.pick_or_place_wait_for_status(
-                    PickOrPlaceFeedback.APPROACHING)
-                poses  = self.search_bin(bin_id).poses
-                result = self.pick_or_place_wait_for_result()
-                return result == PickOrPlaceResult.SUCCESS, poses
-            elif result == PickOrPlaceResult.MOVE_FAILURE or \
-                 result == PickOrPlaceResult.APPROACH_FAILURE:
-                self._fail_poses.append(pose)
-            elif result == PickOrPlaceResult.DEPARTURE_FAILURE:
-                raise RuntimeError('Failed to depart from pick/place pose')
-            elif result == PickOrPlaceResult.GRASP_FAILURE:
-                self._fail_poses.append(pose)
-                nattempts += 1
-
-        return False, None
-
     def demo(self):
         bin_ids = ('bin_1', 'bin_4', 'bin_5')
-#        bin_ids = ('bin_1', 'bin_4')
 
         while True:
             completed = False
 
             for bin_id in bin_ids:
-                self._clear_fail_poses()
-                success = self.attempt_bin(bin_id, 5)
+                self._attempt_bin.send_goal(bin_id, False)
                 completed = completed and not success
 
             if completed:
                 break
 
-        self.go_to_named_pose(self._current_robot_name, 'home')
+        self.go_to_named_pose(self.current_robot_name, 'home')
 
     # Utilities
-    def _clear_fail_poses(self):
-        self._fail_poses = []
-
-    def _is_eye_on_hand(self, robot_name, camera_name):
-        return camera_name == robot_name + '_camera'
-
-    def _is_close_to_fail_poses(self, pose):
-        for fail_pose in self._fail_poses:
-            if self._is_close_to_fail_pose(pose, fail_pose, 0.005):
-                return True
-        return False
-
-    def _is_close_to_fail_pose(self, pose, fail_pose, tolerance):
-        position      = pose.pose.position
-        fail_position = fail_pose.pose.position
-        if abs(position.x - fail_position.x) > tolerance or \
-           abs(position.y - fail_position.y) > tolerance or \
-           abs(position.z - fail_position.z) > tolerance:
-            return False
-        return True
-
     def _pose_filter(self, pose, max_slant):
         if pose.position.z < 0.002:
             return None
@@ -253,3 +170,7 @@ class KittingRoutines(AISTBaseRoutines):
 
     def _normalize(self, x):
         return x / sqrt(np.dot(x, x))
+
+    def _done_cb(self, state, result):
+        rospy.sleep(1)          # Pause required after cancelling arm motion
+        self.go_to_named_pose(self.current_robot_name, 'home')

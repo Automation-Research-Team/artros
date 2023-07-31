@@ -34,8 +34,8 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-import dynamic_reconfigure.client
-import std_srvs.srv
+from dynamic_reconfigure.client import Client as DynReconfClient
+from std_srvs.srv               import Trigger, SetBool
 
 ######################################################################
 #  class CameraClient                                                #
@@ -76,7 +76,7 @@ class CameraClient(object):
 class MonocularCamera(CameraClient):
     def __init__(self, name='IIDCCamera'):
         super(MonocularCamera, self).__init__(name, 'area')
-        self._dyn_reconf = dynamic_reconfigure.client.Client(name, timeout=None)
+        self._dyn_reconf = DynReconfClient(name, timeout=None)
 
     @staticmethod
     def base(name):
@@ -105,14 +105,12 @@ class DepthCamera(CameraClient):
 class RealSenseCamera(DepthCamera):
     def __init__(self, name='a_bot_camera'):
         super(RealSenseCamera, self).__init__(name)
-        self._dyn_camera = dynamic_reconfigure.client.Client(name, timeout=5.0)
+        self._enable     = rospy.ServiceProxy(name + '/enable', SetBool)
+        self._dyn_camera = DynReconfClient(name, timeout=5.0)
 
-    # def is_continuous_shot(self):
-    #     return self._dyn_reconf.get_configuration()['enable_streaming']
-
-    # def continuous_shot(self, enabled):
-    #     self._dyn_camera.update_configuration({'enable_streaming' : enabled})
-    #     return True
+    def continuous_shot(self, enabled):
+        self._enable(enabled)
+        return True
 
     # def trigger_frame(self):
     #     self.continuous_shot(True)
@@ -126,8 +124,8 @@ class RealSenseCamera(DepthCamera):
 class CodedLightRealSenseCamera(RealSenseCamera):
     def __init__(self, name='a_bot_camera'):
         super(CodedLightRealSenseCamera, self).__init__(name)
-        self._dyn_sensor = dynamic_reconfigure.client.Client(
-                               name + '/coded_light_depth_sensor', timeout=5.0)
+        self._dyn_sensor = DynReconfClient(name + '/coded_light_depth_sensor',
+                                           timeout=5.0)
         # Don't change current value of laser power not to activate
         # multiple realsense cameras simultaneously.
 
@@ -145,10 +143,9 @@ class CodedLightRealSenseCamera(RealSenseCamera):
 class PhoXiCamera(DepthCamera):
     def __init__(self, name='a_phoxi_m_camera'):
         super(PhoXiCamera, self).__init__(name)
-        self._dyn_reconf = dynamic_reconfigure.client.Client(name, timeout=5.0)
+        self._dyn_reconf    = DynReconfClient(name, timeout=5.0)
         self._trigger_frame = rospy.ServiceProxy(name + '/trigger_frame',
-                                                 std_srvs.srv.Trigger,
-                                                 persistent=True)
+                                                 Trigger, persistent=True)
 
     def is_continuous_shot(self):
         self._dyn_reconf.get_configuration()['trigger_mode'] == 0
@@ -164,5 +161,5 @@ class PhoXiCamera(DepthCamera):
         except rospy.ServiceException:
             self._trigger_frame \
                 = rospy.ServiceProxy(self.name + '/trigger_frame',
-                                     std_srvs.srv.Trigger, persistent=True)
+                                     Trigger, persistent=True)
             return self._trigger_frame().success

@@ -47,9 +47,7 @@ class Detector
     struct rgb_t		{ uint8_t r, g, b; };
 
   public:
-		Detector(const ros::NodeHandle& nh)			;
-
-    void	run()							;
+		Detector(ros::NodeHandle& nh)				;
 
   private:
     void	set_detection_mode(int mode)				;
@@ -88,8 +86,6 @@ class Detector
 		at(const MSG& msg, T u, T v)			const	;
 
   private:
-    ros::NodeHandle				_nh;
-
   // transformation stuff
     tf2_ros::TransformBroadcaster		_broadcaster;
     std::string					_marker_frame;
