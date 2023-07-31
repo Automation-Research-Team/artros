@@ -102,10 +102,10 @@ class KittingRoutines(URRoutines):
             self.search_bin(bin_id)
         elif key == 'a':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
+            self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
         elif key == 'A':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
+            self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
         elif key == 'c':
             self._attempt_bin.cancel_goal()
         elif key == 'd':

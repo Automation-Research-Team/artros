@@ -38,7 +38,8 @@ import rospy, collections, numpy as np
 from math                          import pi
 from tf                            import transformations as tfs
 from geometry_msgs.msg             import (PoseStamped, PointStamped,
-                                           Vector3Stamped, Point, Vector3)
+                                           Vector3Stamped,
+                                           Point, Quaternion, Vector3)
 from aist_routines.KittingRoutines import KittingRoutines
 from aist_routines.SweepAction     import Sweep
 from aist_routines.msg             import SweepResult
@@ -205,7 +206,7 @@ class HMIRoutines(KittingRoutines):
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
         robot_name = part_props['robot_name']
-        message    = '[Request testing] Please specify sweep direction.'
+        message    = '[Request_testing]_Please_specify_sweep_direction.'
 
         # Search for graspabilities.
         graspabilities = self.search_bin(bin_id)

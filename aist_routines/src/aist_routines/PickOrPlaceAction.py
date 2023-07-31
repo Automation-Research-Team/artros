@@ -85,6 +85,10 @@ class PickOrPlace(SimpleActionClient):
             self.wait_for_result()
             return self.get_result().result
 
+    def cancel_goal(self):
+        if self.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
+            SimpleActionClient.cancel_goal(self)
+
     def wait_for_stage(self, stage, timeout=rospy.Duration()):
         self._target_stage = stage          # Set stage to be waited for
         timeout_time = rospy.get_rostime() + timeout

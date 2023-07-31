@@ -38,6 +38,14 @@
     <node name="ros2nep"
 	  pkg="aist_routines" type="ros2nep.py" args="$(arg nep_ip)"
 	  output="screen"/>
+
+    <node name="getPointing"
+	  pkg="aist_routines" type="getPointing.py"
+	  output="screen"/>
+
+    <node name="setRequestHelp"
+	  pkg="aist_routines" type="setRequestHelp.py"
+	  output="screen"/>
   </group>
 
 </launch>

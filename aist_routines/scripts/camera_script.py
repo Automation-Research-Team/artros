@@ -5,7 +5,7 @@ import sys
 import nep
 import time
 
-id_ = 8
+id_ = 0
 x_resolution = 1920
 y_resolution = 1080
 vflip = 0
