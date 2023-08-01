@@ -15,26 +15,40 @@ set(CMAKE_CXX_BUILD_TYPE	Release)
 find_package(PkgConfig)
 pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
 
+find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED 1.8 REQUIRED COMPONENTS common io)
+
 find_package(
   catkin REQUIRED
   COMPONENTS
     roscpp
+    roslib
     rospy
+    image_transport
     sensor_msgs
     geometry_msgs
     tf
     ddynamic_reconfigure
     message_generation
+    pcl_ros
+    pcl_conversions
 )
-
-find_package(OpenCV REQUIRED)
-find_package(Eigen3 REQUIRED)
 
 catkin_python_setup()
 
 ###########
 ## Build ##
 ###########
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${LIBTIFF_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
+  src
+)
+
 add_message_files(
   FILES
     Float32Stamped.msg
@@ -59,21 +73,15 @@ catkin_package(
     ${PROJECT_NAME}
 )
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${LIBTIFF_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-  src
-)
-
 link_directories(
   ${LIBTIFF_LIBRARY_DIRS}
   ${OpenCV_LIBRARY_DIRS}
   ${EIGEN3_LIBRARY_DIRS}
 )
 
+#
+#  libaist_utility
+#
 add_library(
   ${PROJECT_NAME}
   src/tiff.cpp
@@ -96,6 +104,9 @@ target_link_libraries(
   ${OpenCV_LIBRARIES}
 )
 
+#
+#  rotconv
+#
 add_executable(rotconv
   src/rotconv.cpp
 )
@@ -105,6 +116,9 @@ target_link_libraries(rotconv
   ${roscpp_LIBRARIES}
 )
 
+#
+#  butterworth_lpf_test
+#
 add_executable(butterworth_lpf_test
   src/butterworth_lpf_test.cpp
 )
@@ -137,6 +151,9 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+#
+#  spline_extrapolator_test
+#
 add_executable(
   spline_extrapolator_test
   src/spline_extrapolator_test.cpp
@@ -153,12 +170,35 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
+#
+#  capture_pcd
+#
+add_executable(
+  capture_pcd
+  src/capture_pcd.cpp
+)
+
+target_link_libraries(
+  capture_pcd
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
+
+add_dependencies(
+  capture_pcd
+  ${PROJECT_NAME}_generate_messages_cpp
+  ${catkin_EXPORTED_TARGETS}
+  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
 #############
 ## Install ##
 #############
 install(
   TARGETS
-    rotconv joint_state_extractor
+    rotconv joint_state_extractor capture_pcd
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

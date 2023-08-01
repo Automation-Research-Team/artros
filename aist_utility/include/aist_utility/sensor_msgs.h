@@ -62,6 +62,22 @@ inline float	intensity(const std::array<uint8_t, 3>& rgb)
 		    return 0.299f*rgb[0] + 0.587f*rgb[1] + 0.114f*rgb[2];
 		}
 
+//! Set color value
+template <class T>
+inline void	set_color(const sensor_msgs::PointCloud2Iterator<uint8_t>& p,
+			  const T& rgb)
+		{
+		    p[0] = rgb.b;
+		    p[1] = rgb.g;
+		    p[2] = rgb.r;
+		}
+template <>
+inline void	set_color(const sensor_msgs::PointCloud2Iterator<uint8_t>& p,
+			  const uint8_t& grey)
+		{
+		    p[0] = p[1] = p[2] = grey;
+		}
+    
 //! Get depth value in meters.
 template <class T>
 inline float	meters(T depth)			{ return depth; }
@@ -216,6 +232,9 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     using namespace	sensor_msgs;
 
     PointCloud2	cloud;
+    cloud.header	= depth.header;
+    cloud.height	= depth.height;
+    cloud.width		= depth.width;
     cloud.is_bigendian	= false;
     cloud.is_dense	= false;
 
@@ -231,12 +250,6 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
 				      "x", 1, PointField::FLOAT32,
 				      "y", 1, PointField::FLOAT32,
 				      "z", 1, PointField::FLOAT32);
-    modifier.resize(depth.height * depth.width);
-
-    cloud.header	= depth.header;
-    cloud.height	= depth.height;
-    cloud.width		= depth.width;
-    cloud.row_step	= cloud.width * cloud.point_step;
 
     cv::Mat_<float>	K(3, 3);
     std::copy_n(std::begin(camera_info.K), 9, K.begin());
@@ -260,7 +273,7 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
 	auto	p = ptr<T>(depth, v);
 	for (uint32_t u = 0; u < depth.width; ++u)
 	{
-	    const auto	d = meters<T>(*p++);
+	    const auto	d = meters(*p++);
 
 	    if (float(d) == 0.0f)
 	    {
@@ -289,6 +302,9 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     using namespace	sensor_msgs;
 
     PointCloud2	cloud;
+    cloud.header	= depth.header;
+    cloud.height	= depth.height;
+    cloud.width		= depth.width;
     cloud.is_bigendian	= false;
     cloud.is_dense	= false;
 
@@ -300,12 +316,6 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
 				  "normal_x", 1, PointField::FLOAT32,
 				  "normal_y", 1, PointField::FLOAT32,
 				  "normal_z", 1, PointField::FLOAT32);
-    modifier.resize(depth.height * depth.width);
-
-    cloud.header	= depth.header;
-    cloud.height	= depth.height;
-    cloud.width		= depth.width;
-    cloud.row_step	= cloud.width * cloud.point_step;
 
     cv::Mat_<float>	K(3, 3);
     std::copy_n(std::begin(camera_info.K), 9, K.begin());
@@ -331,7 +341,7 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
 	auto	n = ptr<vec3_t>(normal, v);
 	for (uint32_t u = 0; u < depth.width; ++u)
 	{
-	    const auto	d = meters<T>(*p++);
+	    const auto	d = meters(*p++);
 
 	    if (float(d) == 0.0f)
 	    {
@@ -362,20 +372,18 @@ create_empty_pointcloud(const ros::Time& stamp, const std::string& frame)
     using namespace	sensor_msgs;
 
     PointCloud2	cloud;
-    cloud.is_bigendian	  = false;
-    cloud.is_dense	  = true;
     cloud.header.stamp	  = stamp;
     cloud.header.frame_id = frame;
     cloud.height	  = 1;
     cloud.width		  = 0;
+    cloud.is_bigendian	  = false;
+    cloud.is_dense	  = true;
 
     PointCloud2Modifier	modifier(cloud);
     modifier.setPointCloud2Fields(3,
 				  "x", 1, PointField::FLOAT32,
 				  "y", 1, PointField::FLOAT32,
 				  "z", 1, PointField::FLOAT32);
-    modifier.resize(cloud.width);
-    cloud.row_step = cloud.width * cloud.point_step;
 
     return cloud;
 }
@@ -389,17 +397,15 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
     if (cloud.height != image.height || cloud.width != image.width)
 	throw std::runtime_error("add_rgb_to_pointcloud(): cloud and image with different sizes!");
 
-    PointCloud2Iterator<uint8_t>	rgb(cloud, "rgb");
+    PointCloud2Iterator<uint8_t>	bgr(cloud, "rgb");
     for (uint32_t v = 0; v < cloud.height; ++v)
     {
 	auto	p = ptr<T>(image, v);
 
 	for (uint32_t u = 0; u < cloud.width; ++u)
 	{
-	    rgb[0] = p->b;
-	    rgb[1] = p->g;
-	    rgb[2] = p->r;
-	    ++rgb;
+	    set_color<T>(bgr, *p);
+	    ++bgr;
 	    ++p;
 	}
     }
@@ -412,15 +418,13 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud, const T& color)
 {
     using namespace	sensor_msgs;
 
-    PointCloud2Iterator<uint8_t>	rgb(cloud, "rgb");
+    PointCloud2Iterator<uint8_t>	bgr(cloud, "rgb");
     for (uint32_t v = 0; v < cloud.height; ++v)
     {
 	for (uint32_t u = 0; u < cloud.width; ++u)
 	{
-	    rgb[0] = color.b;
-	    rgb[1] = color.g;
-	    rgb[2] = color.r;
-	    ++rgb;
+	    set_color<T>(bgr, color);
+	    ++bgr;
 	}
     }
 

@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="camera_name"	default="realsense"/>	<!-- or "phoxi" -->
+
+  <!-- Setup subscribed topic names -->
+  <arg if="$(eval camera_name == 'phoxi')"
+       name="color_topic"	value="$(arg camera_name)/texture"/>
+  <arg if="$(eval camera_name == 'phoxi')"
+       name="depth_topic"	value="$(arg camera_name)/depth_map"/>
+  <arg if="$(eval camera_name == 'phoxi')"
+       name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
+  <arg if="$(eval camera_name == 'phoxi')"
+       name="cloud_topic"	value="$(arg camera_name)/pointcloud"/>
+  <arg if="$(eval camera_name == 'phoxi')"
+       name="cloud_frame"	value="base_link"/>
+  <arg if="$(eval camera_name == 'realsense')"
+       name="color_topic"	value="$(arg camera_name)/color/image_raw"/>
+  <arg if="$(eval camera_name == 'realsense')"
+       name="depth_topic"	value="$(arg camera_name
+				       )/aligned_depth_to_color/image_raw"/>
+  <arg if="$(eval camera_name == 'realsense')"
+       name="camera_info_topic"	value="$(arg camera_name
+				       )/aligned_depth_to_color/camera_info"/>
+  <arg if="$(eval camera_name == 'realsense')"
+       name="cloud_topic"	value="$(arg camera_name)/depth/color/points"/>
+  <arg if="$(eval camera_name == 'realsense')"
+       name="cloud_frame"	value="$(arg camera_name)_link"/>
+
+  <!-- Launch example program -->
+  <node name="capture_pcd"
+	pkg="aist_utility" type="capture_pcd" output="screen">
+    <remap from="/color"	to="$(arg color_topic)"/>
+    <remap from="/depth"	to="$(arg depth_topic)"/>
+    <remap from="/camera_info"	to="$(arg camera_info_topic)"/>
+    <remap from="/pointcloud"	to="$(arg cloud_topic)"/>
+    <param name="cloud_frame"	value="$(arg cloud_frame)"/>
+  </node>
+
+  <!-- Launch PhoXi camera if specified -->
+  <group if="$(eval camera_name == 'phoxi')">
+    <arg name="id"		default="JKE-001"/>
+
+    <include file="$(find aist_phoxi_camera)/launch/run.launch">
+      <arg name="id"		value="$(arg id)"/>
+      <arg name="camera_name"	value="$(arg camera_name)"/>
+      <arg name="trigger_mode"	value="0"/>	<!-- free run mode -->
+    </include>
+
+    <node name="static_transform_publisher" pkg="tf"
+	  type="static_transform_publisher"
+	  args="0 0 0.6 0 0 3.14 base_link $(arg camera_name)_sensor 10"/>
+  </group>
+
+  <!-- Launch Realsense camera if specified -->
+  <group if="$(eval camera_name == 'realsense')">
+    <arg name="camera_width"	default="640"/>
+    <arg name="camera_height"	default="480"/>
+    <arg name="fps"		default="30"/>
+
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="camera"		value="$(arg camera_name)"/>
+      <arg name="publish_tf"		value="true"/>
+      <arg name="enable_depth"		value="true"/>
+      <arg name="enable_infra1"		value="false"/>
+      <arg name="enable_infra2"		value="false"/>
+      <arg name="enable_pointcloud"	value="true"/>
+      <arg name="ordered_pc"		value="true"/>
+      <arg name="align_depth"		value="true"/>
+      <arg name="enable_sync"		value="true"/>
+      <arg name="depth_width"		value="$(arg camera_width)"/>
+      <arg name="depth_height"		value="$(arg camera_height)"/>
+      <arg name="depth_fps"		value="$(arg fps)"/>
+      <arg name="color_width"		value="$(arg camera_width)"/>
+      <arg name="color_height"		value="$(arg camera_height)"/>
+      <arg name="color_fps"		value="$(arg fps)"/>
+    </include>
+  </group>
+
+  <!-- Launch Rviz -->
+  <node name="$(anon rviz)" pkg="rviz" type="rviz" output="screen"
+	args="-d $(dirname)/$(arg camera_name).rviz"/>
+
+</launch>
