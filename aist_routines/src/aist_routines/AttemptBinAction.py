@@ -95,10 +95,16 @@ class AttemptBin(SimpleActionClient):
 
     def _attempt_bin(self, bin_id, poses, place_offset, max_attempts):
         routines   = self._routines
-        bin_props  = routines._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = routines._part_props[part_id]
-        robot_name = part_props['robot_name']
+        try:
+            bin_props  = routines._bin_props[bin_id]
+            part_id    = bin_props['part_id']
+            part_props = routines._part_props[part_id]
+            robot_name = part_props['robot_name']
+        except KeyError as e:
+            print(e)
+            self._server.set_aborted()
+            rospy.logerr('(AttemptBin) Unknown bin_id[%s]', bin_id)
+            return False, None
 
         # If using a different robot from the former, move it back to home.
         if self.current_robot_name is not None and \
