@@ -1,12 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_id"			default="2018-09-015-LC3"/>
+  <arg name="camera_id"			default="2018-09-017-LC3"/>
   <arg name="camera_name"		default="phoxi"/>
   <arg name="marker_map_dir"		default="$(dirname)/../config"/>
-  <!-- <arg name="marker_map"		default="markermap-17-26-32-256"/> -->
-  <arg name="marker_map"		default=""/>
-  <arg name="marker_id"			default="26"/>
+  <arg name="marker_map"		default="markermap-100-101-102-103"/>
+  <arg name="marker_id"			default=""/>
   <arg name="marker_size"		default="0.070"/>    <!-- in meters -->
   <arg name="marker_frame"		default="marker_frame"/>
   <arg name="planarity_tolerance"	default="0.001"/>

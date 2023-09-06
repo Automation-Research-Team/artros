@@ -130,6 +130,16 @@ Detector::Detector(ros::NodeHandle& nh)
     ROS_INFO_STREAM("Minimum marker size: "
 		    << _marker_detector.getParameters().minSize);
 
+  // Set a parameter for specifying whether the marker is enclosed or not.
+    _ddr.registerVariable<bool>("enclosed_marker",
+				_marker_detector.getParameters().enclosedMarker,
+				boost::bind(&Detector::set_enclosed_marker,
+					    this, _1),
+				"Detect enclosed marker", false, true);
+    ROS_INFO_STREAM("Detect enclosed marker: "
+		    << std::boolalpha
+		    << _marker_detector.getParameters().enclosedMarker);
+
   // Set detection mode and setup ddynamic_reconfigure service for it.
     std::map<std::string, int>	map_detectionMode =
     				{
@@ -193,17 +203,23 @@ Detector::Detector(ros::NodeHandle& nh)
 }
 
 void
-Detector::set_detection_mode(int mode)
-{
-    _marker_detector.setDetectionMode(aruco::DetectionMode(mode),
-				      _marker_detector.getParameters().minSize);
-}
-
-void
 Detector::set_min_marker_size(double size)
 {
     _marker_detector.setDetectionMode(_marker_detector.getDetectionMode(),
 				      size);
+}
+
+void
+Detector::set_enclosed_marker(bool enable)
+{
+    _marker_detector.getParameters().detectEnclosedMarkers(enable);
+}
+
+void
+Detector::set_detection_mode(int mode)
+{
+    _marker_detector.setDetectionMode(aruco::DetectionMode(mode),
+				      _marker_detector.getParameters().minSize);
 }
 
 void

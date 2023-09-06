@@ -50,8 +50,9 @@ class Detector
 		Detector(ros::NodeHandle& nh)				;
 
   private:
-    void	set_detection_mode(int mode)				;
     void	set_min_marker_size(double size)			;
+    void	set_enclosed_marker(bool enable)			;
+    void	set_detection_mode(int mode)				;
     void	set_dictionary(int dict_type)				;
     void	detect_marker_from_depth_cb(
 		    const image_p&	 image_msg,
