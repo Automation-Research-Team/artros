@@ -34,6 +34,18 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
 )
 
+add_message_files(
+  FILES
+    ImagePoint.msg
+    PointCorrespondence.msg
+    PointCorrespondenceArray.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+    geometry_msgs
+)
+
 catkin_package(
   CATKIN_DEPENDS
     roscpp
