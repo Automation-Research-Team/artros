@@ -6,3 +6,12 @@
     </description>
   </class>
 </library>
+
+<library path="lib/libaruco_detector_2d">
+  <class name="aist_aruco_ros/aruco_detector_2d"
+	 type="aist_aruco_ros::Detector2DNodelet"
+	 base_class_type="nodelet::Nodelet">
+    <description>
+    </description>
+  </class>
+</library>
