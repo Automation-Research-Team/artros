@@ -1,0 +1,25 @@
+<launch>
+
+  <arg name="marker_map_dir"	default="$(dirname)/../config"/>
+  <arg name="marker_map"	default="calib_board-6x4"/>
+  <arg name="marker_id"		default="26"/>
+  <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
+  <arg name="image_topic"	default="live_camera/image_raw"/>
+  <arg name="manager"		default=""/>
+
+  <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
+  <arg unless="$(eval manager == '')"	name="command"	value="load"/>
+
+  <node name="aruco_detector_2d" pkg="nodelet" type="nodelet" output="screen"
+  	args="$(arg command) aist_aruco_ros/aruco_detector_2d
+	      $(arg manager)">
+    <remap from="/image"		to="$(arg image_topic)"/>
+
+    <!-- Other parameters -->
+    <param name="marker_map_dir"	value="$(arg marker_map_dir)"/>
+    <param name="marker_map"		value="$(arg marker_map)"/>
+    <param name="marker_id"		value="$(arg marker_id)"/>
+    <param name="marker_size"		value="$(arg marker_size)"/>
+  </node>
+
+</launch>
