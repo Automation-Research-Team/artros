@@ -38,8 +38,7 @@
   \brief	Calibrator node implementing a quick compute service, a compute service and 2 subscribers to world_effector_topic and camera_object_topic.
 */
 
-#ifndef CALIBRATOR_H
-#define CALIBRATOR_H
+#pragma once
 
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
@@ -47,37 +46,29 @@
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
 #include <actionlib/server/simple_action_server.h>
-#include <aist_handeye_calibration/GetSampleList.h>
-#include <aist_handeye_calibration/ComputeCalibration.h>
-#include <aist_handeye_calibration/TakeSampleAction.h>
+#include <aist_camera_calibration/GetSampleList.h>
+#include <aist_camera_calibration/ComputeCalibration.h>
+#include <aist_camera_calibration/TakeSampleAction.h>
 
-namespace aist_handeye_calibration
+namespace aist_camera_calibration
 {
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
 class Calibrator
 {
-  public:
-    using transformMsg_t  = geometry_msgs::TransformStamped;
-
   private:
-    using poseMsg_cp	  = geometry_msgs::PoseStampedConstPtr;
+    using corres_t	  = aist_aruco_ros::PointCorrespondenceArray;
     using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
 
   public:
-		Calibrator(const ros::NodeHandle& nh)			;
+		Calibrator(ros::NodeHandle& nh)				;
 		~Calibrator()						;
 
     void	run()							;
 
   private:
-    const std::string&	camera_frame()				const	;
-    const std::string&	effector_frame()			const	;
-    const std::string&	object_frame()				const	;
-    const std::string&	world_frame()				const	;
-
-    void	pose_cb(const poseMsg_cp& pose)				;
+    void	corres_cb(const corres_t& correspondeces)		;
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
@@ -90,27 +81,12 @@ class Calibrator
     void	cancel()						;
 
   private:
-    ros::NodeHandle		_nh;
-
-    ros::Subscriber		_pose_sub;
+    ros::Subscriber		_corres_sub;
 
     const ros::ServiceServer	_get_sample_list_srv;
     const ros::ServiceServer	_compute_calibration_srv;
     const ros::ServiceServer	_save_calibration_srv;
     const ros::ServiceServer	_reset_srv;
     action_server_t		_take_sample_srv;
-
-    tf2_ros::Buffer			_transform_buffer;
-    const tf2_ros::TransformListener	_transform_listener;
-
-    std::vector<transformMsg_t>	_cMo;	//!< in:  camera <- object   transform
-    std::vector<transformMsg_t>	_wMe;	//!< in:  world  <- effector transform
-    transformMsg_t		_eMc;	//!< out: effector <- camera transform
-    transformMsg_t		_wMo;	//!< out: world    <- object transform
-
-    const bool			_use_dual_quaternion;
-    const bool			_eye_on_hand;
-    const ros::Duration		_timeout;
 };
-}	// namespace aist_hnadeye_calibration
-#endif	// !CALIBRATOR_H
+}	// namespace aist_camera_calibration

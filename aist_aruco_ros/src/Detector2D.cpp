@@ -46,7 +46,7 @@ class Detector2D
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
-    void	set_dictionary(int dict_type)				;
+    void	set_dictionary(const std::string& dict)			;
     void	image_cb(const image_p&	 image_msg)			;
     static void	publish_image(const std_msgs::Header& header,
 			      const cv::Mat& image,
@@ -56,7 +56,6 @@ class Detector2D
 					const std_msgs::Header& header)	;
 
   private:
-  // I/O stuff
     image_transport::ImageTransport	_it;
     image_transport::Subscriber		_image_sub;
     const image_transport::Publisher	_result_pub;
@@ -67,7 +66,6 @@ class Detector2D
 
     mdetector_t				_marker_detector;
     marker_map_t			_marker_map;
-    float				_marker_size;
 };
 
 Detector2D::Detector2D(ros::NodeHandle& nh)
@@ -79,8 +77,7 @@ Detector2D::Detector2D(ros::NodeHandle& nh)
 		     "point_correspondences", 100)),
      _ddr(nh),
      _marker_detector(),
-     _marker_map(),
-     _marker_size(nh.param("marker_size", 0.05))
+     _marker_map()
 {
   // Restore marker map if specified.
     if (const auto marker_map_name = nh.param<std::string>("marker_map", "");
@@ -92,15 +89,13 @@ Detector2D::Detector2D(ros::NodeHandle& nh)
 					    + "/config")
 				 + '/' + marker_map_name + ".yaml";
 	_marker_map.readFromFile(mMapFile);
-	_marker_size = cv::norm(_marker_map[0].points[0] -
-				_marker_map[0].points[1]);
 
 	ROS_INFO_STREAM("Find a marker map[" << marker_map_name << ']');
     }
-    else if (const auto marker_id = nh.param<int>("marker_id", 0);
-	     marker_id > 0)
+    else if (const auto marker_id = nh.param<int>("marker_id", -1);
+	     marker_id >= 0)
     {
-	const auto	half_size = _marker_size/2;
+	const auto	half_size = nh.param("marker_size", 0.05f) / 2;
 	marker_info_t	mInfo(marker_id);
 	mInfo.push_back({-half_size,  half_size, 0});
 	mInfo.push_back({ half_size,  half_size, 0});
@@ -115,7 +110,6 @@ Detector2D::Detector2D(ros::NodeHandle& nh)
     {
 	throw std::runtime_error("Neither marker map nor marker ID specified!");
     }
-    
 
   // Set minimum marker size and setup ddynamic_reconfigure service for it.
     _ddr.registerVariable<double>("min_marker_size",
@@ -152,31 +146,29 @@ Detector2D::Detector2D(ros::NodeHandle& nh)
     ROS_INFO_STREAM("Detection mode: " << _marker_detector.getDetectionMode());
 
   // Set dictionary and setup ddynamic_reconfigure service for it.
-    const auto	dictType = nh.param<int>("dictionary",
-					 aruco::Dictionary::ARUCO);
-    set_dictionary(dictType);
+    const auto	dict = nh.param<std::string>("dictionary", "ARUCO");
+    set_dictionary(dict);
 
-    std::map<std::string, int>
-	map_dictType =
+    std::map<std::string, std::string>
+	map_dict =
 	{
-	    {"ARUCO",		 aruco::Dictionary::ARUCO},
-	    {"ARUCO_MIP_25h7",	 aruco::Dictionary::ARUCO_MIP_25h7},
-	    {"ARUCO_MIP_16h3",	 aruco::Dictionary::ARUCO_MIP_16h3},
-	    {"ARTAG",		 aruco::Dictionary::ARTAG},
-	    {"ARTOOLKITPLUS",	 aruco::Dictionary::ARTOOLKITPLUS},
-	    {"ARTOOLKITPLUSBCH", aruco::Dictionary::ARTOOLKITPLUSBCH},
-	    {"TAG16h5",		 aruco::Dictionary::TAG16h5},
-	    {"TAG25h7",		 aruco::Dictionary::TAG25h7},
-	    {"TAG25h9",		 aruco::Dictionary::TAG25h9},
-	    {"TAG36h11",	 aruco::Dictionary::TAG36h11},
-	    {"TAG36h10",	 aruco::Dictionary::TAG36h10},
-	    {"CUSTOM",		 aruco::Dictionary::CUSTOM},
+	    {"ARUCO",		 "ARUCO"},
+	    {"ARUCO_MIP_25h7",	 "ARUCO_MIP_25h7"},
+	    {"ARUCO_MIP_16h3",	 "ARUCO_MIP_16h3"},
+	    {"ARTAG",		 "ARTAG"},
+	    {"ARTOOLKITPLUS",	 "ARTOOLKITPLUS"},
+	    {"ARTOOLKITPLUSBCH", "ARTOOLKITPLUSBCH"},
+	    {"TAG16h5",		 "TAG16h5"},
+	    {"TAG25h7",		 "TAG25h7"},
+	    {"TAG25h9",		 "TAG25h9"},
+	    {"TAG36h11",	 "TAG36h11"},
+	    {"TAG36h10",	 "TAG36h10"},
+	    {"CUSTOM",		 "CUSTOM"},
 	};
-    _ddr.registerEnumVariable<int>("dictionary", dictType,
-				   boost::bind(&Detector2D::set_dictionary,
-					       this, _1),
-				   "Dictionary", map_dictType);
-    ROS_INFO_STREAM("Dictionary: " << dictType);
+    _ddr.registerEnumVariable<std::string>(
+	"dictionary", dict, boost::bind(&Detector2D::set_dictionary, this, _1),
+	"Dictionary", map_dict);
+    ROS_INFO_STREAM("Dictionary: " << dict);
 
   // Pulish ddynamic_reconfigure service.
     _ddr.publishServicesTopicsAndUpdateConfigData();
@@ -203,9 +195,10 @@ Detector2D::set_detection_mode(int mode)
 }
 
 void
-Detector2D::set_dictionary(int dict_type)
+Detector2D::set_dictionary(const std::string& dict)
 {
-    _marker_detector.setDictionary(dict_type);
+    _marker_detector.setDictionary(dict);
+    _marker_map.setDictionary(dict);
 }
 
 void
@@ -224,7 +217,7 @@ Detector2D::image_cb(const image_p& image_msg)
 		  _debug_pub);
 
     std::vector<std::pair<point3_t, point2_t> >	pairs;
-    
+
     for (const auto& marker : markers)
     {
       // For each marker, draw info and its boundaries in the image.
@@ -262,7 +255,7 @@ Detector2D::publish_correspondences(ITER begin, ITER end,
 {
     PointCorrespondenceArray	correses;
     correses.header = header;
-    
+
     for (auto iter = begin; iter != end; ++iter)
     {
 	PointCorrespondence	corres;
@@ -274,7 +267,7 @@ Detector2D::publish_correspondences(ITER begin, ITER end,
 
 	correses.point_correspondences.push_back(corres);
     }
-    
+
     _corres_pub.publish(correses);
 }
 
@@ -302,4 +295,3 @@ Detector2DNodelet::onInit()
 }	// namespace aist_aruco_ros
 
 PLUGINLIB_EXPORT_CLASS(aist_aruco_ros::Detector2DNodelet, nodelet::Nodelet);
-

@@ -110,7 +110,7 @@ class Detector
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
-    void	set_dictionary(int dict_type)				;
+    void	set_dictionary(const std::string& dict)			;
     void	detect_marker_from_depth_cb(
 		    const image_p&	 image_msg,
 		    const image_p&	 depth_msg,
@@ -263,31 +263,29 @@ Detector::Detector(ros::NodeHandle& nh)
     ROS_INFO_STREAM("Detection mode: " << _marker_detector.getDetectionMode());
 
   // Set dictionary and setup ddynamic_reconfigure service for it.
-    const auto	dictType = nh.param<int>("dictionary",
-					 aruco::Dictionary::ARUCO);
-    set_dictionary(dictType);
+    const auto	dict = nh.param<std::string>("dictionary", "ARUCO");
+    set_dictionary(dict);
 
-    std::map<std::string, int>
-	map_dictType =
+    std::map<std::string, std::string>
+	map_dict =
 	{
-	    {"ARUCO",		 aruco::Dictionary::ARUCO},
-	    {"ARUCO_MIP_25h7",	 aruco::Dictionary::ARUCO_MIP_25h7},
-	    {"ARUCO_MIP_16h3",	 aruco::Dictionary::ARUCO_MIP_16h3},
-	    {"ARTAG",		 aruco::Dictionary::ARTAG},
-	    {"ARTOOLKITPLUS",	 aruco::Dictionary::ARTOOLKITPLUS},
-	    {"ARTOOLKITPLUSBCH", aruco::Dictionary::ARTOOLKITPLUSBCH},
-	    {"TAG16h5",		 aruco::Dictionary::TAG16h5},
-	    {"TAG25h7",		 aruco::Dictionary::TAG25h7},
-	    {"TAG25h9",		 aruco::Dictionary::TAG25h9},
-	    {"TAG36h11",	 aruco::Dictionary::TAG36h11},
-	    {"TAG36h10",	 aruco::Dictionary::TAG36h10},
-	    {"CUSTOM",		 aruco::Dictionary::CUSTOM},
+	    {"ARUCO",		 "ARUCO"},
+	    {"ARUCO_MIP_25h7",	 "ARUCO_MIP_25h7"},
+	    {"ARUCO_MIP_16h3",	 "ARUCO_MIP_16h3"},
+	    {"ARTAG",		 "ARTAG"},
+	    {"ARTOOLKITPLUS",	 "ARTOOLKITPLUS"},
+	    {"ARTOOLKITPLUSBCH", "ARTOOLKITPLUSBCH"},
+	    {"TAG16h5",		 "TAG16h5"},
+	    {"TAG25h7",		 "TAG25h7"},
+	    {"TAG25h9",		 "TAG25h9"},
+	    {"TAG36h11",	 "TAG36h11"},
+	    {"TAG36h10",	 "TAG36h10"},
+	    {"CUSTOM",		 "CUSTOM"},
 	};
-    _ddr.registerEnumVariable<int>("dictionary", dictType,
-				   boost::bind(&Detector::set_dictionary,
-					       this, _1),
-				   "Dictionary", map_dictType);
-    ROS_INFO_STREAM("Dictionary: " << dictType);
+    _ddr.registerEnumVariable<std::string>(
+	"dictionary", dict, boost::bind(&Detector::set_dictionary, this, _1),
+	"Dictionary", map_dict);
+    ROS_INFO_STREAM("Dictionary: " << dict);
 
   // Set usage of rigid transformation and setup its dynamic reconfigure service.
     _ddr.registerVariable<bool>(
@@ -330,9 +328,10 @@ Detector::set_detection_mode(int mode)
 }
 
 void
-Detector::set_dictionary(int dict_type)
+Detector::set_dictionary(const std::string& dict)
 {
-    _marker_detector.setDictionary(dict_type);
+    _marker_detector.setDictionary(dict);
+    _marker_map.setDictionary(dict);
 }
 
 void
@@ -667,4 +666,3 @@ DetectorNodelet::onInit()
 }	// namespace aist_aruco_ros
 
 PLUGINLIB_EXPORT_CLASS(aist_aruco_ros::DetectorNodelet, nodelet::Nodelet);
-

@@ -4,7 +4,8 @@
   <arg name="camera_name"	default="live_camera"/>
   <arg name="marker_map_dir"	default="$(dirname)/../config"/>
   <arg name="marker_map"	default="calib_board-6x4"/>
-  <arg name="marker_id"		default="26"/>
+  <!-- <arg name="marker_id"		default="26"/> -->
+  <arg name="marker_id"		default="-1"/>
   <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
   <arg name="manager"		default=""/>
 

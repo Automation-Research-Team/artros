@@ -69,52 +69,32 @@ fromPoseToTransform(const geometry_msgs::PoseStamped pose)
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
-Calibrator::Calibrator(const ros::NodeHandle& nh)
-    :_nh(nh),
-     _pose_sub(_nh.subscribe("/pose", 5, &Calibrator::pose_cb, this)),
+Calibrator::Calibrator(ros::NodeHandle& nh)
+    :_pose_sub(nh.subscribe("/pose", 5, &Calibrator::pose_cb, this)),
      _get_sample_list_srv(
-	 _nh.advertiseService("get_sample_list",
-			      &Calibrator::get_sample_list, this)),
+	 nh.advertiseService("get_sample_list",
+			     &Calibrator::get_sample_list, this)),
      _compute_calibration_srv(
-	 _nh.advertiseService("compute_calibration",
-			      &Calibrator::compute_calibration, this)),
+	 nh.advertiseService("compute_calibration",
+			     &Calibrator::compute_calibration, this)),
      _save_calibration_srv(
-	 _nh.advertiseService("save_calibration",
+	 nh.advertiseService("save_calibration",
 			      &Calibrator::save_calibration, this)),
-     _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
-     _take_sample_srv(_nh, "take_sample", false),
+     _reset_srv(nh.advertiseService("reset", &Calibrator::reset, this)),
+     _take_sample_srv(nh, "take_sample", false),
      _transform_buffer(),
      _transform_listener(_transform_buffer),
      _use_dual_quaternion(_nh.param<bool>("use_dual_quaternion", true)),
      _eye_on_hand(_nh.param<bool>("eye_on_hand", true)),
      _timeout(_nh.param<double>("timeout", 5.0))
 {
-    ROS_INFO_STREAM("initializing calibrator...");
-
-    if (_eye_on_hand)
-    {
-	_eMc.header.frame_id = _nh.param<std::string>("robot_effector_frame",
-						      "tool0");
-	_wMo.header.frame_id = _nh.param<std::string>("robot_base_frame",
-						      "base_link");
-    }
-    else
-    {
-	_wMo.header.frame_id = _nh.param<std::string>("robot_effector_frame",
-						      "tool0");
-	_eMc.header.frame_id = _nh.param<std::string>("robot_base_frame",
-						      "base_link");
-    }
-
-    _eMc.child_frame_id = "";
-    _wMo.child_frame_id = _nh.param<std::string>("marker_frame",
-						 "marker_frame");
-
     _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::take_sample,
 						      this));
     _take_sample_srv.registerPreemptCallback(boost::bind(&Calibrator::cancel,
 							 this));
     _take_sample_srv.start();
+
+    ROS_INFO_STREAM("Calibrator initialized");
 }
 
 Calibrator::~Calibrator()
@@ -127,42 +107,15 @@ Calibrator::run()
     ros::spin();
 }
 
-const std::string&
-Calibrator::camera_frame() const
-{
-    return _eMc.child_frame_id;
-}
-
-const std::string&
-Calibrator::effector_frame() const
-{
-    return _eMc.header.frame_id;
-}
-
-const std::string&
-Calibrator::object_frame() const
-{
-    return _wMo.child_frame_id;
-}
-
-const std::string&
-Calibrator::world_frame() const
-{
-    return _wMo.header.frame_id;
-}
-
 void
-Calibrator::pose_cb(const poseMsg_cp& poseMsg)
+Calibrator::corres_cb(const corres_t& correspondences)
 {
     if (!_take_sample_srv.isActive())
 	return;
 
+
     try
     {
-	using aist_utility::operator <<;
-
-      // Set camera frame.
-	_eMc.child_frame_id = poseMsg->header.frame_id;
 
       // Convert marker pose to camera <= object transform.
 	TakeSampleResult	result;
