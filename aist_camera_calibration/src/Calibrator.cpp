@@ -108,7 +108,7 @@ Calibrator::run()
 }
 
 void
-Calibrator::corres_cb(const corres_t& correspondences)
+Calibrator::corres_cb(const corres_msg_t& correspondences)
 {
     if (!_take_sample_srv.isActive())
 	return;

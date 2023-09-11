@@ -49,6 +49,7 @@
 #include <aist_camera_calibration/GetSampleList.h>
 #include <aist_camera_calibration/ComputeCalibration.h>
 #include <aist_camera_calibration/TakeSampleAction.h>
+#include "CameraCalibrator.h"
 
 namespace aist_camera_calibration
 {
@@ -58,7 +59,8 @@ namespace aist_camera_calibration
 class Calibrator
 {
   private:
-    using corres_t	  = aist_aruco_ros::PointCorrespondenceArray;
+    using element_t	  = double;
+    using corres_msg_t	  = aist_aruco_ros::PointCorrespondenceArray;
     using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
 
   public:
@@ -68,7 +70,7 @@ class Calibrator
     void	run()							;
 
   private:
-    void	corres_cb(const corres_t& correspondeces)		;
+    void	corres_cb(const corres_msg_t& correspondeces)		;
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
