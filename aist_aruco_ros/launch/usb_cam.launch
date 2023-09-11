@@ -8,6 +8,12 @@
   <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
   <arg name="manager"		default=""/>
 
+  <node unless="$(eval manager == '')"
+	name="$(arg manager)" pkg ="nodelet" type="nodelet"
+	args="manager" output="screen">
+    <param name="num_worker_threads"	value="4"/>
+  </node>
+
   <node name="$(arg camera_name)"
   	pkg="usb_cam" type="usb_cam_node" output="screen">
     <rosparam file="$(find aist_routines)/config/$(arg camera_name).yaml"/>
@@ -22,8 +28,10 @@
     <arg name="manager"		value="$(arg manager)"/>
   </include>
 
-  <node name="image_view"
-	pkg = "image_view" type="image_view" output="screen">
+  <arg if    ="$(eval manager == '')"	name="command"	value="standalone"/>
+  <arg unless="$(eval manager == '')"	name="command"	value="load"/>
+  <node name="image_view" pkg="nodelet" type="nodelet" output="screen"
+  	args="$(arg command) image_view/image $(arg manager)">
     <remap from="/image"	to="aruco_detector_2d/result"/>
   </node>
 
