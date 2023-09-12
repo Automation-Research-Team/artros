@@ -5,9 +5,14 @@
 */
 #include <iostream>
 #include <cstdint>
+#include <any>
 
 #include <ros/package.h>
 #include <image_transport/image_transport.h>
+#include <image_transport/subscriber_filter.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
@@ -22,7 +27,7 @@
 namespace aist_aruco_ros
 {
 /************************************************************************
-*  class MultiDetector2D							*
+*  class MultiDetector2D						*
 ************************************************************************/
 class MultiDetector2D
 {
@@ -35,19 +40,25 @@ class MultiDetector2D
     using marker_map_t	= aruco::MarkerMap;
     using point2_t	= cv::Point2f;
     using point3_t	= cv::Point3f;
-    using policy1_t	= message_filters::sync_poicies::ApproximateTime<
-				image_t>;
-    using sync1_t	= message_filters::Synchronizer<policy1_t>;
-    using policy2_t	= message_filters::sync_poicies::ApproximateTime<
-				image_t, image_t>;
-    using sync2_t	= message_filters::Synchronizer<policy2_t>;
 
-    using ddynamic_reconfigure_t= ddynamic_reconfigure::DDynamicReconfigure;
+    using ddynamic_reconfigure_t = ddynamic_reconfigure::DDynamicReconfigure;
 
     struct rgb_t		{ uint8_t r, g, b; };
 
+    template <size_t N, class... TYPES> struct policy_t
+    {
+	using type = typename policy_t<N-1, image_t, TYPES...>::type;
+    };
+    template <class... TYPES> struct policy_t<0, TYPES...>
+    {
+	using type = message_filters::sync_policies::ApproximateTime<TYPES...>;
+    };
+    template <size_t N>
+
+    using sync_t = message_filters::Synchronizer<typename policy_t<N>::type>;
+    
   public:
-		MultiDetector2D(ros::NodeHandle& nh)				;
+		MultiDetector2D(ros::NodeHandle& nh)			;
 
   private:
     void	set_min_marker_size(double size)			;
@@ -68,7 +79,8 @@ class MultiDetector2D
     std::vector<const image_transport::Publisher>	_result_pubs;
     std::vector<const image_transport::Publisher>	_debug_pubs;
     const ros::Publisher				_corres_pub;
-
+    std::any						_sync;
+    
     ddynamic_reconfigure_t		_ddr;
 
     mdetector_t				_marker_detector;
@@ -96,10 +108,76 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
     for (const auto& camera_name : camera_names)
     {
 	_image_subs .emplace_back(_it, camera_name + "/image", 1);
-	_result_pubs.emplace_back(_it.advertise(camera_name + "/result", 1);
-	_debug_pubs .emplace_back(_it.advertise(camera_name + "/debug",  1);
+	_result_pubs.emplace_back(_it.advertise(camera_name + "/result", 1));
+	_debug_pubs .emplace_back(_it.advertise(camera_name + "/debug",  1));
 	ROS_INFO_STREAM("(MultiDetector2D) subscribe camera["
 			<< camera_name << ']');
+    }
+
+    switch (_image_subs.size())
+    {
+      /*
+      case 1:
+	_sync = sync_t<1>(_image_subs[0], 1);
+	std::any_cast<sync_t<1> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      */
+      case 2:
+	auto sync = new sync_t<2>(typename policy_t<2>::type(10),
+				  _image_subs[0], _image_subs[1]);
+	// std::any_cast<sync_t<2> >(_sync)
+	//     .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      /*
+      case 3:
+	_sync = sync_t<3>(_image_subs[0], _image_subs[1], _image_subs[2], 1);
+	std::any_cast<sync_t<3> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      case 4:
+	_sync = sync_t<4>(_image_subs[0], _image_subs[1], _image_subs[2],
+			  _image_subs[3], 1);
+	std::any_cast<sync_t<4> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      case 5:
+	_sync = sync_t<5>(_image_subs[0], _image_subs[1], _image_subs[2],
+			  _image_subs[3], _image_subs[4], 1);
+	std::any_cast<sync_t<5> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      case 6:
+	_sync = sync_t<6>(_image_subs[0], _image_subs[1], _image_subs[2],
+			  _image_subs[3], _image_subs[4], _image_subs[5], 1);
+	std::any_cast<sync_t<6> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      case 7:
+	_sync = sync_t<7>(_image_subs[0], _image_subs[1], _image_subs[2],
+			  _image_subs[3], _image_subs[4], _image_subs[5],
+			  _image_subs[6], 1);
+	std::any_cast<sync_t<7> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      case 8:
+	_sync = sync_t<8>(_image_subs[0], _image_subs[1], _image_subs[2],
+			  _image_subs[3], _image_subs[4], _image_subs[5],
+			  _image_subs[6], _image_subs[7], 1);
+	std::any_cast<sync_t<8> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      case 9:
+	_sync = sync_t<9>(_image_subs[0], _image_subs[1], _image_subs[2],
+			  _image_subs[3], _image_subs[4], _image_subs[5],
+			  _image_subs[6], _image_subs[7], _image_subs[8], 1);
+	std::any_cast<sync_t<9> >(_sync)
+	    .registerCallback(&MultiDetector2D::image_cb);
+	break;
+      */
+      default:
+	ROS_ERROR_STREAM("(MultiDetector2D) no camera names specified.");
+	return;
     }
 
   // Restore marker map if specified.
