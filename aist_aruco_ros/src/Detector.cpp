@@ -85,11 +85,11 @@ class Detector
 {
   private:
     using camera_info_t		= sensor_msgs::CameraInfo;
-    using camera_info_p		= sensor_msgs::CameraInfoConstPtr;
+    using camera_info_cp	= sensor_msgs::CameraInfoConstPtr;
     using image_t		= sensor_msgs::Image;
-    using image_p		= sensor_msgs::ImageConstPtr;
+    using image_cp		= sensor_msgs::ImageConstPtr;
     using cloud_t		= sensor_msgs::PointCloud2;
-    using cloud_p		= sensor_msgs::PointCloud2ConstPtr;
+    using cloud_cp		= sensor_msgs::PointCloud2ConstPtr;
     using depth_sync_t		= message_filters::TimeSynchronizer<
 					image_t, image_t, camera_info_t>;
     using cloud_sync_t		= message_filters::TimeSynchronizer<
@@ -112,12 +112,12 @@ class Detector
     void	set_detection_mode(int mode)				;
     void	set_dictionary(const std::string& dict)			;
     void	detect_marker_from_depth_cb(
-		    const image_p&	 image_msg,
-		    const image_p&	 depth_msg,
-		    const camera_info_p& camera_info_msg)		;
+		    const image_cp&	  image_msg,
+		    const image_cp&	  depth_msg,
+		    const camera_info_cp& camera_info_msg)		;
     void	detect_marker_from_cloud_cb(
-		    const cloud_p&	 cloud_msg,
-		    const camera_info_p& camera_info_msg)		;
+		    const cloud_cp&	  cloud_msg,
+		    const camera_info_cp& camera_info_msg)		;
     template <class MSG>
     void	detect_marker(const MSG& msg,
 			      const camera_info_t& camera_info_msg,
@@ -335,9 +335,9 @@ Detector::set_dictionary(const std::string& dict)
 }
 
 void
-Detector::detect_marker_from_depth_cb(const image_p& image_msg,
-				      const image_p& depth_msg,
-				      const camera_info_p& camera_info_msg)
+Detector::detect_marker_from_depth_cb(const image_cp& image_msg,
+				      const image_cp& depth_msg,
+				      const camera_info_cp& camera_info_msg)
 {
     using namespace	sensor_msgs;
 
@@ -347,8 +347,8 @@ Detector::detect_marker_from_depth_cb(const image_p& image_msg,
 }
 
 void
-Detector::detect_marker_from_cloud_cb(const cloud_p& cloud_msg,
-				      const camera_info_p& camera_info_msg)
+Detector::detect_marker_from_cloud_cb(const cloud_cp& cloud_msg,
+				      const camera_info_cp& camera_info_msg)
 {
     if (cloud_msg->is_dense)
     {

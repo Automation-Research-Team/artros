@@ -39,6 +39,7 @@ add_message_files(
     ImagePoint.msg
     PointCorrespondence.msg
     PointCorrespondenceArray.msg
+    PointCorrespondenceArrayArray.msg
 )
 
 generate_messages(
@@ -66,22 +67,6 @@ add_dependencies(aruco_detector
 )
 
 target_link_libraries(aruco_detector
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
-
-add_library(aruco_detector_2d
-  src/Detector2D.cpp
-)
-
-add_dependencies(aruco_detector_2d
-  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(aruco_detector_2d
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
   ${Boost_LIBRARIES}

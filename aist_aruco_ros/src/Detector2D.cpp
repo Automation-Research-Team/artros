@@ -16,7 +16,7 @@
 
 #include <aist_utility/opencv.h>
 #include <aist_utility/sensor_msgs.h>
-#include <aist_aruco_ros/PointCorrespondenceArray.h>
+#include <aist_aruco_ros/PointCorrespondenceArrayArray.h>
 #include <aruco/aruco.h>
 
 namespace aist_aruco_ros
@@ -56,16 +56,16 @@ class Detector2D
 					const std_msgs::Header& header)	;
 
   private:
-    image_transport::ImageTransport	_it;
-    image_transport::Subscriber		_image_sub;
-    const image_transport::Publisher	_result_pub;
-    const image_transport::Publisher	_debug_pub;
-    const ros::Publisher		_corres_pub;
+    image_transport::ImageTransport			_it;
+    image_transport::Subscriber				_image_sub;
+    const image_transport::Publisher			_result_pub;
+    const image_transport::Publisher			_debug_pub;
+    const ros::Publisher				_corres_pub;
 
-    ddynamic_reconfigure_t		_ddr;
+    ddynamic_reconfigure_t				_ddr;
 
-    mdetector_t				_marker_detector;
-    marker_map_t			_marker_map;
+    mdetector_t						_marker_detector;
+    marker_map_t					_marker_map;
 };
 
 Detector2D::Detector2D(ros::NodeHandle& nh)
