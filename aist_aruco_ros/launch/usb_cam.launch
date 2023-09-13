@@ -1,10 +1,14 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_name"	default="live_camera"/>
+  <arg name="camera_name"	default="usb_camera"/>
+  <arg name="image_topic"	default="image_raw"/>
+
+  <arg name="detector_name"	default="aruco_multi_detector_2d"/>
+  <arg name="camera_names"	default="$(arg camera_name)"/>
+  <arg name="image_topics"	default="$(arg image_topic)"/>
   <arg name="marker_map_dir"	default="$(dirname)/../config"/>
   <arg name="marker_map"	default="calib_board-6x4"/>
-  <!-- <arg name="marker_id"		default="26"/> -->
   <arg name="marker_id"		default="-1"/>
   <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
   <arg name="manager"		default=""/>
@@ -20,8 +24,10 @@
     <rosparam file="$(find aist_routines)/config/$(arg camera_name).yaml"/>
   </node>
 
-  <include file="$(dirname)/run_2d.launch">
-    <arg name="image_topic"	value="$(arg camera_name)/image_raw"/>
+  <include file="$(dirname)/run_multi.launch">
+    <arg name="detector_name"	value="$(arg detector_name)"/>
+    <arg name="camera_names"	value="$(arg camera_names)"/>
+    <arg name="image_topics"	value="$(arg image_topics)"/>
     <arg name="marker_map_dir"	value="$(arg marker_map_dir)"/>
     <arg name="marker_map"	value="$(arg marker_map)"/>
     <arg name="marker_id"	value="$(arg marker_id)"/>
@@ -33,7 +39,8 @@
   <arg unless="$(eval manager == '')"	name="command"	value="load"/>
   <node name="image_view" pkg="nodelet" type="nodelet" output="screen"
   	args="$(arg command) image_view/image $(arg manager)">
-    <remap from="/image"	to="aruco_detector_2d/result"/>
+    <remap from="/image"
+    	   to="$(arg detector_name)/$(arg camera_name)/result"/>
   </node>
 
 </launch>

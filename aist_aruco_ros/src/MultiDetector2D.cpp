@@ -21,7 +21,7 @@
 
 #include <aist_utility/opencv.h>
 #include <aist_utility/sensor_msgs.h>
-#include <aist_aruco_ros/PointCorrespondenceArray.h>
+#include <aist_aruco_ros/PointCorrespondenceArrayArray.h>
 #include <aruco/aruco.h>
 
 namespace aist_aruco_ros
@@ -70,13 +70,13 @@ class MultiDetector2D
     {
       public:
 	template <class CB, class... FILTERS>
-	sync_t(const CB& callback, MultiDetector2D* detector,
-	       const policy_t<N>& policy, FILTERS&&... filters)
-	    :_sync(policy, filters...)
-	{
-	    _sync.registerCallback(callback, detector);
-	}
-	~sync_t()							{}
+		sync_t(const CB& callback, MultiDetector2D* detector,
+		       FILTERS&&... filters)
+		    :_sync(policy_t<N>(10), filters...)
+		{
+		    _sync.registerCallback(callback, detector);
+		}
+	virtual	~sync_t()						{}
 
       private:
 	message_filters::Synchronizer<policy_t<N> >	_sync;
@@ -85,14 +85,15 @@ class MultiDetector2D
     using publisher_t	= image_transport::Publisher;
 
   public:
-		MultiDetector2D(ros::NodeHandle& nh)			;
+		MultiDetector2D(ros::NodeHandle& nh,
+				const std::string& nodelet_name)	;
 
   private:
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
     void	set_dictionary(const std::string& dict)			;
-    template <size_t N=0, class... IMAGE_MSGS>
+    template <size_t N, class... IMAGE_MSGS>
     void	image_cb(const image_cp& image_msg,
 			 const IMAGE_MSGS&... image_msgs)		;
     template <size_t N>
@@ -107,8 +108,12 @@ class MultiDetector2D
     template <class ITER>
     void	publish_correspondences(ITER begin, ITER end,
 					const std_msgs::Header& header)	;
+    const std::string&
+		getName()					const	;
 
   private:
+    const std::string					_nodelet_name;
+    
     image_transport::ImageTransport			_it;
     image_transport::Subscriber				_image_sub;
     std::vector<std::unique_ptr<subscriber_t> >		_image_subs;
@@ -124,8 +129,10 @@ class MultiDetector2D
     aist_aruco_ros::PointCorrespondenceArrayArray	_correspondences_list;
 };
 
-MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
-    :_it(nh),
+MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh,
+				 const std::string& nodelet_name)
+    :_nodelet_name(nodelet_name),
+     _it(nh),
      _image_sub(),
      _image_subs(),
      _result_pubs(),
@@ -136,101 +143,98 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
      _ddr(nh),
      _marker_detector(),
      _marker_map(),
-     _correspondeces_list()
+     _correspondences_list()
 {
     std::vector<std::string>	camera_names;
     if (!nh.getParam("camera_names", camera_names) || camera_names.size() == 0)
     {
-	ROS_ERROR_STREAM("(MultiDetector2D) no camera names specified!");
+	NODELET_ERROR_STREAM("(MultiDetector2D) No camera names specified!");
 	return;
     }
 
-    if (camera_names.size() >= 2)
+    for (const auto& camera_name : camera_names)
     {
-	for (const auto& camera_name : camera_names)
-	{
+	if (camera_names.size() >= 2)
 	    _image_subs.emplace_back(std::make_unique<subscriber_t>(
 					 _it, camera_name + "/image", 1));
-	    _result_pubs.emplace_back(_it.advertise(camera_name + "/result",1));
-	    _debug_pubs .emplace_back(_it.advertise(camera_name + "/debug", 1));
-	    ROS_INFO_STREAM("(MultiDetector2D) subscribe camera["
+	_result_pubs.emplace_back(_it.advertise(camera_name + "/result",1));
+	_debug_pubs .emplace_back(_it.advertise(camera_name + "/debug", 1));
+	NODELET_INFO_STREAM("(MultiDetector2D) Subscribe camera["
 			    << camera_name << ']');
-	}
-
-	switch (_image_subs.size())
-	{
-	  case 2:
-	    _sync.reset(new sync_t<2>(
-			    &MultiDetector2D::image_cb<0, image_cp>,
-			    this, policy_t<2>(10),
-			    *_image_subs[0], *_image_subs[1]));
-	    break;
-	  case 3:
-	    _sync.reset(new sync_t<3>(
-			    &MultiDetector2D::image_cb<0, image_cp, image_cp>,
-			    this, policy_t<3>(10),
-			    *_image_subs[0], *_image_subs[1], *_image_subs[2]));
-	    break;
-	  case 4:
-	    _sync.reset(new sync_t<4>(
-			    &MultiDetector2D::image_cb<
-			    0, image_cp, image_cp, image_cp>,
-			    this, policy_t<4>(10),
-			    *_image_subs[0], *_image_subs[1], *_image_subs[2],
-			    *_image_subs[3]));
-	    break;
-	  case 5:
-	    _sync.reset(new sync_t<5>(
-			    &MultiDetector2D::image_cb<
-			    0, image_cp, image_cp, image_cp, image_cp>,
-			    this, policy_t<5>(10),
-			    *_image_subs[0], *_image_subs[1], *_image_subs[2],
-			    *_image_subs[3], *_image_subs[4]));
-	    break;
-	  case 6:
-	    _sync.reset(new sync_t<6>(
-			    &MultiDetector2D::image_cb<
-			    0, image_cp, image_cp, image_cp, image_cp,
-			    image_cp>,
-			    this, policy_t<6>(10),
-			    *_image_subs[0], *_image_subs[1], *_image_subs[2],
-			    *_image_subs[3], *_image_subs[4], *_image_subs[5]));
-	    break;
-	  case 7:
-	    _sync.reset(new sync_t<7>(
-			    &MultiDetector2D::image_cb<
-			    0, image_cp, image_cp, image_cp, image_cp,
-			    image_cp, image_cp>,
-			    this, policy_t<7>(10),
-			    *_image_subs[0], *_image_subs[1], *_image_subs[2],
-			    *_image_subs[3], *_image_subs[4], *_image_subs[5],
-			    *_image_subs[6]));
-	    break;
-	  case 8:
-	    _sync.reset(new sync_t<8>(
-			    &MultiDetector2D::image_cb<
-			    0, image_cp, image_cp, image_cp, image_cp,
-			    image_cp, image_cp, image_cp>,
-			    this, policy_t<8>(10),
-			    *_image_subs[0], *_image_subs[1], *_image_subs[2],
-			    *_image_subs[3], *_image_subs[4], *_image_subs[5],
-			    *_image_subs[6], *_image_subs[7]));
-	    break;
-
-	  default:
-	    ROS_ERROR_STREAM("(MultiDetector2D) Specified "
-			     << camera_names.size()
-			     << " cameras but supported only up to eight!");
-	    return;
-	}
     }
-    else if (camera_names.size() == 1)
+
+    switch (camera_names.size())
     {
+      case 1:
 	_image_sub = _it.subscribe(camera_names[0] + "/image", 1,
 				   &MultiDetector2D::image_cb<0>, this);
+	break;
+      case 2:
+	_sync.reset(new sync_t<2>(
+			&MultiDetector2D::image_cb<0, image_cp>,
+			this,
+			*_image_subs[0], *_image_subs[1]));
+	break;
+      case 3:
+	_sync.reset(new sync_t<3>(
+			&MultiDetector2D::image_cb<0, image_cp, image_cp>,
+			this,
+			*_image_subs[0], *_image_subs[1], *_image_subs[2]));
+	break;
+      case 4:
+	_sync.reset(new sync_t<4>(
+			&MultiDetector2D::image_cb<0, image_cp, image_cp,
+						   image_cp>,
+			this,
+			*_image_subs[0], *_image_subs[1], *_image_subs[2],
+			*_image_subs[3]));
+	break;
+      case 5:
+	_sync.reset(new sync_t<5>(
+			&MultiDetector2D::image_cb<0, image_cp, image_cp,
+						   image_cp, image_cp>,
+			this,
+			*_image_subs[0], *_image_subs[1], *_image_subs[2],
+			*_image_subs[3], *_image_subs[4]));
+	break;
+      case 6:
+	_sync.reset(new sync_t<6>(
+			&MultiDetector2D::image_cb<0, image_cp, image_cp,
+						   image_cp, image_cp,
+						   image_cp>,
+			this,
+			*_image_subs[0], *_image_subs[1], *_image_subs[2],
+			*_image_subs[3], *_image_subs[4], *_image_subs[5]));
+	break;
+      case 7:
+	_sync.reset(new sync_t<7>(
+			&MultiDetector2D::image_cb<0, image_cp, image_cp,
+						   image_cp, image_cp,
+						   image_cp, image_cp>,
+			this,
+			*_image_subs[0], *_image_subs[1], *_image_subs[2],
+			*_image_subs[3], *_image_subs[4], *_image_subs[5],
+			*_image_subs[6]));
+	break;
+      case 8:
+	_sync.reset(new sync_t<8>(
+			&MultiDetector2D::image_cb<0, image_cp, image_cp,
+						   image_cp, image_cp,
+						   image_cp, image_cp,
+						   image_cp>,
+			this,
+			*_image_subs[0], *_image_subs[1], *_image_subs[2],
+			*_image_subs[3], *_image_subs[4], *_image_subs[5],
+			*_image_subs[6], *_image_subs[7]));
+	break;
+
+      default:
+	NODELET_ERROR_STREAM("(MultiDetector2D) Specified "
+			     << camera_names.size()
+			     << " cameras but supported only up to eight!");
+	return;
     }
 
-  // 
     _correspondences_list.correspondences_list.resize(camera_names.size());
     
   // Restore marker map if specified.
@@ -244,7 +248,8 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
 				 + '/' + marker_map_name + ".yaml";
 	_marker_map.readFromFile(mMapFile);
 
-	ROS_INFO_STREAM("Find a marker map[" << marker_map_name << ']');
+	NODELET_INFO_STREAM("(MultiDetector2D) Let's find marker map["
+			    << marker_map_name << ']');
     }
     else if (const auto marker_id = nh.param<int>("marker_id", -1);
 	     marker_id >= 0)
@@ -258,7 +263,8 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
 	_marker_map.push_back(mInfo);
 	_marker_map.mInfoType = marker_map_t::METERS;
 
-	ROS_INFO_STREAM("Find a marker with ID[" << marker_id << ']');
+	NODELET_INFO_STREAM("(MultiDetector2D) Let's find a marker with ID["
+			    << marker_id << ']');
     }
     else
     {
@@ -272,8 +278,8 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
 				      &MultiDetector2D::set_min_marker_size,
 				      this, _1),
 				  "Minimum marker size", 0.0, 1.0);
-    ROS_INFO_STREAM("Minimum marker size: "
-		    << _marker_detector.getParameters().minSize);
+    NODELET_INFO_STREAM("(MultiDetector2D) Minimum marker size: "
+			<< _marker_detector.getParameters().minSize);
 
   // Set a parameter for specifying whether the marker is enclosed or not.
     _ddr.registerVariable<bool>("enclosed_marker",
@@ -282,9 +288,9 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
 				    &MultiDetector2D::set_enclosed_marker,
 				    this, _1),
 				"Detect enclosed marker", false, true);
-    ROS_INFO_STREAM("Detect enclosed marker: "
-		    << std::boolalpha
-		    << _marker_detector.getParameters().enclosedMarker);
+    NODELET_INFO_STREAM("(MultiDetector2D) Detect enclosed marker: "
+			<< std::boolalpha
+			<< _marker_detector.getParameters().enclosedMarker);
 
   // Set detection mode and setup ddynamic_reconfigure service for it.
     std::map<std::string, int>	map_detectionMode =
@@ -300,7 +306,8 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
 				       this, _1),
 				   "Marker detection mode",
 				   map_detectionMode);
-    ROS_INFO_STREAM("Detection mode: " << _marker_detector.getDetectionMode());
+    NODELET_INFO_STREAM("(MultiDetector2D) Detection mode: "
+			<< _marker_detector.getDetectionMode());
 
   // Set dictionary and setup ddynamic_reconfigure service for it.
     const auto	dict = nh.param<std::string>("dictionary", "ARUCO");
@@ -323,9 +330,10 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh)
 	    {"CUSTOM",		 "CUSTOM"},
 	};
     _ddr.registerEnumVariable<std::string>(
-	"dictionary", dict, boost::bind(&MultiDetector2D::set_dictionary, this, _1),
+	"dictionary", dict,
+	boost::bind(&MultiDetector2D::set_dictionary, this, _1),
 	"Dictionary", map_dict);
-    ROS_INFO_STREAM("Dictionary: " << dict);
+    NODELET_INFO_STREAM("(MultiDetector2D) Dictionary: " << dict);
 
   // Pulish ddynamic_reconfigure service.
     _ddr.publishServicesTopicsAndUpdateConfigData();
@@ -362,6 +370,8 @@ template <size_t N, class... IMAGE_MSGS> void
 MultiDetector2D::image_cb(const image_cp& image_msg,
 			  const IMAGE_MSGS&... image_msgs)
 {
+    _correspondences_list.correspondences_list[N]
+	= detect_marker(image_msg, _result_pubs[N], _debug_pubs[N]);
     image_cb<N+1>(image_msgs...);
 }
 
@@ -378,13 +388,13 @@ MultiDetector2D::detect_marker(const image_cp& image_msg,
 {
     using namespace	sensor_msgs;
 
-    auto	image = cv_bridge::toCvCopy(image_msg, image_encodings::RGB8)
-		      ->image;
+  // Convert the input image message to OpenCV's matrix type.
+    auto image = cv_bridge::toCvCopy(image_msg, image_encodings::RGB8)->image;
 
-  // Detect markers. Results will go into "markers"
+  // Detect markers. Results will go into "markers".
     const auto	markers = _marker_detector.detect(image);
 
-  // Show also the internal image resulting from the threshold operation
+  // Show also the internal image resulting from the threshold operation.
     publish_image(image_msg->header, _marker_detector.getThresholdedImage(),
      		  debug_pub);
 
@@ -407,21 +417,22 @@ MultiDetector2D::detect_marker(const image_cp& image_msg,
 
     publish_image(image_msg->header, image, result_pub);
 
-    PointCorrespondenceArray	correses;
-
-    for (auto iter = begin; iter != end; ++iter)
+  // Create point correspondences for this image.
+    PointCorrespondenceArray	correspondences;
+    correspondences.header = image_msg->header;
+    for (const auto& pair : pairs)
     {
-	PointCorrespondence	corres;
-	corres.point.x	     = iter->first.x;
-	corres.point.y	     = iter->first.y;
-	corres.point.z	     = iter->first.z;
-	corres.image_point.u = iter->second.x;
-	corres.image_point.v = iter->second.y;
+	PointCorrespondence	correspondence;
+	correspondence.point.x	     = pair.first.x;
+	correspondence.point.y	     = pair.first.y;
+	correspondence.point.z	     = pair.first.z;
+	correspondence.image_point.u = pair.second.x;
+	correspondence.image_point.v = pair.second.y;
 
-	correses.point_correspondences.push_back(corres);
+	correspondences.correspondences.push_back(correspondence);
     }
 
-    return correses;
+    return correspondences;
 }
 			       
 void
@@ -434,6 +445,12 @@ MultiDetector2D::publish_image(const std_msgs::Header& header,
     if (pub.getNumSubscribers() > 0)
 	pub.publish(cv_bridge::CvImage(header, image_encodings::RGB8, image)
 		    .toImageMsg());
+}
+
+const std::string&
+MultiDetector2D::getName() const
+{
+    return _nodelet_name;
 }
 
 /************************************************************************
@@ -454,7 +471,7 @@ void
 MultiDetector2DNodelet::onInit()
 {
     NODELET_INFO("aist_aruco_ros::MultiDetector2DNodelet::onInit()");
-    _node.reset(new MultiDetector2D(getPrivateNodeHandle()));
+    _node.reset(new MultiDetector2D(getPrivateNodeHandle(), getName()));
 }
 
 }	// namespace aist_aruco_ros

@@ -1,1 +1,1 @@
-aist_aruco_ros/PointCorrespondenceArray[] point_correspondences_list
+aist_aruco_ros/PointCorrespondenceArray[] correspondences_list

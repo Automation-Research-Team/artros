@@ -94,7 +94,7 @@ target_link_libraries(aruco_multi_detector_2d
 #############
 install(
   TARGETS
-    aruco_detector aruco_detector_2d
+    aruco_detector aruco_multi_detector_2d
   ARCHIVE
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY
