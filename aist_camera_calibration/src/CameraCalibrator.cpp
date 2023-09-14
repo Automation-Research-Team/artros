@@ -1,43 +1,37 @@
-// Software License Agreement (BSD License)
-//
-// Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions
-// are met:
-//
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above
-//    copyright notice, this list of conditions and the following
-//    disclaimer in the documentation and/or other materials provided
-//    with the distribution.
-//  * Neither the name of National Institute of Advanced Industrial
-//    Science and Technology (AIST) nor the names of its contributors
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: Toshio Ueshiba
-//
+/*
+ *  平成14-19年（独）産業技術総合研究所 著作権所有
+ *  
+ *  創作者：植芝俊夫
+ *
+ *  本プログラムは（独）産業技術総合研究所の職員である植芝俊夫が創作し，
+ *  （独）産業技術総合研究所が著作権を所有する秘密情報です．著作権所有
+ *  者による許可なしに本プログラムを使用，複製，改変，第三者へ開示する
+ *  等の行為を禁止します．
+ *  
+ *  このプログラムによって生じるいかなる損害に対しても，著作権所有者お
+ *  よび創作者は責任を負いません。
+ *
+ *  Copyright 2002-2007.
+ *  National Institute of Advanced Industrial Science and Technology (AIST)
+ *
+ *  Creator: Toshio UESHIBA
+ *
+ *  [AIST Confidential and all rights reserved.]
+ *  This program is confidential. Any using, copying, changing or
+ *  giving any information concerning with this program to others
+ *  without permission by the copyright holder are strictly prohibited.
+ *
+ *  [No Warranty.]
+ *  The copyright holder or the creator are not responsible for any
+ *  damages caused by using this program.
+ *
+ *  $Id$  
+ */
 /*!
-  \file		CameraCalibration.cc
-  \brief	クラス#TU::CameraCalibrationの実装
+  \file		CameraCalibrator.cc
+  \brief	クラス#TU::CameraCalibratorの実装
 */
-#include "CameraCalibration.h"
+#include "CameraCalibrator.h"
 
 namespace TU
 {
@@ -119,7 +113,7 @@ template <class T> static Matrix<T, 3, 3>
 computeIAC(const Matrix<T>& Qt)
 {
     const size_t	nplanes = Qt.nrow() / 3;
-
+    
   // Compute IAC(Image of Absolute Conic).
     Matrix<T>	A(6, 6);
     for (size_t j = 0; j < nplanes; ++j)
@@ -130,7 +124,7 @@ computeIAC(const Matrix<T>& Qt)
 	const auto	b = extpro(p, q);
 	A += (a % a + b % b);
     }
-
+    
     Vector<T>		evalue;
     const auto		evector = eigen(A, evalue);
     Vector<T>		a;
@@ -151,14 +145,14 @@ computeIAC(const Matrix<T>& Qt)
 //! 特異値分解ができるように観測行列のスケールを調整する．
 /*!
   \param W	(カメラ数x参照平面数)の2次元射影変換行列から成る観測行列を
-		与えるとそのスケールを調整されたものが返される．
+		与えるとそのスケールを調整されたものが返される．  
 */
 template <class T> static void
 rescaleHomographies(Matrix<T>& W)
 {
 #ifdef _DEBUG
     using namespace	std;
-
+    
     cerr << "*** Begin: TU::rescaleHomographies() ***" << endl;
 #endif
     const auto	ncameras = W.nrow()/3;
@@ -210,7 +204,7 @@ factorHomographies(const Matrix<T>& W, Matrix<T>& P, Matrix<T>& Qt,
     SVDecomposition<T>	svd(W);
 #ifdef _DEBUG
     using namespace		std;
-
+    
     cerr << "*** Begin: TU::factorHomographies() ***\n"
 	 << " singular values: " << svd.diagonal()(0, 5);
 #endif
@@ -238,7 +232,7 @@ factorHomographies(const Matrix<T>& W, Matrix<T>& P, Matrix<T>& Qt,
   \param scales		#computePlaneNormalizations で計算された各参照平面の
 			2次元座標正規化変換のスケール
   \param commonCenters	全カメラの投影中心が共通ならばtrue, そうでなければfalse
-*/
+*/ 
 template <class T> static void
 projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 		   bool commonCenters)
@@ -251,7 +245,7 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
     cerr << "*** Begin: TU::projectiveToMetric() ***" << endl;
 #endif
     const auto		nplanes = Qt.nrow() / 3;
-
+    
   // Fix WC(World Coordinates) to 0-th camera.
     SVDecomposition<T>	svd(slice<3, 4>(P, 0, 0));
     matrix44_type	Sinv;
@@ -259,7 +253,7 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
     Sinv[3] = svd.Ut()[3];
 #ifdef _DEBUG
     cerr << "  det(Sinv) = " << det(Sinv) << endl;
-#endif
+#endif    
     P  = evaluate(P  * inverse(Sinv));
     Qt = evaluate(Qt * transpose(Sinv));
 
@@ -302,7 +296,7 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 	for (size_t j = 0; j < nplanes; ++j)
 	    slice<3, 4>(Qt, 3*j, 0) /= beta[j];
     }
-
+    
   // Ensure the left 3x3 part of camera matrices to have positive determinant.
     const size_t	ncameras = P.nrow() / 3;
     for (size_t i = 0; i < ncameras; ++i)
@@ -314,7 +308,7 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
     for (size_t i = 0; i < ncameras; ++i)
     {
 	const auto	r3 = slice<3>(P[3*i+2], 0);
-
+	
 	for (size_t j = 0; j < nplanes; ++j)
 	{
 	    if (r3 * slice<3>(Qt[3*j+2], 0) < 0.0)
@@ -328,7 +322,7 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 	for (size_t j = 0; j < nplanes; ++j)
 	    slice<3, 3>(Qt, 3*j, 0) *= -1.0;
     }
-
+    
 #ifdef _DEBUG
     for (size_t j = 0; j < nplanes; ++j)
     {
@@ -339,11 +333,11 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 	cerr << " --- I(2x2) ---\n" <<  evaluate(Qt2x3 * transpose(Qt2x3));
     }
     cerr << "*** End:   TU::projectiveToMetric() ***\n" << endl;
-#endif
+#endif    
 }
 
 /************************************************************************
-*  class CameraCalibration<T>						*
+*  class CameraCalibrator<T>						*
 ************************************************************************/
 //! Zhangの方法により観測行列を1台のカメラの投影行列と複数の参照平面行列に分解する．
 /*!
@@ -352,8 +346,8 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
   \param Qt	平面数個の参照平面行列を縦に並べた(3*平面数)x3行列が返される
 */
 template <class T> void
-CameraCalibration<T>::zhangCalib(const matrix_type& W,
-				 matrix_type& P, matrix_type& Qt)
+CameraCalibrator<T>::zhangCalib(const matrix_type& W,
+				matrix_type& P, matrix_type& Qt)
 {
     P.resize(3, 4);
     Qt = transpose(W);
@@ -361,7 +355,7 @@ CameraCalibration<T>::zhangCalib(const matrix_type& W,
     slice<3, 3>(P, 0, 0) = inverse(Kinv);
     Qt = evaluate(Qt * transpose(Kinv));
 }
-
+    
 //! 植芝の方法により観測行列を複数のカメラの投影行列と複数の参照平面行列に分解する．
 /*!
   \param W		(カメラ数x参照平面数)の2次元射影変換行列から成る
@@ -376,16 +370,16 @@ CameraCalibration<T>::zhangCalib(const matrix_type& W,
 			そうでなければfalse
 */
 template <class T> void
-CameraCalibration<T>::ueshibaCalib(matrix_type& W,
-				   matrix_type& P, matrix_type& Qt,
-				   const vector_type& scales,
-				   bool commonCenters)
+CameraCalibrator<T>::ueshibaCalib(matrix_type& W,
+				  matrix_type& P, matrix_type& Qt,
+				  const vector_type& scales,
+    				  bool commonCenters)
 {
     rescaleHomographies(W);
     factorHomographies(W, P, Qt, commonCenters);
     projectiveToMetric(P, Qt, scales, commonCenters);
 }
 
-template class CameraCalibration<float>;
-template class CameraCalibration<double>;
+template class CameraCalibrator<float>;
+template class CameraCalibrator<double>;
 }

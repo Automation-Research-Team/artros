@@ -1,44 +1,39 @@
-// Software License Agreement (BSD License)
-//
-// Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions
-// are met:
-//
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above
-//    copyright notice, this list of conditions and the following
-//    disclaimer in the documentation and/or other materials provided
-//    with the distribution.
-//  * Neither the name of National Institute of Advanced Industrial
-//    Science and Technology (AIST) nor the names of its contributors
-//    may be used to endorse or promote products derived from this software
-//    without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: Toshio Ueshiba
-//
-/*!
-  \file		CameraCalibration.h
-  \brief	クラス#TU::CameraCalibrationの定義と実装
-*/
-#pragma once
+/*
+ *  平成14-19年（独）産業技術総合研究所 著作権所有
+ *  
+ *  創作者：植芝俊夫
+ *
+ *  本プログラムは（独）産業技術総合研究所の職員である植芝俊夫が創作し，
+ *  （独）産業技術総合研究所が著作権を所有する秘密情報です．著作権所有
+ *  者による許可なしに本プログラムを使用，複製，改変，第三者へ開示する
+ *  等の行為を禁止します．
+ *  
+ *  このプログラムによって生じるいかなる損害に対しても，著作権所有者お
+ *  よび創作者は責任を負いません。
+ *
+ *  Copyright 2002-2007.
+ *  National Institute of Advanced Industrial Science and Technology (AIST)
+ *
+ *  Creator: Toshio UESHIBA
+ *
+ *  [AIST Confidential and all rights reserved.]
+ *  This program is confidential. Any using, copying, changing or
+ *  giving any information concerning with this program to others
+ *  without permission by the copyright holder are strictly prohibited.
+ *
+ *  [No Warranty.]
+ *  The copyright holder or the creator are not responsible for any
+ *  damages caused by using this program.
+ *
+ *  $Id$  
+ */
+#ifndef __CAMERACALIBRATOR_H
+#define __CAMERACALIBRATOR_H
 
+/*!
+  \file		CameraCalibrator.h
+  \brief	クラス#TU::CameraCalibratorの定義と実装
+*/
 #include "TU/Geometry++.h"
 #include "TU/BlockDiagonalMatrix++.h"
 
@@ -59,11 +54,11 @@ class ReferencePlane
     typedef Matrix<element_type>			matrix_type;
     typedef Matrix<element_type, 3, 3>			matrix33_type;
     typedef PlaneP<element_type>			plane_type;
-
+    
   public:
   //! 参照平面を生成する．
     ReferencePlane()	:_d(), _Rt()					{}
-
+    
     void		initialize(const matrix33_type& Qt)		;
     const point3_type&	d()					const	;
     const matrix33_type&
@@ -73,7 +68,7 @@ class ReferencePlane
     point3_type		operator ()(const point2_type& x)	const	;
     matrix_type		derivative(const point2_type& x)	const	;
     void		update(const vector_type& dq)			;
-
+    
   private:
     point3_type		_d;		//!< 参照平面の位置
     matrix33_type	_Rt;		//!< 参照平面の姿勢
@@ -93,7 +88,7 @@ ReferencePlane<T>::initialize(const matrix33_type& Qt)
     SVDecomposition<element_type>	svd(slice<2, 3>(Qt, 0, 0));
     slice<2, 3>(_Rt, 0, 0) = transpose(svd.Vt()) * slice<2, 3>(svd.Ut(), 0, 0);
     _Rt[2] = _Rt[0] ^ _Rt[1];
-
+    
   // Location of the plane.
     _d = Qt[2] / sqrt(square(svd.diagonal()) / 2);
 
@@ -114,7 +109,7 @@ ReferencePlane<T>::d() const
 {
     return _d;
 }
-
+    
 //! 参照平面の姿勢を返す．
 /*!
   \return	参照平面の姿勢
@@ -124,7 +119,7 @@ ReferencePlane<T>::Rt() const
 {
     return _Rt;
 }
-
+    
 //! 参照平面の位置と姿勢を返す．
 /*!
   \return	位置と姿勢を表す3x3行列．1行目／2行目は，平面上に設定された
@@ -178,7 +173,7 @@ ReferencePlane<T>::operator ()(const point2_type& x) const
 		\TUbeginarray{cc}
 		\TUdisppartial{\TUvec{X}{}}{\TUvec{d}{}} &
 		\TUdisppartial{\TUvec{X}{}}{\TUvec{\theta}{}}
-		\TUendarray =
+		\TUendarray = 
 		\TUbeginarray{cc}
 		\TUvec{I}{3\times 3} & x\TUskew{i}{} + y\TUskew{j}{}
 		\TUendarray
@@ -215,7 +210,7 @@ operator <<(std::ostream& out, const ReferencePlane<T>& plane)
 {
     using namespace	std;
     typedef T		element_type;
-
+    
     const element_type	DEG = element_type(180) / element_type(M_PI);
     cerr << "Position:       ";
     out << plane.d();
@@ -224,13 +219,13 @@ operator <<(std::ostream& out, const ReferencePlane<T>& plane)
 
     return out;
 }
-
+    
 /************************************************************************
-*  class CameraCalibration<T>						*
+*  class CameraCalibrator<T>						*
 ************************************************************************/
 //! 参照物体を利用してカメラキャリブレーションを行うクラス
 template <class T>
-class CameraCalibration
+class CameraCalibrator
 {
   public:
     typedef T						element_type;
@@ -243,7 +238,7 @@ class CameraCalibration
 
   private:
     typedef Normalize<element_type, 2>			normalize_type;
-
+    
   private:
   //! #volumeCalibにおいて非線形最適化を行う場合にその二乗を最小化すべき再投影誤差関数
   /*!
@@ -254,8 +249,8 @@ class CameraCalibration
     class VolumeCost
     {
       public:
-	typedef CameraCalibration::element_type		element_type;
-
+	typedef CameraCalibrator::element_type		element_type;
+	
       public:
 	VolumeCost(Iter begin, Iter end)				;
 
@@ -263,18 +258,18 @@ class CameraCalibration
 	matrix_type	derivative(const Cam& camera)		const	;
 	void		update(Cam& camera,
 			       const vector_type& dc)		const	;
-
+	
 	element_type	reprojectionError(const Cam& camera)	const	;
 	matrix_type	standardDeviations(const Cam& camera,
 					   const matrix_type& covariance)
 								const	;
-
+	
       private:
 	const Iter	_begin;		//!< 点対列の先頭を示す反復子
 	const Iter	_end;		//!< 点対列の末尾の次を示す反復子
 	const size_t	_npoints;	//!< [_begin, _end)間に含まれる点対の個数
     };
-
+    
   //! #planeCalibにおいて非線形最適化を行う場合にその二乗を最小化すべき再投影誤差関数
   /*!
     \param Iter	課される要件は#planeCalibと同じ
@@ -284,13 +279,13 @@ class CameraCalibration
     class PlaneCost
     {
       public:
-	typedef CameraCalibration::element_type		element_type;
+	typedef CameraCalibrator::element_type		element_type;
 	typedef BlockDiagonalMatrix<element_type>	derivative_type;
       //! 特定の参照平面について，全カメラに渡る参照点とその投影像の対データ
 	typedef typename Iter::value_type		CorresListArray;
       //! 特定の参照平面とカメラについて，それらの間の参照点とその投影像の対データ
 	typedef typename CorresListArray::value_type	CorresList;
-
+    
 	PlaneCost(Iter begin, Iter end, bool commonCenters)		;
 
       //! 全カメラの総自由度数を返す．
@@ -299,7 +294,7 @@ class CameraCalibration
 	const Array<size_t>&	adims()		const	{return _adims;}
       //! 1枚の参照平面の自由度を返す．
 	size_t			bdim()		const	{return 6;}
-
+	
 	vector_type	operator ()(const Array<Cam>& cameras,
 				    const plane_type& plane, int j)
 								const	;
@@ -313,20 +308,20 @@ class CameraCalibration
 				const vector_type& dcameras)	const	;
 	void		updateB(plane_type& plane,
 				const vector_type& dplane)	const	;
-
+    
 	element_type	reprojectionError(const Array<Cam>& cameras,
 					  const Array<plane_type>& planes)
 								const	;
 	matrix_type	standardDeviations(const Array<Cam>& cameras,
 					   const matrix_type& covariance)
 								const	;
-
+	
       private:
       //! カメラの台数を返す．
 	size_t		ncameras()		const	{return _adims.size();}
 	const CorresListArray&
 			corresListArray(int j)	const	;
-
+    
 	const Iter	_begin;		//!< 参照平面データの先頭を示す反復子
 	const Iter	_end;		//!< 参照平面データの末尾の次を示す反復子
 	size_t		_adim;		//!< 全カメラの総自由度数
@@ -336,7 +331,7 @@ class CameraCalibration
 
   public:
   //! カメラキャリブレーション器を生成する．
-    CameraCalibration()
+    CameraCalibrator()
 	:_reprojectionError(0.0), _standardDeviations(0, 0)		{}
 
   //! キャリブレーションによって求められた再投影誤差(単位：pixel)を返す．
@@ -362,7 +357,7 @@ class CameraCalibration
   */
     const vector_type
 		standardDeviations(int i) const	{return _standardDeviations[i];}
-
+    
     template <class Iter, class Cam> void
 		volumeCalib(Iter begin, Iter end,
 			    Cam& camera, bool refine)			;
@@ -405,8 +400,7 @@ class CameraCalibration
 			そうでなければfalse
 */
 template <class T> template <class Iter, class Cam> void
-CameraCalibration<T>::volumeCalib(Iter begin, Iter end,
-				  Cam& camera, bool refine)
+CameraCalibrator<T>::volumeCalib(Iter begin, Iter end, Cam& camera, bool refine)
 {
     Projectivity23<T>		map(begin, end, false);
     camera.setProjection(map);
@@ -450,14 +444,14 @@ CameraCalibration<T>::volumeCalib(Iter begin, Iter end,
   \return		推定された参照平面
 */
 template <class T> template <class Iter, class Cam>
-Array<typename CameraCalibration<T>::plane_type>
-CameraCalibration<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
-				 bool commonCenters, bool refine)
+Array<typename CameraCalibrator<T>::plane_type>
+CameraCalibrator<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
+				bool commonCenters, bool refine)
 {
     using namespace	std;
-
+    
 #ifdef _DEBUG
-    cerr << "*** Begin: TU::CameraCalibration<T>::planeCalib() ***" << endl;
+    cerr << "*** Begin: TU::CameraCalibrator<T>::planeCalib() ***" << endl;
 #endif
   // Compute homography matrices for each camera-plane pair.
     auto	W = computeHomographies(begin, end);
@@ -488,7 +482,7 @@ CameraCalibration<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
 
 	ueshibaCalib(W, P, Qt, scales, commonCenters);	// Ueshiba's algorithm
     }
-
+    
   // Unnormalize computed camera and plane parameters.
     for (size_t i = 0; i < ncameras; ++i)
 	slice<3, 4>(P, 3*i, 0) = evaluate(cameraNorms[i].Tinv() *
@@ -527,7 +521,7 @@ CameraCalibration<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
 	_standardDeviations.resize(0, 0);
     _reprojectionError  = cost.reprojectionError(cameras, planes);
 #ifdef _DEBUG
-    cerr << "\n*** End:   TU::CameraCalibration<T>::planeCalib() ***\n"
+    cerr << "\n*** End:   TU::CameraCalibrator<T>::planeCalib() ***\n"
 	 << endl;
 #endif
     return planes;
@@ -542,15 +536,15 @@ CameraCalibration<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
   参照平面jからカメラiへの射影変換\f$\TUvec{H}{i}^j\f$を
   \f$\TUbar{H}{i}^j = \TUvec{S}{i}\TUvec{H}{i}^j\TUinv{T}{j}\f$
   と変換するために用いられる．
-
+  
   テンプレートパラメータIterに課される要件は#planeCalibと同じ．
   \param begin		最初の参照平面から得られたデータを示す反復子
   \param end		最後の参照平面から得られたデータの次を示す反復子
   \return		(カメラ数)個の正規化変換
 */
 template <class T>
-template <class Iter> Array<typename CameraCalibration<T>::normalize_type>
-CameraCalibration<T>::computeCameraNormalizations(Iter begin, Iter end)
+template <class Iter> Array<typename CameraCalibrator<T>::normalize_type>
+CameraCalibrator<T>::computeCameraNormalizations(Iter begin, Iter end)
 {
     Array<normalize_type>	norms(begin != end ? begin->size() : 0);
 
@@ -571,15 +565,15 @@ CameraCalibration<T>::computeCameraNormalizations(Iter begin, Iter end)
   参照平面jからカメラiへの射影変換\f$\TUvec{H}{i}^j\f$を
   \f$\TUbar{H}{i}^j = \TUvec{S}{i}\TUvec{H}{i}^j\TUinv{T}{j}\f$
   と変換するために用いられる．
-
+  
   テンプレートパラメータIterに課される要件は#planeCalibと同じ．
   \param begin		最初の参照平面から得られたデータを示す反復子
   \param end		最後の参照平面から得られたデータの次を示す反復子
   \return		(参照点数)個の正規化変換
 */
 template <class T>
-template <class Iter> Array<typename CameraCalibration<T>::normalize_type>
-CameraCalibration<T>::computePlaneNormalizations(Iter begin, Iter end)
+template <class Iter> Array<typename CameraCalibrator<T>::normalize_type>
+CameraCalibrator<T>::computePlaneNormalizations(Iter begin, Iter end)
 {
     Array<normalize_type>	norms(std::distance(begin, end));
 
@@ -613,8 +607,8 @@ CameraCalibration<T>::computePlaneNormalizations(Iter begin, Iter end)
   \return		(カメラ数x参照平面数)の2次元射影変換行列から成る観測行列
 */
 template <class T>
-template <class Iter> typename CameraCalibration<T>::matrix_type
-CameraCalibration<T>::computeHomographies(Iter begin, Iter end)
+template <class Iter> typename CameraCalibrator<T>::matrix_type
+CameraCalibrator<T>::computeHomographies(Iter begin, Iter end)
 {
     using namespace	std;
 
@@ -623,7 +617,7 @@ CameraCalibration<T>::computeHomographies(Iter begin, Iter end)
 	throw runtime_error("Need two or more planes!!");
     const auto	ncameras = begin->size();
 #ifdef _DEBUG
-    cerr << "*** Begin: TU::CameraCalibration<T>::computeHomographies() ***\n "
+    cerr << "*** Begin: TU::CameraCalibrator<T>::computeHomographies() ***\n "
 	 << ncameras << " cameras observing " << nplanes << " planes."
 	 << endl;
 #endif
@@ -633,7 +627,7 @@ CameraCalibration<T>::computeHomographies(Iter begin, Iter end)
     {
 	if (iter->size() != ncameras)
 	    throw runtime_error("All the planes must be observed by the same number of cameras!!");
-
+	
 	for (size_t i = 0; i < ncameras; ++i)
 	{
 	    Projectivity22<T>	H((*iter)[i].begin(), (*iter)[i].end(), true);
@@ -648,14 +642,14 @@ CameraCalibration<T>::computeHomographies(Iter begin, Iter end)
 	++j;
     }
 #ifdef _DEBUG
-    cerr << "*** End:   TU::CameraCalibration<T>::computeHomographies() ***\n"
+    cerr << "*** End:   TU::CameraCalibrator<T>::computeHomographies() ***\n"
 	 << endl;
 #endif
     return W;
 }
 
 /************************************************************************
-*  class CameraCalibration<T>::VolumeCost<Iter, Cam>			*
+*  class CameraCalibrator<T>::VolumeCost<Iter, Cam>			*
 ************************************************************************/
 //! 参照点の3次元座標とその投影像の2次元座標の対を与えて再投影誤差関数を初期化する．
 /*!
@@ -663,11 +657,11 @@ CameraCalibration<T>::computeHomographies(Iter begin, Iter end)
   \param end		点対列の末尾の次を示す反復子
 */
 template <class T> template <class Iter, class Cam> inline
-CameraCalibration<T>::VolumeCost<Iter, Cam>::VolumeCost(Iter begin, Iter end)
+CameraCalibrator<T>::VolumeCost<Iter, Cam>::VolumeCost(Iter begin, Iter end)
     :_begin(begin), _end(end), _npoints(std::distance(_begin, _end))
 {
 }
-
+    
 //! 与えられたカメラパラメータ値における再投影誤差を計算する．
 /*!
   #VolumeCost()で与えた全ての点対について再投影誤差が計算される．
@@ -675,8 +669,8 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::VolumeCost(Iter begin, Iter end)
   \return		再投影誤差を収めた(2*点対数)次元ベクトル
 */
 template <class T>
-template <class Iter, class Cam> typename CameraCalibration<T>::vector_type
-CameraCalibration<T>::VolumeCost<Iter, Cam>::operator ()(const Cam& camera) const
+template <class Iter, class Cam> typename CameraCalibrator<T>::vector_type
+CameraCalibrator<T>::VolumeCost<Iter, Cam>::operator ()(const Cam& camera) const
 {
     vector_type	val(2*_npoints);
     size_t	n = 0;
@@ -688,7 +682,7 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::operator ()(const Cam& camera) cons
 
     return val;
 }
-
+    
 //! 与えられたカメラパラメータ値においてカメラパラメータに関する再投影誤差の1階微分を計算する．
 /*!
   #VolumeCost()で与えた全ての点対についてヤコビ行列が計算される．
@@ -696,8 +690,8 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::operator ()(const Cam& camera) cons
   \return		(2*点対数)x(6+内部パラメータ数)ヤコビ行列
 */
 template <class T>
-template <class Iter, class Cam> typename CameraCalibration<T>::matrix_type
-CameraCalibration<T>::VolumeCost<Iter, Cam>::derivative(const Cam& camera) const
+template <class Iter, class Cam> typename CameraCalibrator<T>::matrix_type
+CameraCalibrator<T>::VolumeCost<Iter, Cam>::derivative(const Cam& camera) const
 {
     matrix_type	J(2*_npoints, 6 + Cam::dofIntrinsic());
     size_t	n = 0;
@@ -718,12 +712,12 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::derivative(const Cam& camera) const
   \param dc		更新量
 */
 template <class T> template <class Iter, class Cam> inline void
-CameraCalibration<T>::VolumeCost<Iter, Cam>::update(Cam& camera,
+CameraCalibrator<T>::VolumeCost<Iter, Cam>::update(Cam& camera,
 						   const vector_type& dc) const
 {
     camera.update(dc);
 }
-
+	
 //! 再投影誤差の全点対に渡る平均値を返す．
 /*!
   \param camera		カメラパラメータ
@@ -731,12 +725,12 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::update(Cam& camera,
 */
 template <class T> template <class Iter, class Cam>
 inline T
-CameraCalibration<T>::VolumeCost<Iter, Cam>::reprojectionError(
+CameraCalibrator<T>::VolumeCost<Iter, Cam>::reprojectionError(
     const Cam& camera) const
 {
     return sqrt(operator ()(camera).square() / _npoints);
 }
-
+    
 //! カメラパラメータの共分散行列からその標準偏差を求める．
 /*!
   \param camera		カメラパラメータ
@@ -744,8 +738,8 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::reprojectionError(
   \return		標準偏差を収めた1x(6+内部パラメータ数)行列
 */
 template <class T> template <class Iter, class Cam>
-inline typename CameraCalibration<T>::matrix_type
-CameraCalibration<T>::VolumeCost<Iter, Cam>::standardDeviations(
+inline typename CameraCalibrator<T>::matrix_type
+CameraCalibrator<T>::VolumeCost<Iter, Cam>::standardDeviations(
     const Cam& camera, const matrix_type& covariance) const
 {
     matrix_type	stddevs(1, 6 + Cam::dofIntrinsic());
@@ -756,12 +750,12 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::standardDeviations(
 	stddevs[0][9]  /= camera.k();
 	stddevs[0][10] /= camera.k();
     }
-
+    
     return stddevs;
 }
-
+    
 /************************************************************************
-*  class CameraCalibration<T>::PlaneCost<Iter, Cam>			*
+*  class CameraCalibrator<T>::PlaneCost<Iter, Cam>			*
 ************************************************************************/
 //! 複数の参照平面について，その上の参照点と投影像の2次元座標対を与えて再投影誤差関数を初期化する．
 /*!
@@ -770,9 +764,9 @@ CameraCalibration<T>::VolumeCost<Iter, Cam>::standardDeviations(
   \param commonCenters	全カメラの投影中心が一致しているならばtrue,
 			そうでなければfalse
 */
-template <class T> template <class Iter, class Cam>
-CameraCalibration<T>::PlaneCost<Iter, Cam>::PlaneCost(Iter begin, Iter end,
-						      bool commonCenters)
+template <class T> template <class Iter, class Cam> 
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::PlaneCost(Iter begin, Iter end,
+						     bool commonCenters)
     :_begin(begin), _end(end), _adim(0),
      _adims(_begin != _end ? _begin->size() : 0),
      _npoints(std::distance(_begin, _end))
@@ -809,8 +803,8 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::PlaneCost(Iter begin, Iter end,
 			次元ベクトル
 */
 template <class T>
-template <class Iter, class Cam> typename CameraCalibration<T>::vector_type
-CameraCalibration<T>::PlaneCost<Iter, Cam>::operator ()(
+template <class Iter, class Cam> typename CameraCalibrator<T>::vector_type
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::operator ()(
     const Array<Cam>& cameras, const plane_type& plane, int j) const
 {
     const auto&	data = corresListArray(j);
@@ -838,7 +832,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::operator ()(
 			2台目以降のカメラが(2*点対数)x(6+内部パラメータ数)
 */
 template <class T> template <class Iter, class Cam> BlockDiagonalMatrix<T>
-CameraCalibration<T>::PlaneCost<Iter, Cam>::derivativeA(
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeA(
     const Array<Cam>& cameras, const plane_type& plane, int j) const
 {
     const auto&		data = corresListArray(j);
@@ -857,7 +851,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::derivativeA(
 	    k += 2;
 	}
     }
-
+    
     return J;
 }
 
@@ -870,8 +864,8 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::derivativeA(
   \return		(2*点対数)x6ヤコビ行列
 */
 template <class T>
-template <class Iter, class Cam> typename CameraCalibration<T>::matrix_type
-CameraCalibration<T>::PlaneCost<Iter, Cam>::derivativeB(
+template <class Iter, class Cam> typename CameraCalibrator<T>::matrix_type
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeB(
     const Array<Cam>& cameras, const plane_type& plane, int j) const
 {
     const auto&	data = corresListArray(j);
@@ -885,7 +879,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::derivativeB(
 				 * plane.derivative(iter->first);
 	    k += 2;
 	}
-
+    
     return K;
 }
 
@@ -895,7 +889,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::derivativeB(
   \param dcameras	更新量
 */
 template <class T> template <class Iter, class Cam> void
-CameraCalibration<T>::PlaneCost<Iter, Cam>::updateA(
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::updateA(
     Array<Cam>& cameras, const vector_type& dcameras) const
 {
     size_t	d = 0;
@@ -917,7 +911,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::updateA(
   \param dplane		更新量
 */
 template <class T> template <class Iter, class Cam> inline void
-CameraCalibration<T>::PlaneCost<Iter, Cam>::updateB(
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::updateB(
     plane_type& plane, const vector_type& dplane) const
 {
     plane.update(dplane);
@@ -930,7 +924,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::updateB(
 */
 template <class T>
 template <class Iter, class Cam> const typename Iter::value_type&
-CameraCalibration<T>::PlaneCost<Iter, Cam>::corresListArray(int j) const
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::corresListArray(int j) const
 {
     auto	iter = _begin;
     while (--j >= 0)
@@ -944,10 +938,10 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::corresListArray(int j) const
   \param planes		参照平面パラメータを収めた配列
   \return		再投影誤差の平均値
 */
-
+    
 template <class T>
-template <class Iter, class Cam> typename CameraCalibration<T>::element_type
-CameraCalibration<T>::PlaneCost<Iter, Cam>::reprojectionError(
+template <class Iter, class Cam> typename CameraCalibrator<T>::element_type
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::reprojectionError(
     const Array<Cam>& cameras, const Array<plane_type>& planes) const
 {
     element_type	sumerr = 0.0;
@@ -961,7 +955,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::reprojectionError(
 
     return sqrt(sumerr / npoints);
 }
-
+    
 //! カメラパラメータの共分散行列からその標準偏差を求める．
 /*!
   \param cameras	カメラパラメータを収めた配列
@@ -969,13 +963,13 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::reprojectionError(
   \return		標準偏差を収めた(カメラ数)x(6+内部パラメータ数)行列
 */
 template <class T>
-template <class Iter, class Cam> typename CameraCalibration<T>::matrix_type
-CameraCalibration<T>::PlaneCost<Iter, Cam>::standardDeviations(
+template <class Iter, class Cam> typename CameraCalibrator<T>::matrix_type
+CameraCalibrator<T>::PlaneCost<Iter, Cam>::standardDeviations(
     const Array<Cam>& cameras, const matrix_type& covariance) const
 {
     std::cerr << "covariance: " << covariance.nrow() << 'x' << covariance.ncol()
 	      << std::endl;
-
+    
     matrix_type	stddevs(_adims.size(), 6 + _adims[0]);
     for (size_t i = 0, m = 0; i < stddevs.nrow(); ++i)
     {
@@ -989,7 +983,7 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::standardDeviations(
 	    deviations[n] = sqrt(covariance[m][m] / npoints);
 	    ++m;
 	}
-
+	
 	if (stddevs.ncol() > 9)	// aspectとskewがパラメータに含まれているか？
 	{ // aspectとskewは内部パラメータ行列の(1, 1), (1, 2)成分そのものとして
 	  // 実装されているので，焦点距離で割らねばならない．
@@ -1000,4 +994,6 @@ CameraCalibration<T>::PlaneCost<Iter, Cam>::standardDeviations(
 
     return stddevs;
 }
-}	// namespace TU
+	
+}
+#endif	//! __CAMERACALIBRATOR_H
