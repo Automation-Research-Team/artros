@@ -19,23 +19,15 @@ pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 
 find_package(catkin REQUIRED
   COMPONENTS
-    roscpp
-    image_proc
-    image_transport
     std_srvs
     std_msgs
-    sensor_msgs
     geometry_msgs
     message_generation
-    tf2_ros
-    tf2_geometry_msgs
     dynamic_reconfigure
-    pcl_ros
-    pcl_conversions
-    genmsg
     actionlib
     actionlib_msgs
     aist_utility
+    aist_aruco_ros
 )
 
 add_service_files(
@@ -51,18 +43,20 @@ add_action_files(
 
 generate_messages(
   DEPENDENCIES
+    std_srvs
     std_msgs
     geometry_msgs
     actionlib_msgs
+    aist_aruco_ros
 )
 
 catkin_package(
   CATKIN_DEPENDS
-    roscpp
     message_runtime
     std_msgs
     geometry_msgs
     actionlib_msgs
+    aist_aruco_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -72,11 +66,9 @@ catkin_package(
 ###########
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  src
 )
 
 add_executable(calibrator
-  src/main.cpp
   src/Calibrator.cpp
 )
 
@@ -90,53 +82,25 @@ target_link_libraries(calibrator
   ${YAML-CPP_LIBRARIES}
 )
 
-add_executable(calibrator_test
-  src/calibrator_test/main.cpp
-)
-
-add_dependencies(calibrator_test
-  ${PROJECT_NAME}_generate_messages_cpp
-)
-
-target_link_libraries(calibrator_test
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-)
-
-add_executable(plane_detector
-  src/plane_detector/main.cpp
-)
-
-add_dependencies(plane_detector
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${PROJECT_NAME}_gencfg
-)
-
-target_link_libraries(plane_detector
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${pcl_LIBRARIES}
-)
-
 #############
 ## Install ##
 #############
 install(
   TARGETS
-    calibrator calibrator_test plane_detector
+    calibrator
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-catkin_install_python(
-  PROGRAMS
-    scripts/run_calibration.py
-    scripts/check_calibration.py
-    scripts/tool_calibration.py
-    scripts/publish_calibration.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#catkin_install_python(
+#  PROGRAMS
+#    scripts/run_calibration.py
+#    scripts/check_calibration.py
+#    scripts/tool_calibration.py
+#    scripts/publish_calibration.py
+#  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/

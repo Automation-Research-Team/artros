@@ -43,55 +43,81 @@
 #include <cstdlib>	// for std::getenv()
 #include <sys/stat.h>	// for mkdir()
 #include <errno.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <ros/ros.h>
+#include <std_srvs/Empty.h>
+#include <std_srvs/Trigger.h>
+#include <actionlib/server/simple_action_server.h>
+#include <aist_camera_calibration/GetSampleList.h>
+#include <aist_camera_calibration/ComputeCalibration.h>
+#include <aist_camera_calibration/TakeSampleAction.h>
 #include <yaml-cpp/yaml.h>
 #include <aist_utility/geometry_msgs.h>
-#include "Calibrator.h"
-#include "HandeyeCalibration.h"
 
-//#define DEBUG
-
-namespace aist_handeye_calibration
+namespace aist_camera_calibration
 {
-static geometry_msgs::TransformStamped
-fromPoseToTransform(const geometry_msgs::PoseStamped pose)
-{
-    geometry_msgs::TransformStamped	transform;
-    transform.header = pose.header;
-    transform.transform.translation.x = pose.pose.position.x;
-    transform.transform.translation.y = pose.pose.position.y;
-    transform.transform.translation.z = pose.pose.position.z;
-    transform.transform.rotation      = pose.pose.orientation;
-
-    return transform;
-}
-
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
-Calibrator::Calibrator(ros::NodeHandle& nh)
-    :_pose_sub(nh.subscribe("/pose", 5, &Calibrator::pose_cb, this)),
-     _get_sample_list_srv(
-	 nh.advertiseService("get_sample_list",
-			     &Calibrator::get_sample_list, this)),
-     _compute_calibration_srv(
-	 nh.advertiseService("compute_calibration",
-			     &Calibrator::compute_calibration, this)),
-     _save_calibration_srv(
-	 nh.advertiseService("save_calibration",
-			      &Calibrator::save_calibration, this)),
-     _reset_srv(nh.advertiseService("reset", &Calibrator::reset, this)),
-     _take_sample_srv(nh, "take_sample", false),
-     _transform_buffer(),
-     _transform_listener(_transform_buffer),
-     _use_dual_quaternion(_nh.param<bool>("use_dual_quaternion", true)),
-     _eye_on_hand(_nh.param<bool>("eye_on_hand", true)),
-     _timeout(_nh.param<double>("timeout", 5.0))
+class Calibrator
 {
-    _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::take_sample,
+  private:
+    using element_t	  = double;
+    using corres_msg_t	  = aist_aruco_ros::PointCorrespondenceArrayArray;
+    using corres_msg_cp	  = aist_aruco_ros
+				::PointCorrespondenceArrayArrayConstPtr;
+    using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
+
+  public:
+		Calibrator(const ros::NodeHandle& nh)			;
+		~Calibrator()						;
+
+    void	run()							;
+
+  private:
+    void	corres_cb(const corres_msg_cp& corres)			;
+    bool	get_sample_list(GetSampleList::Request&,
+				GetSampleList::Response& res)		;
+    bool	compute_calibration(ComputeCalibration::Request&,
+				    ComputeCalibration::Response& res)	;
+    bool	save_calibration(std_srvs::Trigger::Request&,
+				 std_srvs::Trigger::Response& res)	;
+    bool	reset(std_srvs::Empty::Request&,
+		      std_srvs::Empty::Response&)			;
+    void	goal_cb()						;
+    void	preempt_cb()						;
+
+  private:
+    ros::NodeHandle		_nh;
+    ros::Subscriber		_corres_sub;
+
+    action_server_t		_take_sample_srv;
+    const ros::ServiceServer	_get_sample_list_srv;
+    const ros::ServiceServer	_compute_calibration_srv;
+    const ros::ServiceServer	_save_calibration_srv;
+    const ros::ServiceServer	_reset_srv;
+};
+
+Calibrator::Calibrator(const ros::NodeHandle& nh)
+    :_nh(nh),
+     _corres_sub(_nh.subscribe("/point_correspondences_list", 5,
+			       &Calibrator::corres_cb, this)),
+     _take_sample_srv(_nh, "take_sample", false),
+     _get_sample_list_srv(
+	 _nh.advertiseService("get_sample_list",
+			      &Calibrator::get_sample_list, this)),
+     _compute_calibration_srv(
+	 _nh.advertiseService("compute_calibration",
+			      &Calibrator::compute_calibration, this)),
+     _save_calibration_srv(
+	 _nh.advertiseService("save_calibration",
+			      &Calibrator::save_calibration, this)),
+     _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this))
+{
+    _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::goal_cb,
 						      this));
-    _take_sample_srv.registerPreemptCallback(boost::bind(&Calibrator::cancel,
-							 this));
+    _take_sample_srv.registerPreemptCallback(boost::bind(
+						 &Calibrator::preempt_cb,
+						 this));
     _take_sample_srv.start();
 
     ROS_INFO_STREAM("Calibrator initialized");
@@ -108,30 +134,16 @@ Calibrator::run()
 }
 
 void
-Calibrator::corres_cb(const corres_msg_t& correspondences)
+Calibrator::corres_cb(const corres_msg_cp& corres)
 {
     if (!_take_sample_srv.isActive())
 	return;
 
-
     try
     {
-
       // Convert marker pose to camera <= object transform.
 	TakeSampleResult	result;
-	result.cMo = fromPoseToTransform(*poseMsg);
-	result.cMo.child_frame_id = object_frame();
-
-      // Lookup world <= effector transform at the moment marker detected.
-	result.wMe = _transform_buffer.lookupTransform(world_frame(),
-						       effector_frame(),
-						       poseMsg->header.stamp,
-						       _timeout);
-	ROS_DEBUG_STREAM(result.cMo);
-	ROS_DEBUG_STREAM(result.wMe);
-
-	_cMo.emplace_back(result.cMo);
-	_wMe.emplace_back(result.wMe);
+	result.correspondences_list = *corres;
 
 	_take_sample_srv.setSucceeded(result);
 
@@ -150,10 +162,6 @@ Calibrator::get_sample_list(GetSampleList::Request&,
 			    GetSampleList::Response& res)
 {
     res.success = true;
-    res.message = std::to_string(_cMo.size()) + " samples in hand.";
-    res.cMo	= _cMo;
-    res.wMe	= _wMe;
-
     ROS_INFO_STREAM("get_sample_list(): " << res.message);
 
     return true;
@@ -165,48 +173,11 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 {
     try
     {
-	using transform_t	= TU::Transform<double>;
+	ROS_INFO_STREAM("compute_calibration()");
 
-	ROS_INFO_STREAM("compute_calibration(): computing with "
-			<< (_use_dual_quaternion ? "DUAL quaternion"
-						 : "SINGLE quaternion")
-			<< " algorithm...");
-
-	std::vector<transform_t>	cMo, wMe;
-	for (size_t i = 0; i < _cMo.size(); ++i)
-	{
-	    cMo.emplace_back(_cMo[i].transform);
-	    wMe.emplace_back(_wMe[i].transform);
-	}
-
-	const auto	eMc = (_use_dual_quaternion ?
-			       TU::cameraToEffectorDual(cMo, wMe) :
-			       TU::cameraToEffectorSingle(cMo, wMe));
-	const auto	wMo = TU::objectToWorld(cMo, wMe, eMc);
-
-	const auto	now = ros::Time::now();
-	_eMc.header.stamp = now;
-	_eMc.transform	  = eMc;
-	_wMo.header.stamp = now;
-	_wMo.transform	  = wMo;
-
-	std::ostringstream	sout;
-	TU::evaluateAccuracy(sout, cMo, wMe, eMc, wMo);
 	res.success = true;
-	res.message = sout.str();
-	res.eMc	    = _eMc;
-	res.wMo	    = _wMo;
 
 	ROS_INFO_STREAM("compute_calibration(): " << res.message);
-
-#ifdef DEBUG
-	std::ofstream	out("cMo_wMe_pairs.txt");
-	out << cMo.size() << std::endl;
-	for (size_t i = 0; i < cMo.size(); ++i)
-	    out << cMo[i] << std::endl
-		<< wMe[i] << std::endl << std::endl;
-	out << sout.str();
-#endif
     }
     catch (const std::exception& err)
     {
@@ -228,33 +199,6 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 	YAML::Emitter	emitter;
 	emitter << YAML::BeginMap;
 
-	emitter << YAML::Key   << "eye_on_hand"
-		<< YAML::Value << _eye_on_hand;
-
-	emitter << YAML::Key   << "parent"
-		<< YAML::Value << effector_frame();
-	emitter << YAML::Key   << "child"
-		<< YAML::Value << camera_frame();
-	emitter << YAML::Key   << "transform"
-		<< YAML::Value
-		<< YAML::Flow
-		<< YAML::BeginMap
-		<< YAML::Key   << "x"
-		<< YAML::Value << _eMc.transform.translation.x
-		<< YAML::Key   << "y"
-		<< YAML::Value << _eMc.transform.translation.y
-		<< YAML::Key   << "z"
-		<< YAML::Value << _eMc.transform.translation.z
-		<< YAML::Key   << "qx"
-		<< YAML::Value << _eMc.transform.rotation.x
-		<< YAML::Key   << "qy"
-		<< YAML::Value << _eMc.transform.rotation.y
-		<< YAML::Key   << "qz"
-		<< YAML::Value << _eMc.transform.rotation.z
-		<< YAML::Key   << "qw"
-		<< YAML::Value << _eMc.transform.rotation.w
-		<< YAML::EndMap;
-
 	const auto	tval = time(nullptr);
 	const auto	tstr = ctime(&tval);
 	tstr[strlen(tstr)-1] = '\0';
@@ -266,7 +210,7 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
       // Read calibration file name from parameter server.
 	std::string	calib_file;
 	_nh.param<std::string>("calib_file", calib_file,
-			       getenv("HOME") + std::string("/.ros/aist_handeye_calibration/calib.yaml"));
+			       getenv("HOME") + std::string("/.ros/aist_camera_calibration/calib.yaml"));
 
       // Open/create parent directory of the calibration file.
 	const auto	dir = calib_file.substr(0,
@@ -304,27 +248,48 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 bool
 Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
-    _cMo.clear();
-    _wMe.clear();
-
-    ROS_INFO_STREAM("reset(): all samples cleared.");
+    ROS_INFO_STREAM("All samples cleared");
 
     return true;
 }
 
 void
-Calibrator::take_sample()
+Calibrator::goal_cb()
 {
     _take_sample_srv.acceptNewGoal();
-
-    ROS_INFO_STREAM("take_sample(): accepted new goal");
+    ROS_INFO_STREAM("ACCEPTED new goal to take samples");
 }
 
 void
-Calibrator::cancel()
+Calibrator::preempt_cb()
 {
-    ROS_WARN_STREAM("cancel(): taking sample canceled.");
     _take_sample_srv.setPreempted();
+    ROS_WARN_STREAM("CANCELED taking samples");
 }
 
-}	// namespace aist_handeye_calibration
+}	// namespace aist_camera_calibration
+
+/************************************************************************
+*  global functions							*
+************************************************************************/
+int
+main(int argc, char* argv[])
+{
+    ros::init(argc, argv, "calibrator");
+    ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
+				   ros::console::levels::Debug);
+
+    try
+    {
+	ros::NodeHandle				nh("~");
+	aist_camera_calibration::Calibrator	calibrator(nh);
+	calibrator.run();
+    }
+    catch (const std::exception& err)
+    {
+	std::cerr << err.what() << std::endl;
+	return 1;
+    }
+
+    return 0;
+}

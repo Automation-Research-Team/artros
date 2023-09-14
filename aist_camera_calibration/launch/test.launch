@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <include file="$(find aist_aruco_ros)/launch/multicam.launch"/>
+
+  <node name="camera_calibrator"
+	pkg="aist_camera_calibration" type="calibrator" output="screen">
+    <remap from="/point_correspondences_list"
+	   to="/aruco_multi_detector_2d/point_correspondences_list"/>
+  </node>
+
+</launch>

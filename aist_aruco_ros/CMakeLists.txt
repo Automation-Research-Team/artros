@@ -13,7 +13,9 @@ set(CMAKE_CXX_BUILD_TYPE	Release)
 
 find_package(catkin REQUIRED
   COMPONENTS
+    message_generation
     ddynamic_reconfigure
+    std_msgs
     geometry_msgs
     visualization_msgs
     image_transport
@@ -44,6 +46,7 @@ add_message_files(
 
 generate_messages(
   DEPENDENCIES
+    std_msgs
     geometry_msgs
 )
 
@@ -80,6 +83,7 @@ add_library(aruco_multi_detector_2d
 add_dependencies(aruco_multi_detector_2d
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
+  ${PROJECT_NAME}_generate_messages_cpp
 )
 
 target_link_libraries(aruco_multi_detector_2d

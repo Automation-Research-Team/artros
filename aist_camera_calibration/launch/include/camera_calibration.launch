@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="camera_names"/>
+  <arg name="image_topics"/>
+  <arg name="marker_map_dir"	default="$(find aist_aruco_ros)/config"/>
+  <arg name="marker_map"	default="calib_board-6x4"/>
+  <arg name="marker_id"		default="-1"/>
+  <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
+  <arg name="manager"		default=""/>
+
+  <!-- Start ArUco -->
+  <include file="$(find aist_aruco_ros)/launch/run_multi.launch">
+    <arg name="camera_names"	value="$(arg camera_names)"/>
+    <arg name="image_topics"	value="$(arg image_topics)"/>
+    <arg name="marker_map_dir"	value="$(arg marker_map_dir)"/>
+    <arg name="marker_map"	value="$(arg marker_map)"/>
+    <arg name="marker_id"	value="$(arg marker_id)"/>
+    <arg name="marker_size"	value="$(arg marker_size)"/>
+    <arg name="manager"		value="$(arg manager)"/>
+  </include>
+
+  <!-- Start calibrator -->
+  <node name="camera_calibrator"
+	pkg="aist_camera_calibration" type="calibrator" output="screen">
+    <remap from="/point_correspondences_list"
+	   to="/aruco_multi_detector_2d/point_correspondences_list"/>
+  </node>
+
+</launch>
