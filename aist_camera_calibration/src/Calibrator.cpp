@@ -47,10 +47,13 @@
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
 #include <actionlib/server/simple_action_server.h>
+#include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
+#include <yaml-cpp/yaml.h>
+
 #include <aist_camera_calibration/GetSampleList.h>
 #include <aist_camera_calibration/ComputeCalibration.h>
 #include <aist_camera_calibration/TakeSampleAction.h>
-#include <yaml-cpp/yaml.h>
 #include <aist_utility/geometry_msgs.h>
 
 namespace aist_camera_calibration
@@ -62,18 +65,20 @@ class Calibrator
 {
   private:
     using element_t	  = double;
-    using corres_msg_t	  = aist_aruco_ros::PointCorrespondenceArrayArray;
     using corres_msg_cp	  = aist_aruco_ros
 				::PointCorrespondenceArrayArrayConstPtr;
     using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
 
   public:
-		Calibrator(const ros::NodeHandle& nh)			;
+		Calibrator(const ros::NodeHandle& nh,
+			   const std::string& nodelet_name)		;
 		~Calibrator()						;
 
     void	run()							;
 
   private:
+    void	goal_cb()						;
+    void	preempt_cb()						;
     void	corres_cb(const corres_msg_cp& corres)			;
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
@@ -83,10 +88,12 @@ class Calibrator
 				 std_srvs::Trigger::Response& res)	;
     bool	reset(std_srvs::Empty::Request&,
 		      std_srvs::Empty::Response&)			;
-    void	goal_cb()						;
-    void	preempt_cb()						;
+    const std::string&
+		getName()					const	;
 
   private:
+    const std::string		_nodelet_name;
+    
     ros::NodeHandle		_nh;
     ros::Subscriber		_corres_sub;
 
@@ -97,8 +104,10 @@ class Calibrator
     const ros::ServiceServer	_reset_srv;
 };
 
-Calibrator::Calibrator(const ros::NodeHandle& nh)
-    :_nh(nh),
+Calibrator::Calibrator(const ros::NodeHandle& nh,
+		       const std::string& nodelet_name)
+    :_nodelet_name(nodelet_name),
+     _nh(nh),
      _corres_sub(_nh.subscribe("/point_correspondences_list", 5,
 			       &Calibrator::corres_cb, this)),
      _take_sample_srv(_nh, "take_sample", false),
@@ -120,7 +129,7 @@ Calibrator::Calibrator(const ros::NodeHandle& nh)
 						 this));
     _take_sample_srv.start();
 
-    ROS_INFO_STREAM("Calibrator initialized");
+    NODELET_INFO_STREAM('(' << getName() << ") Calibrator initialized");
 }
 
 Calibrator::~Calibrator()
@@ -131,6 +140,22 @@ void
 Calibrator::run()
 {
     ros::spin();
+}
+
+void
+Calibrator::goal_cb()
+{
+    _take_sample_srv.acceptNewGoal();
+    NODELET_INFO_STREAM('(' << getName()
+			<< ") ACCEPTED new goal to take samples");
+}
+
+void
+Calibrator::preempt_cb()
+{
+    _take_sample_srv.setPreempted();
+    NODELET_WARN_STREAM('(' << getName()
+			<< ") CANCELED taking samples");
 }
 
 void
@@ -147,13 +172,15 @@ Calibrator::corres_cb(const corres_msg_cp& corres)
 
 	_take_sample_srv.setSucceeded(result);
 
-	ROS_INFO_STREAM("take_sample(): succeeded");
+	NODELET_INFO_STREAM('(' << getName()
+			    << ") SUCCEEDED in taking samples");
     }
     catch (const std::exception& err)
     {
 	_take_sample_srv.setAborted();
 
-	ROS_ERROR_STREAM("take_sample(): aborted[" << err.what() << ']');
+	NODELET_ERROR_STREAM('(' << getName() << ") ABORTED taking samples["
+			     << err.what() << ']');
     }
 }
 
@@ -162,7 +189,8 @@ Calibrator::get_sample_list(GetSampleList::Request&,
 			    GetSampleList::Response& res)
 {
     res.success = true;
-    ROS_INFO_STREAM("get_sample_list(): " << res.message);
+    NODELET_INFO_STREAM('(' << getName() << ") GetSampleList: "
+			<< res.message);
 
     return true;
 }
@@ -173,18 +201,17 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 {
     try
     {
-	ROS_INFO_STREAM("compute_calibration()");
-
 	res.success = true;
-
-	ROS_INFO_STREAM("compute_calibration(): " << res.message);
+	NODELET_INFO_STREAM('(' << getName() << ") ComputeCalibration: "
+			    << res.message);
     }
     catch (const std::exception& err)
     {
 	res.success = false;
 	res.message = err.what();
 
-	ROS_ERROR_STREAM("compute_calibration(): " << res.message);
+	NODELET_ERROR_STREAM('(' << getName() << ") ComputeCalibration: "
+			     << res.message);
     }
 
     return res.success;
@@ -232,14 +259,16 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 	res.success = true;
 	res.message = "saved in " + calib_file;
 
-	ROS_INFO_STREAM("save_calibration(): " << res.message);
+	NODELET_INFO_STREAM('(' << getName() << ") SaveCalibration: "
+			    << res.message);
     }
     catch (const std::exception& err)
     {
 	res.success = false;
 	res.message = err.what();
 
-	ROS_ERROR_STREAM("compute_calibration(): " << res.message);
+	NODELET_ERROR_STREAM('(' << getName() << ") SaveCalibration: "
+			    << res.message);
     }
 
     return res.success;
@@ -248,48 +277,39 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 bool
 Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
-    ROS_INFO_STREAM("All samples cleared");
+    NODELET_INFO_STREAM('(' << getName() << ") All samples cleared");
 
     return true;
 }
 
-void
-Calibrator::goal_cb()
+const std::string&
+Calibrator::getName() const
 {
-    _take_sample_srv.acceptNewGoal();
-    ROS_INFO_STREAM("ACCEPTED new goal to take samples");
+    return _nodelet_name;
 }
+    
+/************************************************************************
+*  class CalibratorNodelet						*
+************************************************************************/
+class CalibratorNodelet : public nodelet::Nodelet
+{
+  public:
+			CalibratorNodelet()				{}
+
+    virtual void	onInit()					;
+
+  private:
+    boost::shared_ptr<Calibrator>	_node;
+};
 
 void
-Calibrator::preempt_cb()
+CalibratorNodelet::onInit()
 {
-    _take_sample_srv.setPreempted();
-    ROS_WARN_STREAM("CANCELED taking samples");
+    NODELET_INFO("aist_camera_calibrations::CalibratorNodelet::onInit()");
+    _node.reset(new Calibrator(getPrivateNodeHandle(), getName()));
 }
 
 }	// namespace aist_camera_calibration
 
-/************************************************************************
-*  global functions							*
-************************************************************************/
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, "calibrator");
-    ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-				   ros::console::levels::Debug);
-
-    try
-    {
-	ros::NodeHandle				nh("~");
-	aist_camera_calibration::Calibrator	calibrator(nh);
-	calibrator.run();
-    }
-    catch (const std::exception& err)
-    {
-	std::cerr << err.what() << std::endl;
-	return 1;
-    }
-
-    return 0;
-}
+PLUGINLIB_EXPORT_CLASS(aist_camera_calibration::CalibratorNodelet,
+		       nodelet::Nodelet);

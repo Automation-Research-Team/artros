@@ -1,0 +1,6 @@
+<library path="lib/libcamera_calibrator">
+  <class name="aist_camera_calibration/camera_calibrator"
+	 type="aist_camera_calibration::CalibratorNodelet"
+	 base_class_type="nodelet::Nodelet">
+  </class>
+</library>

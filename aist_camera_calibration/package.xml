@@ -24,5 +24,10 @@
   <depend>actionlib_msgs</depend>
   <depend>aist_utility</depend>
   <depend>aist_aruco_ros</depend>
+  <depend>pluginlib</depend>
+  <depend>nodelet</depend>
 
+  <export>
+    <nodelet plugin="${prefix}/nodelet_description.xml"/>
+  </export>
 </package>

@@ -34,10 +34,10 @@
 // Author: Toshio Ueshiba
 //
 /*!
-  \file		CameraCalibrator.cc
-  \brief	クラス#TU::CameraCalibratorの実装
+  \file		CameraCalibration.cc
+  \brief	クラス#TU::CameraCalibrationの実装
 */
-#include "CameraCalibrator.h"
+#include "CameraCalibration.h"
 
 namespace TU
 {
@@ -343,7 +343,7 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 }
 
 /************************************************************************
-*  class CameraCalibrator<T>						*
+*  class CameraCalibration<T>						*
 ************************************************************************/
 //! Zhangの方法により観測行列を1台のカメラの投影行列と複数の参照平面行列に分解する．
 /*!
@@ -352,8 +352,8 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
   \param Qt	平面数個の参照平面行列を縦に並べた(3*平面数)x3行列が返される
 */
 template <class T> void
-CameraCalibrator<T>::zhangCalib(const matrix_type& W,
-				matrix_type& P, matrix_type& Qt)
+CameraCalibration<T>::zhangCalib(const matrix_type& W,
+				 matrix_type& P, matrix_type& Qt)
 {
     P.resize(3, 4);
     Qt = transpose(W);
@@ -376,16 +376,16 @@ CameraCalibrator<T>::zhangCalib(const matrix_type& W,
 			そうでなければfalse
 */
 template <class T> void
-CameraCalibrator<T>::ueshibaCalib(matrix_type& W,
-				  matrix_type& P, matrix_type& Qt,
-				  const vector_type& scales,
-    				  bool commonCenters)
+CameraCalibration<T>::ueshibaCalib(matrix_type& W,
+				   matrix_type& P, matrix_type& Qt,
+				   const vector_type& scales,
+				   bool commonCenters)
 {
     rescaleHomographies(W);
     factorHomographies(W, P, Qt, commonCenters);
     projectiveToMetric(P, Qt, scales, commonCenters);
 }
 
-template class CameraCalibrator<float>;
-template class CameraCalibrator<double>;
+template class CameraCalibration<float>;
+template class CameraCalibration<double>;
 }

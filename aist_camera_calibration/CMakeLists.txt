@@ -57,6 +57,8 @@ catkin_package(
     geometry_msgs
     actionlib_msgs
     aist_aruco_ros
+    pluginlib
+    nodelet
 )
 
 ## System dependencies are found with CMake's conventions
@@ -68,15 +70,17 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(calibrator
+add_library(camera_calibrator
   src/Calibrator.cpp
 )
 
-add_dependencies(calibrator
+add_dependencies(camera_calibrator
+  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
   ${PROJECT_NAME}_generate_messages_cpp
 )
 
-target_link_libraries(calibrator
+target_link_libraries(camera_calibrator
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
   ${YAML-CPP_LIBRARIES}
@@ -87,7 +91,7 @@ target_link_libraries(calibrator
 #############
 install(
   TARGETS
-    calibrator
+    camera_calibrator
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

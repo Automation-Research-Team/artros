@@ -1,10 +1,17 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <include file="$(find aist_aruco_ros)/launch/multicam.launch"/>
+  <arg name="manager"	default=""/>
 
-  <node name="camera_calibrator"
-	pkg="aist_camera_calibration" type="calibrator" output="screen">
+  <include file="$(find aist_aruco_ros)/launch/multicam.launch">
+    <arg name="manager"	value="$(arg manager)"/>
+  </include>
+
+  <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
+  <arg unless="$(eval manager == '')"	name="command"	value="load"/>
+  <node name="camera_calibrator" pkg="nodelet" type="nodelet"
+  	args="$(arg command) aist_camera_calibration/camera_calibrator
+	      $(arg manager)">
     <remap from="/point_correspondences_list"
 	   to="/aruco_multi_detector_2d/point_correspondences_list"/>
   </node>
