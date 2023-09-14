@@ -55,6 +55,7 @@
 #include <aist_camera_calibration/ComputeCalibration.h>
 #include <aist_camera_calibration/TakeSampleAction.h>
 #include <aist_utility/geometry_msgs.h>
+#include "CameraCalibrator.h"
 
 namespace aist_camera_calibration
 {
@@ -68,7 +69,39 @@ class Calibrator
     using corres_msg_cp	  = aist_aruco_ros
 				::PointCorrespondenceArrayArrayConstPtr;
     using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
+    using point2_t	  = TU::Point2<element_t>;
+    using point3_t	  = TU::Point3<element_t>;
+    using corres22_t	  = std::pair<point2_t, point2_t>;
+    using corres32_t	  = std::pair<point3_t, point2_t>;
 
+    template <class CORRES>
+    using correses_t	  = std::vector<CORRES>;
+    template <class CORRES>
+    using correses_data_t = std::vector<correses_t<CORRES> >;
+    template <class CORRES>
+    using correses_list_t = std::vector<correses_data_t<CORRES> >;
+
+    template <class CORRES>
+    struct to_corress
+    {
+	std::pair<point2_t, point2_t>
+	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
+	{
+	    return {point2_t(corres.point.x, corres.point.y),
+		    point2_t(corres.image_point.u, corres.image_point.v)};
+	}
+    };
+    template <>
+    struct to_corress<corres32_t>
+    {
+	std::pair<point3_t, point2_t>
+	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
+	{
+	    return {point3_t(corres.point.x, corres.point.y, corres.point.z),
+		    point2_t(corres.image_point.u, corres.image_point.v)};
+	}
+    };
+    
   public:
 		Calibrator(const ros::NodeHandle& nh,
 			   const std::string& nodelet_name)		;
@@ -79,7 +112,10 @@ class Calibrator
   private:
     void	goal_cb()						;
     void	preempt_cb()						;
-    void	corres_cb(const corres_msg_cp& corres)			;
+    void	corres_cb(const corres_msg_cp& corres_msg)		;
+    template <class CORRES>
+    static bool	add_correspondences_data(const corres_msg_cp& corres_msg,
+					 correses_list_t<CORRES>& clist);
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
@@ -102,6 +138,10 @@ class Calibrator
     const ros::ServiceServer	_compute_calibration_srv;
     const ros::ServiceServer	_save_calibration_srv;
     const ros::ServiceServer	_reset_srv;
+
+    bool			_planar_reference;
+    correses_list_t<corres22_t>	_correses_list22;
+    correses_list_t<corres22_t>	_correses_list32;
 };
 
 Calibrator::Calibrator(const ros::NodeHandle& nh,
@@ -120,7 +160,10 @@ Calibrator::Calibrator(const ros::NodeHandle& nh,
      _save_calibration_srv(
 	 _nh.advertiseService("save_calibration",
 			      &Calibrator::save_calibration, this)),
-     _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this))
+     _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
+     _planar_reference(_nh.param<bool>("planar_reference", true)),
+     _correses_list22(),
+     _correses_list32()
 {
     _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::goal_cb,
 						      this));
@@ -159,7 +202,7 @@ Calibrator::preempt_cb()
 }
 
 void
-Calibrator::corres_cb(const corres_msg_cp& corres)
+Calibrator::corres_cb(const corres_msg_cp& corres_msg)
 {
     if (!_take_sample_srv.isActive())
 	return;
@@ -168,7 +211,7 @@ Calibrator::corres_cb(const corres_msg_cp& corres)
     {
       // Convert marker pose to camera <= object transform.
 	TakeSampleResult	result;
-	result.correspondences_list = *corres;
+	result.correspondences_list = *corres_msg;
 
 	_take_sample_srv.setSucceeded(result);
 
@@ -183,6 +226,28 @@ Calibrator::corres_cb(const corres_msg_cp& corres)
 			     << err.what() << ']');
     }
 }
+
+template <class CORRES> bool
+Calibrator::add_correspondences_data(const corres_msg_cp& corres_msg,
+				     correses_list_t<CORRES>& clist)
+{
+    const auto	ncameras = corres_msg->correspondences_list.size();
+    
+    if (clist.size() > 0 && clist.front().size() != ncameras)
+	return false;
+
+    correses_data_t<CORRES>	correses_data(ncameras);
+    auto			correses = correses_data.begin();
+    for (auto&& correses_msg : corres_msg->corresponcenves_list)
+    {
+	correses->resize(correses_msg.size());
+	std::transform(correses_msg.cbegin(), correses_msg.cend(),
+		       correses->begin(), to_corres<CORRES>());
+    }
+    
+    return true;
+}
+
 
 bool
 Calibrator::get_sample_list(GetSampleList::Request&,
@@ -277,6 +342,9 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 bool
 Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
+    _correses_list22.clear();
+    _correses_list32.clear();
+    
     NODELET_INFO_STREAM('(' << getName() << ") All samples cleared");
 
     return true;
