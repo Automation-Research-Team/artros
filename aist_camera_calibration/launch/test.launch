@@ -12,8 +12,8 @@
   <node name="camera_calibrator" pkg="nodelet" type="nodelet"
   	args="$(arg command) aist_camera_calibration/camera_calibrator
 	      $(arg manager)">
-    <remap from="/point_correspondences_list"
-	   to="/aruco_multi_detector_2d/point_correspondences_list"/>
+    <remap from="/point_correspondences_set"
+	   to="/aruco_multi_detector_2d/point_correspondences_set"/>
   </node>
 
 </launch>

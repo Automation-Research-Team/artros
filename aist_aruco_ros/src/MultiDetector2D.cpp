@@ -126,7 +126,7 @@ class MultiDetector2D
 
     mdetector_t						_marker_detector;
     marker_map_t					_marker_map;
-    aist_aruco_ros::PointCorrespondenceArrayArray	_correspondences_list;
+    aist_aruco_ros::PointCorrespondenceArrayArray	_correspondences_set;
 };
 
 MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh,
@@ -138,12 +138,12 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh,
      _result_pubs(),
      _debug_pubs(),
      _corres_pub(nh.advertise<PointCorrespondenceArrayArray>(
-		     "point_correspondences_list", 100)),
+		     "point_correspondences_set", 100)),
      _sync(),
      _ddr(nh),
      _marker_detector(),
      _marker_map(),
-     _correspondences_list()
+     _correspondences_set()
 {
     std::vector<std::string>	camera_names;
     if (!nh.getParam("camera_names", camera_names) || camera_names.size() == 0)
@@ -235,7 +235,7 @@ MultiDetector2D::MultiDetector2D(ros::NodeHandle& nh,
 	return;
     }
 
-    _correspondences_list.correspondences_list.resize(camera_names.size());
+    _correspondences_set.correspondences_set.resize(camera_names.size());
     
   // Restore marker map if specified.
     if (const auto marker_map_name = nh.param<std::string>("marker_map", "");
@@ -370,7 +370,7 @@ template <size_t N, class... IMAGE_MSGS> void
 MultiDetector2D::image_cb(const image_cp& image_msg,
 			  const IMAGE_MSGS&... image_msgs)
 {
-    _correspondences_list.correspondences_list[N]
+    _correspondences_set.correspondences_set[N]
 	= detect_marker(image_msg, _result_pubs[N], _debug_pubs[N]);
     image_cb<N+1>(image_msgs...);
 }
@@ -378,7 +378,7 @@ MultiDetector2D::image_cb(const image_cp& image_msg,
 template <size_t N> void
 MultiDetector2D::image_cb()
 {
-    _corres_pub.publish(_correspondences_list);
+    _corres_pub.publish(_correspondences_set);
 }
 
 aist_aruco_ros::PointCorrespondenceArray
@@ -426,8 +426,9 @@ MultiDetector2D::detect_marker(const image_cp& image_msg,
 	correspondence.point.x	     = pair.first.x;
 	correspondence.point.y	     = pair.first.y;
 	correspondence.point.z	     = pair.first.z;
-	correspondence.image_point.u = pair.second.x;
-	correspondence.image_point.v = pair.second.y;
+	correspondence.image_point.x = pair.second.x;
+	correspondence.image_point.y = pair.second.y;
+	correspondence.image_point.z = 0;
 
 	correspondences.correspondences.push_back(correspondence);
     }

@@ -56,6 +56,7 @@
 #include <aist_camera_calibration/TakeSampleAction.h>
 #include <aist_utility/geometry_msgs.h>
 #include "CameraCalibrator.h"
+#include "TU/Camera++.h"
 
 namespace aist_camera_calibration
 {
@@ -98,22 +99,27 @@ operator <<(std::ostream& out, const std::vector<T>& v)
 class Calibrator
 {
   private:
-    using element_t	  = double;
-    using corres_msg_cp	  = aist_aruco_ros
-				::PointCorrespondenceArrayArrayConstPtr;
-    using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
-    using point2_t	  = TU::Point2<element_t>;
-    using point3_t	  = TU::Point3<element_t>;
-    using corres22_t	  = std::pair<point2_t, point2_t>;
-    using corres32_t	  = std::pair<point3_t, point2_t>;
+    using element_t		= double;
+    using corres_msg_cp		= aist_aruco_ros
+				      ::PointCorrespondenceArrayArrayConstPtr;
+    using action_server_t	= actionlib::SimpleActionServer<
+				      TakeSampleAction>;
+    using point2_t		= TU::Point2<element_t>;
+    using point3_t		= TU::Point3<element_t>;
+    using corres22_t		= std::pair<point2_t, point2_t>;
+    using corres32_t		= std::pair<point3_t, point2_t>;
 
     template <class CORRES>
-    using correses_t	  = std::vector<CORRES>;
+    using correses_t		= std::vector<CORRES>;
     template <class CORRES>
-    using correses_data_t = std::vector<correses_t<CORRES> >;
+    using correses_set_t	= std::vector<correses_t<CORRES> >;
     template <class CORRES>
-    using correses_list_t = std::vector<correses_data_t<CORRES> >;
+    using correses_set_set_t	= std::vector<correses_set_t<CORRES> >;
 
+    using plane_calibrator_t	= TU::CameraCalibrator<element_t>;
+    using camera_t		= TU::Camera<TU::IntrinsicWithDistortion<
+						 TU::Intrinsic<element_t> > >;
+    
     template <class SRC_PNT, class DST_PNT=point2_t>
     struct to_corres
     {
@@ -124,8 +130,8 @@ class Calibrator
 	    p[0] = corres.point.x;
 	    p[1] = corres.point.y;
 	    DST_PNT	q;
-	    q[0] = corres.image_point.u;
-	    q[1] = corres.image_point.v;
+	    q[0] = corres.image_point.x;
+	    q[1] = corres.image_point.y;
 	    
 	    return {p, q};
 	}
@@ -141,8 +147,8 @@ class Calibrator
 	    p[1] = corres.point.y;
 	    p[2] = corres.point.z;
 	    DST_PNT	q;
-	    q[0] = corres.image_point.u;
-	    q[1] = corres.image_point.v;
+	    q[0] = corres.image_point.x;
+	    q[1] = corres.image_point.y;
 	    
 	    return {p, q};
 	}
@@ -153,15 +159,13 @@ class Calibrator
 			   const std::string& nodelet_name)		;
 		~Calibrator()						;
 
-    void	run()							;
-
   private:
     void	goal_cb()						;
     void	preempt_cb()						;
     void	corres_cb(const corres_msg_cp& corres_msg)		;
     template <class CORRES>
-    static bool	add_correspondences_data(const corres_msg_cp& corres_msg,
-					 correses_list_t<CORRES>& clist);
+    static bool	add_correses_set(const corres_msg_cp& corres_msg,
+				 correses_set_set_t<CORRES>& cset_set)	;
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
@@ -186,15 +190,16 @@ class Calibrator
     const ros::ServiceServer	_reset_srv;
 
     bool			_planar_reference;
-    correses_list_t<corres22_t>	_correses_list22;
-    correses_list_t<corres22_t>	_correses_list32;
+    correses_set_set_t<corres22_t>	_correses_set_set22;
+    correses_set_set_t<corres32_t>	_correses_set_set32;
+    TU::Array<camera_t>		_cameras;
 };
 
 Calibrator::Calibrator(const ros::NodeHandle& nh,
 		       const std::string& nodelet_name)
     :_nodelet_name(nodelet_name),
      _nh(nh),
-     _corres_sub(_nh.subscribe("/point_correspondences_list", 5,
+     _corres_sub(_nh.subscribe("/point_correspondences_set", 5,
 			       &Calibrator::corres_cb, this)),
      _take_sample_srv(_nh, "take_sample", false),
      _get_sample_list_srv(
@@ -208,8 +213,8 @@ Calibrator::Calibrator(const ros::NodeHandle& nh,
 			      &Calibrator::save_calibration, this)),
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
      _planar_reference(_nh.param<bool>("planar_reference", true)),
-     _correses_list22(),
-     _correses_list32()
+     _correses_set_set22(),
+     _correses_set_set32()
 {
     _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::goal_cb,
 						      this));
@@ -223,12 +228,6 @@ Calibrator::Calibrator(const ros::NodeHandle& nh,
 
 Calibrator::~Calibrator()
 {
-}
-
-void
-Calibrator::run()
-{
-    ros::spin();
 }
 
 void
@@ -255,56 +254,56 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
 
     if (_planar_reference)
     {
-	if (!add_correspondences_data(corres_msg, _correses_list22))
+	if (!add_correses_set(corres_msg, _correses_set_set22))
 	{
 	    _take_sample_srv.setAborted();
 	    
 	    NODELET_ERROR_STREAM('(' << getName()
 				 << ") ABORTED taking samples because #cameras["
-				 << corres_msg->correspondences_list.size()
+				 << corres_msg->correspondences_set.size()
 				 << "] in the new data is different from that["
-				 << _correses_list22.front().size()
+				 << _correses_set_set22.front().size()
 				 << "] in the previous data.");
 	}
 
-	std::cerr << _correses_list22;
+	std::cerr << _correses_set_set22;
     }
     else
     {
-	if (!add_correspondences_data(corres_msg, _correses_list32))
+	if (!add_correses_set(corres_msg, _correses_set_set32))
 	{
 	    _take_sample_srv.setAborted();
 	    
 	    NODELET_ERROR_STREAM('(' << getName()
 				 << ") ABORTED taking samples because #cameras["
-				 << corres_msg->correspondences_list.size()
+				 << corres_msg->correspondences_set.size()
 				 << "] in the new data is different from that["
-				 << _correses_list32.front().size()
+				 << _correses_set_set32.front().size()
 				 << "] in the previous data.");
 	}
 
-	std::cerr << _correses_list32;
+	std::cerr << _correses_set_set32;
     }
     
     TakeSampleResult	result;
-    result.correspondences_list = *corres_msg;
+    result.correspondences_set = *corres_msg;
     _take_sample_srv.setSucceeded(result);
 
     NODELET_INFO_STREAM('(' << getName() << ") SUCCEEDED in taking samples");
 }
 
 template <class CORRES> bool
-Calibrator::add_correspondences_data(const corres_msg_cp& corres_msg,
-				     correses_list_t<CORRES>& clist)
+Calibrator::add_correses_set(const corres_msg_cp& corres_msg,
+			     correses_set_set_t<CORRES>& cset_set)
 {
-    const auto	ncameras = corres_msg->correspondences_list.size();
+    const auto	ncameras = corres_msg->correspondences_set.size();
     
-    if (clist.size() > 0 && clist.front().size() != ncameras)
+    if (cset_set.size() > 0 && cset_set.front().size() != ncameras)
 	return false;
 
-    correses_data_t<CORRES>	correses_data(ncameras);
-    auto			correses = correses_data.begin();
-    for (const auto& correses_msg : corres_msg->correspondences_list)
+    correses_set_t<CORRES>	correses_set(ncameras);
+    auto			correses = correses_set.begin();
+    for (const auto& correses_msg : corres_msg->correspondences_set)
     {
 	correses->resize(correses_msg.correspondences.size());
 	std::transform(correses_msg.correspondences.cbegin(),
@@ -313,7 +312,7 @@ Calibrator::add_correspondences_data(const corres_msg_cp& corres_msg,
 		       to_corres<typename CORRES::first_type>());
 	++correses;
     }
-    clist.push_back(correses_data);
+    cset_set.push_back(correses_set);
     
     return true;
 }
@@ -336,6 +335,19 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 {
     try
     {
+	if (_planar_reference)
+	{
+	    plane_calibrator_t	calibrator;
+	    
+	    const auto	planes = calibrator.planeCalib(
+				     _correses_set_set22.cbegin(),
+				     _correses_set_set22.cend(),
+				     _cameras, false, true);
+	}
+	else
+	{
+	}
+	
 	res.success = true;
 	NODELET_INFO_STREAM('(' << getName() << ") ComputeCalibration: "
 			    << res.message);
@@ -412,8 +424,8 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 bool
 Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
-    _correses_list22.clear();
-    _correses_list32.clear();
+    _correses_set_set22.clear();
+    _correses_set_set32.clear();
     
     NODELET_INFO_STREAM('(' << getName() << ") All samples cleared");
 

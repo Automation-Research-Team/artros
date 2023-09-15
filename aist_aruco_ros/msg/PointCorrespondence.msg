@@ -1,2 +1,2 @@
-geometry_msgs/Point       point
-aist_aruco_ros/ImagePoint image_point
+geometry_msgs/Point point
+geometry_msgs/Point image_point

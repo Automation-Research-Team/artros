@@ -38,7 +38,6 @@ include_directories(
 
 add_message_files(
   FILES
-    ImagePoint.msg
     PointCorrespondence.msg
     PointCorrespondenceArray.msg
     PointCorrespondenceArrayArray.msg
