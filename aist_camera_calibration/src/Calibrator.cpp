@@ -81,24 +81,37 @@ class Calibrator
     template <class CORRES>
     using correses_list_t = std::vector<correses_data_t<CORRES> >;
 
-    template <class CORRES>
-    struct to_corress
+    template <class SRC_PNT, class DST_PNT=point2_t>
+    struct to_corres
     {
-	std::pair<point2_t, point2_t>
+	std::pair<SRC_PNT, DST_PNT>
 	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
 	{
-	    return {point2_t(corres.point.x, corres.point.y),
-		    point2_t(corres.image_point.u, corres.image_point.v)};
+	    SRC_PNT	p;
+	    p[0] = corres.point.x;
+	    p[1] = corres.point.y;
+	    DST_PNT	q;
+	    q[0] = corres.image_point.u;
+	    q[1] = corres.image_point.v;
+	    
+	    return {p, q};
 	}
     };
-    template <>
-    struct to_corress<corres32_t>
+    template <class DST_PNT>
+    struct to_corres<point3_t, DST_PNT>
     {
-	std::pair<point3_t, point2_t>
+	std::pair<point3_t, DST_PNT>
 	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
 	{
-	    return {point3_t(corres.point.x, corres.point.y, corres.point.z),
-		    point2_t(corres.image_point.u, corres.image_point.v)};
+	    point3_t	p;
+	    p[0] = corres.point.x;
+	    p[1] = corres.point.y;
+	    p[2] = corres.point.z;
+	    DST_PNT	q;
+	    q[0] = corres.image_point.u;
+	    q[1] = corres.image_point.v;
+	    
+	    return {p, q};
 	}
     };
     
@@ -207,24 +220,40 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
     if (!_take_sample_srv.isActive())
 	return;
 
-    try
+    if (_planar_reference)
     {
-      // Convert marker pose to camera <= object transform.
-	TakeSampleResult	result;
-	result.correspondences_list = *corres_msg;
-
-	_take_sample_srv.setSucceeded(result);
-
-	NODELET_INFO_STREAM('(' << getName()
-			    << ") SUCCEEDED in taking samples");
+	if (!add_correspondences_data(corres_msg, _correses_list22))
+	{
+	    _take_sample_srv.setAborted();
+	    
+	    NODELET_ERROR_STREAM('(' << getName()
+				 << ") ABORTED taking samples because #cameras["
+				 << corres_msg->correspondences_list.size()
+				 << "] in the new data is different from that["
+				 << _correses_list22.front().size()
+				 << "] in the previous data.");
+	}
     }
-    catch (const std::exception& err)
+    else
     {
-	_take_sample_srv.setAborted();
-
-	NODELET_ERROR_STREAM('(' << getName() << ") ABORTED taking samples["
-			     << err.what() << ']');
+	if (!add_correspondences_data(corres_msg, _correses_list32))
+	{
+	    _take_sample_srv.setAborted();
+	    
+	    NODELET_ERROR_STREAM('(' << getName()
+				 << ") ABORTED taking samples because #cameras["
+				 << corres_msg->correspondences_list.size()
+				 << "] in the new data is different from that["
+				 << _correses_list32.front().size()
+				 << "] in the previous data.");
+	}
     }
+    
+    TakeSampleResult	result;
+    result.correspondences_list = *corres_msg;
+    _take_sample_srv.setSucceeded(result);
+
+    NODELET_INFO_STREAM('(' << getName() << ") SUCCEEDED in taking samples");
 }
 
 template <class CORRES> bool
@@ -238,12 +267,16 @@ Calibrator::add_correspondences_data(const corres_msg_cp& corres_msg,
 
     correses_data_t<CORRES>	correses_data(ncameras);
     auto			correses = correses_data.begin();
-    for (auto&& correses_msg : corres_msg->corresponcenves_list)
+    for (const auto& correses_msg : corres_msg->correspondences_list)
     {
-	correses->resize(correses_msg.size());
-	std::transform(correses_msg.cbegin(), correses_msg.cend(),
-		       correses->begin(), to_corres<CORRES>());
+	correses->resize(correses_msg.correspondences.size());
+	std::transform(correses_msg.correspondences.cbegin(),
+		       correses_msg.correspondences.cend(),
+		       correses->begin(),
+		       to_corres<typename CORRES::first_type>());
+	++correses;
     }
+    clist.push_back(correses_data);
     
     return true;
 }
