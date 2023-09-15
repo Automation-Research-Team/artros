@@ -60,6 +60,39 @@
 namespace aist_camera_calibration
 {
 /************************************************************************
+*  static functions							*
+************************************************************************/
+template <class T> std::ostream&
+operator <<(std::ostream& out, const TU::Point2<T>& p)
+{
+    return out << p[0] << ' ' << p[1];
+}
+	
+template <class T> std::ostream&
+operator <<(std::ostream& out, const TU::Point3<T>& p)
+{
+    return out << p[0] << ' ' << p[1] << ' ' << p[2];
+}
+	
+template <class S, class T> std::ostream&
+operator <<(std::ostream& out, const std::pair<S, T>& p)
+{
+    return out << '(' << p.first << " : " << p.second << ')';
+}
+    
+template <class T> std::ostream&
+operator <<(std::ostream& out, const std::vector<T>& v)
+{
+    out << '[';
+    for (const auto& item : v)
+	out << ' ' << item;
+    out << ']';
+    if (!std::is_arithmetic_v<T>)
+    	out << std::endl;
+    return out;
+}
+    
+/************************************************************************
 *  class Calibrator							*
 ************************************************************************/
 class Calibrator
@@ -233,6 +266,8 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
 				 << _correses_list22.front().size()
 				 << "] in the previous data.");
 	}
+
+	std::cerr << _correses_list22;
     }
     else
     {
@@ -247,6 +282,8 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
 				 << _correses_list32.front().size()
 				 << "] in the previous data.");
 	}
+
+	std::cerr << _correses_list32;
     }
     
     TakeSampleResult	result;
