@@ -136,7 +136,7 @@ class MultiDetector
 };
 
 MultiDetector::MultiDetector(ros::NodeHandle& nh,
-				 const std::string& nodelet_name)
+			     const std::string& nodelet_name)
     :_nodelet_name(nodelet_name),
      _it(nh),
      _image_sub(),
@@ -381,8 +381,18 @@ template <size_t N, class... IMAGE_MSGS> void
 MultiDetector::image_cb(const image_cp& image_msg,
 			const IMAGE_MSGS&... image_msgs)
 {
-    _correspondences_set.correspondences_set[N]
-	= detect_marker(image_msg, _result_pubs[N], _debug_pubs[N]);
+    try
+    {
+	_correspondences_set.correspondences_set[N]
+	    = detect_marker(image_msg, _result_pubs[N], _debug_pubs[N]);
+    }
+    catch (const std::runtime_error& err)
+    {
+	NODELET_ERROR_STREAM("(MultiDetector) Failed to detect marker for "
+			     << N << "-th camera: " << err.what());
+	return;
+    }
+
     image_cb<N+1>(image_msgs...);
 }
 
