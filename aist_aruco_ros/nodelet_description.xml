@@ -1,13 +1,13 @@
-<library path="lib/libaruco_detector">
-  <class name="aist_aruco_ros/aruco_detector"
-	 type="aist_aruco_ros::DetectorNodelet"
+<library path="lib/libaruco_detector_3d">
+  <class name="aist_aruco_ros/aruco_detector_3d"
+	 type="aist_aruco_ros::Detector3DNodelet"
 	 base_class_type="nodelet::Nodelet">
   </class>
 </library>
 
-<library path="lib/libaruco_multi_detector_2d">
-  <class name="aist_aruco_ros/aruco_multi_detector_2d"
-	 type="aist_aruco_ros::MultiDetector2DNodelet"
+<library path="lib/libaruco_multi_detector">
+  <class name="aist_aruco_ros/aruco_multi_detector"
+	 type="aist_aruco_ros::MultiDetectorNodelet"
 	 base_class_type="nodelet::Nodelet">
   </class>
 </library>

@@ -18,8 +18,8 @@
 	args="$(arg camera_name)" output="screen"/>
 
   <!-- Spawn aruco marker tracker -->
-  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
-        args="load aist_aruco_ros/aruco_detector camera_manager">
+  <node name="aruco_detector_3d" pkg="nodelet" type="nodelet" output="screen"
+        args="load aist_aruco_ros/aruco_detector_3d camera_manager">
     <remap from="/camera_info"	to="camera_multiplexer/camera_info"/>
     <remap from="/image"	to="camera_multiplexer/image"/>
     <remap from="/depth"	to="camera_multiplexer/depth"/>
@@ -29,7 +29,7 @@
 
   <!-- Spawn pose_tracking_servo -->
   <include file="$(dirname)/include/ur_servo_server.launch">
-    <arg name="target_pose_topic"	value="/aruco_detector/pose"/>
+    <arg name="target_pose_topic"	value="/aruco_detector_3d/pose"/>
     <arg name="robot_name"		value="$(arg robot_name)"/>
     <arg name="sim"			value="$(arg sim)"/>
     <arg name="unitless"		value="false"/>

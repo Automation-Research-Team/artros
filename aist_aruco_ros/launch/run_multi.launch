@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="detector_name"	default="aruco_multi_detector_2d"/>
+  <arg name="detector_name"	default="aruco_multi_detector"/>
   <arg name="camera_names"	default="live_camera"/>
   <arg name="image_topics"	default="image_raw"/>
   <arg name="marker_map_dir"	default="$(dirname)/../config"/>
@@ -38,7 +38,7 @@
     <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
     <node name="$(arg detector_name)" pkg="nodelet" type="nodelet"
-  	  args="$(arg command) aist_aruco_ros/aruco_multi_detector_2d
+  	  args="$(arg command) aist_aruco_ros/aruco_multi_detector
 		$(arg manager)">
       <rosparam param="camera_names"
 		subst_value="true">[$(arg camera_names)]</rosparam>

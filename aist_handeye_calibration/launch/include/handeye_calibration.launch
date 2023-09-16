@@ -20,8 +20,8 @@
 	      )/.ros/aist_handeye_calibration/$(arg camera_name).yaml"/>
 
   <!-- Start ArUco -->
-  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
-  	args="standalone aist_aruco_ros/aruco_detector">
+  <node name="aruco_detector_3d" pkg="nodelet" type="nodelet" output="screen"
+  	args="standalone aist_aruco_ros/aruco_detector_3d">
     <remap from="/camera_info"	to="$(arg camera_info_topic)"/>
     <remap from="/image"	to="$(arg image_topic)"/>
     <remap from="/depth"	to="$(arg depth_topic)"/>
@@ -35,7 +35,7 @@
     <param name="use_dual_quaternion"	value="$(arg use_dual_quaternion)"/>
     <param name="calib_file"		value="$(arg calib_file)"/>
     <rosparam file="$(arg config_file)"/>
-    <remap from="/pose"			to="/aruco_detector/pose"/>
+    <remap from="/pose"			to="/aruco_detector_3d/pose"/>
   </node>
 
 </launch>

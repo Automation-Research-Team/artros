@@ -52,7 +52,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /aruco_multi_detector_2d/usb_camera/result
+      Image Topic: /aruco_multi_detector/usb_camera/result
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -64,7 +64,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /aruco_multi_detector_2d/realsense/result
+      Image Topic: /aruco_multi_detector/realsense/result
       Max Value: 1
       Median window: 5
       Min Value: 0

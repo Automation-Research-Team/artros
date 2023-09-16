@@ -1,5 +1,5 @@
 /*!
-* \file		Detector.cpp
+* \file		Detector3D.cpp
 * \author	Toshio UESHIBA
 * \brief	ARuCo marker detector using both intensity and depth images
 */
@@ -79,9 +79,9 @@ rosCameraInfo2ArucoCamParams(const sensor_msgs::CameraInfo& camera_info,
 }
 
 /************************************************************************
-*  class Detector							*
+*  class Detector3D							*
 ************************************************************************/
-class Detector
+class Detector3D
 {
   private:
     using camera_info_t		= sensor_msgs::CameraInfo;
@@ -104,7 +104,7 @@ class Detector
     struct rgb_t		{ uint8_t r, g, b; };
 
   public:
-		Detector(ros::NodeHandle& nh)				;
+		Detector3D(ros::NodeHandle& nh)				;
 
   private:
     void	set_min_marker_size(double size)			;
@@ -176,7 +176,7 @@ class Detector
     double					_planarityTolerance;
 };
 
-Detector::Detector(ros::NodeHandle& nh)
+Detector3D::Detector3D(ros::NodeHandle& nh)
     :_broadcaster(),
      _marker_frame(nh.param<std::string>("marker_frame", "marker_frame")),
      _it(nh),
@@ -231,7 +231,7 @@ Detector::Detector(ros::NodeHandle& nh)
   // Set minimum marker size and setup ddynamic_reconfigure service for it.
     _ddr.registerVariable<double>("min_marker_size",
 				  _marker_detector.getParameters().minSize,
-				  boost::bind(&Detector::set_min_marker_size,
+				  boost::bind(&Detector3D::set_min_marker_size,
 					      this, _1),
 				  "Minimum marker size", 0.0, 1.0);
     ROS_INFO_STREAM("Minimum marker size: "
@@ -240,7 +240,7 @@ Detector::Detector(ros::NodeHandle& nh)
   // Set a parameter for specifying whether the marker is enclosed or not.
     _ddr.registerVariable<bool>("enclosed_marker",
 				_marker_detector.getParameters().enclosedMarker,
-				boost::bind(&Detector::set_enclosed_marker,
+				boost::bind(&Detector3D::set_enclosed_marker,
 					    this, _1),
 				"Detect enclosed marker", false, true);
     ROS_INFO_STREAM("Detect enclosed marker: "
@@ -256,7 +256,7 @@ Detector::Detector(ros::NodeHandle& nh)
 				};
     _ddr.registerEnumVariable<int>("detection_mode",
 				   _marker_detector.getDetectionMode(),
-				   boost::bind(&Detector::set_detection_mode,
+				   boost::bind(&Detector3D::set_detection_mode,
 					       this, _1),
 				   "Marker detection mode",
 				   map_detectionMode);
@@ -283,7 +283,7 @@ Detector::Detector(ros::NodeHandle& nh)
 	    {"CUSTOM",		 "CUSTOM"},
 	};
     _ddr.registerEnumVariable<std::string>(
-	"dictionary", dict, boost::bind(&Detector::set_dictionary, this, _1),
+	"dictionary", dict, boost::bind(&Detector3D::set_dictionary, this, _1),
 	"Dictionary", map_dict);
     ROS_INFO_STREAM("Dictionary: " << dict);
 
@@ -303,41 +303,43 @@ Detector::Detector(ros::NodeHandle& nh)
     _ddr.publishServicesTopicsAndUpdateConfigData();
 
   // Register callback for marker detection.
-    _depth_sync.registerCallback(&Detector::detect_marker_from_depth_cb, this);
-    _cloud_sync.registerCallback(&Detector::detect_marker_from_cloud_cb, this);
+    _depth_sync.registerCallback(&Detector3D::detect_marker_from_depth_cb,
+				 this);
+    _cloud_sync.registerCallback(&Detector3D::detect_marker_from_cloud_cb,
+				 this);
 }
 
 void
-Detector::set_min_marker_size(double size)
+Detector3D::set_min_marker_size(double size)
 {
     _marker_detector.setDetectionMode(_marker_detector.getDetectionMode(),
 				      size);
 }
 
 void
-Detector::set_enclosed_marker(bool enable)
+Detector3D::set_enclosed_marker(bool enable)
 {
     _marker_detector.getParameters().detectEnclosedMarkers(enable);
 }
 
 void
-Detector::set_detection_mode(int mode)
+Detector3D::set_detection_mode(int mode)
 {
     _marker_detector.setDetectionMode(aruco::DetectionMode(mode),
 				      _marker_detector.getParameters().minSize);
 }
 
 void
-Detector::set_dictionary(const std::string& dict)
+Detector3D::set_dictionary(const std::string& dict)
 {
     _marker_detector.setDictionary(dict);
     _marker_map.setDictionary(dict);
 }
 
 void
-Detector::detect_marker_from_depth_cb(const image_cp& image_msg,
-				      const image_cp& depth_msg,
-				      const camera_info_cp& camera_info_msg)
+Detector3D::detect_marker_from_depth_cb(const image_cp& image_msg,
+					const image_cp& depth_msg,
+					const camera_info_cp& camera_info_msg)
 {
     using namespace	sensor_msgs;
 
@@ -347,8 +349,8 @@ Detector::detect_marker_from_depth_cb(const image_cp& image_msg,
 }
 
 void
-Detector::detect_marker_from_cloud_cb(const cloud_cp& cloud_msg,
-				      const camera_info_cp& camera_info_msg)
+Detector3D::detect_marker_from_cloud_cb(const cloud_cp& cloud_msg,
+					const camera_info_cp& camera_info_msg)
 {
     if (cloud_msg->is_dense)
     {
@@ -364,8 +366,8 @@ Detector::detect_marker_from_cloud_cb(const cloud_cp& cloud_msg,
 }
 
 template <class MSG> void
-Detector::detect_marker(const MSG& msg, const camera_info_t& camera_info_msg,
-			cv::Mat& image)
+Detector3D::detect_marker(const MSG& msg, const camera_info_t& camera_info_msg,
+			  cv::Mat& image)
 {
   // Convert camera_info to aruco camera parameters
     _camParam = rosCameraInfo2ArucoCamParams(camera_info_msg,
@@ -447,8 +449,8 @@ Detector::detect_marker(const MSG& msg, const camera_info_t& camera_info_msg,
 }
 
 void
-Detector::publish_image(const std_msgs::Header& header, const cv::Mat& image,
-			const image_transport::Publisher& pub)
+Detector3D::publish_image(const std_msgs::Header& header, const cv::Mat& image,
+			  const image_transport::Publisher& pub)
 {
     using namespace	sensor_msgs;
 
@@ -458,9 +460,10 @@ Detector::publish_image(const std_msgs::Header& header, const cv::Mat& image,
 }
 
 template <class ITER> void
-Detector::publish_transform(ITER begin, ITER end,
-			    const std_msgs::Header& header,
-			    const std::string& marker_frame, bool publish_pose)
+Detector3D::publish_transform(ITER begin, ITER end,
+			      const std_msgs::Header& header,
+			      const std::string& marker_frame,
+			      bool publish_pose)
 {
     using element_t	= typename std::iterator_traits<ITER>::value_type
 				      ::first_type::value_type;
@@ -521,9 +524,9 @@ Detector::publish_transform(ITER begin, ITER end,
     }
 }
 
-template <class MSG> std::vector<Detector::point3_t>
-Detector::get_marker_corners(const aruco::Marker& marker,
-			     const MSG& msg, cv::Mat& image) const
+template <class MSG> std::vector<Detector3D::point3_t>
+Detector3D::get_marker_corners(const aruco::Marker& marker,
+			       const MSG& msg, cv::Mat& image) const
 {
     using element_t	= point3_t::value_type;
     using point_t	= cv::Vec<element_t, 3>;
@@ -587,7 +590,7 @@ Detector::get_marker_corners(const aruco::Marker& marker,
 }
 
 template <class T> inline cv::Vec<T, 3>
-Detector::view_vector(T u, T v) const
+Detector3D::view_vector(T u, T v) const
 {
     cv::Mat_<cv::Point_<T> >	uv(1, 1), xy(1, 1);
     uv(0) = {u, v};
@@ -597,7 +600,7 @@ Detector::view_vector(T u, T v) const
 }
 
 template <class T> inline cv::Vec<T, 3>
-Detector::at(const image_t& depth_msg, int u, int v) const
+Detector3D::at(const image_t& depth_msg, int u, int v) const
 {
     if (u < 0 || u >= int(depth_msg.width) ||
 	v < 0 || v >= int(depth_msg.height))
@@ -610,7 +613,7 @@ Detector::at(const image_t& depth_msg, int u, int v) const
 }
 
 template <class T> inline cv::Vec<T, 3>
-Detector::at(const cloud_t& cloud_msg, int u, int v) const
+Detector3D::at(const cloud_t& cloud_msg, int u, int v) const
 {
     if (u < 0 || u >= int(cloud_msg.width) ||
 	v < 0 || v >= int(cloud_msg.height))
@@ -625,7 +628,7 @@ Detector::at(const cloud_t& cloud_msg, int u, int v) const
 }
 
 template <class T, class MSG> cv::Vec<T, 3>
-Detector::at(const MSG& msg, T u, T v) const
+Detector3D::at(const MSG& msg, T u, T v) const
 {
     const int	u0 = std::floor(u);
     const int	v0 = std::floor(v);
@@ -643,26 +646,26 @@ Detector::at(const MSG& msg, T u, T v) const
 }
 
 /************************************************************************
-*  class DetectorNodelet						*
+*  class Detector3DNodelet						*
 ************************************************************************/
-class DetectorNodelet : public nodelet::Nodelet
+class Detector3DNodelet : public nodelet::Nodelet
 {
   public:
-			DetectorNodelet()				{}
+			Detector3DNodelet()				{}
 
     virtual void	onInit()					;
 
   private:
-    boost::shared_ptr<Detector>	_node;
+    boost::shared_ptr<Detector3D>	_node;
 };
 
 void
-DetectorNodelet::onInit()
+Detector3DNodelet::onInit()
 {
-    NODELET_INFO("aist_aruco_ros::DetectorNodelet::onInit()");
-    _node.reset(new Detector(getPrivateNodeHandle()));
+    NODELET_INFO("aist_aruco_ros::Detector3DNodelet::onInit()");
+    _node.reset(new Detector3D(getPrivateNodeHandle()));
 }
 
 }	// namespace aist_aruco_ros
 
-PLUGINLIB_EXPORT_CLASS(aist_aruco_ros::DetectorNodelet, nodelet::Nodelet);
+PLUGINLIB_EXPORT_CLASS(aist_aruco_ros::Detector3DNodelet, nodelet::Nodelet);

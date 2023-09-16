@@ -59,33 +59,33 @@ catkin_package(
     nodelet
 )
 
-add_library(aruco_detector
-  src/Detector.cpp
+add_library(aruco_detector_3d
+  src/Detector3D.cpp
 )
 
-add_dependencies(aruco_detector
+add_dependencies(aruco_detector_3d
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 
-target_link_libraries(aruco_detector
+target_link_libraries(aruco_detector_3d
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
   ${Boost_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
 
-add_library(aruco_multi_detector_2d
-  src/MultiDetector2D.cpp
+add_library(aruco_multi_detector
+  src/MultiDetector.cpp
 )
 
-add_dependencies(aruco_multi_detector_2d
+add_dependencies(aruco_multi_detector
   ${${PREOJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
   ${PROJECT_NAME}_generate_messages_cpp
 )
 
-target_link_libraries(aruco_multi_detector_2d
+target_link_libraries(aruco_multi_detector
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
   ${Boost_LIBRARIES}
@@ -97,7 +97,7 @@ target_link_libraries(aruco_multi_detector_2d
 #############
 install(
   TARGETS
-    aruco_detector aruco_multi_detector_2d
+    aruco_detector_3d aruco_multi_detector
   ARCHIVE
     DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY

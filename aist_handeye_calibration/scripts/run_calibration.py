@@ -162,7 +162,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
     def go_to_marker(self):
         self.trigger_frame(self._camera_name)
-        marker_pose = rospy.wait_for_message('/aruco_detector/pose',
+        marker_pose = rospy.wait_for_message('/aruco_detector_3d/pose',
                                              PoseStamped, 10)
         approach_pose = self.effector_target_pose(marker_pose, (0, 0, 0.05))
 

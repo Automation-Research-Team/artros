@@ -10,8 +10,8 @@
   <arg name="publish_rate"	default="100"/>
 
   <!-- Spawn aruco marker tracker -->
-  <node name="aruco_detector" pkg="nodelet" type="nodelet" output="screen"
-        args="load aist_aruco_ros/aruco_detector camera_manager">
+  <node name="aruco_detector_3d" pkg="nodelet" type="nodelet" output="screen"
+        args="load aist_aruco_ros/aruco_detector_3d camera_manager">
     <remap from="/camera_info"	to="camera_multiplexer/camera_info"/>
     <remap from="/image"	to="camera_multiplexer/image"/>
     <remap from="/depth"	to="camera_multiplexer/depth"/>
@@ -46,7 +46,7 @@
 
   <arg name="pub_pos"		value="$(eval not velocity_control)"/>
   <arg name="pub_vel"		value="$(eval velocity_control)"/>
-  
+
   <!-- Spawn controller manager if non-default controller is required -->
   <node unless="$(eval controller == 'scaled_pos_joint_traj_controller')"
   	name="rqt_controller_manager"
@@ -58,7 +58,7 @@
     <rosparam file="$(dirname)/../config/ur_servo_server.yaml"
   	      subst_value="true"/>
     <rosparam file="$(dirname)/../config/ur_pose_tracking.yaml"/>
-    <remap from="/target_pose"	to="/aruco_detector/pose"/>
+    <remap from="/target_pose"	to="/aruco_detector_3d/pose"/>
   </node>
 
   <!-- Select camera -->
