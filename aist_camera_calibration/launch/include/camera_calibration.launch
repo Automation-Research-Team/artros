@@ -27,7 +27,7 @@
   	args="$(arg command) aist_camera_calibration/camera_calibrator
 	      $(arg manager)">
     <remap from="/point_correspondences_list"
-	   to="/aruco_multi_detector_2d/point_correspondences_list"/>
+	   to="/aruco_multi_detector/point_correspondences_list"/>
   </node>
 
 </launch>
