@@ -1,13 +1,13 @@
 /*
  *  平成14-19年（独）産業技術総合研究所 著作権所有
- *  
+ *
  *  創作者：植芝俊夫
  *
  *  本プログラムは（独）産業技術総合研究所の職員である植芝俊夫が創作し，
  *  （独）産業技術総合研究所が著作権を所有する秘密情報です．著作権所有
  *  者による許可なしに本プログラムを使用，複製，改変，第三者へ開示する
  *  等の行為を禁止します．
- *  
+ *
  *  このプログラムによって生じるいかなる損害に対しても，著作権所有者お
  *  よび創作者は責任を負いません。
  *
@@ -25,7 +25,7 @@
  *  The copyright holder or the creator are not responsible for any
  *  damages caused by using this program.
  *
- *  $Id$  
+ *  $Id$
  */
 #ifndef __CAMERACALIBRATOR_H
 #define __CAMERACALIBRATOR_H
@@ -54,11 +54,11 @@ class ReferencePlane
     typedef Matrix<element_type>			matrix_type;
     typedef Matrix<element_type, 3, 3>			matrix33_type;
     typedef PlaneP<element_type>			plane_type;
-    
+
   public:
   //! 参照平面を生成する．
     ReferencePlane()	:_d(), _Rt()					{}
-    
+
     void		initialize(const matrix33_type& Qt)		;
     const point3_type&	d()					const	;
     const matrix33_type&
@@ -68,7 +68,7 @@ class ReferencePlane
     point3_type		operator ()(const point2_type& x)	const	;
     matrix_type		derivative(const point2_type& x)	const	;
     void		update(const vector_type& dq)			;
-    
+
   private:
     point3_type		_d;		//!< 参照平面の位置
     matrix33_type	_Rt;		//!< 参照平面の姿勢
@@ -88,7 +88,7 @@ ReferencePlane<T>::initialize(const matrix33_type& Qt)
     SVDecomposition<element_type>	svd(slice<2, 3>(Qt, 0, 0));
     slice<2, 3>(_Rt, 0, 0) = transpose(svd.Vt()) * slice<2, 3>(svd.Ut(), 0, 0);
     _Rt[2] = _Rt[0] ^ _Rt[1];
-    
+
   // Location of the plane.
     _d = Qt[2] / sqrt(square(svd.diagonal()) / 2);
 
@@ -109,7 +109,7 @@ ReferencePlane<T>::d() const
 {
     return _d;
 }
-    
+
 //! 参照平面の姿勢を返す．
 /*!
   \return	参照平面の姿勢
@@ -119,7 +119,7 @@ ReferencePlane<T>::Rt() const
 {
     return _Rt;
 }
-    
+
 //! 参照平面の位置と姿勢を返す．
 /*!
   \return	位置と姿勢を表す3x3行列．1行目／2行目は，平面上に設定された
@@ -173,7 +173,7 @@ ReferencePlane<T>::operator ()(const point2_type& x) const
 		\TUbeginarray{cc}
 		\TUdisppartial{\TUvec{X}{}}{\TUvec{d}{}} &
 		\TUdisppartial{\TUvec{X}{}}{\TUvec{\theta}{}}
-		\TUendarray = 
+		\TUendarray =
 		\TUbeginarray{cc}
 		\TUvec{I}{3\times 3} & x\TUskew{i}{} + y\TUskew{j}{}
 		\TUendarray
@@ -210,7 +210,7 @@ operator <<(std::ostream& out, const ReferencePlane<T>& plane)
 {
     using namespace	std;
     typedef T		element_type;
-    
+
     const element_type	DEG = element_type(180) / element_type(M_PI);
     cerr << "Position:       ";
     out << plane.d();
@@ -219,7 +219,7 @@ operator <<(std::ostream& out, const ReferencePlane<T>& plane)
 
     return out;
 }
-    
+
 /************************************************************************
 *  class CameraCalibrator<T>						*
 ************************************************************************/
@@ -238,7 +238,7 @@ class CameraCalibrator
 
   private:
     typedef Normalize<element_type, 2>			normalize_type;
-    
+
   private:
   //! #volumeCalibにおいて非線形最適化を行う場合にその二乗を最小化すべき再投影誤差関数
   /*!
@@ -250,7 +250,7 @@ class CameraCalibrator
     {
       public:
 	typedef CameraCalibrator::element_type		element_type;
-	
+
       public:
 	VolumeCost(Iter begin, Iter end)				;
 
@@ -258,18 +258,18 @@ class CameraCalibrator
 	matrix_type	derivative(const Cam& camera)		const	;
 	void		update(Cam& camera,
 			       const vector_type& dc)		const	;
-	
+
 	element_type	reprojectionError(const Cam& camera)	const	;
 	matrix_type	standardDeviations(const Cam& camera,
 					   const matrix_type& covariance)
 								const	;
-	
+
       private:
 	const Iter	_begin;		//!< 点対列の先頭を示す反復子
 	const Iter	_end;		//!< 点対列の末尾の次を示す反復子
 	const size_t	_npoints;	//!< [_begin, _end)間に含まれる点対の個数
     };
-    
+
   //! #planeCalibにおいて非線形最適化を行う場合にその二乗を最小化すべき再投影誤差関数
   /*!
     \param Iter	課される要件は#planeCalibと同じ
@@ -285,7 +285,7 @@ class CameraCalibrator
 	typedef typename Iter::value_type		CorresListArray;
       //! 特定の参照平面とカメラについて，それらの間の参照点とその投影像の対データ
 	typedef typename CorresListArray::value_type	CorresList;
-    
+
 	PlaneCost(Iter begin, Iter end, bool commonCenters)		;
 
       //! 全カメラの総自由度数を返す．
@@ -294,7 +294,7 @@ class CameraCalibrator
 	const Array<size_t>&	adims()		const	{return _adims;}
       //! 1枚の参照平面の自由度を返す．
 	size_t			bdim()		const	{return 6;}
-	
+
 	vector_type	operator ()(const Array<Cam>& cameras,
 				    const plane_type& plane, int j)
 								const	;
@@ -308,20 +308,20 @@ class CameraCalibrator
 				const vector_type& dcameras)	const	;
 	void		updateB(plane_type& plane,
 				const vector_type& dplane)	const	;
-    
+
 	element_type	reprojectionError(const Array<Cam>& cameras,
 					  const Array<plane_type>& planes)
 								const	;
 	matrix_type	standardDeviations(const Array<Cam>& cameras,
 					   const matrix_type& covariance)
 								const	;
-	
+
       private:
       //! カメラの台数を返す．
 	size_t		ncameras()		const	{return _adims.size();}
 	const CorresListArray&
 			corresListArray(int j)	const	;
-    
+
 	const Iter	_begin;		//!< 参照平面データの先頭を示す反復子
 	const Iter	_end;		//!< 参照平面データの末尾の次を示す反復子
 	size_t		_adim;		//!< 全カメラの総自由度数
@@ -357,7 +357,7 @@ class CameraCalibrator
   */
     const vector_type
 		standardDeviations(int i) const	{return _standardDeviations[i];}
-    
+
     template <class Iter, class Cam> void
 		volumeCalib(Iter begin, Iter end,
 			    Cam& camera, bool refine)			;
@@ -449,7 +449,7 @@ CameraCalibrator<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
 				bool commonCenters, bool refine)
 {
     using namespace	std;
-    
+
 #ifdef _DEBUG
     cerr << "*** Begin: TU::CameraCalibrator<T>::planeCalib() ***" << endl;
 #endif
@@ -482,7 +482,7 @@ CameraCalibrator<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
 
 	ueshibaCalib(W, P, Qt, scales, commonCenters);	// Ueshiba's algorithm
     }
-    
+
   // Unnormalize computed camera and plane parameters.
     for (size_t i = 0; i < ncameras; ++i)
 	slice<3, 4>(P, 3*i, 0) = evaluate(cameraNorms[i].Tinv() *
@@ -536,7 +536,7 @@ CameraCalibrator<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
   参照平面jからカメラiへの射影変換\f$\TUvec{H}{i}^j\f$を
   \f$\TUbar{H}{i}^j = \TUvec{S}{i}\TUvec{H}{i}^j\TUinv{T}{j}\f$
   と変換するために用いられる．
-  
+
   テンプレートパラメータIterに課される要件は#planeCalibと同じ．
   \param begin		最初の参照平面から得られたデータを示す反復子
   \param end		最後の参照平面から得られたデータの次を示す反復子
@@ -565,7 +565,7 @@ CameraCalibrator<T>::computeCameraNormalizations(Iter begin, Iter end)
   参照平面jからカメラiへの射影変換\f$\TUvec{H}{i}^j\f$を
   \f$\TUbar{H}{i}^j = \TUvec{S}{i}\TUvec{H}{i}^j\TUinv{T}{j}\f$
   と変換するために用いられる．
-  
+
   テンプレートパラメータIterに課される要件は#planeCalibと同じ．
   \param begin		最初の参照平面から得られたデータを示す反復子
   \param end		最後の参照平面から得られたデータの次を示す反復子
@@ -627,7 +627,7 @@ CameraCalibrator<T>::computeHomographies(Iter begin, Iter end)
     {
 	if (iter->size() != ncameras)
 	    throw runtime_error("All the planes must be observed by the same number of cameras!!");
-	
+
 	for (size_t i = 0; i < ncameras; ++i)
 	{
 	    Projectivity22<T>	H((*iter)[i].begin(), (*iter)[i].end(), true);
@@ -661,7 +661,7 @@ CameraCalibrator<T>::VolumeCost<Iter, Cam>::VolumeCost(Iter begin, Iter end)
     :_begin(begin), _end(end), _npoints(std::distance(_begin, _end))
 {
 }
-    
+
 //! 与えられたカメラパラメータ値における再投影誤差を計算する．
 /*!
   #VolumeCost()で与えた全ての点対について再投影誤差が計算される．
@@ -682,7 +682,7 @@ CameraCalibrator<T>::VolumeCost<Iter, Cam>::operator ()(const Cam& camera) const
 
     return val;
 }
-    
+
 //! 与えられたカメラパラメータ値においてカメラパラメータに関する再投影誤差の1階微分を計算する．
 /*!
   #VolumeCost()で与えた全ての点対についてヤコビ行列が計算される．
@@ -717,7 +717,7 @@ CameraCalibrator<T>::VolumeCost<Iter, Cam>::update(Cam& camera,
 {
     camera.update(dc);
 }
-	
+
 //! 再投影誤差の全点対に渡る平均値を返す．
 /*!
   \param camera		カメラパラメータ
@@ -728,9 +728,9 @@ inline T
 CameraCalibrator<T>::VolumeCost<Iter, Cam>::reprojectionError(
     const Cam& camera) const
 {
-    return sqrt(operator ()(camera).square() / _npoints);
+    return sqrt(square(operator ()(camera)) / _npoints);
 }
-    
+
 //! カメラパラメータの共分散行列からその標準偏差を求める．
 /*!
   \param camera		カメラパラメータ
@@ -750,10 +750,10 @@ CameraCalibrator<T>::VolumeCost<Iter, Cam>::standardDeviations(
 	stddevs[0][9]  /= camera.k();
 	stddevs[0][10] /= camera.k();
     }
-    
+
     return stddevs;
 }
-    
+
 /************************************************************************
 *  class CameraCalibrator<T>::PlaneCost<Iter, Cam>			*
 ************************************************************************/
@@ -764,7 +764,7 @@ CameraCalibrator<T>::VolumeCost<Iter, Cam>::standardDeviations(
   \param commonCenters	全カメラの投影中心が一致しているならばtrue,
 			そうでなければfalse
 */
-template <class T> template <class Iter, class Cam> 
+template <class T> template <class Iter, class Cam>
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::PlaneCost(Iter begin, Iter end,
 						     bool commonCenters)
     :_begin(begin), _end(end), _adim(0),
@@ -851,7 +851,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeA(
 	    k += 2;
 	}
     }
-    
+
     return J;
 }
 
@@ -879,7 +879,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeB(
 				 * plane.derivative(iter->first);
 	    k += 2;
 	}
-    
+
     return K;
 }
 
@@ -938,7 +938,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::corresListArray(int j) const
   \param planes		参照平面パラメータを収めた配列
   \return		再投影誤差の平均値
 */
-    
+
 template <class T>
 template <class Iter, class Cam> typename CameraCalibrator<T>::element_type
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::reprojectionError(
@@ -955,7 +955,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::reprojectionError(
 
     return sqrt(sumerr / npoints);
 }
-    
+
 //! カメラパラメータの共分散行列からその標準偏差を求める．
 /*!
   \param cameras	カメラパラメータを収めた配列
@@ -969,7 +969,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::standardDeviations(
 {
     std::cerr << "covariance: " << covariance.nrow() << 'x' << covariance.ncol()
 	      << std::endl;
-    
+
     matrix_type	stddevs(_adims.size(), 6 + _adims[0]);
     for (size_t i = 0, m = 0; i < stddevs.nrow(); ++i)
     {
@@ -983,7 +983,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::standardDeviations(
 	    deviations[n] = sqrt(covariance[m][m] / npoints);
 	    ++m;
 	}
-	
+
 	if (stddevs.ncol() > 9)	// aspectとskewがパラメータに含まれているか？
 	{ // aspectとskewは内部パラメータ行列の(1, 1), (1, 2)成分そのものとして
 	  // 実装されているので，焦点距離で割らねばならない．
@@ -994,6 +994,6 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::standardDeviations(
 
     return stddevs;
 }
-	
+
 }
 #endif	//! __CAMERACALIBRATOR_H

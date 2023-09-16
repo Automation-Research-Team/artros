@@ -51,6 +51,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <yaml-cpp/yaml.h>
 
+#include <aist_aruco_ros/PointCorrespondenceArrayArray.h>
 #include <aist_camera_calibration/GetSampleList.h>
 #include <aist_camera_calibration/ComputeCalibration.h>
 #include <aist_camera_calibration/TakeSampleAction.h>
@@ -100,6 +101,8 @@ class Calibrator
 {
   private:
     using element_t		= double;
+    using corres_msg_t		= aist_aruco_ros
+				      ::PointCorrespondenceArrayArray;
     using corres_msg_cp		= aist_aruco_ros
 				      ::PointCorrespondenceArrayArrayConstPtr;
     using action_server_t	= actionlib::SimpleActionServer<
@@ -114,9 +117,8 @@ class Calibrator
     template <class CORRES>
     using correses_set_t	= std::vector<correses_t<CORRES> >;
     template <class CORRES>
-    using correses_set_set_t	= std::vector<correses_set_t<CORRES> >;
+    using correses_sets_t	= std::vector<correses_set_t<CORRES> >;
 
-    using plane_calibrator_t	= TU::CameraCalibrator<element_t>;
     using camera_t		= TU::Camera<TU::IntrinsicWithDistortion<
 						 TU::Intrinsic<element_t> > >;
 
@@ -160,12 +162,14 @@ class Calibrator
 		~Calibrator()						;
 
   private:
+    const std::string&
+		getName()					const	;
     void	goal_cb()						;
     void	preempt_cb()						;
     void	corres_cb(const corres_msg_cp& corres_msg)		;
     template <class CORRES>
     static bool	add_correses_set(const corres_msg_cp& corres_msg,
-				 correses_set_set_t<CORRES>& cset_set)	;
+				 correses_sets_t<CORRES>& correses_sets);
     bool	get_sample_list(GetSampleList::Request&,
 				GetSampleList::Response& res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
@@ -174,25 +178,26 @@ class Calibrator
 				 std_srvs::Trigger::Response& res)	;
     bool	reset(std_srvs::Empty::Request&,
 		      std_srvs::Empty::Response&)			;
-    const std::string&
-		getName()					const	;
+    correses_sets_t<corres22_t>
+		convert_correspondences_sets()			const	;
+    correses_set_t<corres32_t>
+		rearrange_correspondences_sets()		const	;
 
   private:
-    const std::string			_nodelet_name;
+    const std::string		_nodelet_name;
 
-    ros::NodeHandle			_nh;
-    ros::Subscriber			_corres_sub;
+    ros::NodeHandle		_nh;
+    ros::Subscriber		_corres_sub;
 
-    action_server_t			_take_sample_srv;
-    const ros::ServiceServer		_get_sample_list_srv;
-    const ros::ServiceServer		_compute_calibration_srv;
-    const ros::ServiceServer		_save_calibration_srv;
-    const ros::ServiceServer		_reset_srv;
+    action_server_t		_take_sample_srv;
+    const ros::ServiceServer	_get_sample_list_srv;
+    const ros::ServiceServer	_compute_calibration_srv;
+    const ros::ServiceServer	_save_calibration_srv;
+    const ros::ServiceServer	_reset_srv;
 
-    bool				_planar_reference;
-    correses_set_set_t<corres22_t>	_correses_set_set22;
-    correses_set_set_t<corres32_t>	_correses_set_set32;
-    TU::Array<camera_t>			_cameras;
+    bool			_planar_reference;
+    std::vector<corres_msg_t>	_correspondences_sets;
+    TU::Array<camera_t>		_cameras;
 };
 
 Calibrator::Calibrator(const ros::NodeHandle& nh,
@@ -213,8 +218,7 @@ Calibrator::Calibrator(const ros::NodeHandle& nh,
 			      &Calibrator::save_calibration, this)),
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
      _planar_reference(_nh.param<bool>("planar_reference", true)),
-     _correses_set_set22(),
-     _correses_set_set32()
+     _correspondences_sets()
 {
     _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::goal_cb,
 						      this));
@@ -228,6 +232,12 @@ Calibrator::Calibrator(const ros::NodeHandle& nh,
 
 Calibrator::~Calibrator()
 {
+}
+
+const std::string&
+Calibrator::getName() const
+{
+    return _nodelet_name;
 }
 
 void
@@ -252,79 +262,40 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
     if (!_take_sample_srv.isActive())
 	return;
 
-    if (_planar_reference)
+    const auto	ncameras = corres_msg->correspondences_set.size();
+
+    if (_correspondences_sets.size() > 0 &&
+	_correspondences_sets.front().correspondences_set.size() != ncameras)
     {
-	if (!add_correses_set(corres_msg, _correses_set_set22))
-	{
-	    _take_sample_srv.setAborted();
+	_take_sample_srv.setAborted();
 
-	    NODELET_ERROR_STREAM('(' << getName()
-				 << ") ABORTED taking samples because #cameras["
-				 << corres_msg->correspondences_set.size()
-				 << "] in the new data is different from that["
-				 << _correses_set_set22.front().size()
-				 << "] in the previous data.");
-	}
-
-	std::cerr << _correses_set_set22;
+	NODELET_ERROR_STREAM('(' << getName()
+			     << ") ABORTED taking samples because #cameras["
+			     << ncameras
+			     << "] in the new data is different from that["
+			     << _correspondences_sets.front()
+			        .correspondences_set.size()
+			     << "] in the previous data.");
+	return;
     }
-    else
-    {
-	if (!add_correses_set(corres_msg, _correses_set_set32))
-	{
-	    _take_sample_srv.setAborted();
 
-	    NODELET_ERROR_STREAM('(' << getName()
-				 << ") ABORTED taking samples because #cameras["
-				 << corres_msg->correspondences_set.size()
-				 << "] in the new data is different from that["
-				 << _correses_set_set32.front().size()
-				 << "] in the previous data.");
-	}
-
-	std::cerr << _correses_set_set32;
-    }
+    _correspondences_sets.push_back(*corres_msg);
 
     TakeSampleResult	result;
-    result.correspondences_set = *corres_msg;
+    result.correspondences_set = corres_msg->correspondences_set;
     _take_sample_srv.setSucceeded(result);
 
     NODELET_INFO_STREAM('(' << getName() << ") SUCCEEDED in taking samples");
 }
 
-template <class CORRES> bool
-Calibrator::add_correses_set(const corres_msg_cp& corres_msg,
-			     correses_set_set_t<CORRES>& cset_set)
-{
-    const auto	ncameras = corres_msg->correspondences_set.size();
-
-    if (cset_set.size() > 0 && cset_set.front().size() != ncameras)
-	return false;
-
-    correses_set_t<CORRES>	correses_set(ncameras);
-    auto			correses = correses_set.begin();
-    for (const auto& correses_msg : corres_msg->correspondences_set)
-    {
-	correses->resize(correses_msg.correspondences.size());
-	std::transform(correses_msg.correspondences.cbegin(),
-		       correses_msg.correspondences.cend(),
-		       correses->begin(),
-		       to_corres<typename CORRES::first_type>());
-	++correses;
-    }
-    cset_set.push_back(correses_set);
-
-    return true;
-}
-
-
 bool
 Calibrator::get_sample_list(GetSampleList::Request&,
 			    GetSampleList::Response& res)
 {
-    res.success = true;
+    res.correspondences_sets = _correspondences_sets;
     NODELET_INFO_STREAM('(' << getName() << ") GetSampleList: "
-			<< res.message);
+			<< res.correspondences_sets.size()
+			<< " samples obtained");
 
     return true;
 }
@@ -335,20 +306,32 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 {
     try
     {
+	TU::CameraCalibrator<element_t>	calibrator;
+
 	if (_planar_reference)
 	{
-	    plane_calibrator_t	calibrator;
-
-	    const auto	planes = calibrator.planeCalib(
-				     _correses_set_set22.cbegin(),
-				     _correses_set_set22.cend(),
-				     _cameras, false, true);
+	    const auto	correses_sets = convert_correspondences_sets();
+	    std::cerr << correses_sets;
+	    const auto	planes = calibrator.planeCalib(correses_sets.cbegin(),
+	    					       correses_sets.cend(),
+	    					       _cameras, false, true);
 	}
 	else
 	{
+	    const auto	correses_set = rearrange_correspondences_sets();
+	    std::cerr << correses_set;
+
+	    _cameras.resize(correses_set.size());
+
+	    auto	camera = _cameras.begin();
+	    for (const auto& correses : correses_set)
+	    	calibrator.volumeCalib(correses.cbegin(), correses.cend(),
+	    			       *camera++, true);
 	}
 
 	res.success = true;
+	res.message = "succeeded";
+
 	NODELET_INFO_STREAM('(' << getName() << ") ComputeCalibration: "
 			    << res.message);
     }
@@ -361,7 +344,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 			     << res.message);
     }
 
-    return res.success;
+    return true;
 }
 
 bool
@@ -418,24 +401,69 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 			    << res.message);
     }
 
-    return res.success;
+    return true;
 }
 
 bool
 Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
-    _correses_set_set22.clear();
-    _correses_set_set32.clear();
+    _correspondences_sets.clear();
 
     NODELET_INFO_STREAM('(' << getName() << ") All samples cleared");
 
     return true;
 }
 
-const std::string&
-Calibrator::getName() const
+Calibrator::correses_sets_t<Calibrator::corres22_t>
+Calibrator::convert_correspondences_sets() const
 {
-    return _nodelet_name;
+    correses_sets_t<corres22_t>	correses_sets(_correspondences_sets.size());
+
+    auto	correses_set = correses_sets.begin();
+    for (const auto& correspondences_set : _correspondences_sets)
+    {
+	correses_set->resize(correspondences_set.correspondences_set.size());
+
+	auto	correses = correses_set->begin();
+	for (const auto& correspondences :
+		 correspondences_set.correspondences_set)
+	{
+	    std::transform(correspondences.correspondences.cbegin(),
+			   correspondences.correspondences.cend(),
+			   std::back_inserter(*correses++),
+			   to_corres<corres22_t::first_type>());
+	}
+
+	++correses_set;
+    }
+
+    return correses_sets;
+}
+
+Calibrator::correses_set_t<Calibrator::corres32_t>
+Calibrator::rearrange_correspondences_sets() const
+{
+    correses_set_t<corres32_t>	correses_set(_correspondences_sets.empty() ?
+					     0 :
+					     _correspondences_sets.front()
+					     .correspondences_set.size());
+
+  // Append correspondences for each marker position.
+    for (const auto& correspondences_set : _correspondences_sets)
+    {
+      // Append correspondences for each camera.
+	auto	correses = correses_set.begin();
+	for (const auto& correspondences :
+		 correspondences_set.correspondences_set)
+	{
+	    std::transform(correspondences.correspondences.cbegin(),
+			   correspondences.correspondences.cend(),
+			   std::back_inserter(*correses++),
+			   to_corres<corres32_t::first_type>());
+	}
+    }
+
+    return correses_set;
 }
 
 /************************************************************************
