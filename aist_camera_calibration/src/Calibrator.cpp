@@ -68,19 +68,19 @@ operator <<(std::ostream& out, const TU::Point2<T>& p)
 {
     return out << p[0] << ' ' << p[1];
 }
-	
+
 template <class T> std::ostream&
 operator <<(std::ostream& out, const TU::Point3<T>& p)
 {
     return out << p[0] << ' ' << p[1] << ' ' << p[2];
 }
-	
+
 template <class S, class T> std::ostream&
 operator <<(std::ostream& out, const std::pair<S, T>& p)
 {
     return out << '(' << p.first << " : " << p.second << ')';
 }
-    
+
 template <class T> std::ostream&
 operator <<(std::ostream& out, const std::vector<T>& v)
 {
@@ -92,7 +92,7 @@ operator <<(std::ostream& out, const std::vector<T>& v)
     	out << std::endl;
     return out;
 }
-    
+
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
@@ -119,7 +119,7 @@ class Calibrator
     using plane_calibrator_t	= TU::CameraCalibrator<element_t>;
     using camera_t		= TU::Camera<TU::IntrinsicWithDistortion<
 						 TU::Intrinsic<element_t> > >;
-    
+
     template <class SRC_PNT, class DST_PNT=point2_t>
     struct to_corres
     {
@@ -127,12 +127,12 @@ class Calibrator
 	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
 	{
 	    SRC_PNT	p;
-	    p[0] = corres.point.x;
-	    p[1] = corres.point.y;
+	    p[0] = corres.source_point.x;
+	    p[1] = corres.source_point.y;
 	    DST_PNT	q;
 	    q[0] = corres.image_point.x;
 	    q[1] = corres.image_point.y;
-	    
+
 	    return {p, q};
 	}
     };
@@ -143,17 +143,17 @@ class Calibrator
 	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
 	{
 	    point3_t	p;
-	    p[0] = corres.point.x;
-	    p[1] = corres.point.y;
-	    p[2] = corres.point.z;
+	    p[0] = corres.source_point.x;
+	    p[1] = corres.source_point.y;
+	    p[2] = corres.source_point.z;
 	    DST_PNT	q;
 	    q[0] = corres.image_point.x;
 	    q[1] = corres.image_point.y;
-	    
+
 	    return {p, q};
 	}
     };
-    
+
   public:
 		Calibrator(const ros::NodeHandle& nh,
 			   const std::string& nodelet_name)		;
@@ -178,21 +178,21 @@ class Calibrator
 		getName()					const	;
 
   private:
-    const std::string		_nodelet_name;
-    
-    ros::NodeHandle		_nh;
-    ros::Subscriber		_corres_sub;
+    const std::string			_nodelet_name;
 
-    action_server_t		_take_sample_srv;
-    const ros::ServiceServer	_get_sample_list_srv;
-    const ros::ServiceServer	_compute_calibration_srv;
-    const ros::ServiceServer	_save_calibration_srv;
-    const ros::ServiceServer	_reset_srv;
+    ros::NodeHandle			_nh;
+    ros::Subscriber			_corres_sub;
 
-    bool			_planar_reference;
+    action_server_t			_take_sample_srv;
+    const ros::ServiceServer		_get_sample_list_srv;
+    const ros::ServiceServer		_compute_calibration_srv;
+    const ros::ServiceServer		_save_calibration_srv;
+    const ros::ServiceServer		_reset_srv;
+
+    bool				_planar_reference;
     correses_set_set_t<corres22_t>	_correses_set_set22;
     correses_set_set_t<corres32_t>	_correses_set_set32;
-    TU::Array<camera_t>		_cameras;
+    TU::Array<camera_t>			_cameras;
 };
 
 Calibrator::Calibrator(const ros::NodeHandle& nh,
@@ -257,7 +257,7 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
 	if (!add_correses_set(corres_msg, _correses_set_set22))
 	{
 	    _take_sample_srv.setAborted();
-	    
+
 	    NODELET_ERROR_STREAM('(' << getName()
 				 << ") ABORTED taking samples because #cameras["
 				 << corres_msg->correspondences_set.size()
@@ -273,7 +273,7 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
 	if (!add_correses_set(corres_msg, _correses_set_set32))
 	{
 	    _take_sample_srv.setAborted();
-	    
+
 	    NODELET_ERROR_STREAM('(' << getName()
 				 << ") ABORTED taking samples because #cameras["
 				 << corres_msg->correspondences_set.size()
@@ -284,7 +284,7 @@ Calibrator::corres_cb(const corres_msg_cp& corres_msg)
 
 	std::cerr << _correses_set_set32;
     }
-    
+
     TakeSampleResult	result;
     result.correspondences_set = *corres_msg;
     _take_sample_srv.setSucceeded(result);
@@ -297,7 +297,7 @@ Calibrator::add_correses_set(const corres_msg_cp& corres_msg,
 			     correses_set_set_t<CORRES>& cset_set)
 {
     const auto	ncameras = corres_msg->correspondences_set.size();
-    
+
     if (cset_set.size() > 0 && cset_set.front().size() != ncameras)
 	return false;
 
@@ -313,7 +313,7 @@ Calibrator::add_correses_set(const corres_msg_cp& corres_msg,
 	++correses;
     }
     cset_set.push_back(correses_set);
-    
+
     return true;
 }
 
@@ -338,7 +338,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	if (_planar_reference)
 	{
 	    plane_calibrator_t	calibrator;
-	    
+
 	    const auto	planes = calibrator.planeCalib(
 				     _correses_set_set22.cbegin(),
 				     _correses_set_set22.cend(),
@@ -347,7 +347,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	else
 	{
 	}
-	
+
 	res.success = true;
 	NODELET_INFO_STREAM('(' << getName() << ") ComputeCalibration: "
 			    << res.message);
@@ -426,7 +426,7 @@ Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
     _correses_set_set22.clear();
     _correses_set_set32.clear();
-    
+
     NODELET_INFO_STREAM('(' << getName() << ") All samples cleared");
 
     return true;
@@ -437,7 +437,7 @@ Calibrator::getName() const
 {
     return _nodelet_name;
 }
-    
+
 /************************************************************************
 *  class CalibratorNodelet						*
 ************************************************************************/

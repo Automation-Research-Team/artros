@@ -10,9 +10,10 @@
 #include <ros/package.h>
 #include <image_transport/image_transport.h>
 #include <image_transport/subscriber_filter.h>
-#include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
@@ -64,7 +65,7 @@ class MultiDetector
       public:
 	virtual	~SyncBase() = 0;
     };
-    
+
     template <size_t N>
     class sync_t : public SyncBase
     {
@@ -113,7 +114,7 @@ class MultiDetector
 
   private:
     const std::string					_nodelet_name;
-    
+
     image_transport::ImageTransport			_it;
     image_transport::Subscriber				_image_sub;
     std::vector<std::unique_ptr<subscriber_t> >		_image_subs;
@@ -121,6 +122,11 @@ class MultiDetector
     std::vector<publisher_t>				_debug_pubs;
     const ros::Publisher				_corres_pub;
     std::unique_ptr<SyncBase>				_sync;
+
+    tf2_ros::Buffer					_tf2_buffer;
+    const tf2_ros::TransformListener			_tf2_listener;
+    const std::string					_reference_frame;
+    const std::string					_marker_frame;
 
     ddynamic_reconfigure_t				_ddr;
 
@@ -140,6 +146,11 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
      _corres_pub(nh.advertise<PointCorrespondenceArrayArray>(
 		     "point_correspondences_set", 100)),
      _sync(),
+     _tf2_buffer(),
+     _tf2_listener(_tf2_buffer),
+     _reference_frame(nh.param<std::string>("reference_frame", "")),
+     _marker_frame(nh.param<std::string>("marker_frame", "marker_frame")),
+
      _ddr(nh),
      _marker_detector(),
      _marker_map(),
@@ -236,7 +247,7 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
     }
 
     _correspondences_set.correspondences_set.resize(camera_names.size());
-    
+
   // Restore marker map if specified.
     if (const auto marker_map_name = nh.param<std::string>("marker_map", "");
 	marker_map_name != "")
@@ -368,7 +379,7 @@ MultiDetector::set_dictionary(const std::string& dict)
 
 template <size_t N, class... IMAGE_MSGS> void
 MultiDetector::image_cb(const image_cp& image_msg,
-			  const IMAGE_MSGS&... image_msgs)
+			const IMAGE_MSGS&... image_msgs)
 {
     _correspondences_set.correspondences_set[N]
 	= detect_marker(image_msg, _result_pubs[N], _debug_pubs[N]);
@@ -398,44 +409,60 @@ MultiDetector::detect_marker(const image_cp& image_msg,
     publish_image(image_msg->header, _marker_detector.getThresholdedImage(),
      		  debug_pub);
 
+  // Create correpondence pairs of source and image points.
     std::vector<std::pair<point3_t, point2_t> >	pairs;
-
     for (const auto& marker : markers)
     {
       // For each marker, draw info and its boundaries in the image.
 	marker.draw(image, cv::Scalar(0, 0, 255), 2);
 
 	const auto	i = _marker_map.getIndexOfMarkerId(marker.id);
-
 	if (i < 0 || marker.size() < 4)
 	    continue;
 
+      // Append pairs of the source marker corners and corresponding
+      // image points detected.
 	const auto&	markerinfo = _marker_map[i];
 	for (size_t j = 0; j < marker.size(); ++j)
-	    pairs.push_back(std::make_pair(markerinfo[j], marker[j]));
+	    pairs.emplace_back(markerinfo[j], marker[j]);
     }
 
+  // Publish the input image with detected marker drawen.
     publish_image(image_msg->header, image, result_pub);
 
   // Create point correspondences for this image.
     PointCorrespondenceArray	correspondences;
-    correspondences.header = image_msg->header;
+    correspondences.header	    = image_msg->header;
+    correspondences.reference_frame = _reference_frame;
     for (const auto& pair : pairs)
     {
 	PointCorrespondence	correspondence;
-	correspondence.point.x	     = pair.first.x;
-	correspondence.point.y	     = pair.first.y;
-	correspondence.point.z	     = pair.first.z;
-	correspondence.image_point.x = pair.second.x;
-	correspondence.image_point.y = pair.second.y;
-	correspondence.image_point.z = 0;
+	correspondence.source_point.x = pair.first.x;
+	correspondence.source_point.y = pair.first.y;
+	correspondence.source_point.z = pair.first.z;
+	correspondence.image_point.x  = pair.second.x;
+	correspondence.image_point.y  = pair.second.y;
+	correspondence.image_point.z  = 0;
 
 	correspondences.correspondences.push_back(correspondence);
     }
 
+  // Transform source points from marker frame to reference frame
+  // if the reference frame is explicitly specified.
+    if (!_reference_frame.empty())
+    {
+	const auto Trm = _tf2_buffer.lookupTransform(_reference_frame,
+						     _marker_frame,
+						     image_msg->header.stamp,
+						     ros::Duration(1.0));
+	for (auto&& correspondence : correspondences.correspondences)
+	    tf2::doTransform(correspondence.source_point,
+			     correspondence.source_point, Trm);
+    }
+
     return correspondences;
 }
-			       
+
 void
 MultiDetector::publish_image(const std_msgs::Header& header,
 			     const cv::Mat& image,

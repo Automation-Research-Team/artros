@@ -15,6 +15,8 @@
   <arg name="marker_map"	default="calib_board-6x4"/>
   <arg name="marker_id"		default="-1"/>
   <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
+  <arg name="marker_frame"	default="marker_frame"/>
+  <arg name="reference_frame"	default=""/>
   <arg name="manager"		default=""/>
 
   <node unless="$(eval manager == '')"
@@ -49,6 +51,8 @@
     <arg name="marker_map"	value="$(arg marker_map)"/>
     <arg name="marker_id"	value="$(arg marker_id)"/>
     <arg name="marker_size"	value="$(arg marker_size)"/>
+    <arg name="marker_frame"	value="$(arg marker_frame)"/>
+    <arg name="reference_frame"	value="$(arg reference_frame)"/>
     <arg name="manager"		value="$(arg manager)"/>
   </include>
 
