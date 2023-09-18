@@ -1,14 +1,16 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="suction_tools"	default="suction_tools"/>
-  <arg name="operation_mode"	default="operation_mode"/>
+  <arg name="suction_tools"	default="$(dirname
+					 )/../config/suction_tools"/>
+  <arg name="operation_mode"	default="$(dirname
+					 )/../config/operation_mode"/>
 
   <node name="suction_tool_controller"
 	pkg="aist_fastening_tools" type="suction_tool_controller.py"
 	output="screen">
-    <rosparam file="$(dirname)/../config/$(arg suction_tools).yaml"/>
-    <rosparam file="$(dirname)/../config/$(arg operation_mode).yaml"/>
+    <rosparam param="suction_tools"	file="$(arg suction_tools)"/>
+    <rosparam param="operation_mode"	file="$(arg operation_mode)"/>
   </node>
 
 </launch>

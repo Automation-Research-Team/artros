@@ -1,7 +1,6 @@
-operation_mode:
-  - name: run_mode
-    digital_in_port: 4
-  - name: test_mode
-    digital_in_port: 5
-  - name: pause_mode
-    digital_in_port: 6
+run_mode:
+  digital_in_port: 4
+test_mode:
+  digital_in_port: 5
+pause_mode:
+  digital_in_port: 6

@@ -62,12 +62,11 @@ class SuctionToolController(object):
         self._digital_out_port_vac  = dict()
         self._digital_out_port_blow = dict()
         self._tool_suction_pubs     = dict()
-        for tool in rospy.get_param('~suction_tools'):
-            name = tool['name']
-            self._in_port_names[tool['digital_in_port']] = name
-            self._digital_in_port[name]       = tool['digital_in_port']
-            self._digital_out_port_vac[name]  = tool['digital_out_port_vac']
-            self._digital_out_port_blow[name] = tool['digital_out_port_blow']
+        for name, props in rospy.get_param('~suction_tools').items():
+            self._in_port_names[props['digital_in_port']] = name
+            self._digital_in_port[name]       = props['digital_in_port']
+            self._digital_out_port_vac[name]  = props['digital_out_port_vac']
+            self._digital_out_port_blow[name] = props['digital_out_port_blow']
             self._tool_suction_pubs[name]     = rospy.Publisher(
                                                     name + '/suctioned', Bool,
                                                     queue_size=1)
@@ -75,9 +74,8 @@ class SuctionToolController(object):
         # for operation_mode
         self._operation_mode_in_port_names = dict()
         self._operation_mode_pubs          = dict()
-        for mode in rospy.get_param('~operation_mode'):
-            name = mode['name']
-            self._operation_mode_in_port_names[mode['digital_in_port']] = name
+        for name, props in rospy.get_param('~operation_mode').items():
+            self._operation_mode_in_port_names[props['digital_in_port']] = name
             self._operation_mode_pubs[name] = rospy.Publisher(name, Bool,
                                                               queue_size=1)
 

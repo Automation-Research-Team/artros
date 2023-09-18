@@ -8,10 +8,10 @@
   <arg name="use_joint_state"	default="true"/>
   <arg name="use_cmd_vel"	default="false"/>
 
-  <arg name="fastening_tools"	default="$(dirname
-					 )/../config/fastening_tools.yaml"/>
+  <arg name="screw_tools"	default="$(dirname
+					 )/../config/$(arg screw_tools).yaml"/>
 
-  <param name="dynamixel_info"	value="$(arg fastening_tools)"/>
+  <param name="dynamixel_info"	value="$(arg screw_tools)"/>
 
   <node name="$(arg namespace)"
 	pkg="dynamixel_workbench_controllers"
@@ -33,8 +33,8 @@
   <node name="screw_tool_controller"
 	pkg="aist_fastening_tools" type="screw_tool_controller.py"
 	output="screen">
-    <param name="tools_info"	value="$(arg fastening_tools)"/>
-    <param name="controller_ns"	value="$(arg namespace)"/>
+    <param name="controller_ns"		value="$(arg namespace)"/>
+    <rosparam param="screw_tools"	file="$(arg screw_tools)"/>
   </node>
 
 </launch>

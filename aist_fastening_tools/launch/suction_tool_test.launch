@@ -1,8 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="suction_tools"	default="suction_tools"/>
-  <arg name="operation_mode"	default="operation_mode"/>
+  <arg name="suction_tools"	default="$(dirname
+					 )/../config/suction_tools"/>
+  <arg name="operation_mode"	default="$(dirname
+					 )/../config/operation_mode"/>
 
   <node name="suction_tool_test"
 	pkg="aist_fastening_tools" type="suction_tool_test.py"

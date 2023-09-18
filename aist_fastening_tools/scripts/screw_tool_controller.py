@@ -15,36 +15,29 @@ from dynamixel_workbench_msgs.srv    import DynamixelCommand
 class ScrewToolController(object):
     def __init__(self):
         # get data from .yaml
-        controller_namespace = rospy.get_param("~controller_ns")
-        self._service_name               = '/'.join(['',
-                                                     controller_namespace,
-                                                     'dynamixel_command'])
-        self._dynamixel_state_topic      = '/'.join(['',
-                                                     controller_namespace,
-                                                     'dynamixel_state'])
+        controller_ns = rospy.get_param("~controller_ns")
+        service_name  = '/'.join(['', controller_ns, 'dynamixel_command'])
+
+        self._dynamixel_state_topic = '/'.join(['', controller_ns,
+                                                'dynamixel_state'])
         self._motor_status_topic_is_list = True
         self._dynamixel_current_state    = []
 
-        conf_gripper_filename = rospy.get_param("~tools_info")
-        fastening_tools = read_object_yaml_config(conf_gripper_filename)
-
         # initialize motor id table
-        self._fastening_tools      = dict()
+        self._screw_tools          = dict()
         self._tool_locks           = dict()  #
         self._tool_being_preempted = dict()
-        for tool_name, properties in fastening_tools.iteritems():
-            rospy.loginfo("Loaded " + tool_name +
-                          " on motor id " + str(properties['ID']))
-            self._fastening_tools.update({tool_name: properties['ID']})
-            self._tool_locks.update({tool_name: threading.Lock()})
-            self._tool_being_preempted.update({tool_name: False})
-        self._test_listener = rospy.Subscriber(self._dynamixel_state_topic,
-                                               rospy.AnyMsg,
-                                               self._test_listener_cb)
+        for name, props in rospy.get_param('~screw_tools').items():
+            rospy.loginfo("Loaded " + name + " on motor id " + str(props['ID']))
+            self._screw_tools.update({name: props['ID']})
+            self._tool_locks.update({name: threading.Lock()})
+            self._tool_being_preempted.update({name: False})
+        self._listener = rospy.Subscriber(self._dynamixel_state_topic,
+                                          rospy.AnyMsg, self._test_listener_cb)
 
-        rospy.wait_for_service(self._service_name)
+        rospy.wait_for_service(service_name)
         self._motor_write_lock = threading.Lock()
-        self._dynamixel_command_write = rospy.ServiceProxy(self._service_name,
+        self._dynamixel_command_write = rospy.ServiceProxy(service_name,
                                                            DynamixelCommand)
 
         self._screw_srv = actionlib.ActionServer('~screw_tool_control',
@@ -69,7 +62,7 @@ class ScrewToolController(object):
         given type, to read the status of the motors.
         '''
         message_type = data._connection_header['type']
-        self._test_listener.unregister()
+        self._listener.unregister()
         if message_type == 'dynamixel_workbench_msgs/DynamixelState':
             self._motor_status_topic_is_list = False
             self._dynamixel_current_state = DynamixelState()
@@ -186,7 +179,7 @@ class ScrewToolController(object):
         """
         result = ScrewToolControlResult()
         feedback = ScrewToolControlFeedback()
-        motor_id = self._fastening_tools[goal.fastening_tool_name]
+        motor_id = self._screw_tools[goal.fastening_tool_name]
         result.control_result = True
         if not goal.speed:
             goal.speed = 1023
@@ -211,7 +204,7 @@ class ScrewToolController(object):
             if target_speed > 1023:
                 target_speed = 1023
 
-        if (goal.fastening_tool_name in self._fastening_tools) == False:
+        if (goal.fastening_tool_name in self._screw_tools) == False:
             rospy.logerr("'%s' does not exist in %s." %
                          (goal.fastening_tool_name,
                           self.conf_gripper_filename))

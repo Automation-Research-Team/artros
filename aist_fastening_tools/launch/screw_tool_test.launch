@@ -1,33 +1,15 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="num_controllers"	default="1"/>
-  <arg name="serial_port_0"	default="/dev/ttyUSB0"/>
-  <arg name="serial_port_1"	default="/dev/ttyUSB1"/>
-  <arg name="serial_port_2"	default="/dev/ttyUSB2"/>
-  <arg name="serial_port_3"	default="/dev/ttyUSB3"/>
-  <arg name="serial_port_4"	default="/dev/ttyUSB4"/>
-  <arg name="config_dir"	default="$(dirname)/../config"/>
-  <arg name="fastening_tools"	default="fastening_tools"/>
 
-  <node name="dynamixel_controller"
-	pkg="aist_fastening_tools" type="dynamixel_controller" output="screen">
-    <param name="num_controllers"	value="$(arg num_controllers)"/>
-        <param name="serial_port_0"	value="$(arg serial_port_0)"/>
-        <param name="serial_port_1"	value="$(arg serial_port_1)"/>
-        <param name="serial_port_2"	value="$(arg serial_port_2)"/>
-        <param name="serial_port_3"	value="$(arg serial_port_3)"/>
-        <param name="serial_port_4"	value="$(arg serial_port_4)"/>
-  </node>
-
-  <node name="screw_tool_controller"
-	pkg="aist_fastening_tools" type="screw_tool_controller.py"
-	output="screen">
-    <param name="config_dir"		value="$(arg config_dir)"/>
-    <param name="fastening_tools"	value="$(arg fastening_tools)"/>
-  </node>
+  <arg name="screw_tools"	default="$(dirname
+					 )/../config/screw_tools.yaml"/>
 
   <node name="screw_tool_test"
 	pkg="aist_fastening_tools" type="screw_tool_test.py"
 	output="screen"/>
+
+  <include file="$(dirname)/screw_tool_controller.launch">
+    <arg name="screw_tools"	value="$(arg screw_tools)"/>
+  </include>
 
 </launch>
