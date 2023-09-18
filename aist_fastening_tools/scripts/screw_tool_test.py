@@ -2,18 +2,18 @@
 
 import sys
 import rospy
-import actionlib
-from aist_fastening_tools.srv import *
-from aist_msgs.msg import *
+from actionlib                import SimpleActionClient
+from aist_fastening_tools.msg import (ScrewToolControlAction,
+                                      ScrewToolControlGoal)
 
 
 class ScrewToolController:
     def fasten(self, name):
-        client = actionlib.SimpleActionClient('screw_tool_control',
-                                              ScrewToolControlAction)
+        client = SimpleActionClient('screw_tool_control',
+                                    ScrewToolControlAction)
         client.wait_for_server()
-        goal = ScrewToolControlGoal()
 
+        goal = ScrewToolControlGoal()
         goal.fastening_tool_name = name
         goal.speed = 100
         goal.direction = "tighten"
@@ -26,7 +26,7 @@ class ScrewToolController:
 
 if __name__ == '__main__':
     try:
-        rospy.init_node('fastening_tool_controller_test')
+        rospy.init_node('screw_tool_test')
 
         controller = ScrewToolController()
 

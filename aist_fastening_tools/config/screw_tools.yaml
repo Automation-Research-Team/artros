@@ -1,4 +1,5 @@
-# This file matches the tool names with the Dynamixel motor ID and sets default motor settings
+# This file matches the tool names with the Dynamixel motor ID
+# and sets default motor settings
 
 screw_tool_m3:
   ID: 5

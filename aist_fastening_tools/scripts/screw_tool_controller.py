@@ -1,15 +1,17 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 import threading
 import rospy
-import actionlib
-from aist_fastening_tools.srv        import *
-from aist_routines.thread_with_trace import ThreadTrace
-from util                            import read_object_yaml_config
-from collections                     import deque
 
-from dynamixel_workbench_msgs.msg    import DynamixelState, DynamixelStateList
-from dynamixel_workbench_msgs.srv    import DynamixelCommand
+from actionlib                      import ActionServer
+from aist_fastening_tools.msg       import (ScrewToolControlAction,
+                                            ScrewToolControlResult,
+                                            ScrewToolControlFeedback)
+from aist_utility.thread_with_trace import ThreadTrace
+from collections                    import deque
+
+from dynamixel_workbench_msgs.msg   import DynamixelState, DynamixelStateList
+from dynamixel_workbench_msgs.srv   import DynamixelCommand
 
 
 class ScrewToolController(object):
@@ -40,10 +42,9 @@ class ScrewToolController(object):
         self._dynamixel_command_write = rospy.ServiceProxy(service_name,
                                                            DynamixelCommand)
 
-        self._screw_srv = actionlib.ActionServer('~screw_tool_control',
-                                                 ScrewToolControlAction,
-                                                 goal_cb=self.goal_cb,
-                                                 auto_start=False)
+        self._screw_srv = ActionServer('~screw_tool_control',
+                                       ScrewToolControlAction,
+                                       goal_cb=self.goal_cb, auto_start=False)
         self._screw_srv.start()
 
     def goal_cb(self, goal_handle):
@@ -99,9 +100,8 @@ class ScrewToolController(object):
             rospy.logwarn('An exception occurred in the Torque_Enable set, but processing continues.')
         else:
             if not res.comm_result:
-                rospy.logerr(
-                    'Can not set torque_enable to XL-320. (ID=%i)' %
-                    motor_id)
+                rospy.logerr('Can not set torque_enable to XL-320. (ID=%i)' %
+                             motor_id)
             return res.comm_result
         return True
 
@@ -177,7 +177,7 @@ class ScrewToolController(object):
         If double_check_after_tighten is True, after fastening has finished successfully,
         the screw is loosened once and then fastened again.
         """
-        result = ScrewToolControlResult()
+        result   = ScrewToolControlResult()
         feedback = ScrewToolControlFeedback()
         motor_id = self._screw_tools[goal.fastening_tool_name]
         result.control_result = True
