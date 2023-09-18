@@ -330,7 +330,7 @@ Calibrator::get_sample_list(GetSampleList::Request&,
 {
     res.correspondences_sets = _correspondences_sets;
 
-    NODELET_INFO_STREAM('(' << getName() << ") GetSampleList: "
+    NODELET_INFO_STREAM('(' << getName() << ") Get "
 			<< res.correspondences_sets.size()
 			<< " samples obtained");
     return true;
@@ -383,22 +383,21 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	}
 
 	res.success    = true;
-	res.message    = "succeeded";
 	res.intrinsics = _intrinsics;
 	res.poses      = _poses;
 	res.error      = calibrator.reprojectionError();
 
-	NODELET_INFO_STREAM('(' << getName() << ") ComputeCalibration: "
-			    << res.message << ", reprojection error: "
+	NODELET_INFO_STREAM('(' << getName()
+			    << ") Succesfully computed calibration with reprojection error: "
 			    << res.error << "(pix)");
     }
     catch (const std::exception& err)
     {
 	res.success = false;
-	res.message = err.what();
 
-	NODELET_ERROR_STREAM('(' << getName() << ") ComputeCalibration: "
-			     << res.message);
+	NODELET_ERROR_STREAM('(' << getName()
+			     << ") Failed to compute calibration: "
+			     << err.what());
     }
 
     return true;
@@ -408,12 +407,25 @@ bool
 Calibrator::save_calibration(std_srvs::Trigger::Request&,
 			     std_srvs::Trigger::Response& res)
 {
-    res.success = true;
 
     for (size_t i = 0; i < _intrinsics.size(); ++i)
-	res.success &= save_calibration(_correspondences_sets.front()
-					.correspondences_set[i],
-					_intrinsics[i], _poses[i]);
+	if (!save_calibration(_correspondences_sets.front()
+			      .correspondences_set[i],
+			      _intrinsics[i], _poses[i]))
+	{
+	    res.success = false;
+	    res.message = "failed";
+
+	    NODELET_ERROR_STREAM('(' << getName()
+				 << ") Failed to save calibration");
+
+	    return true;
+	}
+
+    res.success = true;
+    res.message = "succeeded";
+
+    NODELET_INFO_STREAM('(' << getName() << ") Succesfully saved calibration");
 
     return true;
 }
