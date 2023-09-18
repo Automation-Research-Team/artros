@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="suction_tools"	default="suction_tools"/>
+  <arg name="operation_mode"	default="operation_mode"/>
+
+  <node name="suction_tool_controller"
+	pkg="aist_fastening_tools" type="suction_tool_controller.py"
+	output="screen">
+    <rosparam file="$(dirname)/../config/$(arg suction_tools).yaml"/>
+    <rosparam file="$(dirname)/../config/$(arg operation_mode).yaml"/>
+  </node>
+
+</launch>

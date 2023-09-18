@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="suction_tools"	default="suction_tools"/>
+  <arg name="operation_mode"	default="operation_mode"/>
+
+  <node name="suction_tool_test"
+	pkg="aist_fastening_tools" type="suction_tool_test.py"
+	output="screen"/>
+
+  <include file="$(dirname)/suction_tool_controller.launch">
+    <arg name="suction_tools"	value="$(arg suction_tools)"/>
+    <arg name="operation_mode"	value="$(arg operation_mode)"/>
+  </include>
+
+</launch>
