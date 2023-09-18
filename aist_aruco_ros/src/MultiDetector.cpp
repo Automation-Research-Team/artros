@@ -87,7 +87,7 @@ class MultiDetector
 
   public:
 		MultiDetector(ros::NodeHandle& nh,
-				const std::string& nodelet_name)	;
+			      const std::string& nodelet_name)		;
 
   private:
     void	set_min_marker_size(double size)			;
@@ -102,18 +102,17 @@ class MultiDetector
     aist_aruco_ros::PointCorrespondenceArray
     detect_marker(const image_cp& image_msg,
 		  const image_transport::Publisher& result_pub,
-		  const image_transport::Publisher& debug_pub)		;
+		  const image_transport::Publisher& debug_pub,
+		  const std::string& camera_name)			;
     static void	publish_image(const std_msgs::Header& header,
 			      const cv::Mat& image,
 			      const image_transport::Publisher& pub)	;
-    template <class ITER>
-    void	publish_correspondences(ITER begin, ITER end,
-					const std_msgs::Header& header)	;
     const std::string&
 		getName()					const	;
 
   private:
     const std::string					_nodelet_name;
+    const std::vector<std::string>			_camera_names;
 
     image_transport::ImageTransport			_it;
     image_transport::Subscriber				_image_sub;
@@ -138,6 +137,7 @@ class MultiDetector
 MultiDetector::MultiDetector(ros::NodeHandle& nh,
 			     const std::string& nodelet_name)
     :_nodelet_name(nodelet_name),
+     _camera_names(nh.param<std::vector<std::string> >("camera_names", {})),
      _it(nh),
      _image_sub(),
      _image_subs(),
@@ -150,22 +150,20 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
      _tf2_listener(_tf2_buffer),
      _reference_frame(nh.param<std::string>("reference_frame", "")),
      _marker_frame(nh.param<std::string>("marker_frame", "marker_frame")),
-
      _ddr(nh),
      _marker_detector(),
      _marker_map(),
      _correspondences_set()
 {
-    std::vector<std::string>	camera_names;
-    if (!nh.getParam("camera_names", camera_names) || camera_names.size() == 0)
+    if (_camera_names.empty())
     {
 	NODELET_ERROR_STREAM("(MultiDetector) No camera names specified!");
 	return;
     }
 
-    for (const auto& camera_name : camera_names)
+    for (const auto& camera_name : _camera_names)
     {
-	if (camera_names.size() >= 2)
+	if (_camera_names.size() >= 2)
 	    _image_subs.emplace_back(std::make_unique<subscriber_t>(
 					 _it, camera_name + "/image", 1));
 	_result_pubs.emplace_back(_it.advertise(camera_name + "/result",1));
@@ -174,10 +172,10 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
 			    << camera_name << ']');
     }
 
-    switch (camera_names.size())
+    switch (_camera_names.size())
     {
       case 1:
-	_image_sub = _it.subscribe(camera_names[0] + "/image", 1,
+	_image_sub = _it.subscribe(_camera_names[0] + "/image", 1,
 				   &MultiDetector::image_cb<0>, this);
 	break;
       case 2:
@@ -241,12 +239,12 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
 
       default:
 	NODELET_ERROR_STREAM("(MultiDetector) Specified "
-			     << camera_names.size()
+			     << _camera_names.size()
 			     << " cameras but supported only up to eight!");
 	return;
     }
 
-    _correspondences_set.correspondences_set.resize(camera_names.size());
+    _correspondences_set.correspondences_set.resize(_camera_names.size());
 
   // Restore marker map if specified.
     if (const auto marker_map_name = nh.param<std::string>("marker_map", "");
@@ -384,7 +382,8 @@ MultiDetector::image_cb(const image_cp& image_msg,
     try
     {
 	_correspondences_set.correspondences_set[N]
-	    = detect_marker(image_msg, _result_pubs[N], _debug_pubs[N]);
+	    = detect_marker(image_msg, _result_pubs[N], _debug_pubs[N],
+			    _camera_names[N]);
     }
     catch (const std::runtime_error& err)
     {
@@ -405,7 +404,8 @@ MultiDetector::image_cb()
 aist_aruco_ros::PointCorrespondenceArray
 MultiDetector::detect_marker(const image_cp& image_msg,
 			     const image_transport::Publisher& result_pub,
-			     const image_transport::Publisher& debug_pub)
+			     const image_transport::Publisher& debug_pub,
+			     const std::string& camera_name)
 {
     using namespace	sensor_msgs;
 
@@ -443,6 +443,9 @@ MultiDetector::detect_marker(const image_cp& image_msg,
   // Create point correspondences for this image.
     PointCorrespondenceArray	correspondences;
     correspondences.header	    = image_msg->header;
+    correspondences.height	    = image_msg->height;
+    correspondences.width	    = image_msg->width;
+    correspondences.camera_name	    = camera_name;
     correspondences.reference_frame = _reference_frame;
     for (const auto& pair : pairs)
     {

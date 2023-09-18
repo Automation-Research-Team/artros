@@ -22,6 +22,7 @@ find_package(catkin REQUIRED
     std_srvs
     std_msgs
     geometry_msgs
+    sensor_msgs
     message_generation
     dynamic_reconfigure
     actionlib
@@ -46,6 +47,7 @@ generate_messages(
     std_srvs
     std_msgs
     geometry_msgs
+    sensor_msgs
     actionlib_msgs
     aist_aruco_ros
 )

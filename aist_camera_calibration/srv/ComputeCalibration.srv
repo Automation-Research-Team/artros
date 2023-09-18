@@ -1,5 +1,6 @@
 ---
-bool success
-string message
-geometry_msgs/TransformStamped eMc  # effector <- camera transformation
-geometry_msgs/TransformStamped wMo  # world    <- object transformation
+bool                        success
+string                      message
+sensor_msgs/CameraInfo[]    intrinsics  # camera intrinsics
+geometry_msgs/PoseStamped[] poses       # camera poses
+float64                     error       # reprojection error
