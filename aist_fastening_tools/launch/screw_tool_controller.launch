@@ -9,7 +9,7 @@
   <arg name="use_cmd_vel"	default="false"/>
 
   <arg name="screw_tools"	default="$(dirname
-					 )/../config/$(arg screw_tools).yaml"/>
+					 )/../config/screw_tools.yaml"/>
 
   <param name="dynamixel_info"	value="$(arg screw_tools)"/>
 
