@@ -8,11 +8,10 @@
   <arg name="use_joint_state"	default="true"/>
   <arg name="use_cmd_vel"	default="false"/>
 
-  <arg name="num_controllers"	default="1"/>
-  <arg name="config_file"	default="$(dirname
+  <arg name="fastening_tools"	default="$(dirname
 					 )/../config/fastening_tools.yaml"/>
 
-  <param name="dynamixel_info"	value="$(arg config_file)"/>
+  <param name="dynamixel_info"	value="$(arg fastening_tools)"/>
 
   <node name="$(arg namespace)"
 	pkg="dynamixel_workbench_controllers"
@@ -34,15 +33,8 @@
   <node name="screw_tool_controller"
 	pkg="aist_fastening_tools" type="screw_tool_controller.py"
 	output="screen">
-    <param name="tools_info"	value="$(arg config_file)"/>
+    <param name="tools_info"	value="$(arg fastening_tools)"/>
     <param name="controller_ns"	value="$(arg namespace)"/>
   </node>
-
-  <arg name="suction_tools"	default="suction_tools"/>
-  <arg name="operation_mode"	default="operation_mode"/>
-  <include file="$(dirname)/suction_tool_controller.launch">
-    <param name="suction_tools"		value="$(arg suction_tools)"/>
-    <param name="operation_mode"	value="$(arg operation_mode)"/>
-  </include>
 
 </launch>
