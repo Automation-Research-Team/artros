@@ -1,22 +1,16 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_names"/>
-  <arg name="image_topics"/>
-  <arg name="marker_map_dir"	default="$(find aist_aruco_ros)/config"/>
-  <arg name="marker_map"	default="calib_board-6x4"/>
-  <arg name="marker_id"		default="-1"/>
-  <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
+  <arg name="camera_names"	default="live_camera"/>
+  <arg name="image_topics"	default="image_raw"/>
+  <arg name="config_file"	default="$(dirname)/../../config/aist.yaml"/>
   <arg name="manager"		default=""/>
 
   <!-- Start ArUco -->
-  <include file="$(find aist_aruco_ros)/launch/run_multi.launch">
+  <include file="$(find aist_aruco_ros)/launch/run_multi_with_cinfig.launch">
     <arg name="camera_names"	value="$(arg camera_names)"/>
     <arg name="image_topics"	value="$(arg image_topics)"/>
-    <arg name="marker_map_dir"	value="$(arg marker_map_dir)"/>
-    <arg name="marker_map"	value="$(arg marker_map)"/>
-    <arg name="marker_id"	value="$(arg marker_id)"/>
-    <arg name="marker_size"	value="$(arg marker_size)"/>
+    <arg name="config_file"	value="$(arg config_file)"/>
     <arg name="manager"		value="$(arg manager)"/>
   </include>
 

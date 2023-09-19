@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="detector_name"	default="aruco_multi_detector"/>
+  <arg name="camera_names"	default="live_camera"/>
+  <arg name="image_topics"	default="image_raw"/>
+  <arg name="config_file"	default="$(dirname
+					 )/../config/live_camera.yaml"/>
+  <arg name="manager"		default=""/>
+  <arg name="camera_no"		default="0"/>
+
+  <group unless="$(eval camera_no == len(camera_names.split(',')))">
+    <arg name="camera_name"
+	 value="$(eval camera_names.split(',')[camera_no].strip())"/>
+    <arg name="image_topic"
+	 value="$(eval image_topics.split(',')[camera_no].strip())"/>
+
+    <remap from="$(arg detector_name)/$(arg camera_name)/image"
+	   to="$(arg camera_name)/$(arg image_topic)"/>
+
+    <include file="$(dirname)/run_multi.launch">
+      <arg name="detector_name"	value="$(arg detector_name)"/>
+      <arg name="camera_names"	value="$(arg camera_names)"/>
+      <arg name="image_topics"	value="$(arg image_topics)"/>
+      <arg name="config_file"	value="$(arg config_file)"/>
+      <arg name="manager"	value="$(arg manager)"/>
+      <arg name="camera_no"	value="$(eval camera_no + 1)"/>
+    </include>
+  </group>
+
+  <group if="$(eval camera_no == len(camera_names.split(',')))">
+    <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
+    <arg unless="$(eval manager == '')"	name="command"	value="load"/>
+
+    <node name="$(arg detector_name)" pkg="nodelet" type="nodelet"
+  	  args="$(arg command) aist_aruco_ros/aruco_multi_detector
+		$(arg manager)">
+      <rosparam file="$(arg config_file)" subst_value="true"/>
+    </node>
+  </group>
+
+</launch>
