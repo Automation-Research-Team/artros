@@ -76,3 +76,24 @@ add_dependencies(dynamixel_controller
 target_link_libraries(dynamixel_controller
   ${catkin_LIBRARIES}
 )
+
+##########################################################################
+# Install
+##########################################################################
+install(
+  TARGETS
+    dynamixel_controller
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+catkin_install_python(
+  PROGRAMS
+    scripts/motor_id_setup.py
+    scripts/screw_tool_controller.py
+    scripts/screw_tool_test.py
+    scripts/suction_tool_controller.py
+    scripts/suction_tool_test.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

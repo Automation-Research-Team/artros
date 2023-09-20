@@ -74,10 +74,8 @@
 
     <!-- Launch suction controller -->
     <include ns="b_bot"
-	     file="$(find aist_suction_controller)/launch/run.launch">
-      <arg name="suction_control"	value="suction_control"/>
-      <arg name="operation_mode"	value="operation_mode"/>
-    </include>
+	     file="$(find aist_fastening_tools
+		   )/launch/suction_tool_controller.launch"/>
 
     <!-- Launch precision gripper -->
     <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->
