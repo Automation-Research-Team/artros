@@ -34,14 +34,14 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from actionlib                   import SimpleActionClient
-from actionlib_msgs.msg          import GoalStatus
-from numpy                       import clip
-from control_msgs.msg            import (GripperCommand, GripperCommandAction,
-                                         GripperCommandGoal)
-from aist_suction_controller.msg import (SuctionControlAction,
-                                         SuctionControlGoal)
-from std_msgs.msg                import Bool
+from actionlib                import SimpleActionClient
+from actionlib_msgs.msg       import GoalStatus
+from numpy                    import clip
+from control_msgs.msg         import (GripperCommand, GripperCommandAction,
+                                      GripperCommandGoal)
+from aist_fastening_tools.msg import (SuctionToolControlAction,
+                                      SuctionToolControlGoal)
+from std_msgs.msg             import Bool
 
 
 ######################################################################
@@ -256,11 +256,12 @@ class SuctionGripper(GripperClient):
     def __init__(self, name, action_ns, state_ns='', eject=False):
         super(SuctionGripper, self).__init__(
             *SuctionGripper._initargs(name, action_ns, state_ns, eject))
-        self._client    = SimpleActionClient(action_ns, SuctionControlAction)
+        self._client    = SimpleActionClient(action_ns,
+                                             SuctionToolControlAction)
         self._sub       = rospy.Subscriber(state_ns, Bool, self._state_cb)
         self._suctioned = False
         self._eject     = eject  # blow when releasing
-        self._goal      = SuctionControlGoal()
+        self._goal      = SuctionToolControlGoal()
         self._goal.tool_name       = 'suction_tool'
         self._goal.turn_suction_on = False
         self._goal.eject           = False

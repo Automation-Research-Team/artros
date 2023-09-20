@@ -19,7 +19,7 @@ grippers:
     type: SuctionGripper
     args:
       name: b_bot_gripper
-      action_ns: /b_bot/suction_controller/suction
+      action_ns: /b_bot/suction_tool_controller/suction_tool_control
       state_ns: /b_bot/suction_tool/suctioned
       eject: false
 
