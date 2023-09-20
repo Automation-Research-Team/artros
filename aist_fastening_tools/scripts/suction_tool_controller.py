@@ -37,8 +37,8 @@
 #
 import rospy
 from actionlib                import SimpleActionServer
-from aist_fastening_tools.msg import (SuctionToolControlAction,
-                                      SuctionToolControlResult)
+from aist_fastening_tools.msg import (SuctionToolCommandAction,
+                                      SuctionToolCommandResult)
 from ur_msgs.msg              import IOStates
 from ur_msgs.srv              import SetIO
 from std_msgs.msg             import Bool
@@ -80,8 +80,8 @@ class SuctionToolController(object):
                                                               queue_size=1)
 
         # action server for suction control
-        self._suction_srv = SimpleActionServer('~suction_tool_control',
-                                               SuctionToolControlAction,
+        self._suction_srv = SimpleActionServer('~command',
+                                               SuctionToolCommandAction,
                                                self._suction_tool_control_cb,
                                                False)
         self._suction_srv.start()
@@ -100,7 +100,7 @@ class SuctionToolController(object):
             self._out_state[read_out_status.pin] = read_out_status.state
 
     def _suction_tool_control_cb(self, goal):
-        res = SuctionToolControlResult()
+        res = SuctionToolCommandResult()
         res.success = True
 
         # yaml file check

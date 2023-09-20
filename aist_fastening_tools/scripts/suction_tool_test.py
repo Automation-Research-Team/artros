@@ -3,15 +3,15 @@
 import sys
 import rospy
 from actionlib                import SimpleActionClient
-from aist_fastening_tools.msg import (SuctionToolControlAction,
-                                      SuctionToolControlGoal)
+from aist_fastening_tools.msg import (SuctionToolCommandAction,
+                                      SuctionToolCommandGoal)
 
 class SuctionToolControllerClient:
     def suction(self, name, turn_suction_on, eject_screw):
-        client = SimpleActionClient('suction_tool_controller/suction_tool_control',
-                                    SuctionToolControlAction)
+        client = SimpleActionClient('suction_tool_controller/command',
+                                    SuctionToolCommandAction)
         client.wait_for_server()
-        goal = SuctionToolControlGoal()
+        goal = SuctionToolCommandGoal()
 
         goal.fastening_tool_name = name
         goal.turn_suction_on     = turn_suction_on

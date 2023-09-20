@@ -4,9 +4,9 @@ import threading
 import rospy
 
 from actionlib                      import ActionServer
-from aist_fastening_tools.msg       import (ScrewToolControlAction,
-                                            ScrewToolControlResult,
-                                            ScrewToolControlFeedback)
+from aist_fastening_tools.msg       import (ScrewToolCommandAction,
+                                            ScrewToolCommandResult,
+                                            ScrewToolCommandFeedback)
 from aist_utility.thread_with_trace import ThreadTrace
 from collections                    import deque
 
@@ -42,8 +42,7 @@ class ScrewToolController(object):
         self._dynamixel_command_write = rospy.ServiceProxy(service_name,
                                                            DynamixelCommand)
 
-        self._screw_srv = ActionServer('~screw_tool_control',
-                                       ScrewToolControlAction,
+        self._screw_srv = ActionServer('~command', ScrewToolCommandAction,
                                        goal_cb=self._goal_cb, auto_start=False)
         self._screw_srv.start()
 
@@ -120,8 +119,8 @@ class ScrewToolController(object):
         If double_check_after_tighten is True, after fastening has finished
         successfully, the screw is loosened once and then fastened again.
         """
-        result   = ScrewToolControlResult()
-        feedback = ScrewToolControlFeedback()
+        result   = ScrewToolCommandResult()
+        feedback = ScrewToolCommandFeedback()
         motor_id = self._screw_tools[goal.tool_name]
         result.control_result = True
         if not goal.speed:
