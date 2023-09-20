@@ -39,8 +39,8 @@ from actionlib_msgs.msg       import GoalStatus
 from numpy                    import clip
 from control_msgs.msg         import (GripperCommand, GripperCommandAction,
                                       GripperCommandGoal)
-from aist_fastening_tools.msg import (SuctionToolControlAction,
-                                      SuctionToolControlGoal)
+from aist_fastening_tools.msg import (SuctionToolCommandAction,
+                                      SuctionToolCommandGoal)
 from std_msgs.msg             import Bool
 
 
@@ -257,11 +257,11 @@ class SuctionGripper(GripperClient):
         super(SuctionGripper, self).__init__(
             *SuctionGripper._initargs(name, action_ns, state_ns, eject))
         self._client    = SimpleActionClient(action_ns,
-                                             SuctionToolControlAction)
+                                             SuctionToolCommandAction)
         self._sub       = rospy.Subscriber(state_ns, Bool, self._state_cb)
         self._suctioned = False
         self._eject     = eject  # blow when releasing
-        self._goal      = SuctionToolControlGoal()
+        self._goal      = SuctionToolCommandGoal()
         self._goal.tool_name       = 'suction_tool'
         self._goal.turn_suction_on = False
         self._goal.eject           = False
