@@ -1,14 +1,24 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="config"		default="aist"/>
+  <arg name="planar_reference"	default="false"/>
+  <arg if="$(arg planar_reference)"
+       name="config"		default="plane"/>
+  <arg unless="$(arg planar_reference)"
+       name="config"		default="aist"/>
   <arg name="ns"		default="/"/>
 
-  <node ns="$(arg ns)" name="run_calibration"
-	pkg="aist_camera_calibration" type="run_calibration.py"
+  <arg if="$(arg planar_reference)"
+       name="calibration_client"	value="run_plane_calibration"/>
+  <arg unless="$(arg planar_reference)"
+       name="calibration_client"	value="run_volume_calibration"/>
+
+  <node ns="$(arg ns)" name="$(arg calibration_client)"
+	pkg="aist_camera_calibration" type="$(arg calibration_client).py"
 	output="screen">
     <rosparam file="$(dirname)/../config/$(arg config).yaml"/>
-    <rosparam file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
+    <rosparam unless="$(arg planar_reference)"
+	      file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
   </node>
 
 </launch>

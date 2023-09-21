@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_names"	default="live_camera"/>
-  <arg name="image_topics"	default="image_raw"/>
-  <arg name="config_file"	default="$(dirname)/../../config/aist.yaml"/>
-  <arg name="manager"		default=""/>
+  <arg name="camera_names"/>
+  <arg name="image_topics"/>
+  <arg name="config_file"/>
+  <arg name="manager"/>
 
   <!-- Start ArUco -->
-  <include file="$(find aist_aruco_ros)/launch/run_multi_with_cinfig.launch">
+  <include file="$(find aist_aruco_ros)/launch/run_multi_with_config.launch">
     <arg name="camera_names"	value="$(arg camera_names)"/>
     <arg name="image_topics"	value="$(arg image_topics)"/>
     <arg name="config_file"	value="$(arg config_file)"/>
@@ -20,8 +20,8 @@
   <node name="camera_calibrator" pkg="nodelet" type="nodelet"
   	args="$(arg command) aist_camera_calibration/camera_calibrator
 	      $(arg manager)">
-    <remap from="/point_correspondences_list"
-	   to="/aruco_multi_detector/point_correspondences_list"/>
+    <remap from="/point_correspondences_set"
+	   to="/aruco_multi_detector/point_correspondences_set"/>
   </node>
 
 </launch>

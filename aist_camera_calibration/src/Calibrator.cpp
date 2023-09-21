@@ -161,11 +161,22 @@ class Calibrator
 	}
     };
 
+    struct to_camera_name
+    {
+	const std::string&
+	operator ()(const correses_msg_t& correses)		const	;
+    };
+
     struct to_camera_info
     {
+	to_camera_info(const ros::Time& stamp)	:_stamp(stamp)		{}
+
 	camera_info_t
 	operator ()(const camera_t& camera,
 		    const correses_msg_t& correses)		const	;
+
+      private:
+	const ros::Time	_stamp;
     };
 
     struct to_pose
@@ -367,25 +378,33 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	    			       *camera++, true);
 	}
 
-	_intrinsics.clear();
-	_poses.clear();
+	res.camera_names.clear();
+	res.intrinsics.clear();
+	res.poses.clear();
 
 	if (!_correspondences_sets.empty())
 	{
-	    const auto&	correspondences_set = _correspondences_sets.front();
+	    const auto&	correspondences_set = _correspondences_sets.front()
+					      .correspondences_set;
 
+	    std::transform(correspondences_set.cbegin(),
+			   correspondences_set.cend(),
+			   std::back_inserter(res.camera_names),
+			   to_camera_name());
 	    std::transform(cameras.cbegin(), cameras.cend(),
-			   correspondences_set.correspondences_set.cbegin(),
-			   std::back_inserter(_intrinsics), to_camera_info());
+			   correspondences_set.cbegin(),
+			   std::back_inserter(res.intrinsics),
+			   to_camera_info(ros::Time::now()));
 	    std::transform(cameras.cbegin(), cameras.cend(),
-			   correspondences_set.correspondences_set.cbegin(),
-			   std::back_inserter(_poses), to_pose());
+			   correspondences_set.cbegin(),
+			   std::back_inserter(res.poses), to_pose());
 	}
 
-	res.success    = true;
-	res.intrinsics = _intrinsics;
-	res.poses      = _poses;
-	res.error      = calibrator.reprojectionError();
+	res.success = true;
+	res.error   = calibrator.reprojectionError();
+
+	_intrinsics = res.intrinsics;
+	_poses	    = res.poses;
 
 	NODELET_INFO_STREAM('(' << getName()
 			    << ") Succesfully computed calibration with reprojection error: "
@@ -530,7 +549,9 @@ Calibrator::save_calibration(const correses_msg_t& correses,
 	    << YAML::EndMap;
 
     emitter << YAML::Key   << "distortion_model"
-	    << YAML::Value << intrinsic.distortion_model
+	    << YAML::Value << intrinsic.distortion_model;
+    emitter << YAML::Key   << "distortion_coefficients"
+	    << YAML::Value
 	    << YAML::BeginMap
 	    << YAML::Key   << "rows"
 	    << YAML::Value << 1
@@ -649,6 +670,15 @@ Calibrator::save_calibration(const correses_msg_t& correses,
 }
 
 /************************************************************************
+*  struct Calibrator::to_camera_name					*
+************************************************************************/
+const std::string&
+Calibrator::to_camera_name::operator()(const correses_msg_t& correses) const
+{
+    return correses.camera_name;
+}
+
+/************************************************************************
 *  struct Calibrator::to_camera_info					*
 ************************************************************************/
 Calibrator::camera_info_t
@@ -658,6 +688,7 @@ Calibrator::to_camera_info::operator()(const camera_t& camera,
     camera_info_t	camera_info;
 
     camera_info.header = correses.header;
+    camera_info.header.stamp = _stamp;
 
   // Set distortion parameters.
     camera_info.distortion_model = "plumb_bob";

@@ -74,6 +74,7 @@ include_directories(
 
 add_library(camera_calibrator
   src/Calibrator.cpp
+  src/CameraCalibrator.cpp
 )
 
 add_dependencies(camera_calibrator
@@ -99,14 +100,12 @@ install(
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-#catkin_install_python(
-#  PROGRAMS
-#    scripts/run_calibration.py
-#    scripts/check_calibration.py
-#    scripts/tool_calibration.py
-#    scripts/publish_calibration.py
-#  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#)
+catkin_install_python(
+  PROGRAMS
+    scripts/run_plane_calibration.py
+    scripts/run_volume_calibration.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/

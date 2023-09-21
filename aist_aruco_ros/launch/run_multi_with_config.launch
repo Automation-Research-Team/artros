@@ -18,7 +18,7 @@
     <remap from="$(arg detector_name)/$(arg camera_name)/image"
 	   to="$(arg camera_name)/$(arg image_topic)"/>
 
-    <include file="$(dirname)/run_multi.launch">
+    <include file="$(dirname)/run_multi_with_config.launch">
       <arg name="detector_name"	value="$(arg detector_name)"/>
       <arg name="camera_names"	value="$(arg camera_names)"/>
       <arg name="image_topics"	value="$(arg image_topics)"/>
@@ -35,6 +35,8 @@
     <node name="$(arg detector_name)" pkg="nodelet" type="nodelet"
   	  args="$(arg command) aist_aruco_ros/aruco_multi_detector
 		$(arg manager)">
+      <rosparam param="camera_names"
+		subst_value="true">[$(arg camera_names)]</rosparam>
       <rosparam file="$(arg config_file)" subst_value="true"/>
     </node>
   </group>
