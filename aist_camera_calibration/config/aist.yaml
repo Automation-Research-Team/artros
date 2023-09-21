@@ -1,8 +1,9 @@
-robot_name:          b_bot
-camera_parent_frame: workspace_center
 marker_map:          marker-26-70
 enclosed_marker:     false
 detection_mode:      0
+reference_frame:     workspace_center
+camera_parent_frame: workspace_center
+robot_name:          b_bot
 initpose:            [0.10,  0.10, 0.35, -180, 90, 0]
 keyposes:
   - [0.17,  0.15, 0.16, -150, 25, 0]

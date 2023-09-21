@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_name"	default="usb_cam"/>
+  <arg name="camera_name"	default="usb_camera"/>
   <arg name="image_topic"	default="image_raw"/>
   <arg name="manager"		default=""/>
 

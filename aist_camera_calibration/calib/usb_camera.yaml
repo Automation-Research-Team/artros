@@ -1,0 +1,9 @@
+child: usb_camera_optical_frame
+origin: !!python/tuple
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- -0.0
+- 0.0
+parent: usb_camera_optical_frame

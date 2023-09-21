@@ -134,42 +134,15 @@ class CameraCalibrationRoutines(object):
             rospy.logerr(res.message)
 
     def _save_camera_pose(self, camera_name, intrinsic, pose):
-        # Frame to which the camera attached
-        camera_parent_frame = rospy.get_param('~camera_parent_frame', '')
-        if camera_parent_frame == '':
-            return
-
-        # Get camera base frame whose parent is camera_parent_frame.
-        camera_frame      = intrinsic.header.frame_id
-        stamp             = intrinsic.header.stamp
-        reference_frame   = pose.header.frame_id
-        chain             = self._listener.chain(camera_parent_frame, stamp,
-                                                 camera_frame, stamp,
-                                                 camera_parent_frame)
-        camera_base_frame = chain[-2]
-
-        # Compute transform from camera base frame to its parent.
-        rTc = self._listener.fromTranslationRotation((pose.pose.position.x,
-                                                     pose.pose.position.y,
-                                                     pose.pose.position.z),
-                                                    (pose.pose.orientation.x,
-                                                     pose.pose.orientation.y,
-                                                     pose.pose.orientation.z,
-                                                     pose.pose.orientation.w))
-        pTr = self._listener.fromTranslationRotation(
-                                 *self._listener.lookupTransform(
-                                     camera_parent_frame,
-                                     reference_frame, stamp))
-        cTb = self._listener.fromTranslationRotation(
-                                 *self._listener.lookupTransform(
-                                     camera_frame, camera_base_frame, stamp))
-        pTb = tfs.concatenate_matrices(pTr, rTc, cTb)
-
-        # Convert the transform to xyz-rpy representation.
-        xyz  = list(map(float, tfs.translation_from_matrix(pTb)))
-        rpy  = list(map(float, tfs.euler_from_matrix(pTb)))
-        data = {'parent': camera_parent_frame,
-                'child' : camera_base_frame,
+        # Convert camera  pose to a transform with xyz-rpy representation.
+        xyz  = (pose.pose.position.x,
+                pose.pose.position.y, pose.pose.position.z)
+        rpy  = tfs.euler_from_quaternion((pose.pose.orientation.x,
+                                          pose.pose.orientation.y,
+                                          pose.pose.orientation.z,
+                                          pose.pose.orientation.w))
+        data = {'parent': pose.header.frame_id,
+                'child' : intrinsic.header.frame_id,
                 'origin': xyz + rpy}
         print(data)
         # Save the transform.
@@ -177,8 +150,8 @@ class CameraCalibrationRoutines(object):
                  + '/calib/' + camera_name + '.yaml'
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
-            rospy.loginfo('Saved transform from camera base frame[%s] to camera parent frame[%s] into %s'
-                          % (camera_base_frame, camera_parent_frame, filename))
+            rospy.loginfo('Saved transform from camera frame[%s] to reference frame[%s] into %s'
+                          % (data['child'], data['parent'], filename))
 
 
 ######################################################################
