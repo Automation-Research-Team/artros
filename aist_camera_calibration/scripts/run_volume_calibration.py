@@ -99,6 +99,7 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
             self.go_to_initpose()
         elif key == 'calib':
             self.calibrate()
+            self.go_to_named_pose(self._robot_name, 'home')
         else:
             return super(CameraCalibrationRoutines, self) \
                   .interactive(key, robot_name, axis, speed)
@@ -108,8 +109,7 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
         self._move(self._initpose, self._robot_effector_frame)
 
     def calibrate(self):
-        if self._reset:
-            self._reset()
+        self._reset()
 
         # Reset pose
         self.go_to_named_pose(self._robot_name, 'home')
@@ -122,23 +122,21 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
             self._move_to(keypose, i, 1)
             print('*** Keypose [%d/%d]: Completed. ***' % (i, len(keyposes)))
 
-        try:
-            res = self._compute_calibration()
-            print(res.message)
-            if res.success:
-                for camera_name, intrinsic, pose in zip(res.camera_names,
-                                                        res.intrinsics,
-                                                        res.poses):
-                    self._save_camera_pose(camera_name,
-                                           intrinsic.header.frame_id, pose)
-                print('Computed camera calibration with reprojection err[%f]'
-                      % res.error)
-                res = self._save_calibration()
-        except rospy.ServiceException as e:
-            rospy.logerr('Service call failed: %s' % e)
-        except Exception as e:
-            rospy.logerr(e)
-        self.go_to_named_pose(self._robot_name, 'home')
+        res = self._compute_calibration()
+        if not res.success:
+            rospy.logerr(res.message)
+            return
+        rospy.loginfo(res.message)
+
+        for camera_name, intrinsic, pose in zip(res.camera_names,
+                                                res.intrinsics, res.poses):
+            self._save_camera_pose(camera_name, intrinsic, pose)
+
+        res = self._save_calibration()
+        if res.success:
+            rospy.loginfo(res.message)
+        else:
+            rospy.logerr(res.message)
 
     # Move stuffs
     def _move_to(self, subpose, keypose_num, subpose_num):
@@ -177,7 +175,9 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
 
     def _save_camera_pose(self, camera_name, intrinsic, pose):
         # Frame to which the camera attached
-        camera_parent_frame = rospy.get_param('~camera_parent_frame')
+        camera_parent_frame = rospy.get_param('~camera_parent_frame', '')
+        if camera_parent_frame == '':
+            return
 
         # Get camera base frame whose parent is camera_parent_frame.
         camera_frame      = intrinsic.header.frame_id

@@ -209,7 +209,7 @@ class Calibrator
 		convert_correspondences_sets()			const	;
     correses_set_t<corres32_t>
 		rearrange_correspondences_sets()		const	;
-    bool	save_calibration(const correses_msg_t& correses,
+    void	save_calibration(const correses_msg_t& correses,
 				 const camera_info_t& intrinsic,
 				 const pose_t& pose)		const	;
 
@@ -295,20 +295,23 @@ Calibrator::corres_cb(const correses_set_msg_cp& correses_set_msg)
     if (!_take_sample_srv.isActive())
 	return;
 
-    const auto	ncameras = correses_set_msg->correspondences_set.size();
-
-    if (_correspondences_sets.size() > 0 &&
-	_correspondences_sets.front().correspondences_set.size() != ncameras)
+  // Check input correspondences set.
+    try
+    {
+	if (correses_set_msg->correspondences_set.empty())
+	    throw std::runtime_error("No cameras found in the input correspondences set");
+	for (const auto& correspondences
+		 : correses_set_msg->correspondences_set)
+	    if (correspondences.correspondences.empty())
+		throw std::runtime_error("No correspondences found for "
+					 + correspondences.camera_name);
+    }
+    catch (std::runtime_error& err)
     {
 	_take_sample_srv.setAborted();
 
-	NODELET_ERROR_STREAM('(' << getName()
-			     << ") ABORTED taking samples because #cameras["
-			     << ncameras
-			     << "] in the new data is different from that["
-			     << _correspondences_sets.front()
-			        .correspondences_set.size()
-			     << "] in the first data.");
+	NODELET_ERROR_STREAM('(' << getName() << ") ABORTED taking samples["
+			     << err.what() << ']');
 	return;
     }
 
@@ -335,10 +338,11 @@ Calibrator::get_sample_list(GetSampleList::Request&,
 			    GetSampleList::Response& res)
 {
     res.correspondences_sets = _correspondences_sets;
+    res.message = "GetSampleList: "
+		+ std::to_string(res.correspondences_sets.size())
+		+ " samples obtained";
 
-    NODELET_INFO_STREAM('(' << getName() << ") Get "
-			<< res.correspondences_sets.size()
-			<< " samples obtained");
+    NODELET_INFO_STREAM('(' << getName() << ") " << res.message);
     return true;
 }
 
@@ -398,23 +402,23 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 		       first_correspondences_set.cbegin(),
 		       std::back_inserter(res.poses), to_pose());
 
-	res.success = true;
 	res.error   = calibrator.reprojectionError();
+	res.success = true;
+	res.message = "ComputeCalibration: succesfully computed calibration with reprojection error["
+		    + std::to_string(res.error) + "(pix)]";
 
 	_intrinsics = res.intrinsics;
 	_poses	    = res.poses;
 
-	NODELET_INFO_STREAM('(' << getName()
-			    << ") Succesfully computed calibration with reprojection error: "
-			    << res.error << "(pix)");
+	NODELET_INFO_STREAM('(' << getName() << ") " << res.message);
     }
     catch (const std::exception& err)
     {
 	res.success = false;
+	res.message = "ComputeCalibration: failed to compute calibration["
+		    + std::string(err.what()) + ']';
 
-	NODELET_ERROR_STREAM('(' << getName()
-			     << ") Failed to compute calibration: "
-			     << err.what());
+	NODELET_ERROR_STREAM('(' << getName() << ") " << res.message);
     }
 
     return true;
@@ -425,24 +429,26 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 			     std_srvs::Trigger::Response& res)
 {
 
-    for (size_t i = 0; i < _intrinsics.size(); ++i)
-	if (!save_calibration(_correspondences_sets.front()
-			      .correspondences_set[i],
-			      _intrinsics[i], _poses[i]))
-	{
-	    res.success = false;
-	    res.message = "failed";
+    try
+    {
+	for (size_t i = 0; i < _intrinsics.size(); ++i)
+	    save_calibration(_correspondences_sets.front()
+			     .correspondences_set[i],
+			     _intrinsics[i], _poses[i]);
 
-	    NODELET_ERROR_STREAM('(' << getName()
-				 << ") Failed to save calibration");
+	res.success = true;
+	res.message = "SaveCalibration: succesfully saved";
 
-	    return true;
-	}
+	NODELET_INFO_STREAM('(' << getName() << ") " << res.message);
+    }
+    catch (const std::runtime_error& err)
+    {
+	res.success = false;
+	res.message = "SaveCalibration: failed to save calibration["
+		    + std::string(err.what()) + ']';
 
-    res.success = true;
-    res.message = "succeeded";
-
-    NODELET_INFO_STREAM('(' << getName() << ") Succesfully saved calibration");
+	NODELET_ERROR_STREAM('(' << getName() << ") " << res.message);
+    }
 
     return true;
 }
@@ -515,7 +521,7 @@ Calibrator::rearrange_correspondences_sets() const
     return correses_set;
 }
 
-bool
+void
 Calibrator::save_calibration(const correses_msg_t& correses,
 			     const camera_info_t& intrinsic,
 			     const pose_t& pose) const
@@ -632,40 +638,29 @@ Calibrator::save_calibration(const correses_msg_t& correses,
 
     emitter << YAML::EndMap;
 
-    try
-    {
-	namespace fs = std::filesystem;
+    namespace fs = std::filesystem;
 
-      // Check existence of calibration directory and create if not present.
-	const fs::path	calib_dir(std::string(getenv("HOME"))
+  // Check existence of calibration directory and create if not present.
+    const fs::path	calib_dir(std::string(getenv("HOME"))
 				  + "/.ros/camera_info");
-	if (!fs::exists(calib_dir))
-	    fs::create_directories(calib_dir);
-	else if (!fs::is_directory(calib_dir))
-	    throw std::runtime_error('\"' + calib_dir.string()
-				     + "\" exists but not a directory");
+    if (!fs::exists(calib_dir))
+	fs::create_directories(calib_dir);
+    else if (!fs::is_directory(calib_dir))
+	throw std::runtime_error('\"' + calib_dir.string()
+				 + "\" exists but not a directory");
 
-	const auto	calib_file = calib_dir
+    const auto		calib_file = calib_dir
 				   / fs::path(correses.camera_name + ".yaml");
-	std::ofstream	out(calib_file);
-	if (!out)
-	    throw std::runtime_error("cannot open " + calib_file.string()
-				     + ": " + strerror(errno));
+    std::ofstream	out(calib_file);
+    if (!out)
+	throw std::runtime_error("cannot open " + calib_file.string()
+				 + ": " + strerror(errno));
 
-      // Save calitration results.
-	out << emitter.c_str() << std::endl;
+  // Save calitration results.
+    out << emitter.c_str() << std::endl;
 
-	NODELET_INFO_STREAM('(' << getName() << ") SaveCalibration: saved in "
+    NODELET_INFO_STREAM('(' << getName() << ") SaveCalibration: saved in "
 			    << calib_file.string());
-    }
-    catch (const std::exception& err)
-    {
-	NODELET_ERROR_STREAM('(' << getName() << ") SaveCalibration: "
-			     << err.what());
-	return false;
-    }
-
-    return true;
 }
 
 /************************************************************************

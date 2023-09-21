@@ -1,6 +1,7 @@
 ---
-bool                        success
 string[]                    camera_names  # camera names
 sensor_msgs/CameraInfo[]    intrinsics    # camera intrinsics
 geometry_msgs/PoseStamped[] poses         # camera poses
 float64                     error         # reprojection error
+bool                        success
+string                      message

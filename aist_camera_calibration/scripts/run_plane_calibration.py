@@ -72,7 +72,6 @@ class CameraCalibrationRoutines(object):
             print('  RET: take sample')
             print('  g  : get sample list')
             print('  c  : compute calibration')
-            print('  s  : save calibration')
             print('  r  : reset and discard all samples')
 
             prompt = '>> '
@@ -99,7 +98,7 @@ class CameraCalibrationRoutines(object):
             return False
         result = self._take_sample.get_result()
 
-        rospy.loginfo('TakeSampleAction: SUCCEEDED')
+        rospy.loginfo(result.message)
         for correspondences in result.correspondences_set:
             print('  [%s] %d point correspondences w.r.t. %s'
                   % (correspondences.camera_name,
@@ -108,8 +107,7 @@ class CameraCalibrationRoutines(object):
 
     def get_sample_list(self):
         res = self._get_sample_list()
-        rospy.loginfo('GetSampleList: %d samples obtained'
-                      % len(res.correspondences_sets))
+        rospy.loginfo(res.message)
         for correspondences_set in res.correspondences_sets:
             for correspondences in correspondences_set.correspondences_set:
                 print('  [%s] %d point correspondences w.r.t. %s'
@@ -121,19 +119,19 @@ class CameraCalibrationRoutines(object):
     def compute_calibration(self):
         res = self._compute_calibration()
         if not res.success:
-            rospy.logerr('ComputeCalibration: failed')
+            rospy.logerr(res.message)
             return
+        rospy.loginfo(res.message)
 
         for camera_name, intrinsic, pose in zip(res.camera_names,
                                                 res.intrinsics, res.poses):
             self._save_camera_pose(camera_name, intrinsic, pose)
-        rospy.loginfo('ComputeCalibration: succeeded with reprojection err[%f]'
-                      % res.error)
+
         res = self._save_calibration()
         if res.success:
-            rospy.loginfo('SaveCalibration: succeeded')
+            rospy.loginfo(res.message)
         else:
-            rospy.logerr('SaveCalibration: failed')
+            rospy.logerr(res.message)
 
     def _save_camera_pose(self, camera_name, intrinsic, pose):
         # Frame to which the camera attached
