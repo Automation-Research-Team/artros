@@ -1,4 +1,4 @@
 camera_parent_frame: ''
-marker_map: calib_board-6x4
-enclosed_marker: true
-detection_mode: 0
+marker_map:          calib_board-6x4
+enclosed_marker:     true
+detection_mode:      0

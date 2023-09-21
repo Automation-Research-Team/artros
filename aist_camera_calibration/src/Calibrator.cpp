@@ -225,7 +225,6 @@ class Calibrator
     const ros::ServiceServer		_save_calibration_srv;
     const ros::ServiceServer		_reset_srv;
 
-    bool				_planar_reference;
     std::vector<correses_set_msg_t>	_correspondences_sets;
     std::vector<camera_info_t>		_intrinsics;
     std::vector<pose_t>			_poses;
@@ -248,7 +247,6 @@ Calibrator::Calibrator(const ros::NodeHandle& nh,
 	 _nh.advertiseService("save_calibration",
 			      &Calibrator::save_calibration, this)),
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
-     _planar_reference(_nh.param<bool>("planar_reference", true)),
      _correspondences_sets(),
      _intrinsics(),
      _poses()
@@ -318,15 +316,12 @@ Calibrator::corres_cb(const correses_set_msg_cp& correses_set_msg)
 
   // If using planar calibration object, set the reference frame of each
   // camera to the first camera frame.
-    if (_planar_reference)
-    {
-	auto&		correspondences_set = _correspondences_sets.back();
-	const auto	reference_frame = correspondences_set
-					 .correspondences_set.front()
-					 .header.frame_id;
-	for (auto&& correspondences : correspondences_set.correspondences_set)
-	    correspondences.reference_frame = reference_frame;
-    }
+    auto&	correspondences_set = _correspondences_sets.back();
+    const auto	first_camera_frame = correspondences_set.correspondences_set
+				    .front().header.frame_id;
+    for (auto&& correspondences : correspondences_set.correspondences_set)
+	if (correspondences.reference_frame.empty())
+	    correspondences.reference_frame = first_camera_frame;
 
     TakeSampleResult	result;
     result.correspondences_set = correses_set_msg->correspondences_set;
@@ -353,10 +348,20 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 {
     try
     {
+	if (_correspondences_sets.empty())
+	    throw std::runtime_error("No correspondence data available!");
+
+      // Take the first sample of correspondences set.
+	const auto& first_correspondences_set = _correspondences_sets.front()
+						.correspondences_set;
+
 	TU::CameraCalibrator<element_t>	calibrator;
 	TU::Array<camera_t>		cameras;
 
-	if (_planar_reference)
+      // If reference and camera frames are identical for the first camera,
+      // the calibration object is planar.
+	if (const auto& correspondences = first_correspondences_set.front();
+	    correspondences.reference_frame == correspondences.header.frame_id)
 	{
 	    const auto	correses_sets = convert_correspondences_sets();
 	    std::cerr << correses_sets;
@@ -382,23 +387,16 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	res.intrinsics.clear();
 	res.poses.clear();
 
-	if (!_correspondences_sets.empty())
-	{
-	    const auto&	correspondences_set = _correspondences_sets.front()
-					      .correspondences_set;
-
-	    std::transform(correspondences_set.cbegin(),
-			   correspondences_set.cend(),
-			   std::back_inserter(res.camera_names),
-			   to_camera_name());
-	    std::transform(cameras.cbegin(), cameras.cend(),
-			   correspondences_set.cbegin(),
-			   std::back_inserter(res.intrinsics),
-			   to_camera_info(ros::Time::now()));
-	    std::transform(cameras.cbegin(), cameras.cend(),
-			   correspondences_set.cbegin(),
-			   std::back_inserter(res.poses), to_pose());
-	}
+	std::transform(first_correspondences_set.cbegin(),
+		       first_correspondences_set.cend(),
+		       std::back_inserter(res.camera_names), to_camera_name());
+	std::transform(cameras.cbegin(), cameras.cend(),
+		       first_correspondences_set.cbegin(),
+		       std::back_inserter(res.intrinsics),
+		       to_camera_info(ros::Time::now()));
+	std::transform(cameras.cbegin(), cameras.cend(),
+		       first_correspondences_set.cbegin(),
+		       std::back_inserter(res.poses), to_pose());
 
 	res.success = true;
 	res.error   = calibrator.reprojectionError();
@@ -623,6 +621,7 @@ Calibrator::save_calibration(const correses_msg_t& correses,
 	    << YAML::Value << pose.pose.orientation.z
 	    << YAML::Key   << "qw"
 	    << YAML::Value << pose.pose.orientation.w
+	    << YAML::EndMap
 	    << YAML::EndMap;
 
     const auto	tval = time(nullptr);
