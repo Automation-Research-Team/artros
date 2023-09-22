@@ -128,6 +128,17 @@
   <xacro:wrist_cameras prefix="a_bot_"
   		       parent="a_bot_gripper_base_link"/>
 
+  <!-- Add live camera -->
+  <xacro:load_calibration filename="$(find aist_camera_calibration
+				    )/calib/live_camera.yaml"/>
+  <link name="live_camera_optical_frame"/>
+  <joint name="workspace_live_camera_joint" type="fixed">
+    <parent link="workspace_center"/>
+    <child  link="live_camera_optical_frame"/>
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
+  </joint>
+  
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
   <joint name="world_ground_joint" type="fixed">

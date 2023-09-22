@@ -14,7 +14,7 @@
   			parent="b_bot_gripper_base_link"
   			marker_id="26"
 			thickness="0.005">
-    <origin xyz="0.063 0.0 0.0215" rpy="0 0 0"/>
+    <origin xyz="0.063 0.0 0.0215" rpy="0 0 ${pi/2}"/>
   </xacro:ar_marker_70_5>
 
   <!-- <xacro:ar_marker_70_5 prefix="workspace_" -->
