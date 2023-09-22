@@ -37,12 +37,15 @@
 #
 import rospy, os
 import numpy as np
-import lib_robotis_xm430 as xm430
-from sensor_msgs.msg  import JointState
-from control_msgs.msg import (GripperCommandAction, GripperCommandGoal,
-                              GripperCommandResult, GripperCommandFeedback)
-from actionlib        import SimpleActionServer
-from collections      import namedtuple
+from aist_precision_gripper.robotis import (USB2Dynamixel_Device,
+                                            Robotis_Servo2)
+from sensor_msgs.msg                import JointState
+from control_msgs.msg               import (GripperCommandAction,
+                                            GripperCommandGoal,
+                                            GripperCommandResult,
+                                            GripperCommandFeedback)
+from actionlib                      import SimpleActionServer
+from collections                    import namedtuple
 
 #########################################################################
 #  class PrecisionGripperController                                     #
@@ -57,10 +60,10 @@ class PrecisionGripperController(object):
 
         # Hardware initialization
         serial_port = rospy.get_param('~serial_port', '/dev/USB0')
-        dynamixel   = xm430.USB2Dynamixel_Device(serial_port, baudrate=57600)
+        dynamixel   = USB2Dynamixel_Device(serial_port, baudrate=57600)
         rospy.loginfo('(%s) Starting up on serial port: %s' % (self._name,
                                                                serial_port))
-        self._servo = xm430.Robotis_Servo2(dynamixel, 1, series='XM')
+        self._servo = Robotis_Servo2(dynamixel, 1, series='XM')
         self._servo.set_operating_mode('currentposition')
         self._servo.set_positive_direction('cw')
 

@@ -180,7 +180,7 @@ class Sweep(SimpleActionClient):
         routines.add_marker("place_pose", target_pose)
         routines.publish_marker()
         success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
-                                                 goal.speed_slow)
+                                                 goal.speed_fast)
         if not self._server.is_active():
             return
         if not success:

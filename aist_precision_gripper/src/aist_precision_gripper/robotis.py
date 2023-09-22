@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # Copyright (c) 2016, Travis Deyle
 # All rights reserved.
 #
@@ -57,7 +55,7 @@
 
 import serial
 import time
-import thread
+import threading
 import sys, optparse
 import math
 import numpy as np
@@ -101,7 +99,7 @@ class USB2Dynamixel_Device():
         except:
             self.dev_name = dev_name # stores it as a /dev-mapped string for Linux / Mac
 
-        self.mutex = thread.allocate_lock()
+        self.mutex = threading.Lock()
         self.servo_dev = None
 
         self.acq_mutex()
@@ -136,7 +134,7 @@ class USB2Dynamixel_Device():
             self.servo_dev.flushOutput()
             self.servo_dev.flushInput()
 
-        except (serial.serialutil.SerialException), e:
+        except serial.SerialException as e:
             raise RuntimeError('lib_robotis: Serial port not found!\n')
         if(self.servo_dev == None):
             raise RuntimeError('lib_robotis: Serial port not found!\n')
@@ -178,7 +176,7 @@ class Robotis_Servo2():
         self.servo_id = servo_id
         try:
             self.protocol2_read_address( 0x07 )
-            print "Successfully found and connected to servo id "+str(servo_id)+"."
+            print("Successfully found and connected to servo id "+str(servo_id)+".")
         except:
             raise RuntimeError('lib_robotis: Error encountered.  Could not find ID (%d) on bus (%s), or USB2Dynamixel 3-way switch in wrong position.\n' %
                                ( servo_id, self.dyn.dev_name ))
@@ -188,11 +186,11 @@ class Robotis_Servo2():
             import servo_config as sc
             if sc.servo_param.has_key( self.servo_id ):
                 self.settings.update( sc.servo_param[ self.servo_id ])
-                print 'Loaded servo_config.py parameters.'
+                print('Loaded servo_config.py parameters.')
             else:
-                print 'Warning: Servo id not found in servo_config.py.  Using defaults. (Ignore this)'
+                print('Warning: Servo id not found in servo_config.py.  Using defaults. (Ignore this)')
         except:
-            print "Warning: servo_config.py not found.  Using defaults. (Ignore this)"'''
+            print("Warning: servo_config.py not found.  Using defaults. (Ignore this)")'''
 
 
     def init_cont_turn(self):
@@ -239,54 +237,54 @@ class Robotis_Servo2():
         return self.protocol2_write_address( 64, [0])
     #functions to set operating mode
     def set_operating_mode(self,mode):
-        if mode is "current":
+        if mode == "current":
             self.disable_torque()
             self.set_current( 0 )
             self.protocol2_write_address( 11, [0] )
             self.enable_torque()
-            print "Successfully changed to torque(current) control mode)"
-        elif mode is "position":
+            print("Successfully changed to torque(current) control mode)")
+        elif mode == "position":
             self.disable_torque()
             self.protocol2_write_address(11, [3])
             self.enable_torque()
-            print "Successfully changed to position control mode"
-        elif mode is "currentposition":
+            print("Successfully changed to position control mode")
+        elif mode == "currentposition":
             self.disable_torque()
             self.protocol2_write_address(11, [5])
             self.enable_torque()
-            print "Successfully changed to current position control mode"
+            print("Successfully changed to current position control mode")
         else:
-            print "Wrong keywords. No action is taken."
+            print("Wrong keywords. No action is taken.")
     def read_current_operating_mode( self ):
         params = self.protocol2_read_address( 11, 1 )
-        if params[0] is 0:
-            print "Current operating mode is torque(current) control mode."
-        elif params[0] is 3:
-            print "Current operating mode is position control mode."
-        elif params[0] is 5:
-            print "Current operating mode is current position control mode."
+        if params[0] == 0:
+            print("Current operating mode is torque(current) control mode.")
+        elif params[0] == 3:
+            print("Current operating mode is position control mode.")
+        elif params[0] == 5:
+            print("Current operating mode is current position control mode.")
         else:
-            print "Wrong keywords. Current operating mode is mode " + str(params[0])
+            print("Wrong keywords. Current operating mode is mode " + str(params[0]))
     #functions to reverse direction(for torque mode)
     def set_positive_direction(self,string):
-        if string is "cw":
+        if string == "cw":
             self.disable_torque()
             self.set_current( 0 )
             self.protocol2_write_address( 10, [1] )
             self.enable_torque()
-        elif string is "ccw":
+        elif string == "ccw":
             self.disable_torque()
             self.set_current( 0 )
             self.protocol2_write_address( 10, [0] )
             self.enable_torque()
         else:
-            print "Wrong keywords. No action taken."
+            print("Wrong keywords. No action taken.")
     def read_current_positive_direction( self ):
         params = self.protocol2_read_address( 10, 1 )
-        if params[0] is 0:
-            print "Current positive direction is ccw."
-        elif params[0] is 1:
-            print "Current positive direction is cw."
+        if params[0] == 0:
+            print("Current positive direction is ccw.")
+        elif params[0] == 1:
+            print("Current positive direction is cw.")
     #functions to control parameters
     #for torque(Current) control
     def set_current( self, val ):
@@ -414,13 +412,13 @@ class Robotis_Servo2():
 ######
 def find_servos(dyn):
     ''' Finds all servo IDs on the USB2Dynamixel '''
-    print 'Scanning for Servos.'
+    print('Scanning for Servos.')
     servos = []
     dyn.servo_dev.setTimeout( 0.03 ) # To make the scan faster
     for i in xrange(254):
         try:
             s = Robotis_Servo2( dyn, i, series='XM' )
-            print '\n FOUND A SERVO @ ID %d\n' % i
+            print('\n FOUND A SERVO @ ID %d\n' % i)
             servos.append( i )
         except:
             pass
@@ -434,7 +432,7 @@ if __name__ == '__main__':
 
     try:
         while True:
-            print p.read_torque()
+            print(p.read_torque())
     except KeyboardInterrupt:
         p.dyn.servo_dev.read(100)
         p.disable_torque()
