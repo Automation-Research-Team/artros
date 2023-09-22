@@ -8,8 +8,8 @@ grippers:
   a_bot_gripper:
     type: RobotiqGripper
     args:
-      prefix: a_bot_gripper_
-      effort: 5.0
+      prefix:   a_bot_gripper_
+      effort:   5.0
       velocity: 0.1
 #  a_bot_precision:
 #    type: PrecisionGripper
@@ -18,14 +18,14 @@ grippers:
   b_bot_gripper:
     type: SuctionGripper
     args:
-      name: b_bot_gripper
+      name:      b_bot_gripper
       action_ns: /b_bot/suction_tool_controller/command
-      state_ns: /b_bot/suction_tool/suctioned
+      state_ns:  /b_bot/suction_tool/suctioned
       eject: false
 
 cameras:
-  a_phoxi_m_camera: PhoXiCamera
-  a_bot_inside_camera: CodedLightRealSenseCamera
+  a_phoxi_m_camera:     PhoXiCamera
+  a_bot_inside_camera:  CodedLightRealSenseCamera
   a_bot_outside_camera: CodedLightRealSenseCamera
 
 moveit_eef_step: 0.002

@@ -135,12 +135,12 @@ class CameraCalibrationRoutines(object):
 
     def _save_camera_pose(self, camera_name, intrinsic, pose):
         # Convert camera  pose to a transform with xyz-rpy representation.
-        xyz  = (pose.pose.position.x,
-                pose.pose.position.y, pose.pose.position.z)
-        rpy  = tfs.euler_from_quaternion((pose.pose.orientation.x,
-                                          pose.pose.orientation.y,
-                                          pose.pose.orientation.z,
-                                          pose.pose.orientation.w))
+        xyz  = [pose.pose.position.x,
+                pose.pose.position.y, pose.pose.position.z]
+        rpy  = list(tfs.euler_from_quaternion((pose.pose.orientation.x,
+                                               pose.pose.orientation.y,
+                                               pose.pose.orientation.z,
+                                               pose.pose.orientation.w)))
         data = {'parent': pose.header.frame_id,
                 'child' : intrinsic.header.frame_id,
                 'origin': xyz + rpy}
@@ -150,8 +150,8 @@ class CameraCalibrationRoutines(object):
                  + '/calib/' + camera_name + '.yaml'
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
-            rospy.loginfo('Saved transform from camera frame[%s] to reference frame[%s] into %s'
-                          % (data['child'], data['parent'], filename))
+            rospy.loginfo('Saved transform from camera frame[%s] to reference frame[%s] in %s',
+                          data['child'], data['parent'], filename)
 
 
 ######################################################################

@@ -52,12 +52,15 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
     def __init__(self):
         super(CameraCalibrationRoutines, self).__init__()
 
-        self._camera_name = rospy.get_param('~camera_name', 'live_camera')
-        self._robot_name  = rospy.get_param('~robot_name', 'b_bot')
-        self._initpose    = rospy.get_param('~initpose', [])
-        self._keyposes    = rospy.get_param('~keyposes', [])
-        self._speed       = rospy.get_param('~speed', 1)
-        self._sleep_time  = rospy.get_param('~sleep_time', 0.5)
+        self._camera_name          = rospy.get_param('~camera_name',
+                                                     'live_camera')
+        self._robot_name           = rospy.get_param('~robot_name', 'b_bot')
+        self._initpose             = rospy.get_param('~initpose', [])
+        self._keyposes             = rospy.get_param('~keyposes', [])
+        self._speed                = rospy.get_param('~speed', 1)
+        self._sleep_time           = rospy.get_param('~sleep_time', 0.5)
+        self._robot_effector_frame = rospy.get_param('~robot_effector_frame',
+                                                     'b_bot_flange')
 
         ns = '/camera_calibrator'
         self._get_sample_list     = rospy.ServiceProxy(ns + '/get_sample_list',
@@ -145,7 +148,7 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
 
         rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
         self._take_sample.send_goal(TakeSampleGoal())
-        self.trigger_frame(self._camera_name)
+        # self.trigger_frame(self._camera_name)
         if not self._take_sample.wait_for_result(rospy.Duration(5.0)):
             self._take_sample.cancel_goal()  # timeout expired
             rospy.logerr('TakeSampleAction: timeout expired')
@@ -174,51 +177,24 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
         return success
 
     def _save_camera_pose(self, camera_name, intrinsic, pose):
-        # Frame to which the camera attached
-        camera_parent_frame = rospy.get_param('~camera_parent_frame', '')
-        if camera_parent_frame == '':
-            return
-
-        # Get camera base frame whose parent is camera_parent_frame.
-        camera_frame      = intrinsic.header.frame_id
-        stamp             = intrinsic.header.stamp
-        reference_frame   = pose.header.frame_id
-        chain             = self.listener.chain(camera_parent_frame, stamp,
-                                                camera_frame, stamp,
-                                                camera_parent_frame)
-        camera_base_frame = chain[-2]
-
-        # Compute transform from camera base frame to its parent.
-        rTc = self.listener.fromTranslationRotation((pose.pose.position.x,
-                                                     pose.pose.position.y,
-                                                     pose.pose.position.z),
-                                                    (pose.pose.orientation.x,
-                                                     pose.pose.orientation.y,
-                                                     pose.pose.orientation.z,
-                                                     pose.pose.orientation.w))
-        pTr = self.listener.fromTranslationRotation(
-                                *self.listener.lookupTransform(
-                                    camera_parent_frame,
-                                    reference_frame, stamp))
-        cTb = self.listener.fromTranslationRotation(
-                                *self.listener.lookupTransform(
-                                    camera_frame, camera_base_frame, stamp))
-        pTb = tfs.concatenate_matrices(pTr, rTc, cTb)
-
-        # Convert the transform to xyz-rpy representation.
-        xyz  = list(map(float, tfs.translation_from_matrix(pTb)))
-        rpy  = list(map(float, tfs.euler_from_matrix(pTb)))
-        data = {'parent': camera_parent_frame,
-                'child' : camera_base_frame,
+        # Convert camera  pose to a transform with xyz-rpy representation.
+        xyz  = [pose.pose.position.x,
+                pose.pose.position.y, pose.pose.position.z]
+        rpy  = list(tfs.euler_from_quaternion((pose.pose.orientation.x,
+                                               pose.pose.orientation.y,
+                                               pose.pose.orientation.z,
+                                               pose.pose.orientation.w)))
+        data = {'parent': pose.header.frame_id,
+                'child' : intrinsic.header.frame_id,
                 'origin': xyz + rpy}
-        print(data)
+        #print(data)
         # Save the transform.
         filename = rospkg.RosPack().get_path('aist_camera_calibration') \
                  + '/calib/' + camera_name + '.yaml'
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
-            rospy.loginfo('Saved transform from camera base frame[%s] to camera parent frame[%s] into %s'
-                          % (camera_base_frame, camera_parent_frame, filename))
+            rospy.loginfo('Saved transform from camera frame[%s] to reference frame[%s] in %s',
+                          data['child'], data['parent'], filename)
 
 
 ######################################################################
