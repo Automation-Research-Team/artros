@@ -235,8 +235,9 @@ class Robotis_Servo2():
 
     def disable_torque(self):
         return self.protocol2_write_address( 64, [0])
+
     #functions to set operating mode
-    def set_operating_mode(self,mode):
+    def set_operating_mode(self, mode):
         if mode == "current":
             self.disable_torque()
             self.set_current( 0 )
@@ -255,6 +256,7 @@ class Robotis_Servo2():
             print("Successfully changed to current position control mode")
         else:
             print("Wrong keywords. No action is taken.")
+
     def read_current_operating_mode( self ):
         params = self.protocol2_read_address( 11, 1 )
         if params[0] == 0:
@@ -265,6 +267,7 @@ class Robotis_Servo2():
             print("Current operating mode is current position control mode.")
         else:
             print("Wrong keywords. Current operating mode is mode " + str(params[0]))
+
     #functions to reverse direction(for torque mode)
     def set_positive_direction(self,string):
         if string == "cw":
@@ -279,14 +282,15 @@ class Robotis_Servo2():
             self.enable_torque()
         else:
             print("Wrong keywords. No action taken.")
+
     def read_current_positive_direction( self ):
         params = self.protocol2_read_address( 10, 1 )
         if params[0] == 0:
             print("Current positive direction is ccw.")
         elif params[0] == 1:
             print("Current positive direction is cw.")
-    #functions to control parameters
-    #for torque(Current) control
+
+    #functions to control parameters for torque(Current) control
     def set_current( self, val ):
         self.protocol2_write_address( 102, [ val & 0xff, (val>>8) & 0xff ])#2 for 2 bytes info
 
@@ -303,9 +307,11 @@ class Robotis_Servo2():
         #print params[0]
         #print (params[1] << 8)
         return (params[1] << 8) + params[0] #1<<8 becomes 256(10000000)
+
     #for position control
     def set_goal_position( self, val ):#between 0~4095 (for position control,restricted by parameter 48 & 52)
         self.protocol2_write_address( 116, [ val & 0xff, (val>>8) & 0xff, (val>>16) & 0xff, (val>>24) & 0xff])#4 bytes info
+
     def read_current_position(self):
         params = self.protocol2_read_address( 132, 4 )
         #print params
@@ -316,11 +322,11 @@ class Robotis_Servo2():
         #print params
         return (params[3] << 24)+(params[2] << 16)+(params[1] << 8) + params[0]
 
-
     def read_goal_position(self):
         params = self.protocol2_read_address( 116, 4 )
         #print params
         return (params[3] << 24)+(params[2] << 16)+(params[1] << 8) + params[0]
+
     #others
     def write_id(self, id):
         ''' changes the servo id (will turn off torque!)

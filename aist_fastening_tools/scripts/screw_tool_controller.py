@@ -27,7 +27,7 @@ class ScrewToolController(object):
 
         # initialize motor id table
         self._screw_tools          = dict()
-        self._tool_locks           = dict()  #
+        self._tool_locks           = dict()
         self._tool_being_preempted = dict()
         for name, props in rospy.get_param('~screw_tools').items():
             rospy.loginfo("Loaded " + name + " on motor id " + str(props['ID']))
