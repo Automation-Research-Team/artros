@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot name="screw_tool_m4"
+       xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="screw_tool_m4"
+	       params="prefix parent *origin">
+
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="${prefix}base_link">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+	<geometry>
+          <mesh filename="package://aist_fastening_tools/meshes/visual/screw_tool_m4_BC5-XL320-AY3.5-EH3R4.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="light_grey">
+	  <color rgba="0.8 0.8 0.8 1"/>
+	</material>
+      </visual>
+      <collision>
+	<origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+	<geometry>
+	  <mesh filename="package://aist_fastening_tools/meshes/collision/screw_tool_m4_simplified.stl" scale="0.0001 0.0001 0.0001"/>
+	</geometry>
+      </collision>
+      <inertial>
+	  <mass value="0.3"/>
+	  <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4"
+		   iyz="0.0" izz ="0.2"/>
+      </inertial>
+    </link>
+    <joint name="${prefix}base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <!-- A link representing the tip of the pad and a joint attaching
+	 it to the gripper -->
+    <link name="${prefix}tip_link"/>
+    <joint name="${prefix}tip_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}tip_link"/>
+      <origin xyz="0.120 0 0" rpy="0 0 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>
