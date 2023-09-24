@@ -172,7 +172,7 @@ class PrecisionGripperController(object):
             cur = self._min_cur if pos > pos_now else -self._min_cur
         rospy.loginfo('** Cmd(pos=%i, cur=%i) for position=%f, effort=%f',
                       pos, cur, position, effort)
-        self._set_value('Torque_Enable', cur)
+        self._set_value('Goal_Current',  cur)
         self._set_value('Goal_Position', pos)
         return pos
 
