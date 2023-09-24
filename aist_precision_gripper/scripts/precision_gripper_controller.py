@@ -37,35 +37,26 @@
 #
 import rospy, os
 import numpy as np
-from aist_precision_gripper.robotis import (USB2Dynamixel_Device,
-                                            Robotis_Servo2)
-from sensor_msgs.msg                import JointState
-from control_msgs.msg               import (GripperCommandAction,
-                                            GripperCommandGoal,
-                                            GripperCommandResult,
-                                            GripperCommandFeedback)
-from actionlib                      import SimpleActionServer
-from collections                    import namedtuple
 
-#########################################################################
-#  class PrecisionGripperController                                     #
-#########################################################################
+from sensor_msgs.msg              import JointState
+from control_msgs.msg             import (GripperCommandAction,
+                                          GripperCommandGoal,
+                                          GripperCommandResult,
+                                          GripperCommandFeedback)
+from actionlib                    import SimpleActionServer
+
+from dynamixel_workbench_msgs.msg import DynamixelState, DynamixelStateList
+from dynamixel_workbench_msgs.srv import DynamixelCommand
+
+
 class PrecisionGripperController(object):
-    Status = namedtuple('Status', 'pos vel cur mov')
-
     def __init__(self):
         super(PrecisionGripperController, self).__init__()
 
         self._name = rospy.get_name()
 
-        # Hardware initialization
-        serial_port = rospy.get_param('~serial_port', '/dev/USB0')
-        dynamixel   = USB2Dynamixel_Device(serial_port, baudrate=57600)
-        rospy.loginfo('(%s) Starting up on serial port: %s' % (self._name,
-                                                               serial_port))
-        self._servo = Robotis_Servo2(dynamixel, 1, series='XM')
-        self._servo.set_operating_mode('currentposition')
-        self._servo.set_positive_direction('cw')
+        # Read motor id
+        self._motor_id = rospy.get_param('~ID')
 
         # Read timeout value for checking stalled state
         self._stall_timeout = rospy.Duration.from_sec(
@@ -82,8 +73,22 @@ class PrecisionGripperController(object):
         self._min_cur = rospy.get_param('~min_effort_count',   3)
         self._max_cur = rospy.get_param('~max_effort_count',   13)
 
+        # Create a subscriber for receiving state of Dynamixel driver.
+        driver_ns = rospy.get_param("~driver_ns")
+        self._dynamixel_state_topic = driver_ns + '/dynamixel_state'
+        self._dynamixel_state       = None
+        self._dynamixel_state_sub = rospy.Subscriber(
+                                        self._dynamixel_state_topic,
+                                        rospy.AnyMsg,
+                                        self._test_dynamixel_state_cb)
+
+        # Create a service client for sending command to Dynamixel driver
+        service_name = driver_ns + '/dynamixel_command'
+        self._dynamixel_command = rospy.ServiceProxy(service_name,
+                                                           DynamixelCommand)
+        rospy.wait_for_service(service_name)
+
         # Publish joint state
-        self._joint_name      = rospy.get_param('~joint_name', 'finger_joint')
         self._joint_state_pub = rospy.Publisher('/joint_states',
                                                 JointState, queue_size=1)
 
@@ -95,58 +100,74 @@ class PrecisionGripperController(object):
         self._server.start()
         self._goal_pos = 0
 
-        # Status timer
-        rate = rospy.get_param('~publish_rate', 50)
-        self._timer = rospy.Timer(rospy.Duration(1.0/rate), self._timer_cb)
+        rospy.loginfo('(%s) controller started', self._name)
 
-        rospy.loginfo('(%s) Started' % self._name)
+    def _test_dynamixel_state_cb(self, data):
+        '''
+        This function is executed when a message is received by _state_sub.
+        It determines the actual ROS message type that is used in the topic
+        and creates a subscriber with the
+        given type, to read the status of the motors.
+        '''
+        message_type = data._connection_header['type']
+        self._dynamixel_state_sub.unregister()
+        if message_type == 'dynamixel_workbench_msgs/DynamixelStateList':
+            self._dynamixel_state     = DynamixelStateList()
+            self._dynamixel_state_sub = rospy.Subscriber(
+                                            self._dynamixel_state_topic,
+                                            DynamixelStateList,
+                                            self._dynamixel_state_list_cb)
+        elif message_type == 'dynamixel_workbench_msgs/DynamixelState':
+            self._dynamixel_state     = DynamixelState()
+            self._dynamixel_state_sub = rospy.Subscriber(
+                                            self._dynamixel_state_topic,
+                                            DynamixelState,
+                                            self._dynamixel_state_cb)
+        else:
+            rospy.logerr('(%s) unexpected message type[%s]',
+                         self._name, message_type)
 
-    def _timer_cb(self, timer_event):
-        # Get current status of gripper
-        try:
-            status = self._get_status()
-        except Exception as e:
-            rospy.logerr('(%s) failed to get status: %s' % (self._name, e))
-            if self._server.is_active():
-                rospy.logerr('(%s) aborted goal' % self._name)
-                self._server.set_aborted()
-            return
+    def _dynamixel_state_list_cb(self, state_list):
+        self._dynamixel_state_cb(state_list.dynamixel_state[0])
 
-        # Publish joint states
+    def _dynamixel_state_cb(self, state):
+        # Keep new state
+        self._dynamixel_state = state
+
+        # Publish joint state
         joint_state = JointState()
         joint_state.header.stamp = rospy.Time.now()
-        joint_state.name         = [self._joint_name]
-        joint_state.position     = [self._position(status)]
+        joint_state.name         = [state.name + '_finger_joint']
+        joint_state.position     = [self._position(state)]
         joint_state.velocity     = [0.0]
-        joint_state.effort       = [self._effort(status)]
-        # self._joint_state_pub.publish(joint_state)
+        joint_state.effort       = [self._effort(state)]
+        self._joint_state_pub.publish(joint_state)
 
         # Handle active goal
         if self._server.is_active():
-            rospy.loginfo(status)
-
             self._server.publish_feedback(
-                GripperCommandFeedback(*self._status_values(status)))
+                GripperCommandFeedback(*self._state_values(state)))
 
-            if self._is_moving(status):
+            if self._is_moving(state):
                 self._last_movement_time = rospy.Time.now()
-            elif self._reached_goal(status):
-                rospy.loginfo('(%s) reached goal' % self._name)
+            elif self._reached_goal(state):
                 self._server.set_succeeded(
-                    GripperCommandResult(*self._status_values(status)))
-            elif self._stalled(status):
-                rospy.loginfo('(%s) stalled' % self._name)
+                    GripperCommandResult(*self._state_values(state)))
+                rospy.loginfo('(%s) SUCCEEDED: reached goal position',
+                              self._name)
+            elif self._stalled(state):
                 self._server.set_succeeded(
-                    GripperCommandResult(*self._status_values(status)))
+                    GripperCommandResult(*self._state_values(state)))
+                rospy.loginfo('(%s) SUCCEEDED: stalled', self._name)
 
     def _goal_cb(self):
         goal = self._server.accept_new_goal()  # requested goal
-        rospy.loginfo('(%s) accepted new goal' % self._name)
+        rospy.loginfo('(%s) ACCEPTED new goal', self._name)
 
         # Check that preempt has not been requested by the client
         if self._server.is_preempt_requested():
-            rospy.logwarn('(%s) preempt requested' % self._name)
             self._server.set_preempted()
+            rospy.logwarn('(%s) PREEMPT REQUESTED', self._name)
             return
 
         try:
@@ -154,14 +175,13 @@ class PrecisionGripperController(object):
             self._goal_pos = self._send_move_command(goal.command.position,
                                                      goal.command.max_effort)
         except Exception as e:
-            rospy.logerr('(%s) failed to send move command: %s' % (self._name,
-                                                                   e))
-            rospy.logerr('(%s) aborted goal' % self._name)
+            rospy.logerr('(%s) failed to send move command: %s', self._name, e)
             self._server.set_aborted()
+            rospy.logerr('(%s) ABORTED goal', self._name)
 
     def _preempt_cb(self):
         self._stop()
-        rospy.logwarn('(%s) preempted' % self._name)
+        rospy.logwarn('(%s) PREEMPTED', self._name)
         self._server.set_preempted()
 
     def _send_move_command(self, position, effort):
@@ -171,48 +191,53 @@ class PrecisionGripperController(object):
         cur = np.clip(int(effort / self.effort_per_tick),
                       -self._max_cur, self._max_cur)
         if abs(cur) < self._min_cur:
-            pos_now = np.int32(self._servo.read_current_position())
+            pos_now = np.int32(self._position(self._dynamixel_state))
             cur = self._min_cur if pos > pos_now else -self._min_cur
-        rospy.loginfo('** Cmd(pos={}, cur={}) for position={}, effort={}'
-                      .format(pos, cur, position, effort))
-        self._servo.set_current(cur)
-        self._servo.set_goal_position(pos)
+        rospy.loginfo('** Cmd(pos=%i, cur=%i) for position=%f, effort=%f',
+                      pos, cur, position, effort)
+        self._set_value('Torque_Enable', cur)
+        self._set_value('Goal_Position', pos)
         return pos
 
-    def _stop(self):
-        self._servo.set_current(0)
+    def _set_value(self, addr_name, value):
+        try:
+            res = self._dynamixel_command('', self._motor_id, addr_name, value)
+        except rospy.ServiceException as err:
+            rospy.logerr('(%s) failed to set value[%i] to %s: %s',
+                         self._name, value, addr_name, err)
+            return False
 
-    def _get_status(self):
-        return PrecisionGripperController.Status(
-                   np.int32(self._servo.read_current_position()),
-                   np.int32(self._servo.read_current_velocity()),
-                   np.int16(self._servo.read_current()),
-                   self._servo.is_moving())
+        if res.comm_result:
+            rospy.loginfo("(%s) succesfully set value[%i] to %s",
+                          self._name, value, addr_name)
+        else:
+            rospy.logerr('(%s) communication error when setting value[%i] to %s',
+                         self._name, value, addr_name)
+        return res.comm_result
 
-    def _position(self, status):
-        return (status.pos - self._min_pos) * self.position_per_tick \
+    def _position(self, state):
+        return (state.present_position - self._min_pos) \
+             * self.position_per_tick \
              + self._min_position
 
-    def _effort(self, status):
-        return status.cur * self.effort_per_tick
+    def _effort(self, state):
+        return state.present_current * self.effort_per_tick
 
-    def _is_moving(self, status):
-        return status.mov
+    def _is_moving(self, state):
+        return state.present_velocity != 0
 
-    def _reached_goal(self, status):
-        return (not status.mov) and abs(status.pos - self._goal_pos) <= 1
+    def _reached_goal(self, state):
+        return (not self._is_moving(state)) and \
+               abs(state.present_position - self._goal_pos) <= 1
 
-    def _stalled(self, status):
-        return (not status.mov) and \
+    def _stalled(self, state):
+        return (not self._is_moving(state)) and \
                (rospy.Time.now() - self._last_movement_time >
                 self._stall_timeout)
 
-    def _status_values(self, status):
-        return self._position(status), self._effort(status), \
-               self._stalled(status),  self._reached_goal(status)
-
-    def _error(self, status):
-        return status.err
+    def _state_values(self, state):
+        return self._position(state), self._effort(state), \
+               self._stalled(state),  self._reached_goal(state)
 
     @property
     def position_per_tick(self):
@@ -226,8 +251,5 @@ class PrecisionGripperController(object):
 
 if __name__ == '__main__':
     rospy.init_node('precision_gripper_controller')
-    try:
-        controller = PrecisionGripperController()
-        rospy.spin()
-    except Exception as e:
-        rospy.logerr(e)
+    controller = PrecisionGripperController()
+    rospy.spin()

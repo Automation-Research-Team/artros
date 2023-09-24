@@ -1,16 +1,36 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"		default="a_bot_gripper_"/>
-  <arg name="serial_port"	default="/dev/ttyUSB0"/>
-  <arg name="publish_rate"	default="50"/>
+  <arg name="prefix"		default="precision_gripper_"/>
+  <arg name="driver_ns"		default="$(arg prefix)driver"/>
+  <arg name="usb_port"		default="/dev/ttyUSB0"/>
+  <arg name="dxl_baud_rate"	default="57600"/>
 
-  <!-- Spawn controller -->
+  <param name="dynamixel_info"	value="$(dirname
+					 )/../config/dynamixel_info.yaml"/>
+
+  <!-- Spawn Dynamixel controller -->
+  <node name="$(arg driver_ns)"
+	pkg="dynamixel_workbench_controllers"
+	type="dynamixel_workbench_controllers"
+        output="screen" args="$(arg usb_port) $(arg dxl_baud_rate)">
+    <param name="use_moveit"		 value="false"/>
+    <param name="use_joint_states_topic" value="false"/>
+    <param name="use_cmd_vel_topic"	 value="false"/>
+    <rosparam>
+      publish_period:   0.010
+      dxl_read_period:  0.010
+      dxl_write_period: 0.010
+    </rosparam>
+  </node>
+
+  <!-- Spawn gripper action controller -->
   <node name="$(arg prefix)controller"
         pkg="aist_precision_gripper" type="precision_gripper_controller.py"
         output="screen" respawn="false">
-    <rosparam file="$(dirname)/../config/precision_gripper.yaml"
-              subst_value="true"/>
+    <param name="driver_ns"	value="$(arg driver_ns)"/>
+    <rosparam name="precision_gripper"
+	      file="$(dirname)/../config/precision_gripper.yaml"/>
   </node>
 
 </launch>

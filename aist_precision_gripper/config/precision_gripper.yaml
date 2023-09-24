@@ -1,6 +1,4 @@
-serial_port:  $(arg serial_port)
-publish_rate: $(arg publish_rate)
-joint_name:   $(arg prefix)finger_joint
+ID:         1
 
 stall_timeout: 1.0
 

@@ -15,9 +15,9 @@ find_package(
       actionlib_msgs
       control_msgs
       sensor_msgs
+      dynamixel_workbench_msgs
+      dynamixel_workbench_toolbox
 )
-
-catkin_python_setup()
 
 ###############################################################################
 # Declare catkin specific configuration to be passed to dependent projects
@@ -28,6 +28,8 @@ catkin_package(
     actionlib_msgs
     control_msgs
     sensor_msgs
+    dynamixel_workbench_msgs
+    dynamixel_workbench_toolbox
 )
 
 catkin_install_python(
