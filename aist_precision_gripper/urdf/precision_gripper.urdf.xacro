@@ -2,7 +2,7 @@
   <xacro:macro name="precision_gripper"
 	       params="prefix grippername parent *origin">
     <xacro:property name="mesh_file"
-		    value="package://o2as_precision_gripper/meshes/precision_gripper.stl"/>
+		    value="package://aist_precision_gripper/meshes/precision_gripper.stl"/>
 
     <link name="${prefix}${grippername}_base_link">
       <inertial>
