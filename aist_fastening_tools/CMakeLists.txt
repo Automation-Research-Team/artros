@@ -9,7 +9,7 @@ project(aist_fastening_tools)
 ##########################################################################
 find_package(
   catkin REQUIRED COMPONENTS
-  dynamixel_workbench
+  dynamixel_workbench_controllers
   dynamixel_workbench_msgs
   message_generation
   genmsg
@@ -40,7 +40,7 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS
     rospy
-    dynamixel_workbench
+    dynamixel_workbench_controllers
     dynamixel_workbench_msgs
     message_runtime
     actionlib_msgs
@@ -55,7 +55,6 @@ catkin_package(
 ##########################################################################
 catkin_install_python(
   PROGRAMS
-    scripts/motor_id_setup.py
     scripts/screw_tool_controller.py
     scripts/screw_tool_test.py
     scripts/suction_tool_controller.py
