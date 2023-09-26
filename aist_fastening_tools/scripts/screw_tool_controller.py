@@ -24,7 +24,6 @@ class ScrewToolController(object):
         # initialize motor id table
         self._motor_ids = {}
         self._locks     = {}
-        self._is_busy   = {}
         for tool_name, tool_props in rospy.get_param('~screw_tools').items():
             self._motor_ids[tool_name] = tool_props['ID']
             self._locks[tool_name]     = threading.Lock()
