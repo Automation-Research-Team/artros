@@ -15,8 +15,8 @@ find_package(
       actionlib_msgs
       control_msgs
       sensor_msgs
+      dynamixel_workbench
       dynamixel_workbench_msgs
-      dynamixel_workbench_toolbox
 )
 
 ###############################################################################
@@ -28,8 +28,8 @@ catkin_package(
     actionlib_msgs
     control_msgs
     sensor_msgs
+    dynamixel_workbench
     dynamixel_workbench_msgs
-    dynamixel_workbench_toolbox
 )
 
 catkin_install_python(

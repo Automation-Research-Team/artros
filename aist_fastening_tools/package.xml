@@ -15,8 +15,8 @@
   <exec_depend>message_runtime</exec_depend>
 
   <depend>rospy</depend>
+  <depend>dynamixel_workbench</depend>
   <depend>dynamixel_workbench_msgs</depend>
-  <depend>dynamixel_workbench_toolbox</depend>
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
 

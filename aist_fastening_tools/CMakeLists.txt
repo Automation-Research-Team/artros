@@ -9,8 +9,8 @@ project(aist_fastening_tools)
 ##########################################################################
 find_package(
   catkin REQUIRED COMPONENTS
+  dynamixel_workbench
   dynamixel_workbench_msgs
-  dynamixel_workbench_toolbox
   message_generation
   genmsg
   actionlib
@@ -40,8 +40,8 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS
     rospy
+    dynamixel_workbench
     dynamixel_workbench_msgs
-    dynamixel_workbench_toolbox
     message_runtime
     actionlib_msgs
 )

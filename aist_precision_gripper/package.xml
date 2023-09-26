@@ -18,7 +18,7 @@
   <depend>actionlib_msgs</depend>
   <depend>control_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>dynamixel_workbench_toolbox</depend>
+  <depend>dynamixel_workbench</depend>
   <depend>dynamixel_workbench_msgs</depend>
 
 </package>
