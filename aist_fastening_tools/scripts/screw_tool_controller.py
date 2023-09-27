@@ -20,13 +20,14 @@ class ScrewToolController(object):
         super(ScrewToolController, self).__init__()
 
         self._name = rospy.get_name()
+        self._lock = threading.RLock()  # Protect self._active_goal_handles
 
         # initialize motor id table
-        self._motor_ids = {}
-        self._locks     = {}
+        self._motor_ids    = {}
+        self._goal_handles = {}
         for tool_name, tool_props in rospy.get_param('~screw_tools').items():
-            self._motor_ids[tool_name] = tool_props['ID']
-            self._locks[tool_name]     = threading.Lock()
+            self._motor_ids[tool_name]          = tool_props['ID']
+            self._active_goal_handles[tool_name] = None
             rospy.loginfo("(%s) Loaded %s with id=%d",
                           self._name, tool_name, self._motor_ids[tool_name])
 
@@ -52,43 +53,36 @@ class ScrewToolController(object):
 
     def _state_list_cb(self, state_list):
         """
-        This function is executed when a message is received by _listener.
-        It stores the status of the motors connected to the controller.
+        This function is executed when a message is received by
+        _dynamixel_state_sub. It stores the status of the motors connected
+        to the controller.
         """
         self._dynamixel_states = state_list.dynamixel_state
 
     def _goal_cb(self, goal_handle):
-        goal_handle.set_accepted()
-        rospy.loginfo('(%s) new goal ACCEPTED for %s',
-                      self._name, goal_handle.get_goal().tool_name)
-
-        goal_thread = ThreadTrace(target=self.acquire_lock_and_execute_control,
-                                  args=[goal_handle])
-        goal_thread.daemon = True
-        goal_thread.start()
-        return True
-
-    def acquire_lock_and_execute_control(self, goal_handle,
-                                         double_check_after_tighten=True):
-        """
-        Acquires and releases the tool-specific thread lock.
-        This avoids commands sent to a single tool to overlap.
-        """
         goal = goal_handle.get_goal()
 
-        if goal.tool_name not in self._locks:
+        if goal.tool_name not in self._active_goal_handles:
             goal_handle.set_rejected()
             rospy.logerr('(%s) goal REJECTED: tool named %s not found',
                          self._name, goal.tool_name)
-            return False
+            return
 
-        rospy.loginfo("(%s) Trying to acquire lock for %s",
+        if self._active_goal_handles[goal.tool_name] is not None:
+            goal_handle.set_rejected()
+            rospy.logerr('(%s) goal REJECTED: tool named %s is busy',
+                         self._name, goal.tool_name)
+            return
+
+        goal_handle.set_accepted()
+        rospy.loginfo('(%s) new goal ACCEPTED for %s',
                       self._name, goal.tool_name)
-        self._locks[goal.tool_name].acquire()
-        success = self.execute_control(goal_handle, double_check_after_tighten)
-        self._locks[goal.tool_name].release()
-        rospy.loginfo("(%s) Lock released for %s", self._name, goal.tool_name)
-        return success
+
+        goal_thread = ThreadTrace(target=self.execute_control,
+                                  args=[goal_handle])
+        goal_thread.daemon = True
+        goal_thread.start()
+        return
 
     def execute_control(self, goal_handle, double_check_after_tighten=True):
         """
@@ -96,6 +90,9 @@ class ScrewToolController(object):
         If double_check_after_tighten is True, after fastening has finished
         successfully, the screw is loosened once and then fastened again.
         """
+        with self._lock:
+            self._active_goal_handles[goal.tool_name] = goal_handle
+
         goal = goal_handle.get_goal()
         if not goal.speed:
             goal.speed = 1023  # Maximum speed
@@ -180,13 +177,14 @@ class ScrewToolController(object):
                 break
 
             # Read motor speed.
-            speed = self._get_present_speed(motor_id)
-            if speed < 0:
+            state = self._get_dynamixel_state(motor_id)
+            if state is None:
                 result.success = False
                 goal_handle.set_aborted(result)
                 rospy.logerr("(%s) goal ABORTED: error in motor readout",
                               self._name)
                 break
+            speed = state.current_velocity
             speed_readings.append(speed)
 
             # If both readings are below an arbitrary threshold,
@@ -223,17 +221,24 @@ class ScrewToolController(object):
         return res.comm_result
 
     def _get_present_speed(self, motor_id):
-        # Wait for the current state top be available
-        while not self._dynamixel_states:
-            rospy.sleep(0.1)
+        state = self._get_dynamixel_state(motor_id)
+        return state.present_velocity if state is not None else None
+
+    def _get_present_current(self, motor_id):
+        state = self._get_dynamixel_state(motor_id)
+        return state.present_current if state is not None else None
+
+    def _get_dynamixel_state(self. motor_id):
+        if not self._dynamixel_states:
+            return None
 
         states = [state for state in self._dynamixel_states
                   if state.id == motor_id]
         if not states:
             rospy.logerr('(%s) dynamixel state with ID=%i not found in state list',
                          self._name, motor_id)
-            return -1
-        return states[0].present_velocity
+            return None
+        return states[0]
 
 
 if __name__ == '__main__':

@@ -51,8 +51,6 @@ class ScrewToolTest(object):
         goal.tighten   = tighten
         self._client.send_goal_and_wait(goal,
                                         rospy.Duration(10), rospy.Duration(10))
-        self._client.wait_for_result()
-
         return self._client.get_result()
 
 
