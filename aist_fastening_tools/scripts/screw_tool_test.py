@@ -10,7 +10,7 @@ from aist_utility.compat      import *
 
 class ScrewToolTest(object):
     def __init__(self):
-        self._client = SimpleActionClient('screw_tool_controller/command',
+        self._client = SimpleActionClient('/screw_tool_controller/command',
                                           ScrewToolCommandAction)
         self._client.wait_for_server()
 
@@ -32,9 +32,9 @@ class ScrewToolTest(object):
             if key == 'q':
                 break
             elif key == 't':
-                self._send_command(tool_name, 'tighten')
+                self._send_command(tool_name, True, speed)
             elif key == 'l':
-                self._send_command(tool_name, 'loosen')
+                self._send_command(tool_name, False, speed)
             elif key == 's':
                 speed = np.clip(int(raw_input('  speed? ')), 0, 1023)
             elif key == '3':
@@ -44,11 +44,11 @@ class ScrewToolTest(object):
             else:
                 print('Unknown command[%s]' % key)
 
-    def _send_command(self, tool_name, speed, direction):
+    def _send_command(self, tool_name, tighten, speed):
         goal = ScrewToolCommandGoal()
-        goal.fastening_tool_name = tool_name
-        goal.speed               = speed
-        goal.direction           = direction
+        goal.tool_name = tool_name
+        goal.speed     = speed
+        goal.tighten   = tighten
         self._client.send_goal_and_wait(goal,
                                         rospy.Duration(10), rospy.Duration(10))
         self._client.wait_for_result()

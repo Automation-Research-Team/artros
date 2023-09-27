@@ -4,7 +4,7 @@ import threading, rospy
 import numpy as np
 
 from actionlib                      import ActionServer
-from actionlib_msgs                 import GoalStatus
+from actionlib_msgs.msg             import GoalStatus
 from aist_fastening_tools.msg       import (ScrewToolCommandAction,
                                             ScrewToolCommandResult,
                                             ScrewToolCommandFeedback)
@@ -42,7 +42,7 @@ class ScrewToolController(object):
         self._dynamixel_command = rospy.ServiceProxy(driver_ns
                                                      + '/dynamixel_command',
                                                      DynamixelCommand)
-        rospy.wait_for_service(driver_ns + '/dynamixel_command')
+        #rospy.wait_for_service(driver_ns + '/dynamixel_command')
 
         self._server = ActionServer('~command', ScrewToolCommandAction,
                                     self._goal_cb, auto_start=False)
@@ -60,10 +60,10 @@ class ScrewToolController(object):
     def _goal_cb(self, goal_handle):
         goal_handle.set_accepted()
         rospy.loginfo('(%s) new goal ACCEPTED for %s',
-                      self._name, goal.tool_name)
+                      self._name, goal_handle.get_goal().tool_name)
 
         goal_thread = ThreadTrace(target=self.acquire_lock_and_execute_control,
-                                  args=(goal_handle))
+                                  args=[goal_handle])
         goal_thread.daemon = True
         goal_thread.start()
         return True
@@ -134,28 +134,30 @@ class ScrewToolController(object):
         while not rospy.is_shutdown():
 
             # Check if the goal is canceled.
-            if goal_handle.get_goal_status().status in (GoalStatus.PREEMPTED,
-                                                        GoalStatus.PREEMPTING,
-                                                        GoalStatus.RECALLING,
-                                                        GoalStatus.RECALLED):
+            if goal_handle.get_goal_status().status in (GoalStatus.PREEMPTING,
+                                                        GoalStatus.RECALLING):
                 goal_handle.set_canceled()
-                rospy.loginfo('(%s) goal CANCELEDMotor pre-empted. Breaking out of loop to make room for next thread. Timeout: %s, Time elapsed: %s',
+                rospy.logwarn('(%s) goal CANCELED: Motor pre-empted. Breaking out of loop to make room for next thread. Timeout: %s, Time elapsed: %s',
                               self._name,
-                              goal.timeout.toSec(), time_elapsed.toSec())
-                return False
+                              goal.timeout.to_sec(), time_elapsed.to_sec())
+                break
 
             # Check if timeout has expired.
             time_elapsed = rospy.Time.now() - start_time
             if time_elapsed > goal.timeout:
-                rospy.loginfo("(%s) Motor stopped due to timeout[%f sec]. Time elapsed: %f sec",
+                rospy.logwarn("(%s) motor stopped due to timeout[%f sec]. Time elapsed: %f sec",
                               self._name,
-                              goal.timeout.toSec(), time_elapsed.toSec())
+                              goal.timeout.to_sec(), time_elapsed.to_sec())
                 if goal.tighten:  # If motor does not stall before timeout, tightening was not successful
-                    self._set_value(motor_id, 'Moving_Speed', 0)     # CCW stop
                     result.success = False
+                    goal_handle.set_aborted(result)
+                    rospy.logerr('(%s) goal ABORTED: screw not fastened',
+                                 self._name)
                 else:
-                    self._set_value(motor_id, 'Moving_Speed', 1024)  # CW stop
                     result.success = True
+                    goal_handle.set_succeeded(result)
+                    rospy.loginfo('(%s) goal SUCCEDED: screw loosened',
+                                  self._name)
                 break
 
             # Check if the motor is stalled.
@@ -172,7 +174,8 @@ class ScrewToolController(object):
 
                 result.success = True
                 result.stalled = True
-                rospy.loginfo('(%s) Stopping motor because it has stalled (the screw is tightened)',
+                goal_handle.set_succeeded(result)
+                rospy.loginfo('(%s) goal SUCCEEDED: motor stalled and the screw  tightened',
                               self._name)
                 break
 
@@ -180,9 +183,10 @@ class ScrewToolController(object):
             speed = self._get_present_speed(motor_id)
             if speed < 0:
                 result.success = False
+                goal_handle.set_aborted(result)
                 rospy.logerr("(%s) goal ABORTED: error in motor readout",
                               self._name)
-                return False
+                break
             speed_readings.append(speed)
 
             # If both readings are below an arbitrary threshold,
@@ -200,16 +204,6 @@ class ScrewToolController(object):
         self._set_value(motor_id, 'Moving_Speed',  1024)
         self._set_value(motor_id, 'Torque_Enable', 0)
 
-        if result.success:
-            goal_handle.set_succeeded(result)
-            rospy.loginfo('(%s) goal SUCCEDED: Screw was successfully %s',
-                          self._name,
-                          'fastened' if goal.tighten else 'loosend')
-        else:
-            goal_handle.set_aborted(result)
-            rospy.logerr("(%s) goal ABORTED: Expired timedout while %s",
-                         self._name,
-                         'fastening' if goal.tighten else 'loosening')
         return result.success
 
     def _set_value(self, id, addr_name, value):
@@ -239,7 +233,7 @@ class ScrewToolController(object):
             rospy.logerr('(%s) dynamixel state with ID=%i not found in state list',
                          self._name, motor_id)
             return -1
-        return states[0].present_speed
+        return states[0].present_velocity
 
 
 if __name__ == '__main__':

@@ -2,9 +2,9 @@
 string   tool_name                        # "m3_tool", "m4_tool", "m5_tool",
                                           # "nut_tool1" ...
 					  # (see config file of package)
+bool     tighten                          # True: tighten, False: loosen
 uint32   speed                            # 0 to 1023
 duration timeout                          # in s
-bool     tighten                          # True: tighten, False: loosen
 bool     skip_final_loosen_and_retighten  # By default, after tightening fully,
                                           # the motor loosens the screw for
                                           # one second and then tightens again.
