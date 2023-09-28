@@ -1,21 +1,15 @@
 # Goal
-string   tool_name                        # "m3_tool", "m4_tool", "m5_tool",
-                                          # "nut_tool1" ...
-					  # (see config file of package)
-bool     tighten                          # True: tighten, False: loosen
-uint32   speed                            # 0 to 1023
-duration timeout                          # in s
-bool     skip_final_loosen_and_retighten  # By default, after tightening fully,
-                                          # the motor loosens the screw for
-                                          # one second and then tightens again.
-                                          # This can protect against some
-                                          # failures. Setting this bool to true
-                                          # skips the loosening.
-                                          # (good for the idler pulley)
+string   tool_name  # "m3_tool", "m4_tool",...
+bool     tighten    # True: tighten, False: loosen
+bool     retighten  # True:  after tightening fully, the motor loosens
+                    #        the screw for one second and then tightens again.
+                    #        This can protect against some failures.
+		    # False: skips the retightening, good for the idler pulley.
+uint32   speed      # 0 to 1023
 ---
 # Result
-bool     success  # True: the commands were sent successfully to the motor
-bool     stalled  # True: the motor stopped before the timeout
+bool     stalled    # True: the motor stopped before the timeout
 ---
 # Feedback
-uint32   speed
+int32    speed
+int16    current
