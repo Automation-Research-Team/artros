@@ -4,9 +4,9 @@
   <!-- To use the tip of the holder to place the macro, use these offsets: -->
   <!-- <origin xyz="${+0.01} ${+.03} ${-0.0465}" rpy="0 0 0" />   -->
 
-  <xacro:macro name="gravity_tool_holder" params="partname parent *origin">
+  <xacro:macro name="gravity_tool_holder" params="name parent *origin">
 
-    <link name="${partname}">
+    <link name="${name}">
       <visual>
 	<origin rpy="${pi/2} 0 ${pi/2}" xyz="0 -.025 -.005"/>
 	<geometry>
@@ -23,9 +23,9 @@
 	</geometry>
       </collision>
     </link>
-    <joint name="${partname}_joint" type="fixed">
+    <joint name="${name}_joint" type="fixed">
       <parent link="${parent}" />
-      <child link="${partname}" />
+      <child link="${name}" />
       <origin xyz="0 0 0" rpy="0 0 0" />
     </joint>
 

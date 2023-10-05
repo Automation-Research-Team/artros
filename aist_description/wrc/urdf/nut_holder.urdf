@@ -4,7 +4,7 @@
 
   <link name ="base_link"/>
 
-  <xacro:nut_holder partname="nut_holder" parent="base_link">
+  <xacro:nut_holder name="nut_holder" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:nut_holder>
 

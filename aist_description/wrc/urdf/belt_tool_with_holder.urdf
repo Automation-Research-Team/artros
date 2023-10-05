@@ -5,11 +5,11 @@
 
   <link name ="base_link"/>
 
-  <xacro:gravity_tool_holder partname="belt_tool_holder" parent="base_link">
+  <xacro:gravity_tool_holder name="belt_tool_holder" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:gravity_tool_holder>
 
-  <xacro:belt_tool partname="belt_tool" parent="belt_tool_holder">
+  <xacro:belt_tool name="belt_tool" parent="belt_tool_holder">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:belt_tool>
 

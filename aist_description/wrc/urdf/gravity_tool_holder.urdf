@@ -4,7 +4,7 @@
 
   <link name ="base_link"/>
 
-  <xacro:gravity_tool_holder partname="gravity_tool_holder" parent="base_link">
+  <xacro:gravity_tool_holder name="gravity_tool_holder" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:gravity_tool_holder>
 

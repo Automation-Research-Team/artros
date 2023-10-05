@@ -5,12 +5,12 @@
 
   <link name ="base_link"/>
 
-  <xacro:cable_tool_holder partname="cable_tool_holder" parent="base_link">
+  <xacro:cable_tool_holder name="cable_tool_holder" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:cable_tool_holder>
 
-  <xacro:cable_tool partname="cable_tool"
-		    parent="cable_tool_holder_pickup_link">
+  <xacro:cable_tool name="cable_tool"
+		    parent="cable_tool_holder_home_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:cable_tool>
 

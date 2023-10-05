@@ -5,11 +5,11 @@
 
   <link name ="base_link"/>
 
-  <xacro:gravity_tool_holder partname="plunger_tool_holder" parent="base_link">
+  <xacro:gravity_tool_holder name="plunger_tool_holder" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:gravity_tool_holder>
 
-  <xacro:plunger_tool partname="plunger_tool" parent="plunger_tool_holder">
+  <xacro:plunger_tool name="plunger_tool" parent="plunger_tool_holder">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:plunger_tool>
 

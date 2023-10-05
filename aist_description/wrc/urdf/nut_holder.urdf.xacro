@@ -4,10 +4,10 @@
   <!-- To use the tip of the holder to place the macro, use these offsets: -->
   <!-- <origin xyz="${+0.01} ${+.03} ${-0.0465}" rpy="0 0 0" />   -->
 
-  <xacro:macro name="nut_holder" params="partname parent *origin">
+  <xacro:macro name="nut_holder" params="name parent *origin">
   <xacro:property name="mesh_file" value="package://aist_description/wrc/meshes/nut_holder.stl" />
 
-  <link name="${partname}">
+  <link name="${name}">
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0.0"/>
       <mass value="1.0"/>
@@ -35,25 +35,25 @@
       </geometry>
     </collision>
   </link>
-  <joint name="${partname}" type="fixed">
+  <joint name="${name}" type="fixed">
     <parent link="${parent}" />
-    <child link = "${partname}" />
+    <child link = "${name}" />
     <xacro:insert_block name="origin"/>
   </joint>
 
-  <joint name="${partname}_collar_joint" type="fixed">
-    <parent link="${partname}"/>
-    <child link="${partname}_collar_link"/>
+  <joint name="${name}_collar_joint" type="fixed">
+    <parent link="${name}"/>
+    <child link="${name}_collar_link"/>
     <origin rpy="0 ${pi/2} 0" xyz="-0.01 -.03 0.04"/>
   </joint>
-  <link name="${partname}_collar_link"/>
+  <link name="${name}_collar_link"/>
 
-  <joint name="${partname}_tip_joint" type="fixed">
-    <parent link="${partname}_collar_link"/>
-    <child link="${partname}_tip_link"/>
+  <joint name="${name}_tip_joint" type="fixed">
+    <parent link="${name}_collar_link"/>
+    <child link="${name}_tip_link"/>
     <origin rpy="0 0 0" xyz="-0.01 0 0"/>
   </joint>
-  <link name="${partname}_tip_link"/>
+  <link name="${name}_tip_link"/>
 
   </xacro:macro>
 </robot>

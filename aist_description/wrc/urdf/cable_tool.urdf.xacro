@@ -2,9 +2,9 @@
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="cable_tool">
 
-  <xacro:macro name="cable_tool" params="partname parent *origin">
+  <xacro:macro name="cable_tool" params="name parent *origin">
 
-    <link name="${partname}">
+    <link name="${name}">
       <inertial>
 	<origin rpy="0 0 0" xyz="0 0 0"/>
 	<mass value="1.0"/>
@@ -20,28 +20,29 @@
 	</material>
       </visual>
       <collision>
-	<origin rpy="0 0 0" xyz="${.04/2} 0 ${-.01}"/>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
 	<geometry>
-          <box size=".04 .03 .055"/>
-	</geometry>
-      </collision>
-      <collision>
-	<origin rpy="0 0 0" xyz="${.02} 0 ${-.03-.08/2}"/>
-	<geometry>
-          <cylinder length=".08" radius=".01"/>
+          <mesh filename="package://aist_description/wrc/meshes/cable_tool-collision.stl" scale="0.001 0.001 0.001"/>
 	</geometry>
       </collision>
     </link>
-    <joint name="${partname}_joint" type="fixed">
+    <joint name="${name}_joint" type="fixed">
       <parent link="${parent}" />
-      <child  link="${partname}" />
+      <child  link="${name}" />
       <xacro:insert_block name="origin"/>
     </joint>
 
-    <link name="${partname}_tip_link"/>
-    <joint name="${partname}_tip_joint" type="fixed">
-      <parent link="${partname}" />
-      <child  link="${partname}_tip_link" />
+    <link name="${name}_pickup_link"/>
+    <joint name="${name}_pickup_joint" type="fixed">
+      <parent link="${name}" />
+      <child  link="${name}_pickup_link" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+
+    <link name="${name}_tip_link"/>
+    <joint name="${name}_tip_joint" type="fixed">
+      <parent link="${name}" />
+      <child  link="${name}_tip_link" />
       <origin xyz="0.05 0 0" rpy="0 0 0" />
     </joint>
 
