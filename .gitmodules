@@ -1,9 +1,3 @@
-[submodule "realsense-ros"]
-	path = third_party/realsense-ros
-	url = https://gitlab.com/art-aist/realsense-ros
-[submodule "ddynamic_reconfigure"]
-	path = third_party/ddynamic_reconfigure
-	url = https://gitlab.com/art-aist/ddynamic_reconfigure
 [submodule "iiwa_stack"]
 	path = third_party/iiwa_stack
 	url = https://github.com/IFL-CAMP/iiwa_stack
@@ -14,3 +8,9 @@
 [submodule "third_party/ur_robot_driver"]
 	path = third_party/ur_robot_driver
 	url = https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
+[submodule "third_party/ddynamic_reconfigure"]
+	path = third_party/ddynamic_reconfigure
+	url = git@github.com:Automation-Research-Team/ddynamic_reconfigure
+[submodule "third_party/realsense-ros"]
+	path = third_party/realsense-ros
+	url = git@github.com:Automation-Research-Team/realsense-ros
