@@ -19,6 +19,12 @@
           <color rgba=".9 .9 .9 1"/>
 	</material>
       </visual>
+      <collision>
+	<origin rpy="${-pi/2} 0 0" xyz="0.13 0.043 0.0225"/>
+	<geometry>
+          <mesh filename="package://aist_description/wrc/meshes/cable_tool_holder_vertical.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+      </collision>
     </link>
 
     <joint name="${name}_joint" type="fixed">
