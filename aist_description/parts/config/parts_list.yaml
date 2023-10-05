@@ -65,13 +65,13 @@ parts_list:
     cad: 13_MBGA30-2.stl
     description: Idler for Round Belt - Wide
   - id: 14
-    name: idler_pin 
+    name: idler_pin
     type: 14_BGPSL6-9-L30-F8
     cad: 14_BGPSL6-9-L30-F8.stl
     description: Bearing Shaft Screw
   - id: 15
     name: m6_nut
-    type: 15_SLBNR6 
+    type: 15_SLBNR6
     cad: 15_SLBNR6.stl
     description: M6 Hex Nut  (Fixing for idler shaft)
   - id: 16
@@ -91,9 +91,49 @@ parts_list:
     description: 10mm M3 Socket Head Cap Screw  (metric coarse thread)
   - id: 19
     name: m3_screw_short
-    type: 19_MSSFS3-6 
+    type: 19_MSSFS3-6
     cad: 19_MSSFS3-6.stl
     description: 6mm M3 Hex Socket Set Screw  (metric coarse thread)
+  - id: 32
+    name: pulley_d40
+    type: 32_MBRFA40-2-P6
+    cad: 32_MBRFA40-2-P6.stl
+    description: pulley with 40mm diameter
+  - id: 33
+    name: pulley_d45
+    type: 33_MBRFA45-2-P6
+    cad: 33_MBRFA45-2-P6.stl
+    description: pulley with 45mm diameter
+  - id: 34
+    name: pulley_d48
+    type: 34_MBRFA48-2-P6
+    cad: 34_MBRFA48-2-P6.stl
+    description: pulley with 48mm diameter
+  - id: 35
+    name: output_pullley_d45
+    type: 35_MBRAC45-2-10
+    cad: 35_MBRAC45-2-10.stl
+    description: output pullley with 45mm diameter
+  - id: 36
+    name: output_pullley_d48
+    type: 36_MBRAC48-2-10
+    cad: 36_MBRAC48-2-10.stl
+    description: output pullley with 48mm diameter
+  - id: 37
+    name: output_pullley_d80
+    type: 37_MBRAC80-2-10
+    cad: 37_MBRAC80-2-10.stl
+    description: output pullley with 80mm diameter
+  - id: 50
+    name: pully_d30
+    type: 50_MBGNA30-2
+    cad: 50_MBGNA30-2.stl
+    description: small pully used in taskboard task
+  - id: 51
+    name: pully_d60
+    type: 51_MBGNA60-2
+    cad: 51_MBGNA60-2.stl
+    description: large pully used in taskboard task
   - id: 100
     name: robotiq_calib_marker
     type: 100-ROBOTIQ_CALIB_MARKER

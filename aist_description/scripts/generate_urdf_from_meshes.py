@@ -108,6 +108,7 @@ class URDFGenerator(object):
         with open(os.path.join(self._root, 'urdf', part_type + '.urdf.xacro'),
                   'w+') as f:
             f.write(macro)
+            print('%s.urdf.xacro generated' % part_type)
 
     def _generate_urdf(self, part_props, template):
         part_type = part_props['type']
@@ -118,6 +119,7 @@ class URDFGenerator(object):
         with open(os.path.join(self._root, 'urdf', part_type + '.urdf'),
                   'w+') as f:
             f.write(macro)
+            print('%s.urdf generated' % part_type)
 
 ######################################################################
 #  global functions                                                  #
