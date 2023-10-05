@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="plunger_tool">
+
+  <xacro:macro name="plunger_tool" params="partname parent *origin">
+
+    <link name="${partname}">
+      <inertial>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1.0"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+      </inertial>
+      <visual>
+	<origin rpy="0 ${pi/2} ${pi/2}" xyz="0.02 0 -0.017"/>
+	<geometry>
+          <mesh filename="package://aist_description/wrc/meshes/plunger_tool.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="white">
+          <color rgba=".9 .9 .9 1"/>
+	</material>
+      </visual>
+      <collision>
+	<origin rpy="0 0 0" xyz="${.04/2} 0 ${-.01}"/>
+	<geometry>
+          <box size=".04 .03 .055"/>
+	</geometry>
+      </collision>
+      <collision>
+	<origin rpy="0 0 0" xyz="${.02} 0 ${-.03-.08/2}"/>
+	<geometry>
+          <cylinder length=".08" radius=".01"/>
+	</geometry>
+      </collision>
+    </link>
+    <joint name="${partname}_joint" type="fixed">
+      <parent link="${parent}" />
+      <child  link="${partname}" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </joint>
+
+    <link name="${partname}_pickup_link"/>
+    <joint name="${partname}_pickup_joint" type="fixed">
+      <parent link="${partname}" />
+      <child  link="${partname}_pickup_link" />
+      <origin xyz=".02 0 -.01" rpy="0 ${pi/2} 0" />
+    </joint>
+
+  </xacro:macro>
+
+</robot>

@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<robot name="washer_holder" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description)/wrc/urdf/washer_holder.urdf.xacro" />
+
+  <link name ="base_link"/>
+
+  <xacro:washer_holder partname="washer_holder" parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:washer_holder>
+
+</robot>

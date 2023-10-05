@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<robot name="tray" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description)/wrc/urdf/tray.urdf.xacro" />
+
+  <link name ="base_link"/>
+
+  <xacro:tray trayname="tray" parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:tray>
+
+</robot>

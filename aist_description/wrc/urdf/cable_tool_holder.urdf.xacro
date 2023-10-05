@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<robot name="cable_tool_holder" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="cable_tool_holder" params="partname parent *origin">
+
+    <link name="${partname}">
+      <inertial>
+	<origin rpy="0 0 0" xyz="0 0 0"/>
+	<mass value="1.0"/>
+	<inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+      </inertial>
+      <visual>
+	<origin rpy="${-pi/2} 0 0" xyz="0.13 0.043 0.0225"/>
+	<geometry>
+          <mesh filename="package://aist_description/wrc/meshes/cable_tool_holder_vertical.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="white">
+          <color rgba=".9 .9 .9 1"/>
+	</material>
+      </visual>
+    </link>
+
+    <joint name="${partname}_joint" type="fixed">
+      <parent link="${parent}" />
+      <child  link="${partname}" />
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <link name="${partname}_pickup_link"/>
+    <joint name="${partname}_pickup_joint" type="fixed">
+      <parent link="${partname}" />
+      <child  link="${partname}_pickup_link" />
+      <origin xyz="0.1 0.004 0.015" rpy="0 ${pi/2} 0" />
+    </joint>
+
+  </xacro:macro>
+
+</robot>

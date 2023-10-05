@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<robot name="screw_feeder" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description)/wrc/urdf/screw_feeder.urdf.xacro" />
+
+  <link name ="base_link"/>
+
+  <xacro:screw_feeder feedername="screw_feeder" parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:screw_feeder>
+
+</robot>
