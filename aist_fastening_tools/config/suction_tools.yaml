@@ -6,7 +6,7 @@ screw_tool_m4:
   digital_in_port:       1
   digital_out_port_vac:  2
   digital_out_port_blow: 3
-screw_tool_m6:
+suction_tool:
   digital_in_port:       2
   digital_out_port_vac:  4
   digital_out_port_blow: 5
@@ -14,7 +14,7 @@ screw_tool_m6:
 #   digital_in_port:       3
 #   digital_out_port_vac:  6
 #   digital_out_port_blow: 7
-suction_tool:
+base_fixture:
   digital_in_port:       3
   digital_out_port_vac:  6
   digital_out_port_blow: 7

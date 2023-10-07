@@ -9,8 +9,55 @@ from aist_fastening_tools.msg     import (ScrewToolCommandAction,
                                           ScrewToolCommandResult,
                                           ScrewToolCommandFeedback)
 from collections                  import deque
-from dynamixel_workbench_msgs.msg import DynamixelStateList
+from dynamixel_workbench_msgs.msg import DynamixelState, DynamixelStateList
 from dynamixel_workbench_msgs.srv import DynamixelCommand
+from scipy.signal                 import butter, lfiltic, lfilter
+
+#########################################################################
+#  class ButterworthLPF                                                 #
+#########################################################################
+class ButterworthLPF(object):
+    """
+    Butterworth lowpass digital filter design.
+
+    Check C{scipy.signal.butter} for further details.
+    """
+    def __init__(self, cutoff, fs, order=5):
+        """
+        C{ButterLowPass} constructor
+
+        @type  cutoff: float
+        @param cutoff: Cut-off frequency in Hz
+        @type  fs:     float
+        @param fs:     The sampling frequency (Hz) of the signal to be filtered
+        @type  order:  int
+        @param order:  The order of the filter.
+        """
+        super(ButterworthLPF, self).__init__()
+
+        nyq           = 0.5 * fs
+        normal_cutoff = cutoff / nyq
+        self._b, self._a = butter(order, normal_cutoff,
+                                  btype='low', analog=False)
+
+    def __call__(self, x):
+        """
+        Filters the input array across its C{axis=0} (each column is
+        considered as an independent signal). Uses initial conditions (C{zi})
+        for the filter delays.
+
+        @type  x: array
+        @param x: An N-dimensional input array.
+        @rtype:  array
+        @return: The output of the digital filter.
+        """
+        if not hasattr(self, 'zi'):
+            cols = x.shape[1]
+            zi   = lfiltic(self._b, self._a, []).tolist() * cols
+            self._zi = np.array(lfiltic(self._b, self._a, []).tolist() * cols)
+            self._zi.shape = (-1, cols)
+        filtered, self._zi = lfilter(self._b, self._a, x, zi=self._zi, axis=0)
+        return filtered
 
 #########################################################################
 #  class ScrewToolController                                            #
@@ -36,6 +83,13 @@ class ScrewToolController(object):
             rospy.loginfo("(%s) Loaded %s with id=%d",
                           self._name, tool_name, self._motor_ids[tool_name])
 
+        # Create a low-pass filter for current published as feedback.
+        cutoff = rospy.get_param('~filter_cutoff', 2.5)
+        rate   = rospy.get_param('~filter_rate',   100.0)
+        order  = rospy.get_param('~filter_order',  2)
+        self._current_filter = ButterworthLPF(cutoff, rate, order)
+        self._current_queue  = deque(maxlen=win_size)
+
         # Create a subscriber for receiving state of Dynamixel driver.
         driver_ns = rospy.get_param("~driver_ns")
         self._dynamixel_state_list = None
@@ -57,7 +111,18 @@ class ScrewToolController(object):
         rospy.loginfo('(%s) controller started', self._name)
 
     def _state_list_cb(self, state_list):
-        self._dynamixel_states = state_list.dynamixel_state
+        # Apply low-pass filter to incoming current signal values.
+        original = [state.present_current
+                    for state in state_list.dynamixel_state]
+        filtered = self._current_filter(original)
+
+        # Store state list with filtered current signal values.
+        self._dynamixel_states = [DynamixelState(state.name, state.id,
+                                                 state.present_position,
+                                                 state.present_velocity,
+                                                 current)
+                                  for state, current
+                                  in zip(state_list.dynamixel_state, filtered)]
 
     def _goal_cb(self, goal_handle):
         goal = goal_handle.get_goal()
@@ -85,12 +150,12 @@ class ScrewToolController(object):
                       self._name, goal.tool_name)
 
         # Launch a control loop for the specified tool with a separate thread.
-        goal_thread = threading.Thread(target=self.execute_control,
+        goal_thread = threading.Thread(target=self._execute_control,
                                        args=(goal_handle, goal.retighten))
         goal_thread.daemon = True
         goal_thread.start()
 
-    def execute_control(self, goal_handle, retighten):
+    def _execute_control(self, goal_handle, retighten):
         """
         Execute the tighten/loosen action.
         If retighten is True, after fastening has finished successfully,
@@ -146,8 +211,8 @@ class ScrewToolController(object):
 
             # Publish feedback.
             goal_handle.publish_feedback(ScrewToolCommandFeedback(
-                state.present_velocity,
-                state.present_current))
+                                             state.present_velocity,
+                                             state.present_current))
 
             if goal.tighten:
                 # Check if the motor is stalled.
