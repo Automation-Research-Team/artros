@@ -1,5 +1,40 @@
 #!/usr/bin/env python
-
+#
+# Software License Agreement (BSD License)
+#
+# Copyright (c) 2023, National Institute of Advanced Industrial Science and Technology (AIST)
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of National Institute of Advanced Industrial
+#    Science and Technology (AIST) nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+# Author: Toshio Ueshiba (t.ueshiba@aist.go.jp)
+#
 import threading, rospy
 import numpy as np
 
@@ -76,10 +111,10 @@ class ScrewToolController(object):
 
         # Initialize tables of motor IDs and action goal handles for each tool.
         self._motor_ids    = {}
+        self._goal_threads = {}
         self._goal_handles = {}
         for tool_name, tool_props in rospy.get_param('~screw_tools').items():
-            self._motor_ids[tool_name]    = tool_props['ID']
-            self._goal_handles[tool_name] = None
+            self._motor_ids[tool_name] = tool_props['ID']
             rospy.loginfo("(%s) Loaded %s with id=%d",
                           self._name, tool_name, self._motor_ids[tool_name])
 
@@ -128,18 +163,19 @@ class ScrewToolController(object):
         goal = goal_handle.get_goal()
 
         # Check validity of the given tool name.
-        if goal.tool_name not in self._goal_handles:
+        if goal.tool_name not in self._motor_ids:
             goal_handle.set_rejected()
             rospy.logerr('(%s) goal REJECTED: tool[%s] not found',
                          self._name, goal.tool_name)
             return
 
         # If any active goal for this tool is currently running, cancel it.
-        active_goal_handle = self._goal_handles[goal.tool_name]
-        if active_goal_handle is not None:
+        with self._lock:
+            active_goal_thread = self._goal_threads.get(goal.tool_name)
+            active_goal_handle = self._goal_handles.get(goal.tool_name)
+        if active_goal_thread is not None:
             active_goal_handle.set_canceled()
-            with self._lock:
-                self._goal_handles[goal.tool_name] = None
+            active_goal_thread.join()
             rospy.logwarn('(%s) current active goal[%s] CANCELED because another goal for tool[%s] is received',
                           self._name,
                           active_goal_handle.get_goal_id().id, goal.tool_name)
@@ -153,6 +189,9 @@ class ScrewToolController(object):
         goal_thread = threading.Thread(target=self._execute_control,
                                        args=(goal_handle, goal.retighten))
         goal_thread.daemon = True
+        with self._lock:
+            self._goal_threads[goal.tool_name] = goal_thread
+            self._goal_handles[goal.tool_name] = goal_handle
         goal_thread.start()
 
     def _execute_control(self, goal_handle, retighten):
@@ -162,9 +201,6 @@ class ScrewToolController(object):
         the screw is loosened once and then fastened again.
         """
         goal = goal_handle.get_goal()
-
-        with self._lock:
-            self._goal_handles[goal.tool_name] = goal_handle
 
         if not goal.speed:
             goal.speed = 1023  # Maximum speed
@@ -181,8 +217,8 @@ class ScrewToolController(object):
         self._set_value(motor_id, 'Moving_Speed', target_speed)
 
         # Initialize to start the loop
-        state_hitory = deque(maxlen=self._history_length)
-        rate         = rospy.Rate(20)
+        state_history = deque(maxlen=self._history_length)
+        rate          = rospy.Rate(20)
 
         # Wait for motor to start up (and avoid reading incorrect speed values)
         rospy.sleep(1)
@@ -198,16 +234,17 @@ class ScrewToolController(object):
             if goal_handle.get_goal_status().status == GoalStatus.PREEMPTED:
                 # Return without setting zero speed, because another goal
                 # has already been activated and target speed has been set.
-                return
+                break
+                #return
 
             # Read the state of Dynamixel and keep it in the queue.
             state = self._get_dynamixel_state(motor_id)
             if state is None:
                 goal_handle.set_aborted()
-                rospy.logerr("(%s) goal ABORTED: error in motor state readout",
+                rospy.logerr('(%s) goal ABORTED: error in motor state readout',
                              self._name)
                 break
-            state_hitory.append(state)
+            state_history.append(state)
 
             # Publish feedback.
             goal_handle.publish_feedback(ScrewToolCommandFeedback(
@@ -216,9 +253,9 @@ class ScrewToolController(object):
 
             if goal.tighten:
                 # Check if the motor is stalled.
-                if len(state_hitory) == state_hitory.maxlen and \
-                   all(state.present_velocity <= self._speed_threshold
-                       for state in state_hitory):
+                if len(state_history) == state_history.maxlen and \
+                   all(state.present_velocity < self._speed_threshold
+                       for state in state_history):
                     if retighten:
                         # Turn into loosening direction for 1sec.
                         self._set_value(motor_id, 'Moving_Speed',
@@ -226,18 +263,18 @@ class ScrewToolController(object):
                         rospy.sleep(1.0)
                         self._set_value(motor_id, 'Moving_Speed', 0)  # Stop
 
+                        # Tighten again.
                         self.execute_control(goal_handle, False)
                         return
-                    else:
-                        goal_handle.set_succeeded(ScrewToolCommandResult(True))
-                        rospy.loginfo('(%s) goal SUCCEEDED: screw tightened',
-                                      self._name)
-                        break
+                    goal_handle.set_succeeded(ScrewToolCommandResult(True))
+                    rospy.loginfo('(%s) goal SUCCEEDED: screw tightened',
+                                  self._name)
+                    break
             else:
                 # Check if the motor is load free.
-                if len(state_hitory) == state_hitory.maxlen and \
-                   all(state.present_current <= self._current_threshold
-                       for state in state_hitory):
+                if len(state_history) == state_history.maxlen and \
+                   all(state.present_current < self._current_threshold
+                       for state in state_history):
                     goal_handle.set_succeeded(ScrewToolCommandResult(False))
                     rospy.loginfo('(%s) goal SUCCEEDED: screw released',
                                   self._name)
@@ -250,7 +287,8 @@ class ScrewToolController(object):
         self._set_value(motor_id, 'Torque_Enable', 0)
 
         with self._lock:
-            self._goal_handles[goal.tool_name] = None
+            self._goal_handles.pop(goal.tool_name)
+            self._goal_threads.pop(goal.tool_name)
 
     def _set_value(self, id, addr_name, value):
         try:
@@ -261,7 +299,7 @@ class ScrewToolController(object):
             return False
 
         if res.comm_result:
-            rospy.loginfo("(%s) succesfully set value[%d] to %s",
+            rospy.loginfo('(%s) succesfully set value[%d] to %s',
                           self._name, value, addr_name)
         else:
             rospy.logerr('(%s) communication error when setting value[%d] to %s',
@@ -287,5 +325,5 @@ class ScrewToolController(object):
 #########################################################################
 if __name__ == '__main__':
     rospy.init_node('screw_tool_controller')
-    server = ScrewToolController()
+    controller = ScrewToolController()
     rospy.spin()

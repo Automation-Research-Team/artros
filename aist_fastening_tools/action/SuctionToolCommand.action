@@ -1,10 +1,9 @@
 # Goal
-string tool_name        # 'name' in suction_tools.yaml
-bool   turn_suction_on  #  True: on, False: off
-bool   eject            #  True: expel air, False: do nothing
+string   tool_name  # 'name' in suction_tools.yaml
+bool     suck       # True: suck, False: blow
+duration min_time   # minimum time required for the operation being succeeded
 ---
 # Result
-bool   success
 ---
 # Feedback
-uint32 suctioned        # digital_input of ur_control
+bool     suctioned  # digital_input of ur_control

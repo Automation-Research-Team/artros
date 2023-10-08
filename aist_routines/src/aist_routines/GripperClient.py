@@ -256,15 +256,14 @@ class SuctionGripper(GripperClient):
     def __init__(self, name, action_ns, state_ns='', eject=False):
         super(SuctionGripper, self).__init__(
             *SuctionGripper._initargs(name, action_ns, state_ns, eject))
-        self._client    = SimpleActionClient(action_ns,
-                                             SuctionToolCommandAction)
-        self._sub       = rospy.Subscriber(state_ns, Bool, self._state_cb)
-        self._suctioned = False
-        self._eject     = eject  # blow when releasing
-        self._goal      = SuctionToolCommandGoal()
-        self._goal.tool_name       = 'suction_tool'
-        self._goal.turn_suction_on = False
-        self._goal.eject           = False
+        self._client         = SimpleActionClient(action_ns,
+                                                  SuctionToolCommandAction)
+        self._state_sub      = rospy.Subscriber(state_ns, Bool, self._state_cb)
+        self._suctioned      = False
+        self._eject          = eject  # blow when releasing
+        self._goal           = SuctionToolCommandGoal()
+        self._goal.tool_name = 'suction_tool'
+        self._goal.op        = SuctionToolCommandGoal.OFF
 
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
@@ -278,14 +277,13 @@ class SuctionGripper(GripperClient):
 
     @staticmethod
     def _initargs(name, action_ns, state_ns, eject):
-        return (name, 'suction',
-                name + '_base_link', name + '_tip_link')
+        return (name, 'suction', name + '_base_link', name + '_tip_link')
 
     def pregrasp(self, timeout=0):
-        return self._send_command(True, timeout)
+        return self._send_command(SuctionToolCommandGoal.SUCK, timeout)
 
     def grasp(self, timeout=0):
-        if not self._send_command(True, timeout):
+        if not self._send_command(SuctionToolCommandGoal.SUCK, timeout):
             return False
         rospy.sleep(0.5)        # Wait until the state is updated.
         return self._suctioned
@@ -294,7 +292,10 @@ class SuctionGripper(GripperClient):
         return self._suctioned
 
     def release(self, timeout=0):
-        return self._send_command(False, timeout)
+        if self._eject and \
+           not self._send_command(SuctionToolCommandGoal.BLOW, timeout):
+            return False
+        return
 
     def wait(self, timeout=0):
         return self._suctioned
@@ -303,9 +304,8 @@ class SuctionGripper(GripperClient):
         if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
             self._client.cancel_goal()
 
-    def _send_command(self, turn_suction_on, timeout=0):
-        self._goal.turn_suction_on = turn_suction_on
-        self._goal.eject           = not turn_suction_on and self._eject
+    def _send_command(self, op, timeout=0):
+        self._goal.op = op
         self._client.send_goal(self._goal)
         if not self._client.wait_for_result(rospy.Duration(timeout)):
             rospy.logerr('Timeout[%f] has expired before goal finished',
