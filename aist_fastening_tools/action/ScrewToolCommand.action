@@ -1,5 +1,4 @@
 # Goal
-string tool_name  # "m3_tool", "m4_tool",...
 bool   tighten    # True: tighten, False: loosen
 bool   retighten  # True:  after tightening fully, the motor loosens
                   #        the screw for one second and then tightens again.

@@ -15,9 +15,12 @@
   <exec_depend>message_runtime</exec_depend>
 
   <depend>rospy</depend>
+  <depend>roscpp</depend>
   <depend>dynamixel_workbench_controllers</depend>
   <depend>dynamixel_workbench_msgs</depend>
+  <depend>ddynamic_reconfigure</depend>
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
+  <depend>aist_utility</depend>
 
 </package>

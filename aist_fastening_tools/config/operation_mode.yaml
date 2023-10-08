@@ -1,6 +1,0 @@
-run_mode:
-  digital_in_port: 4
-test_mode:
-  digital_in_port: 5
-pause_mode:
-  digital_in_port: 6

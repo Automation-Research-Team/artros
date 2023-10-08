@@ -38,7 +38,7 @@
 import threading, rospy
 import numpy as np
 
-from actionlib                    import ActionServer
+from actionlib                    import SimpleActionServer
 from actionlib_msgs.msg           import GoalStatus
 from aist_fastening_tools.msg     import (ScrewToolCommandAction,
                                           ScrewToolCommandResult,
@@ -102,21 +102,12 @@ class ScrewToolController(object):
         super(ScrewToolController, self).__init__()
 
         self._name = rospy.get_name()
-        self._lock = threading.RLock()
 
-        # Set parameters for conditions of action termination.
+        # Set configuration parameters.
         self._history_length    = rospy.get_param('~history_length',     2)
         self._speed_threshold   = rospy.get_param('~speed_threshold',   18)
         self._current_threshold = rospy.get_param('~current_threshold', 10)
-
-        # Initialize tables of motor IDs and action goal handles for each tool.
-        self._motor_ids    = {}
-        self._goal_threads = {}
-        self._goal_handles = {}
-        for tool_name, tool_props in rospy.get_param('~screw_tools').items():
-            self._motor_ids[tool_name] = tool_props['ID']
-            rospy.loginfo("(%s) Loaded %s with id=%d",
-                          self._name, tool_name, self._motor_ids[tool_name])
+        self._motor_id          = rospy.get_param('~motor_id',           1)
 
         # Create a low-pass filter for current published as feedback.
         cutoff = rospy.get_param('~filter_cutoff', 2.5)
@@ -126,7 +117,7 @@ class ScrewToolController(object):
         self._current_queue  = deque(maxlen=win_size)
 
         # Create a subscriber for receiving state of Dynamixel driver.
-        driver_ns = rospy.get_param("~driver_ns")
+        driver_ns = rospy.get_param("~driver_ns", "screw_tool_driver")
         self._dynamixel_state_list = None
         self._dynamixel_state_sub  = rospy.Subscriber(driver_ns
                                                       + '/dynamixel_state',
@@ -140,10 +131,13 @@ class ScrewToolController(object):
                                                      DynamixelCommand)
 
         # Create an action server for processing commands to screw tools.
-        self._server = ActionServer('~command', ScrewToolCommandAction,
-                                    self._goal_cb, auto_start=False)
+        self._server = SimpleActionServer('~command', ScrewToolCommandAction,
+                                          auto_start=False)
+        self._server.register_goal_callback(self._goal_cb)
+        self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
-        rospy.loginfo('(%s) controller started', self._name)
+
+        rospy.loginfo('(%s) started', self._name)
 
     def _state_list_cb(self, state_list):
         # Apply low-pass filter to incoming current signal values.
