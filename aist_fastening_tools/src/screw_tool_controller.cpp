@@ -194,6 +194,8 @@ ScrewToolController::ScrewToolController(ros::NodeHandle& nh,
 				  1, 30, "filtering parameters");
 
     _ddr.publishServicesTopicsAndUpdateConfigData();
+
+    ROS_INFO_STREAM('(' << _node_ns << ") controller started");
 }
 
 void

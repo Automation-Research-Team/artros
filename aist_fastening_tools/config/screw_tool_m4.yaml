@@ -1,0 +1,7 @@
+# screw tool controller stuffs
+motor_id:              3  # ID of Dynamixel servo motor
+
+# suction tool controller stuffs
+digital_in_port:       1  # The pin to which the pressure sensor is connected
+digital_out_port_suck: 2  # The pin to which the 'vac'  of pump is connected
+digital_out_port_blow: 3  # The pin to which the 'blow' of pump is connected

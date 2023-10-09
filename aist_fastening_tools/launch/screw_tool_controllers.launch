@@ -1,20 +1,20 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="driver_ns"		default="screw_tool_driver"/>
+
+  <arg name="driver_ns"		default="dynamixel_driver"/>
   <arg name="usb_port"		default="/dev/ttyUSB0"/>
   <arg name="dxl_baud_rate"	default="1000000"/>
   <arg name="control_period"	default="0.010"/>
-  <arg name="screw_tools_yaml"	default="$(dirname
-					 )/../config/screw_tools.yaml"/>
-  <arg name="tool_names"	default="screw_tool_m3 screw_tool_m4"/>
-  <arg name="motor_ids"		default="2 3"/>
+  <arg name="dynamixel_info"	default="dynamixel_info"/>
+  <arg name="tool_names"	default="screw_tool_m3,screw_tool_m4"/>
+  <arg name="motor_ids"		default="2,3"/>
   <arg name="tool_number"	default="0"/>
 
-  <group unless="$(eval tool_number == len(tool_names.split()))">
+  <group unless="$(eval tool_number == len(tool_names.split(',')))">
     <arg name="tool_name"
-	 value="$(eval tool_names.split()[tool_number].strip())"/>
+	 value="$(eval tool_names.split(',')[tool_number].strip())"/>
     <arg name="motor_id"
-	 value="$(eval motor_ids.split()[tool_number].strip())"/>
+	 value="$(eval motor_ids.split(',')[tool_number].strip())"/>
 
     <node name="$(arg tool_name)_controller"
   	  pkg="aist_fastening_tools" type="screw_tool_controller"
@@ -29,15 +29,16 @@
       <arg name="usb_port"		value="$(arg usb_port)"/>
       <arg name="dxl_baud_rate"		value="$(arg dxl_baud_rate)"/>
       <arg name="control_period"	value="$(arg control_period)"/>
-      <arg name="screw_tools_yaml"	value="$(arg screw_tools_yaml)"/>
+      <arg name="dynamixel_info"	value="$(arg dynamixel_info)"/>
       <arg name="tool_names"		value="$(arg tool_names)"/>
       <arg name="motor_ids"		value="$(arg motor_ids)"/>
       <arg name="tool_number"		value="$(eval tool_number + 1)"/>
     </include>
   </group>
 
-  <group if ="$(eval tool_number == len(tool_names.split()))">
-    <param name="dynamixel_info"	value="$(arg screw_tools_yaml)"/>
+  <group if ="$(eval tool_number == len(tool_names.split(',')))">
+    <param name="dynamixel_info"	value="$(dirname)/../config/$(arg
+					       dynamixel_info).yaml"/>
 
     <node name="$(arg driver_ns)"
 	  pkg="dynamixel_workbench_controllers"
@@ -53,4 +54,5 @@
       </rosparam>
     </node>
   </group>
+
 </launch>

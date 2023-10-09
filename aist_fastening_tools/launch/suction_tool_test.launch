@@ -1,18 +1,16 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="suction_tools"	default="$(dirname
-					 )/../config/suction_tools.yaml"/>
-  <arg name="operation_mode"	default="$(dirname
-					 )/../config/operation_mode.yaml"/>
+  <arg name="tool_name"		default="screw_tool_m3"/>
 
-  <node name="suction_tool_test"
+  <node name="$(arg tool_name)_test"
 	pkg="aist_fastening_tools" type="suction_tool_test.py"
-	output="screen"/>
+	output="screen">
+    <param name="controller_ns"	value="$(arg tool_name)_suction_controller"/>
+  </node>
 
-  <include file="$(dirname)/suction_tool_controller.launch">
-    <arg name="suction_tools"	value="$(arg suction_tools)"/>
-    <arg name="operation_mode"	value="$(arg operation_mode)"/>
+  <include file="$(dirname)/suction_tool_controllers.launch">
+    <arg name="tool_names"	value="$(arg tool_name)"/>
   </include>
 
 </launch>

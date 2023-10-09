@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, rospy
+import rospy
 import numpy as np
 from actionlib                import SimpleActionClient
 from actionlib_msgs.msg       import GoalStatus
@@ -10,17 +10,16 @@ from aist_utility.compat      import *
 
 
 class ScrewToolTest(object):
-    def __init__(self):
-        self._client = SimpleActionClient('/screw_tool_controller/command',
+    def __init__(self, controller_ns):
+        self._client = SimpleActionClient(controller_ns + '/command',
                                           ScrewToolCommandAction)
         self._client.wait_for_server()
 
     def run(self):
-        tool_name = 'screw_tool_m3'
-        speed     = 1023
+        speed = 1023
 
         while not rospy.is_shutdown():
-            key = raw_input('[%s:%d]> ' % (tool_name, speed))
+            key = raw_input('[speed: %d]> ' % speed)
 
             print('====')
             print('  q: quit this program')
@@ -29,31 +28,24 @@ class ScrewToolTest(object):
             print('  w: wait for tightening/loosening completed')
             print('  c: cancel tightening/loosening')
             print('  s: set tool speed')
-            print('  3: switch the tool to m3')
-            print('  4: switch the tool to m4')
 
             if key == 'q':
                 break
             elif key == 't':
-                self._send_command(tool_name, True, True, speed)
+                self._send_command(True, True, speed)
             elif key == 'l':
-                self._send_command(tool_name, False, False, speed)
+                self._send_command(False, False, speed)
             elif key == 'w':
                 self._wait()
             elif key == 'c':
                 self._client.cancel_goal()
             elif key == 's':
                 speed = np.clip(int(raw_input('  speed? ')), 0, 1023)
-            elif key == '3':
-                tool_name = 'screw_tool_m3'
-            elif key == '4':
-                tool_name = 'screw_tool_m4'
             else:
                 print('Unknown command[%s]' % key)
 
-    def _send_command(self, tool_name, tighten, retighten, speed):
+    def _send_command(self, tighten, retighten, speed):
         goal = ScrewToolCommandGoal()
-        goal.tool_name = tool_name
         goal.tighten   = tighten
         goal.retighten = retighten
         goal.speed     = speed
@@ -65,12 +57,15 @@ class ScrewToolTest(object):
         if status == GoalStatus.SUCCEEDED:
             print("  succeeded")
 
+
 if __name__ == '__main__':
     try:
         rospy.init_node('screw_tool_test')
 
-        test = ScrewToolTest()
+        controller_ns = rospy.get_param('~controller_ns',
+                                        'screw_tool_m3_controller')
+        test = ScrewToolTest(controller_ns)
         test.run()
 
     except rospy.ROSInterruptException:
-        print('program interrupted before completion', file=sys.stderr)
+        print('program interrupted before completion')

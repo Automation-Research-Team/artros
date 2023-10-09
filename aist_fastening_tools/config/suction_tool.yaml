@@ -1,0 +1,4 @@
+# suction tool controller stuffs
+digital_in_port:       2  # The pin to which the pressure sensor is connected
+digital_out_port_suck: 4  # The pin to which the 'vac'  of pump is connected
+digital_out_port_blow: 5  # The pin to which the 'blow' of pump is connected

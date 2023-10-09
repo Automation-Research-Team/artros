@@ -1,9 +1,8 @@
 # Goal
-string   tool_name  # 'name' in suction_tools.yaml
-bool     suck       # True: suck, False: blow
-duration min_time   # minimum time required for the operation being succeeded
+bool     suck        # True: suck, False: blow
+duration min_period  # minimum time required for the operation being succeeded
 ---
 # Result
 ---
 # Feedback
-bool     suctioned  # digital_input of ur_control
+bool suctioned       # digital_input of ur_control

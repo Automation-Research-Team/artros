@@ -1,15 +1,18 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="screw_tools"	default="$(dirname
-					 )/../config/screw_tools.yaml"/>
+  <arg name="tool_name"			default="screw_tool_m3"/>
+  <arg name="motor_id"			default="2,"/>
 
-  <node name="screw_tool_test"
+  <node name="$(arg tool_name)_test"
 	pkg="aist_fastening_tools" type="screw_tool_test.py"
-	output="screen"/>
+	output="screen">
+    <param name="controller_ns"	value="$(arg tool_name)_controller"/>
+  </node>
 
-  <include file="$(dirname)/screw_tool_controller.launch">
-    <arg name="screw_tools"	value="$(arg screw_tools)"/>
+  <include file="$(dirname)/screw_tool_controllers.launch">
+    <arg name="tool_names"	value="$(arg tool_name)"/>
+    <arg name="motor_ids"	value="$(arg motor_id)"/>
   </include>
 
 </launch>

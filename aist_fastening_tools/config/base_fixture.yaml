@@ -1,0 +1,2 @@
+# suction tool controller stuffs
+digital_out_port_suck: 6  # The pin to which the 'vac'  of pump is connected
