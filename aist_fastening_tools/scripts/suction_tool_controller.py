@@ -40,6 +40,7 @@ from actionlib                import SimpleActionServer
 from actionlib_msgs.msg       import GoalStatus
 from aist_fastening_tools.msg import (SuctionToolCommandAction,
                                       SuctionToolCommandGoal,
+                                      SuctionToolCommandResult,
                                       SuctionToolCommandFeedback)
 from ur_msgs.msg              import IOStates
 from ur_msgs.srv              import SetIO
@@ -93,14 +94,14 @@ class SuctionToolController(object):
 
         # If no IN ports are watched, i.e. open-loop, return success.
         if self._in_port is None:
-            self._server.set_succeeded()
+            self._server.set_succeeded(SuctionToolCommandResult(False))
             rospy.loginfo('(%s) goal SUCCEEDED: no status checking required',
                           self._name)
 
         self._start_time = rospy.get_rostime()
 
     def _preempt_cb(self):
-        self._server.set_preempted()
+        self._server.set_preempted(SuctionToolCommandResult(False))
         self._set_out_port(self._suck_port, False)
         self._set_out_port(self._blow_port, False)
         rospy.logwarn('(%s) goal CANCELED by client', self._name)
@@ -110,7 +111,7 @@ class SuctionToolController(object):
         in_state = next(filter(lambda in_state: in_state.pin == self._in_port,
                                io_states.digital_in_states), None)
         if in_state is None:
-            rospy.logerr('(%s) no digiral IN states found at port[%d]',
+            rospy.logerr('(%s) not found digital IN state at port[%d]',
                          self._name, self._in_port)
             return
         suctioned = in_state.state
@@ -126,17 +127,16 @@ class SuctionToolController(object):
         self._server.publish_feedback(
             SusctionToolCommandFeedback(suctioned))
 
-        # If the DIN state has not reached goal state, update start time.
+        # If the IN port has not reached the target state, update start time.
         if suctioned != goal.suck:
             self._start_time = rospy.get_rostime()
 
-        # Check if the goal state has been kept for min_time.
+        # Check if the target state has been kept for min_period.
         if self._active_goal.min_period > rospy.Duration(0.0) and \
            rospy.get_rostime() - start_time > self._active_goal.min_period:
-            # Stop blowing.
-            if not self._active_goal.suck:
-                self._set_out_port(self._blow_port, False)
-            self._server.set_succeeded()
+            if not self._active_goal.suck:                  # If blowing...
+                self._set_out_port(self._blow_port, False)  # stop it.
+            self._server.set_succeeded(SuctionToolCommandResult(suctioned))
             rospy.loginfo('(%s) goal SUCCEEDED: suctioned', self._name)
 
     def _set_out_port(self, port, state):

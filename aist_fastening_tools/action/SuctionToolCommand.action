@@ -3,6 +3,7 @@ bool     suck        # True: suck, False: blow
 duration min_period  # minimum time required for the operation being succeeded
 ---
 # Result
+bool suctioned
 ---
 # Feedback
 bool suctioned       # digital_input of ur_control
