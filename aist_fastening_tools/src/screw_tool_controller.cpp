@@ -195,7 +195,8 @@ ScrewToolController::ScrewToolController(ros::NodeHandle& nh,
 
     _ddr.publishServicesTopicsAndUpdateConfigData();
 
-    ROS_INFO_STREAM('(' << _node_ns << ") controller started");
+    ROS_INFO_STREAM('(' << _node_ns << ") controller started with motor ID["
+		    << int(_motor_id) << ']');
 }
 
 void
@@ -234,7 +235,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     if (state == states->dynamixel_state.end())
     {
 	ROS_ERROR_STREAM('(' << _node_ns << ") no motors with ID["
-			 << _motor_id
+			 << int(_motor_id)
 			 << "] found in incoming dynamixel state list!");
 	return;
     }

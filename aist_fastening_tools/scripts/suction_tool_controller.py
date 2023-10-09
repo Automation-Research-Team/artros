@@ -72,7 +72,7 @@ class SuctionToolController(object):
                                                   queue_size=1)
 
         # Create a service client for setting digital I/O.
-        rospy.wait_for_service(driver_ns + '/set_io')
+        #rospy.wait_for_service(driver_ns + '/set_io')
         self._set_io = rospy.ServiceProxy(driver_ns + '/set_io', SetIO)
 
         # Create an action server for processing commands to suction tools.

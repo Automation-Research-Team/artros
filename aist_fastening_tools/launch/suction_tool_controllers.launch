@@ -2,13 +2,15 @@
 <launch>
 
   <arg name="driver_ns"		default="b_bot/ur_hardware_interface"/>
-  <arg name="tool_names"	default="screw_tool_m3,screw_tool_m4,
-					 suction_tool,base_fixture"/>
+  <arg name="tool_names"	default="screw_tool_m3
+					 screw_tool_m4
+					 suction_tool
+					 base_fixture"/>
   <arg name="tool_number"	default="0"/>
 
-  <group unless="$(eval tool_number == len(tool_names.split(',')))">
+  <group unless="$(eval tool_number == len(tool_names.split()))">
     <arg name="tool_name"
-	 value="$(eval tool_names.split(',')[tool_number].strip())"/>
+	 value="$(eval tool_names.split()[tool_number].strip())"/>
 
     <node name="$(arg tool_name)_suction_controller"
   	  pkg="aist_fastening_tools" type="suction_tool_controller.py"

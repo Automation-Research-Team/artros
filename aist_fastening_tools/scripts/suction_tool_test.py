@@ -9,7 +9,6 @@ from aist_utility.compat      import *
 
 class SuctionToolTest(object):
     def __init__(self, controller_ns):
-        print('controller_ns=%s' % controller_ns)
         self._client = SimpleActionClient(controller_ns + '/command',
                                           SuctionToolCommandAction)
         self._client.wait_for_server()
