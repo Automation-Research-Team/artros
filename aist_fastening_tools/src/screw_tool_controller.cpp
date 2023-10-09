@@ -56,6 +56,12 @@ target_speed(int32_t speed, bool tighten)
     return std::clamp(speed, 0, 1023) + (tighten ? 0 : 1024);
 }
 
+static double
+get_normalized(int32_t value)
+{
+    return double(value < 1024 ? value : 1024 - value) / 1023.0;
+}
+
 /************************************************************************
 *  class ScrewToolController						*
 ************************************************************************/
@@ -84,8 +90,7 @@ class ScrewToolController
     void	dynamixel_states_cb(const dynamixel_states_cp& states)	;
 
   private:
-    template <class T>
-    bool	is_satisfied(T value, T max_value,
+    bool	is_satisfied(double ratio, double max_ratio,
 			     const ros::Duration& min_period)		;
     bool	send_dynamixel_command(const std::string& addr_name,
 				       int32_t value)			;
@@ -94,7 +99,11 @@ class ScrewToolController
     void	set_filter_cutoff_frequency(double cutoff_frequency)	;
 
   private:
+  // Basic stuffs
     const std::string		_node_ns;
+    const uint8_t		_motor_id;
+    Stage			_stage;
+    ros::Time			_start_time;
 
   // Dynamixel driver stuffs
     const ros::Subscriber	_dynamixel_states_sub;
@@ -104,15 +113,10 @@ class ScrewToolController
     server_t			_command_srv;
     goal_cp			_active_goal;
 
-    ddynamic_reconfigure_t	_ddr;
-
-    const uint8_t		_motor_id;
-    Stage			_stage;
-    ros::Time			_start_time;
-
   // Parameters
+    ddynamic_reconfigure_t	_ddr;
     ros::Duration		_loosen_period;      // period before retighten
-    int				_max_stall_speed;
+    double			_max_stall_speed;
     ros::Duration		_min_stall_period;
     double			_max_noload_current;
     ros::Duration		_min_noload_period;
@@ -126,20 +130,21 @@ class ScrewToolController
 ScrewToolController::ScrewToolController(ros::NodeHandle& nh,
 					 const std::string& driver_ns)
     :_node_ns(nh.getNamespace()),
+     _motor_id(nh.param<int>("motor_id", 1)),
+     _stage(DONE),
+     _start_time(),
      _dynamixel_states_sub(nh.subscribe<dynamixel_states_t>(
 			       driver_ns + "/dynamixel_state", 1,
 			       &dynamixel_states_cb, this)),
      _dynamixel_command(nh.serviceClient<dynamixel_command_t>(
 			    driver_ns + "/dynamixel_command")),
      _command_srv(nh, "command", false),
+     _active_goal(nullptr),
      _ddr(nh),
-     _motor_id(nh.param<int>("motor_id", 1)),
-     _stage(DONE),
-     _start_time(),
      _loosen_period(1.0),
-     _max_stall_speed(18),
-     _min_stall_period(0.2),
-     _max_noload_current(500.0),
+     _max_stall_speed(0.01),
+     _min_stall_period(0.5),
+     _max_noload_current(0.3),
      _min_noload_period(0.5),
      _control_period(nh.param<double>("control_period", 0.01)),
      _current(0.0),
@@ -157,24 +162,24 @@ ScrewToolController::ScrewToolController(ros::NodeHandle& nh,
 					      this, _loosen_period, _1),
 				  "Period of loosening before retightening",
 				  0.1, 5.0, "control parameters");
-    _ddr.registerVariable<int>("max_stall_speed", &_max_stall_speed,
-			       "Maximum speed to be judged as stalled",
-			       0, 30, "control parameters");
+    _ddr.registerVariable<double>("max_stall_speed", &_max_stall_speed,
+				  "Maximum ratio of speed to be judged as stalled",
+				  0.0, 0.05, "control parameters");
     _ddr.registerVariable<double>("min_stall_period",
 				  _min_stall_period.toSec(),
 				  boost::bind(&ScrewToolController::set_period,
 					      this, _min_stall_period, _1),
 				  "Minimum period required to be judged as stalled",
-				  0.1, 5.0, "control parameters");
+				  0.1, 1.0, "control parameters");
     _ddr.registerVariable<double>("max_noload_current", &_max_noload_current,
-				  "Maximum current to be judged as unloaded",
-				  100.0, 4000.0, "control parameters");
+				  "Maximum ratio of current to be judged as unloaded",
+				  0.0, 1.0, "control parameters");
     _ddr.registerVariable<double>("min_noload_period",
 				  _min_noload_period.toSec(),
 				  boost::bind(&ScrewToolController::set_period,
 					      this, _min_noload_period, _1),
 				  "Minimum period required to be judged as unloaded",
-				  0.1, 5.0, "control parameters");
+				  0.1, 1.0, "control parameters");
     _ddr.registerVariable<int>("filter_half_order", _filter.half_order(),
 			       boost::bind(&ScrewToolController::
 					   set_filter_half_order, this, _1),
@@ -195,8 +200,8 @@ void
 ScrewToolController::goal_cb()
 {
     _active_goal = _command_srv.acceptNewGoal();
-    _stage	= ACTIVE;
-    _start_time = ros::Time::now();
+    _stage	 = ACTIVE;
+    _start_time  = ros::Time::now();
     send_dynamixel_command("Moving_Speed",
 			   target_speed(_active_goal->speed,
 					_active_goal->tighten));
@@ -233,7 +238,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     }
 
   // Read current value and apply low-pass filter.
-    _current = state->present_current;
+    _current = get_normalized(state->present_current);
     const auto	current = _filter.filter(_current);
 
   // Check if an active goal is available.
@@ -242,7 +247,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 
   // Publish speed and filtered current as a feedback.
     ScrewToolCommandFeedback	feedback;
-    feedback.speed   = state->present_velocity;
+    feedback.speed   = get_normalized(state->present_velocity);
     feedback.current = current;
     _command_srv.publishFeedback(feedback);
 
@@ -250,7 +255,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	switch (_stage)
 	{
 	  case ACTIVE:
-	    if (is_satisfied(state->present_velocity,
+	    if (is_satisfied(feedback.speed,
 			     _max_stall_speed, _min_stall_period))
 	    {
 		if (_active_goal->retighten)
@@ -258,7 +263,8 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 		    send_dynamixel_command("Moving_Speed",
 					   target_speed(_active_goal->speed,
 							false));
-		    _stage = LOOSEN;
+		    _stage	= LOOSEN;
+		    _start_time = ros::Time::now();
 
 		    ROS_INFO_STREAM('(' << _node_ns
 				    << ") slightly loosen screw");
@@ -273,13 +279,14 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 		send_dynamixel_command("Moving_Speed",
 				       target_speed(_active_goal->speed,
 						    true));
-		_stage = RETIGHTEN;
+		_stage	    = RETIGHTEN;
+		_start_time = ros::Time::now();
 
 		ROS_INFO_STREAM('(' << _node_ns << ") retighten screw");
 	    }
 	    break;
 	  case RETIGHTEN:
-	    if (is_satisfied(state->present_velocity,
+	    if (is_satisfied(feedback.speed,
 			     _max_stall_speed, _min_stall_period))
 		_stage = DONE;
 	    break;
@@ -299,11 +306,11 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     }
 }
 
-template <class T> bool
-ScrewToolController::is_satisfied(T value, T max_value,
+bool
+ScrewToolController::is_satisfied(double ratio, double max_ratio,
 				  const ros::Duration& min_period)
 {
-    if (value > max_value)
+    if (std::abs(ratio) > max_ratio)
 	_start_time = ros::Time::now();
 
     return (ros::Time::now() - _start_time > min_period);
