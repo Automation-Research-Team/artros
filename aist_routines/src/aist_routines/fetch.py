@@ -34,13 +34,10 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-import actionlib
-import geometry_msgs.msg  as gmsg
-import sensor_msgs.msg    as smsg
-import threading
-import copy
 
-from math                   import pi, sin
+from actionlib              import SimpleActionClient
+from geometry_msgs.msg      import Point, PointStamped
+from math                   import pi, sin, radians
 from numpy                  import clip
 from control_msgs.msg       import PointHeadAction, PointHeadGoal
 from FollowTrajectoryClient import FollowTrajectoryClient
@@ -54,19 +51,56 @@ class FetchRoutines(AISTBaseRoutines, FreightRoutines):
     def __init__(self):
         super(FetchRoutines, self).__init__()
 
-        self._lock = threading.Lock()
-        self._joint_names     = None
-        self._joint_positions = None
-        rospy.Subscriber("/joint_states", smsg.JointState,
-                         self._joint_states_callback)
-
-        self._torso_controller = FollowTrajectoryClient(
-            "torso_controller", ["torso_lift_joint"])
-        self._head_controller = FollowTrajectoryClient(
-            "head_controller", ["head_pan_joint", "head_tilt_joint"])
-        self._point_head = actionlib.SimpleActionClient(
-                                "head_controller/point_head", PointHeadAction)
+        self._torso_controller = FollowTrajectoryClient("torso_controller",
+                                                        ["torso_lift_joint"])
+        self._head_controller  = FollowTrajectoryClient("head_controller",
+                                                        ["head_pan_joint",
+                                                         "head_tilt_joint"])
+        self._point_head = SimpleActionClient("head_controller/point_head",
+                                              PointHeadAction)
         self._point_head.wait_for_server()
+
+    # Interactive stuffs
+    def print_help_messages(self):
+        AISTBaseRoutines.print_help_messages(self)
+        print('=== Fetch specific commands ===')
+        print('  tucking:     move arm to the tacking position')
+        print('  ready:       move arm to the ready position')
+        print('  pick_ready:  move arm to the pick_ready position')
+        print('  torso:       move torso')
+        print('  head:        move haed')
+        print('  shake_head:  shake head')
+        print('  gaze:        gase the specified frame')
+
+    def interactive(self, key, robot_name, axis, speed=1.0):
+        if key == 'tucking':
+            self.go_to_named_pose(robot_name, 'tucking')
+        elif key == 'ready':
+            self.go_to_named_pose(robot_name, 'ready')
+        elif key == 'pick_ready':
+            self.go_to_named_pose(robot_name, 'pick_ready')
+        elif key == 'torso':
+            position = float(raw_input('  position = '))
+            self.move_torso(position)
+        elif key == 'head':
+            pan  = radians(float(raw_input('  head pan  = ')))
+            tilt = radians(float(raw_input('  head tilt = ')))
+            self.move_head(pan, tilt)
+        elif key == 'move_base':
+            x     = float(raw_input('  x     = '))
+            y     = float(raw_input('  y     = '))
+            theta = radians(float(raw_input('  theta = ')))
+            self.move_base(x, y, theta)
+        elif key == 'move_base_to_frame':
+            self.move_base_to_frame(raw_input(' frame = '))
+        elif key == 'shake_head':
+            self.shake_head(radians(30), radians(30))
+        elif key == 'gaze':
+            self.gaze_frame(raw_input('  frame = '))
+        else:
+            return AISTBaseRoutines.interactive(self,
+                                                key, robot_name, axis, speed)
+        return robot_name, axis, speed
 
     @property
     def torso_position(self):
@@ -101,24 +135,7 @@ class FetchRoutines(AISTBaseRoutines, FreightRoutines):
         self._point_head.wait_for_result()
 
     def gaze_frame(self, target_frame):
-        target_point = gmsg.PointStamped()
+        target_point                 = PointStamped()
         target_point.header.frame_id = target_frame
-        target_point.point           = gmsg.Point(0, 0, 0)
+        target_point.point           = Point(0, 0, 0)
         self.gaze(target_point)
-
-    def _current_position(self, joint_name):
-        try:
-            index = self._joint_names.index(joint_name)
-        except ValueError:
-            return None
-
-        self._lock.acquire()
-        position = copy.deepcopy(self._joint_positions[index])
-        self._lock.release()
-        return position
-
-    def _joint_states_callback(self, msg):
-        self._lock.acquire()
-        self._joint_names     = copy.deepcopy(msg.name)
-        self._joint_positions = copy.deepcopy(msg.position)
-        self._lock.release()

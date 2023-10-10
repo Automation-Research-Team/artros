@@ -75,7 +75,10 @@
     <!-- Launch suction controller -->
     <include ns="b_bot"
 	     file="$(find aist_fastening_tools
-		   )/launch/suction_tool_controller.launch"/>
+		   )/launch/suction_tool_controllers.launch">
+      <arg name="driver_ns"	value="ur_hardware_interface"/>
+      <arg name="tool_names"	value="b_bot_gripper"/>
+    </include>
 
     <!-- Launch precision gripper -->
     <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->

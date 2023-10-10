@@ -34,14 +34,12 @@
 import copy
 import threading
 import rospy
-import actionlib
-import geometry_msgs.msg as gmsg
-import tf.transformations as tfs
 
+from actionlib           import SimpleActionClient
 from math                import pi, radians, degrees
 from move_base_msgs.msg  import MoveBaseAction, MoveBaseGoal
-from nav_msgs            import msg as nmsg
-from geometry_msgs       import msg as gmsg
+from nav_msgs.msg        import Odometry
+from geometry_msgs.msg   import Vector3, Quaternion, PoseStamped
 from tf                  import TransformListener, transformations as tfs
 
 ######################################################################
@@ -51,21 +49,20 @@ class MoveBaseClient(object):
     def __init__(self):
         super(MoveBaseClient, self).__init__()
 
-        self._move_base = actionlib.SimpleActionClient("/move_base",
-                                                       MoveBaseAction)
+        self._move_base = SimpleActionClient("/move_base",  MoveBaseAction)
         if self._move_base.wait_for_server(rospy.Duration(10)):
-            rospy.loginfo("Connected to move_base.")
+            rospy.loginfo("(MoveBaseClient) Connected to move_base.")
         else:
-            rospy.logerr("MoveBaseClient.__init()__: failed to connect move_base action server")
+            rospy.logerr("(MoveBaseClient) Failed to connect move_base action server")
 
-        self._odom_sub          = rospy.Subscriber("odom", nmsg.Odometry,
-                                                   self._odom_callback)
-        self._odom_recv_event   = threading.Event()
-        self._current_odom      = nmsg.Odometry()
-        self._current_odom.header.stamp = rospy.Time.now()
+        self._odom_sub                     = rospy.Subscriber("odom", Odometry,
+                                                              self._odom_cb)
+        self._odom_recv_event              = threading.Event()
+        self._current_odom                 = Odometry()
+        self._current_odom.header.stamp    = rospy.Time.now()
         self._current_odom.header.frame_id = "odom"
-        self._reference_frame   = "map"
-        self._listener          = TransformListener()
+        self._reference_frame              = "map"
+        self._listener                     = TransformListener()
 
     @property
     def current_odom(self):
@@ -74,8 +71,8 @@ class MoveBaseClient(object):
     def move_base(self, x, y, theta, frame="map", wait=True):
         goal = MoveBaseGoal()
         goal.target_pose.header.frame_id  = frame
-        goal.target_pose.pose.position    = gmsg.Vector3(x, y, 0)
-        goal.target_pose.pose.orientation = gmsg.Quaternion(
+        goal.target_pose.pose.position    = Vector3(x, y, 0)
+        goal.target_pose.pose.orientation = Quaternion(
             *tfs.quaternion_from_euler(0, 0, theta))
         return self._move_base.send_goal_and_wait(goal)
 
@@ -89,7 +86,7 @@ class MoveBaseClient(object):
 
     def _xyz_rpy(self, odom):
         try:
-            pose = gmsg.PoseStamped()
+            pose = PoseStamped()
             pose.header = odom.header
             pose.pose   = odom.pose.pose
             self._listener.waitForTransform(self._reference_frame,
@@ -99,7 +96,7 @@ class MoveBaseClient(object):
             transformed_pose = self._listener.transformPose(
                                 self._reference_frame, pose).pose
         except Exception as e:
-            rospy.logerr("MoveBaseClient._xyz_rpy(): {}".format(e))
+            rospy.logerr("(MoveBaseClient) %s", e)
             raise e
 
         rpy = tfs.euler_from_quaternion([transformed_pose.orientation.x,
@@ -111,7 +108,7 @@ class MoveBaseClient(object):
                 transformed_pose.position.z,
                 rpy[0], rpy[1], rpy[2]]
 
-    def _odom_callback(self, odom):
+    def _odom_cb(self, odom):
         self._odom_recv_event.clear()
         self._current_odom = copy.deepcopy(odom)
         self._odom_recv_event.set()
