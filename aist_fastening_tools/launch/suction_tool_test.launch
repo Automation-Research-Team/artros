@@ -6,7 +6,7 @@
   <node name="$(arg tool_name)_test"
 	pkg="aist_fastening_tools" type="suction_tool_test.py"
 	output="screen">
-    <param name="controller_ns"	value="$(arg tool_name)_suction_controller"/>
+    <param name="controller_ns"	value="$(arg tool_name)_controller"/>
   </node>
 
   <include file="$(dirname)/suction_tool_controllers.launch">

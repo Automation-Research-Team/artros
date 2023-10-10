@@ -47,7 +47,7 @@ class InteractiveRoutines(AISTBaseRoutines):
         super(InteractiveRoutines, self).__init__()
 
     def run(self):
-        robot_name = rospy.get_param('~robot_name', 'b_bot')
+        robot_name = rospy.get_param('~robots').keys()[0]
         axis       = 'Y'
         speed      = rospy.get_param('~speed', 0.1)
 

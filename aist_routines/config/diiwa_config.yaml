@@ -6,13 +6,10 @@ robots:
 
 grippers:
   a_iiwa_gripper:
-    type: RobotiqGripper
-    args:
-      prefix: a_iiwa_gripper_
-      effort: 5.0
-      velocity: 0.1
+    type:          RobotiqGripper
+    controller_ns: a_iiwa_gripper_controller
+    max_effort:    5.0
+    velocity:      0.1
   b_iiwa_gripper:
-    type: SuctionGripper
-    args:
-      prefix: b_iiwa_gripper_
-      eject: false
+    type:          SuctionGripper
+    controller_ns: b_iiwa_gripper_controller

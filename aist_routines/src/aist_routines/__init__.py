@@ -96,27 +96,21 @@ class AISTBaseRoutines(object):
                   % (group_name, group.get_pose_reference_frame()))
 
         # Grippers
-        d = rospy.get_param('~grippers', {})
-        self._grippers = {'void_gripper': VoidGripper('void_gripper_base_link')}
-        for gripper_name, props in d.items():
-            self._grippers[gripper_name] = GripperClient.create(props['type'],
-                                                                props['args'])
+        self._grippers = {}
+        for gripper_name, props in rospy.get_param('~grippers', {}).items():
+            self._grippers[gripper_name] = GripperClient.create(gripper_name,
+                                                                props)
 
         # Robots
-        d = rospy.get_param('~robots', {})
         self._active_grippers = {}
-        for robot_name, props in d.items():
-            if 'default_gripper' in props:
-                self.set_gripper(robot_name, props['default_gripper'])
-            else:
-                self.set_gripper(robot_name, 'void_gripper')
+        for robot_name, props in rospy.get_param('~robots', {}).items():
+            self.set_gripper(robot_name, props['default_gripper'])
 
         # Cameras
-        d = rospy.get_param('~cameras', {})
         self._cameras = {}
-        for camera_name, type_name in d.items():
+        for camera_name, props in rospy.get_param('~cameras', {}).items():
             self._cameras[camera_name] = CameraClient.create(camera_name,
-                                                             type_name)
+                                                             props)
 
         # Search graspabilities
         if rospy.has_param('~graspability_parameters'):

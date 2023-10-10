@@ -10,12 +10,14 @@
   <arg name="rviz_config"		default=""/>
 
   <!-- Setup "diiwa" configuration -->
-  <arg name="prefixes"			value="a_iiwa_, b_iiwa_"/>
-  <arg name="devices"			value="iiwa14, iiwa14"/>
-  <arg name="controllers"		value="iiwa, iiwa"/>
-  <arg name="drivers"			value="iiwa, iiwa"/>
+  <arg name="prefixes"			value="a_iiwa_, b_iiwa_,
+					       a_iiwa_gripper_"/>
+  <arg name="devices"			value="iiwa14, iiwa14, robotiq_85"/>
+  <arg name="controllers"		value="iiwa, iiwa, cmodel"/>
+  <arg name="drivers"			value="iiwa, iiwa, cmodel"/>
   <arg name="driver_args"		value="$(arg hardware_interface);
-					       $(arg hardware_interface)"/>
+					       $(arg hardware_interface);
+					       urcap, 10.66.171.91"/>
 
   <!-- Bringup robots -->
   <include file="$(dirname)/include/connect_robots.launch">

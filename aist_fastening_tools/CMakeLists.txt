@@ -23,7 +23,6 @@ find_package(
   dynamixel_workbench_msgs
   ddynamic_reconfigure
   message_generation
-  genmsg
   actionlib
   actionlib_msgs
   aist_utility
@@ -41,7 +40,6 @@ add_action_files(
 generate_messages(
   DEPENDENCIES
     actionlib_msgs
-    std_msgs
 )
 
 ##########################################################################
@@ -96,7 +94,6 @@ install(
 
 catkin_install_python(
   PROGRAMS
-    scripts/screw_tool_controller.py
     scripts/screw_tool_test.py
     scripts/suction_tool_controller.py
     scripts/suction_tool_test.py

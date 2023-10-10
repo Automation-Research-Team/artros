@@ -4,9 +4,5 @@ robots:
 
 grippers:
   a_khi_gripper:
-    type: SuctionGripper
-    args:
-      name: a_khi_gripper
-      action_ns: /a_khi/suction_controller/suction
-      state_ns: /a_khi/suction_tool/suctioned
-      eject: false
+    type:          SuctionGripper
+    controller_ns: /a_khi_gripper_controller

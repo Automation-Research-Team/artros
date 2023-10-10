@@ -4,12 +4,9 @@ robots:
 
 grippers:
   a_bot_gripper:
-    type: RobotiqGripper
-    args:
-      prefix: a_bot_gripper_
-      effort: 5.0
-      velocity: 0.1
+    type:          RobotiqGripper
+    controller_ns: a_bot_gripper_controller
 
 cameras:
-  a_bot_inside_camera: CodedLightRealSenseCamera
+  a_bot_inside_camera:  CodedLightRealSenseCamera
   a_bot_outside_camera: CodedLightRealSenseCamera

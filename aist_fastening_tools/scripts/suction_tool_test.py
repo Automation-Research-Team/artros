@@ -61,7 +61,7 @@ if __name__ == '__main__':
         rospy.init_node('suction_tool_test')
 
         controller_ns = rospy.get_param('~controller_ns',
-                                        'screw_tool_m3_suction_controller')
+                                        'screw_tool_m3_controller')
         test = SuctionToolTest(controller_ns)
         test.run()
 

@@ -12,7 +12,7 @@
     <arg name="tool_name"
 	 value="$(eval tool_names.split()[tool_number].strip())"/>
 
-    <node name="$(arg tool_name)_suction_controller"
+    <node name="$(arg tool_name)_controller"
   	  pkg="aist_fastening_tools" type="suction_tool_controller.py"
   	  output="screen">
       <param name="driver_ns"	value="$(arg driver_ns)"/>

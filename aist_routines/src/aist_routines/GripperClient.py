@@ -48,22 +48,25 @@ from std_msgs.msg             import Bool
 #  class GripperClient                                               #
 ######################################################################
 class GripperClient(object):
-    def __init__(self, name, type, base_link, tip_link):
+    def __init__(self, name, type, base_link=None, tip_link=None):
         object.__init__(self)
         self._name             = name
         self._type             = type
-        self._base_link        = base_link
-        self._default_tip_link = tip_link
-        self._tip_link         = tip_link
+        self._base_link        = base_link if base_link else name + '_base_link'
+        self._tip_link         = tip_link if tip_link else name + '_tip_link'
+        self._default_tip_link = self._tip_link
         self._parameters       = {}
 
     @staticmethod
-    def create(type_name, kwargs):
+    def create(name, props):
+        type_name = props.pop('type', None)
+        if type_name is None:
+            raise rospy.ROSException('(GripperClient) no type specified for gripper[%s]' % name)
         ClientClass = globals()[type_name]
         if rospy.get_param('use_real_robot', False):
-            return ClientClass(**kwargs)
+            return ClientClass(name, **props)
         else:
-            return ClientClass.base(**kwargs)
+            return ClientClass.simulated(name, **props)
 
     @property
     def name(self):
@@ -97,16 +100,16 @@ class GripperClient(object):
     def reset_tip_link(self):
         self._tip_link = self._default_tip_link
 
-    def pregrasp(self, timeout=0):
+    def pregrasp(self, timeout=rospy.Duration()):
         return self.release(timeout)
 
-    def grasp(self, timeout=0):
+    def grasp(self, timeout=rospy.Duration()):
         return True
 
-    def postgrasp(self, timeout=0):
+    def postgrasp(self, timeout=rospy.Duration()):
         return self.grasp(wait)
 
-    def release(self, timeout=0):
+    def release(self, timeout=rospy.Duration()):
         return True
 
     def move(self, position):
@@ -122,20 +125,19 @@ class GripperClient(object):
 #  class VoidGripper                                                 #
 ######################################################################
 class VoidGripper(GripperClient):
-    def __init__(self, base_link):
-        super(VoidGripper, self).__init__('void_gripper', 'void',
-                                          base_link, base_link)
+    def __init__(self, name, tip_link):
+        super(VoidGripper, self).__init__(name, 'void', tip_link, tip_link)
         rospy.loginfo('void_gripper initialized.')
 
     @staticmethod
-    def base(base_link):
-        return VoidGripper(base_link)
+    def simulated(name, tip_link):
+        return VoidGripper(name, tip_link)
 
 ######################################################################
 #  class GenericGripper                                              #
 ######################################################################
 class GenericGripper(GripperClient):
-    def __init__(self, name, action_ns, base_link, tip_link,
+    def __init__(self, name, action_ns, base_link=None, tip_link=None,
                  min_position=0.0, max_position=0.1, max_effort=5.0):
         super(GenericGripper, self).__init__(name, 'two_finger',
                                              base_link, tip_link)
@@ -152,8 +154,8 @@ class GenericGripper(GripperClient):
         rospy.loginfo('%s initialized.', action_ns)
 
     @staticmethod
-    def base(name, action_ns, base_link, tip_link,
-             min_position, max_position, max_effort):
+    def simulated(name, action_ns, base_link=None, tip_link=None,
+                  min_position=0.0, max_position=0.1, max_effort=5.0):
         return GenericGripper(name, action_ns, base_link, tip_link,
                               min_position, max_position, max_effort)
 
@@ -187,26 +189,24 @@ class GenericGripper(GripperClient):
 #  class RobotiqGripper                                              #
 ######################################################################
 class RobotiqGripper(GenericGripper):
-    def __init__(self, prefix='a_bot_gripper_', effort=0.0, velocity=0.1):
-        ns = prefix + 'controller'
-        self._min_gap      = rospy.get_param(ns + '/min_gap')
-        self._max_gap      = rospy.get_param(ns + '/max_gap')
-        self._min_position = rospy.get_param(ns + '/min_position')
-        self._max_position = rospy.get_param(ns + '/max_position')
+    def __init__(self, name, controller_ns, max_effort=0.0, velocity=0.1):
+        self._min_gap      = rospy.get_param(controller_ns + '/min_gap')
+        self._max_gap      = rospy.get_param(controller_ns + '/max_gap')
+        self._min_position = rospy.get_param(controller_ns + '/min_position')
+        self._max_position = rospy.get_param(controller_ns + '/max_position')
 
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
 
-        super(RobotiqGripper, self).__init__(prefix.rstrip('_'),
-                                             ns + '/gripper_cmd',
-                                             prefix + 'base_link',
-                                             prefix + 'tip_link',
+        super(RobotiqGripper, self).__init__(name,
+                                             controller_ns + '/gripper_cmd',
+                                             None, None,
                                              self._min_gap, self._max_gap,
-                                             effort)
+                                             max_effort)
 
     @staticmethod
-    def base(prefix, effort, velocity):
-        return RobotiqGripper(prefix, effort, velocity)
+    def simulated(name, controller_ns, max_effort=0.0, velocity=0.1):
+        return RobotiqGripper(name, controller_ns, max_effort, velocity)
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration()):
         return super(RobotiqGripper, self).move(self._position(gap),
@@ -233,18 +233,16 @@ class RobotiqGripper(GenericGripper):
 #  class PrecisionGripper                                            #
 ######################################################################
 class PrecisionGripper(GenericGripper):
-    def __init__(self, prefix='a_bot_gripper_'):
-        ns = prefix + 'controller'
-        min_position = rospy.get_param(ns + '/min_position')
-        max_position = rospy.get_param(ns + '/max_position')
-        max_effort   = rospy.get_param(ns + '/max_effort')
+    def __init__(self, name, controller_ns):
+        min_position = rospy.get_param(controller_ns + '/min_position')
+        max_position = rospy.get_param(controller_ns + '/max_position')
+        max_effort   = rospy.get_param(controller_ns + '/max_effort')
 
         assert min_position < max_position
 
-        super(PrecisionGripper, self).__init__(prefix.rstrip('_'),
-                                               ns + '/gripper_cmd',
-                                               prefix + 'base_link',
-                                               prefix + 'tip_link',
+        super(PrecisionGripper, self).__init__(name,
+                                               controller_ns + '/gripper_cmd',
+                                               None, None,
                                                min_position, max_position,
                                                max_effort)
 
@@ -253,8 +251,8 @@ class PrecisionGripper(GenericGripper):
 ######################################################################
 class SuctionGripper(GripperClient):
     def __init__(self, name, controller_ns):
-        super(SuctionGripper, self).__init__(
-            *SuctionGripper._initargs(name, controller_ns))
+        super(SuctionGripper, self).__init__(name, 'suction')
+
         self._client    = SimpleActionClient(controller_ns + '/command',
                                              SuctionToolCommandAction)
         self._state_sub = rospy.Subscriber(controller_ns + '/suctioned',
@@ -267,25 +265,21 @@ class SuctionGripper(GripperClient):
                          action_ns)
 
     @staticmethod
-    def base(name, controller_ns):
-        return GripperClient(*SuctionGripper._initargs(name, controller_ns))
-
-    @staticmethod
-    def _initargs(name, controller_ns):
-        return (name, 'suction', name + '_base_link', name + '_tip_link')
+    def simulated(name, controller_ns):
+        return GripperClient(name, 'suction')
 
     def pregrasp(self, timeout=rospy.Duration()):
         return self._send_command(True, rospy.Duration(0), timeout)
 
     def grasp(self, min_period=rospy.Duration(0.5), timeout=rospy.Duration()):
-        return self._send_command(True, min_period, timeout):
+        return self._send_command(True, min_period, timeout)
 
     def postgrasp(self, timeout=rospy.Duration()):
         return self._suctioned
 
     def release(self, min_period=rospy.Duration(0.2),
                 timeout=rospy.Duration()):
-        return not self._send_command(False, min_period, timeout):
+        return not self._send_command(False, min_period, timeout)
 
     def wait(self, timeout=rospy.Duration()):
         return self._suctioned
@@ -309,28 +303,23 @@ class SuctionGripper(GripperClient):
 #  class Lecp6Gripper                                                #
 ######################################################################
 class Lecp6Gripper(GripperClient):
-    def __init__(self, prefix='a_bot_gripper_', open_no=1, close_no=2):
+    def __init__(self, name, controller_ns, open_no=1, close_no=2):
         from tranbo_control.msg import Lecp6CommandAction, Lecp6CommandGoal
 
-        super(Lecp6Gripper, self).__init__(*Lecp6Gripper._initargs(prefix))
-        self._client     = SimpleActionClient('/arm_driver/lecp6_driver/lecp6',
-                                          Lecp6CommandAction)
+        super(Lecp6Gripper, self).__init__(name, 'two_finger')
+        self._client     = SimpleActionClient(controller_ns + '/lecp6',
+                                              Lecp6CommandAction)
         self._parameters = {'release_stepdata': open_no,
                             'grasp_stepdata':   close_no}
 
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
             rospy.logerr('(Lecp6Gripper) failed to connect to server[%s]',
-                         '/arm_driver/lecp6_driver/lecp6')
+                         controller_ns + '/lecp6')
 
     @staticmethod
-    def base(prefix):
-        return GripperClient(*Lecp6Gripper._initargs(prefix))
-
-    @staticmethod
-    def _initargs(prefix):
-        return (prefix.rstrip('_'), 'two_finger',
-                prefix + 'base_link', prefix + 'tip_link')
+    def simulated(name, controller_ns, open_no=1, close_no=2):
+        return GripperClient(name, 'two_finger')
 
     def grasp(self, timeout=rospy.Duration()):
         return self._send_command(True, timeout)
@@ -363,16 +352,15 @@ class Lecp6Gripper(GripperClient):
 #  class MagswitchGripper                                            #
 ######################################################################
 class MagswitchGripper(GripperClient):
-    def __init__(self, prefix='a_bot_magnet_',
+    def __init__(self, name, controller_ns,
                  sensitivity=0, grasp_position=30, confirm_position=100):
         from tranbo_control.msg import (MagswitchCommandAction,
                                         MagswitchCommandGoal)
 
-        super(MagswitchGripper, self).__init__(
-            *MagswitchGripper._initargs(prefix))
-        self._client           = SimpleActionClient(
-                                     '/arm_driver/magswitch_driver/magswitch',
-                                     MagswitchCommandAction)
+        super(MagswitchGripper, self).__init__(name, 'magnet')
+        self._client           = SimpleActionClient(controller_ns
+                                                    + '/magswitch',
+                                                    MagswitchCommandAction)
         self._goal             = MagswitchCommandGoal()
         self._calibration_step = 0
 
@@ -383,16 +371,12 @@ class MagswitchGripper(GripperClient):
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
             rospy.logerr('(MagswitchGripper) failed to connect to server[%s]',
-                         '/arm_driver/magswitch_driver/magswitch')
+                         controller_ns + '/magswitch')
 
     @staticmethod
-    def base(prefix):
-        return GripperClient(*MagswitchGripper._initargs(prefix))
-
-    @staticmethod
-    def _initargs(prefix):
-        return (prefix.rstrip('_'), 'magnet',
-                prefix + 'base_link', prefix + 'tip_link')
+    def simulated(name, controller_ns,
+                 sensitivity=0, grasp_position=30, confirm_position=100):
+        return GripperClient(name, 'magnet')
 
     @property
     def calibration_step(self):

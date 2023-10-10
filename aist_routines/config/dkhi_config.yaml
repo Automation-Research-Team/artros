@@ -6,15 +6,10 @@ robots:
 
 grippers:
   a_khi_gripper:
-    type: RobotiqGripper
-    args:
-      prefix: a_khi_gripper_
-      effort: 5.0
-      velocity: 0.1
+    type:          RobotiqGripper
+    controller_ns: a_khi_gripper_controller
+    max_effort:    5.0
+    velocity:      0.1
   b_khi_gripper:
     type: SuctionGripper
-    args:
-      name: b_khi_gripper
-      action_ns: /b_khi/suction_controller/suction
-      state_ns: /b_khi/suction_tool/suctioned
-      eject: false
+    controller_ns: /b_khi_gripper_controller

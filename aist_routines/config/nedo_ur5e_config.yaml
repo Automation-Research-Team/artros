@@ -4,8 +4,7 @@ robots:
 
 grippers:
   e_bot_gripper:
-    type: RobotiqGripper
-    args:
-      prefix: e_bot_gripper_
-      effort: 5.0
-      velocity: 0.1
+    type:          RobotiqGripper
+    controller_ns: e_bot_gripper_controller
+    max_effort:    5.0
+    velocity:      0.1

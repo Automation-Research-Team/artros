@@ -4,7 +4,5 @@ robots:
 
 grippers:
   b_torobo_gripper:
-    type: VoidGripper
-    args:
-      name: b_torobo_gripper
-      base_link: b_torobo_arm/ee_link
+    type:     VoidGripper
+    tip_link: b_torobo_arm/ee_link

@@ -13,7 +13,7 @@
     <arg name="tool_name"
 	 value="$(eval tool_names.split()[tool_number].strip())"/>
 
-    <node name="$(arg tool_name)_controller"
+    <node name="$(arg tool_name)_fastening_controller"
   	  pkg="aist_fastening_tools" type="screw_tool_controller"
   	  output="screen">
       <param name="driver_ns"		value="/$(arg driver_ns)"/>

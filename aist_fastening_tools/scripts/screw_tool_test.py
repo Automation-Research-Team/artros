@@ -63,7 +63,7 @@ if __name__ == '__main__':
         rospy.init_node('screw_tool_test')
 
         controller_ns = rospy.get_param('~controller_ns',
-                                        'screw_tool_m3_controller')
+                                        'screw_tool_m3_fastening_controller')
         test = ScrewToolTest(controller_ns)
         test.run()
 

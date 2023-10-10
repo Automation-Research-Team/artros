@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim"			default="false"/>
+  <arg name="scene"			default="storobo_base_scene"/>
+  <arg name="manager"			default="torobo_nodelet_manager"/>
+  <arg name="joint_state_frequency"	default="500"/>
+  <arg name="robot_state_frequency"	default="500"/>
+  <arg name="moveit_config"		default="$(find
+						 storobo_moveit_config)"/>
+  <arg name="rviz_config"		default=""/>
+
+  <!-- Setup "storobo" configuration -->
+  <arg name="prefixes"			value="b_torobo_, b_torobo_"/>
+  <arg name="devices"			value="arm, gripper"/>
+  <arg name="controllers"		value="torobo, torobo"/>
+  <arg name="drivers"			value="torobo"/>
+  <arg name="driver_args"		value="10.66.171.61, 50000"/>
+
+  <!-- Spawn nodelet manager -->
+  <node name="$(arg manager)" ns="torobo"
+	pkg="nodelet" type="nodelet" args="manager" output="screen"/>
+
+  <!-- Bringup robots -->
+  <include file="$(dirname)/include/connect_robots.launch">
+    <arg name="robot_description_file"
+	 value="$(find aist_description)/scenes/urdf/$(arg scene).urdf.xacro"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="manager"			value="$(arg manager)"/>
+    <arg name="joint_state_frequency"	value="$(arg joint_state_frequency)"/>
+    <arg name="prefixes"		value="$(arg prefixes)"/>
+    <arg name="devices"			value="$(arg devices)"/>
+    <arg name="controllers"		value="$(arg controllers)"/>
+    <arg name="drivers"			value="$(arg drivers)"/>
+    <arg name="driver_args"		value="$(arg driver_args)"/>
+    <arg name="ns"			value="torobo"/>
+  </include>
+
+  <!-- Start MoveIt! -->
+  <include ns="torobo"
+	   file="$(dirname)/include/move_group.launch">
+    <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
+    <arg name="moveit_config"		value="$(arg moveit_config)"/>
+    <arg name="rviz_config"		value="$(arg rviz_config)"/>
+  </include>
+
+  <!-- Spawn torobo_dynamics -->
+  <include file="$(find torobo_dynamics)/launch/torobo_dynamics_nodelet.launch">
+    <arg name="sim" value="$(arg sim)"/>
+  </include>
+
+  <!-- Spawn torobo_state_viewer -->
+  <include file="$(find torobo_gui)/launch/torobo_state_viewer.launch"/>
+
+  <!-- launch torobo collision detector -->
+  <include file="$(find torobo_collision_detector
+		 )/launch/torobo_collision_detector_nodelet.launch">
+    <arg name="manager"	value="$(arg manager)"/>
+  </include>
+
+</launch>
