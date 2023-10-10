@@ -71,6 +71,7 @@ class SuctionToolController(object):
                                                    queue_size=1)
             self._suction_pub   = rospy.Publisher('~suctioned', Bool,
                                                   queue_size=1)
+        self._suctioned = False
 
         # Create a service client for setting digital I/O.
         #rospy.wait_for_service(driver_ns + '/set_io')
@@ -88,6 +89,13 @@ class SuctionToolController(object):
         self._active_goal = self._server.accept_new_goal()
         rospy.loginfo('(%s) new goal ACCEPTED', self._name)
 
+        # Check that preempt has not been requested by the client
+        if self._server.is_preempt_requested():
+            self._server.set_preempted()
+            rospy.logwarn('(%s) pending goal CANCELED before proccessed',
+                          self._name)
+            return
+
         # Set states of suck and blow ports.
         self._set_out_port(self._suck_port, self._active_goal.suck)
         self._set_out_port(self._blow_port, not self._active_goal.suck)
@@ -101,10 +109,9 @@ class SuctionToolController(object):
         self._start_time = rospy.get_rostime()
 
     def _preempt_cb(self):
-        self._server.set_preempted(SuctionToolCommandResult(False))
-        self._set_out_port(self._suck_port, False)
-        self._set_out_port(self._blow_port, False)
-        rospy.logwarn('(%s) goal CANCELED by client', self._name)
+        self._set_out_port(self._blow_port, False)  # If blowing, stop it.
+        self._server.set_preempted(SuctionToolCommandResult(self._suctioned))
+        rospy.logwarn('(%s) active goal CANCELED by client', self._name)
 
     def _io_states_cb(self, io_states):
         # Find a state of my IN port.
@@ -114,10 +121,10 @@ class SuctionToolController(object):
             rospy.logerr('(%s) not found digital IN state at port[%d]',
                          self._name, self._in_port)
             return
-        suctioned = in_state.state
+        self._suctioned = in_state.state
 
         # Publish suction state.
-        self._suntion_pub.publish(Bool(suctioned))
+        self._suntion_pub.publish(Bool(self._suctioned))
 
         # Return if no active goal running.
         if not self._server.is_active():
@@ -125,25 +132,35 @@ class SuctionToolController(object):
 
         # Publish feedback.
         self._server.publish_feedback(
-            SusctionToolCommandFeedback(suctioned))
+            SusctionToolCommandFeedback(self._suctioned))
 
         # If the IN port has not reached the target state, update start time.
-        if suctioned != goal.suck:
+        if self._suctioned != goal.suck:
             self._start_time = rospy.get_rostime()
 
         # Check if the target state has been kept for min_period.
-        if self._active_goal.min_period > rospy.Duration(0.0) and \
-           rospy.get_rostime() - start_time > self._active_goal.min_period:
-            if not self._active_goal.suck:                  # If blowing...
-                self._set_out_port(self._blow_port, False)  # stop it.
-            self._server.set_succeeded(SuctionToolCommandResult(suctioned))
+        #  - If min_period is zero, the goal succeeds immediately.
+        #  - If min_period is negative, the goal never succeeds
+        #    and should be terminated by a cancel request.
+        if self._active_goal.min_period >= rospy.Duration(0) and \
+           rospy.get_rostime() - start_time >= self._active_goal.min_period:
+            self._set_out_port(self._blow_port, False)  # If blowing, stop it.
+            self._server.set_succeeded(
+                SuctionToolCommandResult(self._suctioned))
             rospy.loginfo('(%s) goal SUCCEEDED: suctioned', self._name)
 
     def _set_out_port(self, port, state):
-        if port is not None:        # blow_port may be None
-            if not self._set_io(1, port, 1 if state else 0).success:
-                return False
-        return True
+        if port is None:        # blow_port may be None
+            return
+
+        for n in range(5):
+            if self._set_io(SetIO.FUN_SET_DIGITAL_OUT, port,
+                            SetIO.STATE_ON if state else \
+                            SetIO.STATE_OFF).success:
+                return
+            rospy.sleep(0.001)
+        rospy.logerr('(%s) failed to set OUT port[%d] to state[%s]',
+                     self._name, port, state)
 
 
 #########################################################################

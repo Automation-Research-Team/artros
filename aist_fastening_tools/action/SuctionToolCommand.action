@@ -1,6 +1,9 @@
 # Goal
 bool     suck        # True: suck, False: blow
 duration min_period  # minimum time required for the operation being succeeded
+		     # If zero, operation succeeds immediately.
+                     # If negative, operation never succeeds and should be
+		     # terminated by cancel request.
 ---
 # Result
 bool suctioned
