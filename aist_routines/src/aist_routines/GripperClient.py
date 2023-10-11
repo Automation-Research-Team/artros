@@ -106,6 +106,9 @@ class GripperClient(object):
     def grasp(self, timeout=rospy.Duration()):
         return True
 
+    def postgrasp(self):
+        self.grasp(rospy.Duration(-1))
+
     def release(self, timeout=rospy.Duration()):
         return True
 
@@ -157,12 +160,12 @@ class GenericGripper(GripperClient):
                               min_position, max_position, max_effort)
 
     def grasp(self, timeout=rospy.Duration()):
-        return self.move(self.parameters['grasp_position'],
-                         self.parameters['max_effort'],
+        return self.move(self._parameters['grasp_position'],
+                         self._parameters['max_effort'],
                          timeout)
 
     def release(self, timeout=rospy.Duration()):
-        return self.move(self.parameters['release_position'], 0, timeout)
+        return self.move(self._parameters['release_position'], 0, timeout)
 
     def move(self, position, max_effort=0, timeout=rospy.Duration()):
         self._client.send_goal(GripperCommandGoal(GripperCommand(position,
@@ -188,13 +191,22 @@ class GenericGripper(GripperClient):
 ######################################################################
 class RobotiqGripper(GenericGripper):
     def __init__(self, name, controller_ns, max_effort=0.0, velocity=0.1):
+        from aist_robotiq.srv import SetVelocity
+
         self._min_gap      = rospy.get_param(controller_ns + '/min_gap')
         self._max_gap      = rospy.get_param(controller_ns + '/max_gap')
         self._min_position = rospy.get_param(controller_ns + '/min_position')
         self._max_position = rospy.get_param(controller_ns + '/max_position')
+        self._min_velocity = rospy.get_param(controller_ns + '/min_velocity')
+        self._max_velocity = rospy.get_param(controller_ns + '/max_velocity')
+
+        self._set_velocity = rospy.ServiceProxy(controller_ns + '/set_velocity',
+                                                SetVelocity)
+        self.set_velocity(velocity)
 
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
+
 
         super(RobotiqGripper, self).__init__(name,
                                              controller_ns + '/gripper_cmd',
@@ -205,6 +217,9 @@ class RobotiqGripper(GenericGripper):
     @staticmethod
     def simulated(name, controller_ns, max_effort=0.0, velocity=0.1):
         return RobotiqGripper(name, controller_ns, max_effort, velocity)
+
+    def set_velocity(self, velocity):
+        return self._set_velocity(velocity).success
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration()):
         return super(RobotiqGripper, self).move(self._position(gap),
@@ -271,10 +286,10 @@ class SuctionGripper(GripperClient):
         self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
     def grasp(self, timeout=rospy.Duration()):
-        return self._send_command(True,
-                                  rospy.Duration(
-                                      self._parameters['suck_min_period']),
-                                  timeout)
+        pass
+
+    def postgrasp(self):
+        self.pregrasp()
 
     def release(self, timeout=rospy.Duration()):
         return self._send_command(False,
@@ -332,7 +347,7 @@ class Lecp6Gripper(GripperClient):
         return self._send_command(False, timeout)
 
     def wait(self, timeout=rospy.Duration()):
-        if timeout < 0:
+        if timeout < rospy.Duration():
             return False
         if not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()
@@ -358,7 +373,7 @@ class Lecp6Gripper(GripperClient):
 ######################################################################
 class MagswitchGripper(GripperClient):
     def __init__(self, name, controller_ns,
-                 sensitivity=0, pregrasp_position=30, grasp_position=100):
+                 sensitivity=0, grasp_position=30, confirm_position=100):
         from tranbo_control.msg import (MagswitchCommandAction,
                                         MagswitchCommandGoal)
 
@@ -368,9 +383,9 @@ class MagswitchGripper(GripperClient):
                                                     MagswitchCommandAction)
         self._goal             = MagswitchCommandGoal()
         self._calibration_step = 0
-        self._parameters       = {'sensitivity':       sensitivity,
-                                  'pregrasp_position': pregrasp_position,
-                                  'grasp_position':    grasp_position}
+        self._parameters       = {'sensitivity':      sensitivity,
+                                  'grasp_position':   grasp_position,
+                                  'confirm_position': confirm_position}
 
         if not self._client.wait_for_server(timeout=rospy.Duration(5)):
             self._client = None
@@ -393,20 +408,21 @@ class MagswitchGripper(GripperClient):
         return self._send_command(position, timeout)
 
     def pregrasp(self):
-        self._send_command(self._parameters['pregrasp_position'],
+        self._send_command(self._parameters['grasp_position'],
                            rospy.Duration(-1))
 
     def grasp(self, timeout=rospy.Duration()):
-        return self._send_command(self._parameters['grasp_position'], timeout)
+        return True
 
-    def postgrasp(self, timeout=rospy.Duration()):
-        return self._send_command(self._parameters['confirm_position'], timeout)
+    def postgrasp(self):
+        self._send_command(self._parameters['confirm_position'],
+                           rospy.Duration(-1))
 
     def release(self, timeout=rospy.Duration()):
         return self._send_command(0, timeout)
 
     def wait(self, timeout=rospy.Duration()):
-        if timeout < 0:
+        if timeout < rospy.Duration():
             return False
         elif not self._client.wait_for_result(rospy.Duration(timeout)):
             self._client.cancel_goal()

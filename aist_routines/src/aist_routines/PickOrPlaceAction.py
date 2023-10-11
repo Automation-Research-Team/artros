@@ -160,7 +160,7 @@ class PickOrPlace(SimpleActionClient):
         feedback.stage = PickOrPlaceFeedback.APPROACHING
         self._server.publish_feedback(feedback)
         if goal.pick:
-            gripper.pregrasp()                 # Pregrasp (no wait)
+            gripper.pregrasp()                  # Pregrasp (not wait)
         target_pose = routines.effector_target_pose(goal.pose,
                                                     (goal.offset.translation.x,
                                                      goal.offset.translation.y,
@@ -187,7 +187,7 @@ class PickOrPlace(SimpleActionClient):
         feedback.stage = PickOrPlaceFeedback.GRASPING_OR_RELEASING
         self._server.publish_feedback(feedback)
         if goal.pick:
-            gripper.wait()                       # Wait for pregrasp completed
+            gripper.wait()                      # Wait for pregrasp completed
             gripper.grasp()
         else:
             gripper.release()
@@ -197,6 +197,7 @@ class PickOrPlace(SimpleActionClient):
         feedback.stage = PickOrPlaceFeedback.DEPARTING
         self._server.publish_feedback(feedback)
         if goal.pick:
+            gripper.postgrasp()                 # Postgrasp (not wait)
             offset         = goal.departure_offset
             scaling_factor = goal.speed_slow
         else:
@@ -221,7 +222,7 @@ class PickOrPlace(SimpleActionClient):
             self._server.set_aborted(result, 'Failed to depart from target')
             return
 
-        if goal.pick and not gripper.wait():  # Wait for postgrasp completed
+        if goal.pick and not gripper.wait():    # Wait for postgrasp completed
             gripper.release()
             result.result = PickOrPlaceResult.GRASP_FAILURE
             self._server.set_aborted(result, 'Failed to grasp')
