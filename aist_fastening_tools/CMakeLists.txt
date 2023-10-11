@@ -31,6 +31,11 @@ find_package(
 ##########################################################################
 # Declare ROS messages, services and actions
 ##########################################################################
+add_message_files(
+  FILES
+    ScrewToolStatus.msg
+)
+
 add_action_files(
   FILES
     ScrewToolCommand.action

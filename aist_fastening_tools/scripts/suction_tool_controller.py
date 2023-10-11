@@ -124,7 +124,7 @@ class SuctionToolController(object):
         self._suctioned = in_state.state
 
         # Publish suction state.
-        self._suntion_pub.publish(Bool(self._suctioned))
+        self._suction_pub.publish(Bool(self._suctioned))
 
         # Return if no active goal running.
         if not self._server.is_active():
