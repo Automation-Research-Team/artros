@@ -43,6 +43,7 @@
 #include <ddynamic_reconfigure/ddynamic_reconfigure.h>
 #include <actionlib/server/simple_action_server.h>
 #include <aist_fastening_tools/ScrewToolCommandAction.h>
+#include <aist_fastening_tools/ScrewToolStatus.h>
 #include <aist_utility/butterworth_lpf.h>
 
 namespace aist_fastening_tools
@@ -77,7 +78,7 @@ class ScrewToolController
     using goal_cp		= boost::shared_ptr<const server_t::Goal>;
     using ddynamic_reconfigure_t= ddynamic_reconfigure::DDynamicReconfigure;
     using filter_t		= aist_utility::ButterworthLPF<double, double>;
-
+    
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
   public:
@@ -109,6 +110,9 @@ class ScrewToolController
     const ros::Subscriber	_dynamixel_states_sub;
     ros::ServiceClient		_dynamixel_command;
 
+  // Status publishment stuffs
+    ros::Publisher		_status_pub;
+    
   // Action stuffs
     server_t			_command_srv;
     goal_cp			_active_goal;
@@ -138,6 +142,7 @@ ScrewToolController::ScrewToolController(ros::NodeHandle& nh,
 			       &dynamixel_states_cb, this)),
      _dynamixel_command(nh.serviceClient<dynamixel_command_t>(
 			    driver_ns + "/dynamixel_command")),
+     _status_pub(nh.advertise<ScrewToolStatus>("status", 1)),
      _command_srv(nh, "command", false),
      _active_goal(nullptr),
      _ddr(nh),
@@ -240,18 +245,25 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	return;
     }
 
-  // Read current value and apply low-pass filter.
+  // Read current value.
     _current = get_normalized(state->present_current);
-    const auto	current = _filter.filter(_current);
 
+  // Publish tool status.
+    ScrewToolStatus	status;
+    status.header.stamp	= ros::Time::now();
+    status.speed	= get_normalized(state->present_velocity);
+    status.current	= _filter.filter(_current);
+    _status_pub.publish(status);
+    
+  // Read current value and apply low-pass filter.
   // Check if an active goal is available.
     if (!_command_srv.isActive())
 	return;
 
   // Publish speed and filtered current as a feedback.
     ScrewToolCommandFeedback	feedback;
-    feedback.speed   = get_normalized(state->present_velocity);
-    feedback.current = current;
+    feedback.speed   = status.speed;
+    feedback.current = status.current;
     _command_srv.publishFeedback(feedback);
 
     if (_active_goal->tighten)
@@ -264,13 +276,17 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 		if (_active_goal->retighten)
 		{
 		    send_dynamixel_command("Moving_Speed",
+					   target_speed(0, true));
+		    ros::Duration(0.1).sleep();
+
+		    ROS_INFO_STREAM('(' << _node_ns
+				    << ") slightly loosen screw");
+		    
+		    send_dynamixel_command("Moving_Speed",
 					   target_speed(_active_goal->speed,
 							false));
 		    _stage	= LOOSEN;
 		    _start_time = ros::Time::now();
-
-		    ROS_INFO_STREAM('(' << _node_ns
-				    << ") slightly loosen screw");
 		}
 		else
 		    _stage = DONE;
@@ -279,13 +295,16 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	  case LOOSEN:
 	    if (ros::Time::now() - _start_time > _loosen_period)
 	    {
+		send_dynamixel_command("Moving_Speed", target_speed(0, false));
+		ros::Duration(0.1).sleep();
+
+		ROS_INFO_STREAM('(' << _node_ns << ") retighten screw");
+		
 		send_dynamixel_command("Moving_Speed",
 				       target_speed(_active_goal->speed,
 						    true));
 		_stage	    = RETIGHTEN;
 		_start_time = ros::Time::now();
-
-		ROS_INFO_STREAM('(' << _node_ns << ") retighten screw");
 	    }
 	    break;
 	  case RETIGHTEN:
@@ -296,12 +315,13 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	  default:
 	    break;
 	}
-    else if (is_satisfied(current, _max_noload_current, _min_noload_period))
+    else if (is_satisfied(status.current,
+			  _max_noload_current, _min_noload_period))
 	_stage = DONE;
 
     if (_stage == DONE)
     {
-	send_dynamixel_command("Moving_Speed",  0);
+	send_dynamixel_command("Moving_Speed",  _active_goal->tighten);
 	send_dynamixel_command("Enable_Torque", 0);
 	_command_srv.setSucceeded();
 

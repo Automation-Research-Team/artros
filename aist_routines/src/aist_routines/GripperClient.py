@@ -271,11 +271,15 @@ class SuctionGripper(GripperClient):
         self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
     def grasp(self, timeout=rospy.Duration()):
-        return self._send_command(True, self._parameters['suck_min_period'],
+        return self._send_command(True,
+                                  rospy.Duration(
+                                      self._parameters['suck_min_period']),
                                   timeout)
 
     def release(self, timeout=rospy.Duration()):
-        return self._send_command(False, self._parameters['blow_min_period'],
+        return self._send_command(False,
+                                  rospy.Duration(
+                                      self._parameters['blow_min_period']),
                                   timeout)
 
     def wait(self, timeout=rospy.Duration()):
@@ -293,7 +297,7 @@ class SuctionGripper(GripperClient):
             self._client.cancel_goal()
 
     def _send_command(self, suck, min_period, timeout=rospy.Duration()):
-        self._client.send_goal(SunctionToolCommandGoal(suck, min_period))
+        self._client.send_goal(SuctionToolCommandGoal(suck, min_period))
         return self.wait(timeout)
 
     def _state_cb(self, msg):

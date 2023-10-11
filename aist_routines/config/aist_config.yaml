@@ -15,7 +15,7 @@ grippers:
 #    controller_ns: a_bot_gripper_controller
   b_bot_gripper:
     type:          SuctionGripper
-    controller_ns: suction_tool_controller
+    controller_ns: b_bot_gripper_controller
 cameras:
   a_phoxi_m_camera:     PhoXiCamera
   a_bot_inside_camera:  CodedLightRealSenseCamera
