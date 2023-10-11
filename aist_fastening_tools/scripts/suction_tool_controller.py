@@ -43,7 +43,7 @@ from aist_fastening_tools.msg import (SuctionToolCommandAction,
                                       SuctionToolCommandResult,
                                       SuctionToolCommandFeedback)
 from ur_msgs.msg              import IOStates
-from ur_msgs.srv              import SetIO
+from ur_msgs.srv              import SetIO, SetIORequest
 from std_msgs.msg             import Bool
 
 #########################################################################
@@ -124,7 +124,7 @@ class SuctionToolController(object):
         self._suctioned = in_state.state
 
         # Publish suction state.
-        self._suntion_pub.publish(Bool(self._suctioned))
+        self._suction_pub.publish(Bool(self._suctioned))
 
         # Return if no active goal running.
         if not self._server.is_active():
@@ -132,10 +132,10 @@ class SuctionToolController(object):
 
         # Publish feedback.
         self._server.publish_feedback(
-            SusctionToolCommandFeedback(self._suctioned))
+            SuctionToolCommandFeedback(self._suctioned))
 
         # If the IN port has not reached the target state, update start time.
-        if self._suctioned != goal.suck:
+        if self._suctioned != self._active_goal.suck:
             self._start_time = rospy.get_rostime()
 
         # Check if the target state has been kept for min_period.
@@ -143,7 +143,8 @@ class SuctionToolController(object):
         #  - If min_period is negative, the goal never succeeds
         #    and should be terminated by a cancel request.
         if self._active_goal.min_period >= rospy.Duration(0) and \
-           rospy.get_rostime() - start_time >= self._active_goal.min_period:
+           rospy.get_rostime() - self._start_time \
+           >= self._active_goal.min_period:
             self._set_out_port(self._blow_port, False)  # If blowing, stop it.
             self._server.set_succeeded(
                 SuctionToolCommandResult(self._suctioned))
@@ -154,9 +155,9 @@ class SuctionToolController(object):
             return
 
         for n in range(5):
-            if self._set_io(SetIO.FUN_SET_DIGITAL_OUT, port,
-                            SetIO.STATE_ON if state else \
-                            SetIO.STATE_OFF).success:
+            if self._set_io(SetIORequest.FUN_SET_DIGITAL_OUT, port,
+                            SetIORequest.STATE_ON if state else \
+                            SetIORequest.STATE_OFF).success:
                 return
             rospy.sleep(0.001)
         rospy.logerr('(%s) failed to set OUT port[%d] to state[%s]',
