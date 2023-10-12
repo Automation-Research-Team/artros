@@ -169,7 +169,7 @@ class AISTBaseRoutines(object):
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
         print('=== Gripper commands ===')
-        print('  gripper:     select gripper')
+        print('  gripper:     assign gripper to current robot')
         print('  pregrasp:    pregrasp with the current gripper')
         print('  grasp:       grasp with the current gripper')
         print('  postgrasp:   postgrasp with the current gripper')

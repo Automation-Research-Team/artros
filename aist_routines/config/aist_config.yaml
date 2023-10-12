@@ -13,9 +13,18 @@ grippers:
 #  a_bot_precision:
 #    type: PrecisionGripper
 #    controller_ns: a_bot_gripper_controller
+  screw_tool_m3:
+    type:          SuctionGripper
+    controller_ns: screw_tool_m3_controller
+  screw_tool_m4:
+    type:          SuctionGripper
+    controller_ns: screw_tool_m4_controller
   b_bot_gripper:
     type:          SuctionGripper
     controller_ns: b_bot_gripper_controller
+  base_fixture:
+    type:          SuctionGripper
+    controller_ns: base_fixture_controller
 cameras:
   a_phoxi_m_camera:     PhoXiCamera
   a_bot_inside_camera:  CodedLightRealSenseCamera

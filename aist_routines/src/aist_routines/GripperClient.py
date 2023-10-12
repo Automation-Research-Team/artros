@@ -286,7 +286,7 @@ class SuctionGripper(GripperClient):
         self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
     def grasp(self, timeout=rospy.Duration()):
-        pass
+        return self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
     def postgrasp(self):
         self.pregrasp()
@@ -305,7 +305,7 @@ class SuctionGripper(GripperClient):
             rospy.logerr('goal CANCELED because timeout[%.1f] has expired.',
                          timeout.to_sec())
             return False
-        return self._client.get_result().suctioned
+        return self._suctioned
 
     def cancel(self):
         if self._client.get_state() in (GoalStatus.PENDING, GoalStatus.ACTIVE):
