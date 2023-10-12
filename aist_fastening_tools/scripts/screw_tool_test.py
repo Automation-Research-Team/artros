@@ -16,7 +16,7 @@ class ScrewToolTest(object):
         self._client.wait_for_server()
 
     def run(self):
-        speed = 1023
+        speed = 1.0
 
         while not rospy.is_shutdown():
             key = raw_input('[speed: %d]> ' % speed)
@@ -32,24 +32,20 @@ class ScrewToolTest(object):
             if key == 'q':
                 break
             elif key == 't':
-                self._send_command(True, True, speed)
+                self._send_command(speed, True)
             elif key == 'l':
-                self._send_command(False, False, speed)
+                self._send_command(-speed, False)
             elif key == 'w':
                 self._wait()
             elif key == 'c':
                 self._client.cancel_goal()
             elif key == 's':
-                speed = np.clip(int(raw_input('  speed? ')), 0, 1023)
+                speed = np.clip(float(raw_input('  speed? ')), 0.0, 1.0)
             else:
                 print('Unknown command[%s]' % key)
 
-    def _send_command(self, tighten, retighten, speed):
-        goal = ScrewToolCommandGoal()
-        goal.tighten   = tighten
-        goal.retighten = retighten
-        goal.speed     = speed
-        self._client.send_goal(goal)
+    def _send_command(self, speed, tighten):
+        self._client.send_goal(ScrewToolCommandGoal(speed, tighten))
 
     def _wait(self, timeout=rospy.Duration(10)):
         self._client.wait_for_result(timeout)

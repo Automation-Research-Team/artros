@@ -3,7 +3,7 @@
 
 screw_tool_m3:
   ID: 2
-  Control_Mode: 1
+  Control_Mode: 1    # 1: wheel mode, 2: joint mode
 screw_tool_m4:
   ID: 3
   Control_Mode: 1

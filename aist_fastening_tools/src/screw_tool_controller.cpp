@@ -52,15 +52,18 @@ namespace aist_fastening_tools
 *  static functions							*
 ************************************************************************/
 static int32_t
-target_speed(int32_t speed, bool tighten)
+target_speed(double speed)
 {
-    return std::clamp(speed, 0, 1023) + (tighten ? 0 : 1024);
+    speed = std::clamp(speed, -1.0, 1.0);
+
+    return (speed >= 0.0 ? int32_t(1023*speed) : 1024 - int32_t(1023*speed));
 }
 
 static double
 get_normalized(int32_t value)
 {
-    return double(value < 1024 ? value : 1024 - value) / 1023.0;
+    value = std::clamp(value, 0, 2047);
+    return (value < 1024 ? value : 1024 - value) / 1023.0;
 }
 
 /************************************************************************
@@ -78,7 +81,7 @@ class ScrewToolController
     using goal_cp		= boost::shared_ptr<const server_t::Goal>;
     using ddynamic_reconfigure_t= ddynamic_reconfigure::DDynamicReconfigure;
     using filter_t		= aist_utility::ButterworthLPF<double, double>;
-    
+
     enum Stage	{ ACTIVE, LOOSEN, RETIGHTEN, DONE };
 
   public:
@@ -112,7 +115,7 @@ class ScrewToolController
 
   // Status publishment stuffs
     ros::Publisher		_status_pub;
-    
+
   // Action stuffs
     server_t			_command_srv;
     goal_cp			_active_goal;
@@ -210,12 +213,11 @@ ScrewToolController::goal_cb()
     _active_goal = _command_srv.acceptNewGoal();
     _stage	 = ACTIVE;
     _start_time  = ros::Time::now();
-    send_dynamixel_command("Moving_Speed",
-			   target_speed(_active_goal->speed,
-					_active_goal->tighten));
+    send_dynamixel_command("Torque_Enable", 1);
+    send_dynamixel_command("Moving_Speed", target_speed(_active_goal->speed));
 
     ROS_INFO_STREAM('(' << _node_ns << ") goal ACCEPTED: "
-		    << (_active_goal->tighten ? "tighten" : "loosen")
+		    << (_active_goal->speed > 0 ? "tighten" : "loosen")
 		    << " with speed=" << _active_goal->speed);
 }
 
@@ -254,7 +256,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     status.speed	= get_normalized(state->present_velocity);
     status.current	= _filter.filter(_current);
     _status_pub.publish(status);
-    
+
   // Read current value and apply low-pass filter.
   // Check if an active goal is available.
     if (!_command_srv.isActive())
@@ -266,7 +268,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
     feedback.current = status.current;
     _command_srv.publishFeedback(feedback);
 
-    if (_active_goal->tighten)
+    if (_active_goal->speed > 0.0)
 	switch (_stage)
 	{
 	  case ACTIVE:
@@ -275,16 +277,14 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	    {
 		if (_active_goal->retighten)
 		{
-		    send_dynamixel_command("Moving_Speed",
-					   target_speed(0, true));
+		    send_dynamixel_command("Moving_Speed", target_speed(0.0));
 		    ros::Duration(0.1).sleep();
 
 		    ROS_INFO_STREAM('(' << _node_ns
 				    << ") slightly loosen screw");
-		    
+
 		    send_dynamixel_command("Moving_Speed",
-					   target_speed(_active_goal->speed,
-							false));
+					   target_speed(-_active_goal->speed));
 		    _stage	= LOOSEN;
 		    _start_time = ros::Time::now();
 		}
@@ -295,14 +295,13 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 	  case LOOSEN:
 	    if (ros::Time::now() - _start_time > _loosen_period)
 	    {
-		send_dynamixel_command("Moving_Speed", target_speed(0, false));
+		send_dynamixel_command("Moving_Speed", target_speed(0.0));
 		ros::Duration(0.1).sleep();
 
 		ROS_INFO_STREAM('(' << _node_ns << ") retighten screw");
-		
+
 		send_dynamixel_command("Moving_Speed",
-				       target_speed(_active_goal->speed,
-						    true));
+				       target_speed(_active_goal->speed));
 		_stage	    = RETIGHTEN;
 		_start_time = ros::Time::now();
 	    }
@@ -321,7 +320,7 @@ ScrewToolController::dynamixel_states_cb(const dynamixel_states_cp& states)
 
     if (_stage == DONE)
     {
-	send_dynamixel_command("Moving_Speed",  _active_goal->tighten);
+	send_dynamixel_command("Moving_Speed", target_speed(0.0));
 	send_dynamixel_command("Enable_Torque", 0);
 	_command_srv.setSucceeded();
 

@@ -2,17 +2,13 @@
 <launch>
 
   <arg name="tool_name"		default="screw_tool_m3"/>
+
   <arg name="controller_ns"	value="$(arg tool_name)_fastening_controller"/>
-  
   <node name="$(arg tool_name)_test"
 	pkg="aist_fastening_tools" type="screw_tool_test.py"
 	output="screen">
     <param name="controller_ns"	value="$(arg controller_ns)"/>
   </node>
-
-  <include file="$(dirname)/screw_tool_controllers.launch">
-    <arg name="tool_names"	value="$(arg tool_name)"/>
-  </include>
 
   <node name="tool_status" pkg="rqt_plot" type="rqt_plot"
 	args="$(arg controller_ns)/status/speed

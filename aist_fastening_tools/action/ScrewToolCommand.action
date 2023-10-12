@@ -1,10 +1,9 @@
 # Goal
-bool tighten     # True: tighten, False: loosen
+float64 speed    # speed > 0: tighten, speed < 0: loosen (-1.0 <= speed <= 1.0)
 bool retighten   # True:  after tightening fully, the motor loosens
                  #        the screw for one second and then tightens again.
                  #        This can protect against some failures.
                  # False: skips the retightening, good for the idler pulley.
-uint32 speed     # 0 to 1023
 ---
 # Result
 bool stalled     # True: the motor stopped before the timeout
