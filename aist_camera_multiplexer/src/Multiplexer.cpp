@@ -85,7 +85,7 @@ Multiplexer::Subscribers::camera_name() const
 ************************************************************************/
 Multiplexer::Multiplexer(ros::NodeHandle& nh)
     :_subscribers(),
-     _camera_number(0),
+     _active_camera_number(0),
      _ddr(nh),
      _it(nh),
      _image_pub( _it.advertise("image",  1)),
@@ -111,7 +111,7 @@ Multiplexer::Multiplexer(ros::NodeHandle& nh)
     }
 
     _ddr.registerEnumVariable<std::string>(
-	"active_camera", _subscribers[_camera_number]->camera_name(),
+	"active_camera", _subscribers[_active_camera_number]->camera_name(),
 	boost::bind(&Multiplexer::activate_camera, this, _1),
 	"Currently active camera", enum_cameras);
     _ddr.publishServicesTopicsAndUpdateConfigData();
@@ -129,7 +129,7 @@ Multiplexer::activate_camera(const std::string& camera_name)
     for (int i = 0; i < ncameras(); ++i)
 	if (_subscribers[i]->camera_name() == camera_name)
 	{
-	    _camera_number = i;
+	    _active_camera_number = i;
 	    ROS_INFO_STREAM("(Multiplexer) activate camera["
 			    << camera_name << ']');
 	    return;
@@ -142,35 +142,35 @@ void
 Multiplexer::camera_info_cb(const camera_info_cp& camera_info,
 			    int camera_number) const
 {
-    if (camera_number == _camera_number)
+    if (camera_number == _active_camera_number)
 	_camera_info_pub.publish(camera_info);
 }
 
 void
 Multiplexer::image_cb(const image_cp& image, int camera_number) const
 {
-    if (camera_number == _camera_number)
+    if (camera_number == _active_camera_number)
 	_image_pub.publish(image);
 }
 
 void
 Multiplexer::depth_cb(const image_cp& depth, int camera_number) const
 {
-    if (camera_number == _camera_number)
+    if (camera_number == _active_camera_number)
 	_depth_pub.publish(depth);
 }
 
 void
 Multiplexer::normal_cb(const image_cp& normal, int camera_number) const
 {
-    if (camera_number == _camera_number)
+    if (camera_number == _active_camera_number)
 	_normal_pub.publish(normal);
 }
 
 void
 Multiplexer::cloud_cb(const cloud_cp& cloud, int camera_number) const
 {
-    if (camera_number == _camera_number)
+    if (camera_number == _active_camera_number)
 	_cloud_pub.publish(cloud);
 }
 

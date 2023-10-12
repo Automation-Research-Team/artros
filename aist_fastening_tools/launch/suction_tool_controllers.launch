@@ -10,7 +10,7 @@
 
   <group unless="$(eval tool_number == len(tool_names.split()))">
     <arg name="tool_name"
-	 value="$(eval tool_names.split()[tool_number].strip())"/>
+	 value="$(eval tool_names.split()[tool_number])"/>
 
     <node name="$(arg tool_name)_controller"
   	  pkg="aist_fastening_tools" type="suction_tool_controller.py"

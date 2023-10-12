@@ -9,11 +9,11 @@
   <arg name="manager"		default=""/>
   <arg name="camera_no"		default="0"/>
 
-  <group unless="$(eval camera_no == len(camera_names.split(',')))">
+  <group unless="$(eval camera_no == len(camera_names.split()))">
     <arg name="camera_name"
-	 value="$(eval camera_names.split(',')[camera_no].strip())"/>
+	 value="$(eval camera_names.split()[camera_no])"/>
     <arg name="image_topic"
-	 value="$(eval image_topics.split(',')[camera_no].strip())"/>
+	 value="$(eval image_topics.split()[camera_no]))"/>
 
     <remap from="$(arg detector_name)/$(arg camera_name)/image"
 	   to="$(arg camera_name)/$(arg image_topic)"/>
@@ -32,11 +32,13 @@
     <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
     <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
+    <arg name="camera_name_list"
+	 value="$(eval ','.join(camera_names.split()))"/>
     <node name="$(arg detector_name)" pkg="nodelet" type="nodelet"
   	  args="$(arg command) aist_aruco_ros/aruco_multi_detector
 		$(arg manager)">
       <rosparam param="camera_names"
-		subst_value="true">[$(arg camera_names)]</rosparam>
+		subst_value="true">[$(arg camera_name_list)]</rosparam>
       <rosparam file="$(arg config_file)" subst_value="true"/>
     </node>
   </group>

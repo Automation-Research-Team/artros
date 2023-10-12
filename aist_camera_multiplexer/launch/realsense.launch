@@ -2,51 +2,27 @@
 <launch>
 
   <arg name="multiplexer_name"		default="camera_multiplexer"/>
-  <arg name="camera_names"		default="a_bot_inside_camera,
+  <arg name="camera_names"		default="a_bot_inside_camera
   						 a_bot_outside_camera"/>
   <arg name="active_camera_name"	default="a_bot_inside_camera"/>
-  <arg name="serial_nos"		default="636203005853, 636203005303"/>
-  <arg name="publish_tf"		default="true"/>
-  <arg name="enable_pointcloud"		default="false"/>
-  <arg name="camera_width"		default="640"/>
-  <arg name="camera_height"		default="480"/>
-  <arg name="fps"			default="30"/>
+  <arg name="config_dir"		default="$(dirname)/../config"/>
   <arg name="manager"			default=""/>
   <arg name="camera_no"			default="0"/>
   <arg name="sim"			default="false"/>
   <arg name="vis"			default="false"/>
 
-  <arg name="enable_depth"	value="$(eval not enable_pointcloud)"/>
-
-  <group unless="$(eval camera_no == len(camera_names.split(',')))">
+  <group unless="$(eval camera_no == len(camera_names.split()))">
     <!-- Get camera name and its serial number -->
     <arg name="camera_name"
-	 value="$(eval camera_names.split(',')[camera_no].strip())"/>
-    <arg name="serial_no"
-	 value="$(eval serial_nos.split(',')[camera_no].strip())"/>
+	 value="$(eval camera_names.split()[camera_no])"/>
 
     <!-- Launch camera_no-th camera -->
     <include unless="$(arg sim)"
-	     file="$(find realsense2_camera)/launch/rs_camera.launch">
-      <arg name="serial_no"		value="$(arg serial_no)"/>
+	     file="$(find realsense2_camera
+		   )/launch/rs_camera_with_config.launch">
       <arg name="camera"		value="$(arg camera_name)"/>
-      <arg name="tf_prefix"		value="$(arg camera_name)"/>
-      <arg name="publish_tf"		value="$(arg publish_tf)"/>
-      <arg name="enable_sync"		value="true"/>
-      <arg name="enable_depth"		value="$(arg enable_depth)"/>
-      <arg name="enable_infra1"		value="false"/>
-      <arg name="enable_infra2"		value="false"/>
-      <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
-      <arg name="align_depth"		value="true"/>
-      <arg name="depth_width"		value="$(arg camera_width)"/>
-      <arg name="depth_height"		value="$(arg camera_height)"/>
-      <arg name="depth_fps"		value="$(arg fps)"/>
-      <arg name="infra_width"		value="$(arg camera_width)"/>
-      <arg name="infra_height"		value="$(arg camera_height)"/>
-      <arg name="infra_fps"		value="$(arg fps)"/>
-      <arg name="color_width"		value="$(arg camera_width)"/>
-      <arg name="color_height"		value="$(arg camera_height)"/>
-      <arg name="color_fps"		value="$(arg fps)"/>
+      <arg name="config_file"		value="$(arg config_dir
+					       )/$(arg camera_name).yaml"/>
       <arg name="external_manager"	value="$(eval manager != '')"/>
       <arg name="manager"		value="/$(arg manager)"
 	   if="$(eval manager != '')"/>
@@ -67,12 +43,7 @@
       <arg name="multiplexer_name"	value="$(arg multiplexer_name)"/>
       <arg name="camera_names"		value="$(arg camera_names)"/>
       <arg name="active_camera_name"	value="$(arg active_camera_name)"/>
-      <arg name="serial_nos"		value="$(arg serial_nos)"/>
-      <arg name="publish_tf"		value="$(arg publish_tf)"/>
-      <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
-      <arg name="camera_width"		value="$(arg camera_width)"/>
-      <arg name="camera_height"		value="$(arg camera_height)"/>
-      <arg name="fps"			value="$(arg fps)"/>
+      <arg name="config_dir"		value="$(arg config_dir)"/>
       <arg name="manager"		value="$(arg manager)"/>
       <arg name="camera_no"		value="$(eval camera_no + 1)"/>
       <arg name="sim"			value="$(arg sim)"/>
@@ -81,21 +52,23 @@
   </group>
 
   <!-- Launch the multiplexer after all cameras have been launched -->
-  <group if ="$(eval camera_no == len(camera_names.split(',')))">
+  <group if ="$(eval camera_no == len(camera_names.split()))">
     <arg if    ="$(eval manager == '')"	name="command"	value="standalone"/>
     <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
     <!-- Launch multiplexer -->
+    <arg name="camera_name_list"
+	 value="$(eval ','.join(camera_names.split()))"/>
     <node name="$(arg multiplexer_name)"
 	  pkg="nodelet" type="nodelet" output="screen"
   	  args="$(arg command) aist_camera_multiplexer/aist_camera_multiplexer
 		$(arg manager)">
       <rosparam param="camera_names"
-		subst_value="true">[$(arg camera_names)]</rosparam>
+		subst_value="true">[$(arg camera_name_list)]</rosparam>
     </node>
 
     <!-- Turn on laser only for the specified camera -->
-    <node unelss="$(arg sim)"
+    <node unless="$(arg sim)"
 	  name="select_realsense_camera"
 	  pkg="aist_camera_multiplexer" type="select_realsense_camera.py"
 	  args="$(arg active_camera_name)"/>

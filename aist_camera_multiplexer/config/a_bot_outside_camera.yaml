@@ -1,0 +1,53 @@
+serial_no: "636203005303"
+
+depth_width: 640
+depth_height: 480
+enable_depth: true
+
+confidence_width: -1
+confidence_height: -1
+enable_confidence: true
+confidence_fps: -1
+
+infra_width: 640
+infra_height: 480
+enable_infra: false
+enable_infra1: false
+enable_infra2: false
+infra_rgb: false
+
+color_width: 640
+color_height: 480
+enable_color: true
+
+depth_fps: 30
+infra_fps: 30
+color_fps: 30
+
+enable_pointcloud: false
+
+enable_sync: true
+align_depth: true
+
+publish_tf: true
+tf_publish_rate: 0  # 0 - static transform
+
+filters: ""
+clip_distance: -2
+linear_accel_cov: 0.01
+initial_reset: false
+reconnect_timeout: 6.0
+wait_for_device_timeout: -1.0
+unite_imu_method: none  # Options are: [none, copy, linear_interpolation]
+topic_odom_in: odom_in
+calib_odom_file: ""
+publish_odom_tf: true
+depth_multiplier: 1.0
+depth_offset: 0.0
+stereo_module:
+  exposure:
+    "1": 7500
+    "2": 1
+  gain:
+    "1": 16
+    "2": 16

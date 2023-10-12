@@ -100,7 +100,7 @@ class Multiplexer
 
   private:
     std::vector<subscribers_cp>		_subscribers;
-    int					_camera_number;
+    int					_active_camera_number;
 
     ddynamic_reconfigure_t		_ddr;
 
