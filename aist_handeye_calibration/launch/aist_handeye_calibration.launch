@@ -11,7 +11,7 @@
 
   <!-- Start cameras -->
   <include if="$(eval config=='aist')"
-	   file="$(find aist_bringup)/launch/aist_cameras.launch">
+	   file="$(find aist_routines)/launch/aist_cameras.launch">
     <arg unless="$(arg is_phoxi_camera)"
 	 name="active_camera_name"	value="$(arg camera_name)"/>
     <arg name="sim"			value="$(arg sim)"/>

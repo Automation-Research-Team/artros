@@ -5,8 +5,8 @@
   <arg name="rviz_config"	default="kitting"/>
 
   <!-- Start cameras -->
-  <include file="$(find aist_bringup)/launch/aist_cameras.launch">
-    <arg name="sim"			value="$(arg sim)"/>
+  <include file="$(dirname)/aist_cameras.launch">
+    <arg name="sim"		value="$(arg sim)"/>
   </include>
 
   <!-- Start graspability server -->

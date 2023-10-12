@@ -8,7 +8,7 @@
 
   <!-- Start cameras -->
   <include if="$(eval config=='aist')"
-	   file="$(find aist_bringup)/launch/aist_cameras.launch">
+	   file="$(find aist_routines)/launch/aist_cameras.launch">
     <arg name="sim"		value="false"/>
     <arg name="manager"		value="$(arg manager)"/>
   </include>
