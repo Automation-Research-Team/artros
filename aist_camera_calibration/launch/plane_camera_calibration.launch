@@ -21,7 +21,8 @@
   <include file="$(dirname)/include/camera_calibration.launch">
     <arg name="camera_names"	value="$(arg camera_name)"/>
     <arg name="image_topics"	value="$(arg image_topic)"/>
-    <arg name="config_file"	value="$(dirname)/../../config/plane.yaml"/>
+    <arg name="config_file"	value="$(find aist_camera_calibration
+				       )/config/plane.yaml"/>
     <arg name="manager"		value="$(arg manager)"/>
   </include>
 

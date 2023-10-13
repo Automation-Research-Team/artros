@@ -4,8 +4,8 @@
   <arg name="detector_name"	default="aruco_multi_detector"/>
   <arg name="camera_names"	default="live_camera"/>
   <arg name="image_topics"	default="image_raw"/>
-  <arg name="config_file"	default="$(dirname
-					 )/../config/live_camera.yaml"/>
+  <arg name="config_file"	default="$(find aist_aruco_ros
+					 )/config/live_camera.yaml"/>
   <arg name="manager"		default=""/>
   <arg name="camera_no"		default="0"/>
 
@@ -13,7 +13,7 @@
     <arg name="camera_name"
 	 value="$(eval camera_names.split()[camera_no])"/>
     <arg name="image_topic"
-	 value="$(eval image_topics.split()[camera_no]))"/>
+	 value="$(eval image_topics.split()[camera_no])"/>
 
     <remap from="$(arg detector_name)/$(arg camera_name)/image"
 	   to="$(arg camera_name)/$(arg image_topic)"/>
