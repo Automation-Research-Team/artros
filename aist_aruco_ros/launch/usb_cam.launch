@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="camera_name"	default="usb_camera"/>
+  <arg name="video_device"	default="/dev/video0"/>
   <arg name="image_topic"	default="image_raw"/>
 
   <arg name="detector_name"	default="aruco_multi_detector_2d"/>
@@ -21,6 +22,8 @@
 
   <node name="$(arg camera_name)"
   	pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="camera_name"	value="$(arg camera_name)"/>
+    <param name="video_device"	value="$(arg video_device)"/>
     <rosparam file="$(find aist_routines)/config/$(arg camera_name).yaml"/>
   </node>
 

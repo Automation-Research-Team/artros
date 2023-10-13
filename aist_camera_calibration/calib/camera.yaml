@@ -1,0 +1,9 @@
+child: camera_optical_frame
+origin:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- -0.0
+- 0.0
+parent: camera_optical_frame
