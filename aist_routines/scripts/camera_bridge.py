@@ -47,8 +47,8 @@ class CameraBridge(object):
     def __init__(self):
         super(CameraBridge, self).__init__()
 
-        nep_node = nep.node('camera_web_py/script')
-        nep_conf = nep_node(rospy.param('nep_ip', '163.220.51.108'))
+        nep_node = nep.node('camera_bridge')
+        nep_conf = nep_node(rospy.get_param('nep_ip', '163.220.51.108'))
         self._image_pub = nep_node.new_pub('camera_web/image', 'image',
                                            nep_conf)
         self._image_sub = rospy.Subscriber('/image', Image, self._image_cb,
