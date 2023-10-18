@@ -14,13 +14,13 @@
   <node name="hmi_server"
   	pkg="aist_routines" type="hmi_server.py" output="screen"/>
 
-  <group unless="$(arg nep)">
-    <!-- Start live camera -->
-    <node name="live_camera"
-	  pkg="usb_cam" type="usb_cam_node" output="screen">
-      <rosparam file="$(dirname)/../config/live_camera.yaml"/>
-    </node>
+  <!-- Start live camera -->
+  <node name="live_camera"
+	pkg="usb_cam" type="usb_cam_node" output="screen">
+    <rosparam file="$(dirname)/../config/live_camera.yaml"/>
+  </node>
 
+  <group unless="$(arg nep)">
     <!-- Start rosbridge server -->
     <arg name="port"	value="9090"/>
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
@@ -29,12 +29,15 @@
   </group>
 
   <group if="$(arg nep)">
+    <arg name="nep_ip"	value="163.220.51.108"/>
+
     <!-- Start live camera -->
-    <node name="live_camera" pkg="aist_routines" type="camera_script.py"
-	  output="screen"/>
+    <node name="camera_bridge"
+	  pkg="aist_routines" type="camera_bridge.py" output="screen">
+      <arg name="nep_ip"	value="$(arg nep_ip)"/>
+    </node>
 
     <!-- Start ROS to NEP bridge -->
-    <arg name="nep_ip"	value="163.220.51.108"/>
     <node name="ros2nep"
 	  pkg="aist_routines" type="ros2nep.py" args="$(arg nep_ip)"
 	  output="screen"/>
