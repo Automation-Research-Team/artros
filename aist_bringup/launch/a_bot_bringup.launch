@@ -49,13 +49,9 @@
   </include>
 
   <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
-  <arg name="camera_names"		default="a_bot_inside_camera,
+  <arg name="camera_names"		default="a_bot_inside_camera
 						 a_bot_outside_camera"/>
-  <arg name="serial_nos"		default="636203005853, 636203005303"/>
-  <arg name="enable_pointcloud"		default="false"/>
-  <arg name="camera_width"		default="640"/>
-  <arg name="camera_height"		default="480"/>
-  <arg name="fps"			default="30"/>
+  <arg name="active_camera_name"	default="a_bot_inside_camera"/>
   <arg name="manager"			default="camera_manager"/>
   <arg name="manager_threads"		default="4"/>
 
@@ -66,13 +62,8 @@
 
   <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
     <arg name="camera_names"		value="$(arg camera_names)"/>
-    <arg name="serial_nos"		value="$(arg serial_nos)"/>
-    <arg name="publish_tf"		value="true"/>
-    <arg name="enable_pointcloud"	value="$(arg enable_pointcloud)"/>
-    <arg name="camera_width"		value="$(arg camera_width)"/>
-    <arg name="camera_height"		value="$(arg camera_height)"/>
-    <arg name="fps"			value="$(arg fps)"/>
-    <arg name="manager"			value="$(arg manager)"/>
+    <arg name="active_camera_name"	value="$(arg active_camera_name)"/>
+    <arg name="manager"		value="$(arg manager)"/>
     <arg name="sim"			value="$(arg sim)"/>
   </include>
 

@@ -35,26 +35,26 @@ ROSpubPointing = rospy.Publisher('pointing', pointing, queue_size = 10)
 
 while not rospy.is_shutdown():
 
-        # Read data in a non-blocking mode
-        s, msg = sub.listen()
-        # if s == True, then there is data in the socket
-        if s:
-            #print(msg)
-            msg_pointing = pointing()     #クラスと同様に，インスタンスを作成することで，個々のフィールドに値を設定できる
-            header.stamp = rospy.Time.now()  # Set the timestamp to the current time
-            header.frame_id = "world"   # Set the frame ID (replace with your desired frame ID)
-            finger_pos = Point()
-            finger_pos.x =  msg["finger_pos"]["z"]
-            finger_pos.y = -msg["finger_pos"]["x"]
-            finger_pos.z =  msg["finger_pos"]["y"]
-            finger_dir = Vector3()
-            finger_dir.x =  msg["finger_dir"]["z"]
-            finger_dir.y = -msg["finger_dir"]["x"]
-            finger_dir.z =  msg["finger_dir"]["y"]
-            pointing_state = msg["pointing_state"]
+    # Read data in a non-blocking mode
+    s, msg = sub.listen()
+    # if s == True, then there is data in the socket
+    if s:
+        #print(msg)
+        msg_pointing = pointing()     #クラスと同様に，インスタンスを作成することで，個々のフィールドに値を設定できる
+        header.stamp = rospy.Time.now()  # Set the timestamp to the current time
+        header.frame_id = "world"   # Set the frame ID (replace with your desired frame ID)
+        finger_pos = Point()
+        finger_pos.x =  msg["finger_pos"]["z"]
+        finger_pos.y = -msg["finger_pos"]["x"]
+        finger_pos.z =  msg["finger_pos"]["y"]
+        finger_dir = Vector3()
+        finger_dir.x =  msg["finger_dir"]["z"]
+        finger_dir.y = -msg["finger_dir"]["x"]
+        finger_dir.z =  msg["finger_dir"]["y"]
+        pointing_state = msg["pointing_state"]
 
-            msg_pointing.header = header
-            msg_pointing.finger_pos = finger_pos
-            msg_pointing.finger_dir = finger_dir
-            msg_pointing.pointing_state = pointing_state
-            ROSpubPointing.publish(msg_pointing)
+        msg_pointing.header = header
+        msg_pointing.finger_pos = finger_pos
+        msg_pointing.finger_dir = finger_dir
+        msg_pointing.pointing_state = pointing_state
+        ROSpubPointing.publish(msg_pointing)
