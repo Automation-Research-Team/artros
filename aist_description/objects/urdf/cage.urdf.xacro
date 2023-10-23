@@ -1,0 +1,117 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="cage">
+
+  <xacro:include filename="$(find aist_description)/objects/urdf/aist_box.urdf.xacro"/>
+
+  <xacro:macro name="cage"
+	       params="prefix width length height thickness
+		       workspace_height toolbar_height parent *origin">
+
+    <xacro:macro name="pillars" params="*origin">
+      <xacro:aist_box name="${prefix}front_left_pillar"
+		      width="${thickness}"
+		      length="${thickness}"
+		      height="${height}"
+		      parent="${parent}">
+	<xacro:insert_block name="origin"/>
+      </xacro:aist_box>
+
+      <xacro:aist_box name="${prefix}front_right_pillar"
+		      width="${thickness}"
+		      length="${thickness}"
+		      height="${height}"
+		      parent="${prefix}front_left_pillar">
+	<origin xyz="${width - thickness} 0 0" rpy="0 0 0"/>
+      </xacro:aist_box>
+      
+      <xacro:aist_box name="${prefix}back_left_pillar"
+		      width="${thickness}"
+		      length="${thickness}"
+		      height="${height}"
+		      parent="${prefix}front_left_pillar">
+	<origin xyz="0 ${length - thickness} 0" rpy="0 0 0"/>
+      </xacro:aist_box>
+
+      <xacro:aist_box name="${prefix}back_right_pillar"
+		      width="${thickness}"
+		      length="${thickness}"
+		      height="${height}"
+		      parent="${prefix}front_left_pillar">
+	<origin xyz="${width  - thickness}
+		     ${length - thickness}
+		     0"
+		rpy="0 0 0"/>
+      </xacro:aist_box>
+    </xacro:macro>
+
+    <xacro:macro name="rectangle" params="prefix2 height *origin">
+      <xacro:aist_box name="${prefix}${prefix2}front_bar"
+		      width="${width - 2*thickness}"
+		      length="${thickness}"
+		      height="${thickness}"
+		      parent="${prefix}front_left_pillar">
+	<origin xyz="${thickness} 0 ${height}" rpy="0 0 0"/>
+      </xacro:aist_box>
+      
+      <xacro:aist_box name="${prefix}${prefix2}back_bar"
+		      width="${width - 2*thickness}"
+		      length="${thickness}"
+		      height="${thickness}"
+		      parent="${prefix}front_left_pillar">
+	<origin xyz="${thickness} ${length - thickness} ${height}"
+		rpy="0 0 0"/>
+      </xacro:aist_box>
+      
+      <xacro:aist_box name="${prefix}${prefix2}left_bar"
+		      width="${thickness}"
+		      length="${length - 2*thickness}"
+		      height="${thickness}"
+		      parent="${prefix}front_left_pillar">
+	<origin xyz="0 ${thickness} ${height}" rpy="0 0 0"/>
+      </xacro:aist_box>
+      
+      <xacro:aist_box name="${prefix}${prefix2}right_bar"
+		      width="${thickness}"
+		      length="${length - 2*thickness}"
+		      height="${thickness}"
+		      parent="${prefix}front_left_pillar">
+	<origin xyz="${width - thickness} ${thickness} ${height}"
+		rpy="0 0 0"/>
+      </xacro:aist_box>
+    </xacro:macro>
+
+    <!-- pillars -->
+    <xacro:pillars>
+      <xacro:insert_block name="origin"/>
+    </xacro:pillars>
+
+    <!-- base rectangle -->
+    <xacro:rectangle prefix2="lower_" height="0">
+      <xacro:insert_block name="origin"/>
+    </xacro:rectangle>
+
+    <!-- ceiling rectangle -->
+    <xacro:rectangle prefix2="upper_" height="${height - thickness}">
+      <xacro:insert_block name="origin"/>
+    </xacro:rectangle>
+
+    <!-- workspace bar -->
+    <xacro:aist_box name="${prefix}workspace_bar"
+    		    width="${thickness}"
+    		    length="${length - 2*thickness}"
+    		    height="${thickness}"
+    		    parent="${prefix}lower_left_bar">
+      <origin xyz="0 0  ${workspace_height}" rpy="0 0 0"/>
+    </xacro:aist_box>
+		    
+    <!-- tool bar -->
+    <xacro:aist_box name="${prefix}tool_bar"
+    		    width="${thickness}"
+    		    length="${length - 2*thickness}"
+    		    height="${thickness}"
+    		    parent="${prefix}workspace_bar">
+      <origin xyz="0 0 ${toolbar_height}" rpy="0 0 0"/>
+    </xacro:aist_box>
+		    
+  </xacro:macro>
+</robot>

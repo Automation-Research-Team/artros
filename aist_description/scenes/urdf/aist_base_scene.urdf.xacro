@@ -3,34 +3,51 @@
 
   <xacro:arg name="scene" default=""/>
 
-  <xacro:property name="a_bot_x" value="0"/>
-  <xacro:property name="a_bot_y" value="-0.4875"/>
-  <!-- <xacro:property name="a_bot_theta" value="${pi}"/> -->
-  <xacro:property name="b_bot_x" value="0"/>
-  <xacro:property name="b_bot_y" value="0.4875"/>
-  <xacro:property name="b_bot_theta" value="${pi}"/>
-
-  <xacro:property name="bots_z" value="0.77"/>
+  <xacro:property name="a_bot_x"	value="0"/>
+  <xacro:property name="a_bot_y"	value="-0.4875"/>
+  <xacro:property name="b_bot_x"	value="0"/>
+  <xacro:property name="b_bot_y"	value="0.4875"/>
+  <xacro:property name="b_bot_theta"	value="${pi}"/>
+  <xacro:property name="bots_z"		value="0.770"/>
 
   <!-- ground and workspace -->
   <link name="ground"/>
 
-  <xacro:property name="table_w" value="0.9"/>
-  <xacro:property name="table_l" value="1.8"/>
-  <xacro:property name="table_h" value="0.01"/>
+  <xacro:property name="table_w"	value="0.900"/>
+  <xacro:property name="table_l"	value="1.800"/>
   <xacro:include filename="$(find aist_description
-			   )/objects/urdf/aist_box.urdf.xacro"/>
-  <xacro:aist_box name="workbox"
-		  width="${table_w}" length="${table_l}" height="${table_h}"
-		  parent="ground">
-    <origin xyz="${-table_w/2} ${-table_l/2} ${bots_z - table_h}" rpy="0 0 0"/>
-  </xacro:aist_box>
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_"
+	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       parent="ground">
+    <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
+  </xacro:table>
   <link name="workspace_center"/>
   <joint name="ground_to_workspace" type="fixed">
     <parent link="ground"/>
     <child  link="workspace_center"/>
     <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
   </joint>
+
+  <!-- cage -->
+  <xacro:property name="cage_w"		value="1.300"/>
+  <xacro:property name="cage_l"		value="1.700"/>
+  <xacro:property name="cage_h"		value="1.500"/>
+  <xacro:property name="cage_t"		value="0.050"/>
+  <xacro:property name="toolbar_h"	value="0.300"/>
+  <xacro:property name="cage_z"		value="0.100"/>
+  <xacro:property name="cage_offset"	value="-0.050"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/cage.urdf.xacro"/>
+  <xacro:cage prefix="cage_"
+	      width="${cage_w}" length="${cage_l}" height="${cage_h}"
+	      thickness="${cage_t}"
+	      workspace_height="${bots_z - cage_z}"
+	      toolbar_height="${toolbar_h}"
+	      parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset} ${-cage_l/2} ${cage_z}"
+	    rpy="0 0 0" />
+  </xacro:cage>
 
   <!-- robot arms -->
   <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
