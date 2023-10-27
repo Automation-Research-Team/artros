@@ -30,13 +30,13 @@
   </joint>
 
   <!-- cage -->
-  <xacro:property name="cage_w"		value="1.300"/>
-  <xacro:property name="cage_l"		value="1.700"/>
-  <xacro:property name="cage_h"		value="1.500"/>
+  <xacro:property name="cage_w"		value="1.220"/>
+  <xacro:property name="cage_l"		value="1.600"/>
+  <xacro:property name="cage_h"		value="1.400"/>
   <xacro:property name="cage_t"		value="0.050"/>
   <xacro:property name="toolbar_h"	value="0.300"/>
-  <xacro:property name="cage_z"		value="0.100"/>
-  <xacro:property name="cage_offset"	value="-0.050"/>
+  <xacro:property name="cage_z"		value="0.164"/>
+  <xacro:property name="cage_offset"	value="0.020"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/cage.urdf.xacro"/>
   <xacro:cage prefix="cage_"

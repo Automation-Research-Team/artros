@@ -5,6 +5,7 @@
   <arg name="config"		default="aist"/>
   <arg name="speed"		default="0.1"/>
   <arg name="ns"		default="/"/>
+  <arg name="vis"		default="false"/>
 
   <!-- Start client -->
   <node ns="$(arg ns)" name="interactive"
@@ -12,5 +13,11 @@
     <rosparam file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
     <param name="speed"		value="$(arg speed)"/>
   </node>
+
+  <!-- Start rviz -->
+  <include if="$(arg vis)"
+	   file="$(find aist_bringup)/launch/include/rviz.launch">
+    <arg name="moveit_config"	value="$(find aist_moveit_config)"/>
+  </include>
 
 </launch>
