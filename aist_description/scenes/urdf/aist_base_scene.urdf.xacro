@@ -30,11 +30,12 @@
   </joint>
 
   <!-- cage -->
-  <xacro:property name="cage_w"		value="1.220"/>
-  <xacro:property name="cage_l"		value="1.600"/>
-  <xacro:property name="cage_h"		value="1.400"/>
-  <xacro:property name="cage_t"		value="0.050"/>
-  <xacro:property name="toolbar_h"	value="0.300"/>
+  <xacro:property name="cage_w"		value="1.200"/>
+  <xacro:property name="cage_l"		value="1.580"/>
+  <xacro:property name="cage_h"		value="1.420"/>
+  <xacro:property name="cage_t"		value="0.040"/>
+  <xacro:property name="tool_bar_h"	value="0.270"/>
+  <xacro:property name="camera_bar_h"	value="1.280"/>
   <xacro:property name="cage_z"		value="0.164"/>
   <xacro:property name="cage_offset"	value="0.020"/>
   <xacro:include filename="$(find aist_description
@@ -43,7 +44,8 @@
 	      width="${cage_w}" length="${cage_l}" height="${cage_h}"
 	      thickness="${cage_t}"
 	      workspace_height="${bots_z - cage_z}"
-	      toolbar_height="${toolbar_h}"
+	      tool_bar_height="${tool_bar_h}"
+	      camera_bar_height="${camera_bar_h}"
 	      parent="ground">
     <origin xyz="${-cage_w/2 + cage_offset} ${-cage_l/2} ${cage_z}"
 	    rpy="0 0 0" />
@@ -155,7 +157,7 @@
     <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </joint>
-  
+
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
   <joint name="world_ground_joint" type="fixed">

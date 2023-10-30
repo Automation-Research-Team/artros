@@ -5,7 +5,8 @@
 
   <xacro:macro name="cage"
 	       params="prefix width length height thickness
-		       workspace_height toolbar_height parent *origin">
+		       workspace_height tool_bar_height camera_bar_height
+		       parent *origin">
 
     <xacro:macro name="pillars" params="*origin">
       <xacro:aist_box name="${prefix}front_left_pillar"
@@ -23,7 +24,7 @@
 		      parent="${prefix}front_left_pillar">
 	<origin xyz="${width - thickness} 0 0" rpy="0 0 0"/>
       </xacro:aist_box>
-      
+
       <xacro:aist_box name="${prefix}back_left_pillar"
 		      width="${thickness}"
 		      length="${thickness}"
@@ -44,7 +45,8 @@
       </xacro:aist_box>
     </xacro:macro>
 
-    <xacro:macro name="rectangle" params="prefix2 height *origin">
+    <xacro:macro name="rectangle"
+		 params="prefix2 height right_bar_height *origin">
       <xacro:aist_box name="${prefix}${prefix2}front_bar"
 		      width="${width - 2*thickness}"
 		      length="${thickness}"
@@ -52,7 +54,7 @@
 		      parent="${prefix}front_left_pillar">
 	<origin xyz="${thickness} 0 ${height}" rpy="0 0 0"/>
       </xacro:aist_box>
-      
+
       <xacro:aist_box name="${prefix}${prefix2}back_bar"
 		      width="${width - 2*thickness}"
 		      length="${thickness}"
@@ -61,7 +63,7 @@
 	<origin xyz="${thickness} ${length - thickness} ${height}"
 		rpy="0 0 0"/>
       </xacro:aist_box>
-      
+
       <xacro:aist_box name="${prefix}${prefix2}left_bar"
 		      width="${thickness}"
 		      length="${length - 2*thickness}"
@@ -69,13 +71,13 @@
 		      parent="${prefix}front_left_pillar">
 	<origin xyz="0 ${thickness} ${height}" rpy="0 0 0"/>
       </xacro:aist_box>
-      
+
       <xacro:aist_box name="${prefix}${prefix2}right_bar"
 		      width="${thickness}"
 		      length="${length - 2*thickness}"
 		      height="${thickness}"
 		      parent="${prefix}front_left_pillar">
-	<origin xyz="${width - thickness} ${thickness} ${height}"
+	<origin xyz="${width - thickness} ${thickness} ${right_bar_height}"
 		rpy="0 0 0"/>
       </xacro:aist_box>
     </xacro:macro>
@@ -86,12 +88,13 @@
     </xacro:pillars>
 
     <!-- base rectangle -->
-    <xacro:rectangle prefix2="lower_" height="0">
+    <xacro:rectangle prefix2="lower_" height="0" right_bar_height="0">
       <xacro:insert_block name="origin"/>
     </xacro:rectangle>
 
     <!-- ceiling rectangle -->
-    <xacro:rectangle prefix2="upper_" height="${height - thickness}">
+    <xacro:rectangle prefix2="upper_" height="${height - thickness}"
+		     right_bar_height="${camera_bar_height}">
       <xacro:insert_block name="origin"/>
     </xacro:rectangle>
 
@@ -101,17 +104,17 @@
     		    length="${length - 2*thickness}"
     		    height="${thickness}"
     		    parent="${prefix}lower_left_bar">
-      <origin xyz="0 0  ${workspace_height}" rpy="0 0 0"/>
+      <origin xyz="0 0 ${workspace_height - thickness}" rpy="0 0 0"/>
     </xacro:aist_box>
-		    
+
     <!-- tool bar -->
     <xacro:aist_box name="${prefix}tool_bar"
     		    width="${thickness}"
     		    length="${length - 2*thickness}"
     		    height="${thickness}"
     		    parent="${prefix}workspace_bar">
-      <origin xyz="0 0 ${toolbar_height}" rpy="0 0 0"/>
+      <origin xyz="0 0 ${tool_bar_height + thickness}" rpy="0 0 0"/>
     </xacro:aist_box>
-		    
+
   </xacro:macro>
 </robot>
