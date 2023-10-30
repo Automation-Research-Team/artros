@@ -124,10 +124,10 @@
   </xacro:single_suction_gripper>
 
   <!-- Add virtual wall to avoid collisions-->
-  <xacro:aist_box name="vwall1" width="0.01" length="0.35" height="0.55"
-		  parent="ground" transparent="true">
-    <origin xyz="0.41 -0.20 ${bots_z}" rpy="0 0 0"/>
-  </xacro:aist_box>
+  <!-- <xacro:aist_box name="vwall1" width="0.01" length="0.35" height="0.55" -->
+  <!-- 		  parent="ground" transparent="true"> -->
+  <!--   <origin xyz="0.41 -0.20 ${bots_z}" rpy="0 0 0"/> -->
+  <!-- </xacro:aist_box> -->
 
   <!-- Add PhoXi 3D scanner -->
   <xacro:include filename="$(find aist_description
