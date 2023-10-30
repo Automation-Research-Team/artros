@@ -16,8 +16,8 @@
 
   <!-- Start live camera -->
   <node name="live_camera"
-	pkg="usb_cam" type="usb_cam_node" output="screen">
-    <rosparam file="$(dirname)/../config/live_camera.yaml"/>
+  	pkg="usb_cam" type="usb_cam_node" output="screen">
+      <rosparam file="$(dirname)/../config/live_camera.yaml"/>
   </node>
 
   <group unless="$(arg nep)">
@@ -29,26 +29,38 @@
   </group>
 
   <group if="$(arg nep)">
-    <arg name="nep_ip"	value="163.220.51.108"/>
+    <include file="$(find nep_bridge)/launch/run.launch">
+      <arg name="config_file"	value="$(find nep_bridge
+				       )/config/nep_bridge.yaml"/>
+    </include>
+
+    <!-- <arg name="nep_ip"	value="163.220.51.108"/> -->
 
     <!-- Start live camera -->
-    <node name="camera_bridge"
-	  pkg="aist_routines" type="camera_bridge.py" output="screen">
-      <arg name="nep_ip"	value="$(arg nep_ip)"/>
-    </node>
+    <!-- <node name="camera_script" -->
+    <!-- 	  pkg="aist_routines" type="camera_script.py" output="screen"> -->
+    <!-- </node> -->
+    <!-- <node name="camera_bridge" -->
+    <!-- 	  pkg="aist_routines" type="camera_bridge.py" output="screen"> -->
+    <!--   <arg name="nep_ip"	value="$(arg nep_ip)"/> -->
+    <!-- </node> -->
 
     <!-- Start ROS to NEP bridge -->
-    <node name="ros2nep"
-	  pkg="aist_routines" type="ros2nep.py" args="$(arg nep_ip)"
-	  output="screen"/>
+    <!-- <node name="nep_bridge" -->
+    <!-- 	  pkg="nep_bridge" type="nep_bridge.py" output="screen"> -->
+    <!-- </node> -->
 
-    <node name="getPointing"
-	  pkg="aist_routines" type="getPointing.py"
-	  output="screen"/>
+    <!-- <node name="ros2nep" -->
+    <!-- 	  pkg="aist_routines" type="ros2nep.py" args="$(arg nep_ip)" -->
+    <!-- 	  output="screen"/> -->
 
-    <node name="setRequestHelp"
-	  pkg="aist_routines" type="setRequestHelp.py"
-	  output="screen"/>
+    <!-- <node name="getPointing" -->
+    <!-- 	  pkg="aist_routines" type="getPointing.py" -->
+    <!-- 	  output="screen"/> -->
+
+    <!-- <node name="setRequestHelp" -->
+    <!-- 	  pkg="aist_routines" type="setRequestHelp.py" -->
+    <!-- 	  output="screen"/> -->
   </group>
 
 </launch>

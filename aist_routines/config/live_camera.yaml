@@ -1,9 +1,10 @@
-video_device: /dev/video8
-image_width:  1920
-image_height: 1080
-pixel_format: "yuyv"
+video_device:    /dev/video8
+image_width:     1920
+image_height:    1080
+pixel_format:    yuyv
+camera_name:     live_camera
 camera_frame_id: live_camera_optical_frame
-framerate: 5
+framerate:       5
 
 #video_device: /dev/video0
 #image_width: 720
