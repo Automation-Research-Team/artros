@@ -149,7 +149,7 @@ class KittingRoutines(URRoutines):
 
     # Utilities
     def _pose_filter(self, pose, max_slant):
-        if pose.position.z < 0.002:
+        if pose.position.z < 0.004:
             return None
 
         T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
