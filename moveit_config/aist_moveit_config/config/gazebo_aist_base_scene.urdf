@@ -1514,7 +1514,7 @@
     </joint>
     <link name="a_bot_ftsensor_base_link">
         <visual>
-            <origin rpy="3.141592653589793 1.5707963267948966 0" xyz="0.036 0 0" />
+            <origin rpy="3.141592653589793 1.5707963267948966 0" xyz="0.0375 0 0" />
             <geometry>
                 <mesh filename="package://aist_robotiq/meshes/visual/ft300.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -1522,19 +1522,10 @@
                 <color rgba="0.2 0.2 0.2 1" />
             </material>
         </visual>
-        <!-- <visual> -->
-        <!--   <origin xyz="${ft300_length/2} 0 0" rpy="0 ${pi/2} 0"/> -->
-        <!--   <geometry> -->
-        <!--     <cylinder length="${ft300_length}" radius="0.0375"/> -->
-        <!--   </geometry> -->
-        <!--   <material name="Black"> -->
-        <!--     <color rgba="0.2 0.2 0.2 1.0"/> -->
-        <!--   </material> -->
-        <!-- </visual> -->
         <collision>
-            <origin rpy="0 1.5707963267948966 0" xyz="0.018 0 0" />
+            <origin rpy="0 1.5707963267948966 0" xyz="0.01875 0 0" />
             <geometry>
-                <cylinder length="0.036" radius="0.0375" />
+                <cylinder length="0.0375" radius="0.0375" />
             </geometry>
         </collision>
         <inertial>
@@ -1543,6 +1534,9 @@
             <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
+    <gazebo reference="a_bot_ftsensor_base_link">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <!-- Add the force sensor in front of the gripper. -->
     <joint name="a_bot_ftsensor_ft300_joint" type="fixed">
         <parent link="a_bot_flange" />
@@ -1553,7 +1547,7 @@
     <joint name="a_bot_ftsensor_flange_joint" type="fixed">
         <parent link="a_bot_ftsensor_base_link" />
         <child link="a_bot_ftsensor_flange_link" />
-        <origin rpy="0 0 0" xyz="0.036 0 0" />
+        <origin rpy="0 0 0" xyz="0.0375 0 0" />
     </joint>
     <link name="a_bot_ftsensor_wrench_link" />
     <joint name="a_bot_ftsensor_wrench_joint" type="fixed">
@@ -1563,7 +1557,7 @@
     </joint>
     <link name="b_bot_ftsensor_base_link">
         <visual>
-            <origin rpy="3.141592653589793 1.5707963267948966 0" xyz="0.036 0 0" />
+            <origin rpy="3.141592653589793 1.5707963267948966 0" xyz="0.0375 0 0" />
             <geometry>
                 <mesh filename="package://aist_robotiq/meshes/visual/ft300.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -1571,19 +1565,10 @@
                 <color rgba="0.2 0.2 0.2 1" />
             </material>
         </visual>
-        <!-- <visual> -->
-        <!--   <origin xyz="${ft300_length/2} 0 0" rpy="0 ${pi/2} 0"/> -->
-        <!--   <geometry> -->
-        <!--     <cylinder length="${ft300_length}" radius="0.0375"/> -->
-        <!--   </geometry> -->
-        <!--   <material name="Black"> -->
-        <!--     <color rgba="0.2 0.2 0.2 1.0"/> -->
-        <!--   </material> -->
-        <!-- </visual> -->
         <collision>
-            <origin rpy="0 1.5707963267948966 0" xyz="0.018 0 0" />
+            <origin rpy="0 1.5707963267948966 0" xyz="0.01875 0 0" />
             <geometry>
-                <cylinder length="0.036" radius="0.0375" />
+                <cylinder length="0.0375" radius="0.0375" />
             </geometry>
         </collision>
         <inertial>
@@ -1592,6 +1577,9 @@
             <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
+    <gazebo reference="b_bot_ftsensor_base_link">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <!-- Add the force sensor in front of the gripper. -->
     <joint name="b_bot_ftsensor_ft300_joint" type="fixed">
         <parent link="b_bot_flange" />
@@ -1602,7 +1590,7 @@
     <joint name="b_bot_ftsensor_flange_joint" type="fixed">
         <parent link="b_bot_ftsensor_base_link" />
         <child link="b_bot_ftsensor_flange_link" />
-        <origin rpy="0 0 0" xyz="0.036 0 0" />
+        <origin rpy="0 0 0" xyz="0.0375 0 0" />
     </joint>
     <link name="b_bot_ftsensor_wrench_link" />
     <joint name="b_bot_ftsensor_wrench_joint" type="fixed">
@@ -1617,7 +1605,7 @@
             <inertia ixx="0.00020005" ixy="-4.2442E-10" ixz="-2.9069E-10" iyy="0.00017832" iyz="-3.4402E-08" izz="0.00013478" />
         </inertial>
         <visual>
-            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.00845 0 0" />
+            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.00555 0 0" />
             <geometry>
                 <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_coupling.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -1626,20 +1614,15 @@
             </material>
         </visual>
         <collision>
-            <origin rpy="0 1.5707963267948966 0" xyz="0.00845 0 0" />
+            <origin rpy="0 1.5707963267948966 0" xyz="0.00555 0 0" />
             <geometry>
-                <cylinder length="0.0169" radius="0.0375" />
+                <cylinder length="0.0111" radius="0.0375" />
             </geometry>
-            <!-- <origin xyz="0 0 0" rpy="0 0 0" /> -->
-            <!-- <geometry> -->
-            <!--   <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_coupling.stl" /> -->
-            <!-- </geometry> -->
         </collision>
     </link>
     <gazebo reference="a_bot_gripper_coupling_base_link">
         <material>Gazebo/Black</material>
     </gazebo>
-    <!-- Add the force sensor in front of the gripper. -->
     <joint name="a_bot_gripper_coupling_base_joint" type="fixed">
         <parent link="a_bot_ftsensor_flange_link" />
         <child link="a_bot_gripper_coupling_base_link" />
@@ -1649,7 +1632,7 @@
     <joint name="a_bot_gripper_coupling_flange_joint" type="fixed">
         <parent link="a_bot_gripper_coupling_base_link" />
         <child link="a_bot_gripper_coupling_flange_link" />
-        <origin rpy="0 0 0" xyz="0.0169 0 0" />
+        <origin rpy="0 0 0" xyz="0.0111 0 0" />
     </joint>
     <joint name="a_bot_gripper_base_joint" type="fixed">
         <parent link="a_bot_gripper_coupling_flange_link" />
@@ -1665,7 +1648,7 @@
     <joint name="a_bot_gripper_tip_link_joint" type="fixed">
         <parent link="a_bot_gripper_base_link" />
         <child link="a_bot_gripper_tip_link" />
-        <origin rpy="0.0 0.0 0.0" xyz=".163 0.0 0.0" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.1628 0.0 0.0" />
     </joint>
     <link name="a_bot_gripper_tip_link" />
     <link name="a_bot_gripper_robotiq_arg2f_base_link">
@@ -2067,40 +2050,11 @@
         <child link="b_bot_gripper_tip_link" />
         <origin rpy="0 0 0" xyz="0.1855 0 0" />
     </joint>
-    <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
-    <link name="vwall1">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.005 0.175 0.275" />
-            <geometry>
-                <box size="0.01 0.35 0.55" />
-            </geometry>
-            <material name="Transparent">
-                <color rgba="0 0 0 0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.005 0.175 0.275" />
-            <geometry>
-                <box size="0.01 0.35 0.55" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="vwall1">
-        <material>Gazebo/Transparent</material>
-    </gazebo>
-    <joint name="vwall1" type="fixed">
-        <parent link="ground" />
-        <child link="vwall1" />
-        <origin rpy="0 0 0" xyz="0.41 -0.20 0.77" />
-    </joint>
+    <!-- Add virtual wall to avoid collisions-->
+    <!-- <xacro:aist_box name="vwall1" width="0.01" length="0.35" height="0.55" -->
+    <!-- 		  parent="ground" transparent="true"> -->
+    <!--   <origin xyz="0.41 -0.20 ${bots_z}" rpy="0 0 0"/> -->
+    <!-- </xacro:aist_box> -->
     <joint name="a_phoxi_m_camera_link_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="a_phoxi_m_camera_link" />
@@ -2481,7 +2435,7 @@
     <joint name="workspace_live_camera_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="live_camera_optical_frame" />
-        <origin rpy="-2.8559875657003557 0.0013833155561039075 1.4996937406990187" xyz="0.34375981750922774 0.015790557089796247 0.6374101950800111" />
+        <origin rpy="-2.732962681954511 0.02162437650373519 1.5132164471367409" xyz="0.40311836114641414 0.02379492915076111 0.694748550420011" />
     </joint>
     <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
     <link name="world" />

@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Scene Robot1
-        - /TF1
         - /TF1/Frames1
         - /DepthCloud1/Auto Size1
       Splitter Ratio: 0.6159420013427734
@@ -2322,11 +2321,11 @@ Visualization Manager:
                                         a_bot_inside_camera_connector_link:
                                           a_bot_inside_camera_link:
                                             a_bot_inside_camera_aligned_depth_to_color_frame:
+                                              a_bot_inside_camera_color_optical_frame:
+                                                {}
+                                            a_bot_inside_camera_color_frame:
                                               {}
                                             a_bot_inside_camera_depth_frame:
-                                              a_bot_inside_camera_color_frame:
-                                                a_bot_inside_camera_color_optical_frame:
-                                                  {}
                                               a_bot_inside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_inside_camera_left_ir_frame:
@@ -2338,11 +2337,11 @@ Visualization Manager:
                                         a_bot_outside_camera_connector_link:
                                           a_bot_outside_camera_link:
                                             a_bot_outside_camera_aligned_depth_to_color_frame:
+                                              a_bot_outside_camera_color_optical_frame:
+                                                {}
+                                            a_bot_outside_camera_color_frame:
                                               {}
                                             a_bot_outside_camera_depth_frame:
-                                              a_bot_outside_camera_color_frame:
-                                                a_bot_outside_camera_color_optical_frame:
-                                                  {}
                                               a_bot_outside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_outside_camera_left_ir_frame:
