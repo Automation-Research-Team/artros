@@ -23,7 +23,7 @@ def callback_RequestHelp(data):
     msg_pose = {'position':    {'x': -pose.position.y,
                                 'y':  pose.position.z,
                                 'z':  pose.position.x},
-                'orientation': {'x': -pose.orientation.x,
+                'orientation': {'x': -pose.orientation.y,
                                 'y':  pose.orientation.z,
                                 'z':  pose.orientation.x,
                                 'w':  pose.orientation.w }}
