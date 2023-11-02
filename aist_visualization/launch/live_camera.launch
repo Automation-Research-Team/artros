@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="node"		default="mesh_generator"/>
+  <arg name="camera_name"	default="live_camera"/>
+  <arg name="camera_frame"	default="$(arg camera_name)_optical_frame"/>
+  <arg name="manager"		default="mgr"/>
+  <arg name="manager_threads"	default="4"/>
+  <arg name="vis"		default="true"/>
+
+  <arg name="image_topic"	value="$(arg camera_name)/image_raw"/>
+  <node unless="$(eval manager == '')"
+	name="$(arg manager)"
+	pkg ="nodelet" type="nodelet" args="manager" output="screen">
+    <param name="num_worker_threads"	value="$(arg manager_threads)"/>
+  </node>
+
+  <!-- Launch camera -->
+  <arg name="video_device"	default="/dev/video8"/>
+  <arg name="image_width"	default="1920"/>
+  <arg name="image_height"	default="1080"/>
+  <arg name="pixel_format"	default="yuyv"/>
+  <arg name="fps"		default="5"/>
+  <node name="$(arg camera_name)"
+  	pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device"		value="$(arg video_device)"/>
+    <param name="image_width"		value="$(arg image_width)"/>
+    <param name="image_height"		value="$(arg image_height)"/>
+    <param name="pixle_format"		value="$(arg pixel_format)"/>
+    <param name="framerate"		value="$(arg fps)"/>
+    <param name="camera_frame_id"	value="$(arg camera_frame)"/>
+  </node>
+
+  <!-- Launch mesh_generator -->
+  <include file="$(dirname)/run.launch">
+    <arg name="node"			value="$(arg node)"/>
+    <arg name="image_topic"		value="$(arg image_topic)"/>
+    <arg name="manager"			value="$(arg manager)"/>
+  </include>
+
+  <node if="$(arg vis)"
+	name="$(anon rviz)" pkg="rviz" type="rviz" output="screen"
+  	args="-d $(dirname)/$(arg camera_name).rviz"/>
+
+</launch>

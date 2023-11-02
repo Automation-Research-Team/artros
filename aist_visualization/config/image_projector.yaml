@@ -1,0 +1,5 @@
+subscribe_camera: false
+screen_offset:    0.045
+nsteps_u:         10
+nsteps_v:         10
+marker_frame:     workspace_ar_marker

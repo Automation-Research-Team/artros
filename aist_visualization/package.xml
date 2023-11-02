@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>aist_visualization</name>
+  <version>0.1.0</version>
+  <description>The aist_visualization package</description>
+
+  <maintainer email="t.ueshiba@aist.go.hp">Toshio Ueshiba</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>roscpp</depend>
+  <depend>pluginlib</depend>
+  <depend>nodelet</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>rviz</depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <rviz plugin="${prefix}/plugin_description.xml"/>
+  </export>
+</package>
