@@ -1,12 +1,14 @@
 <launch>
 
   <arg name="node"		default="mesh_generator"/>
-  <arg name="conveyor_frame"	default="conveyor_origin"/>
+  <arg name="screen_frame"	default="conveyor_origin"/>
+  <arg name="reference_frame"	default="world"/>
   <arg name="camera_info_topic"	default="/camera/camera_info"/>
 
   <node name="$(arg node)"
 	pkg="aist_visualization" type="mesh_generator" output="screen">
-    <param name="conveyor_frame"	value="$(arg conveyor_frame)"/>
+    <param name="screen_frame"		value="$(arg screen_frame)"/>
+    <param name="reference_frame"	value="$(arg reference_frame)"/>
     <remap from="/camera_info"		to="$(arg camera_info_topic)"/>
   </node>
 

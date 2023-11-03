@@ -39,6 +39,7 @@ class MeshGenerator
     const tf2_ros::TransformListener	_tf2_listener;
 
     transform_t				_Tsc;
+    transform_t				_Trc;
     const size_t			_nsteps_u;
     const size_t			_nsteps_v;
     mesh_t				_mesh;
@@ -52,13 +53,16 @@ MeshGenerator::MeshGenerator(ros::NodeHandle& nh)
      _tf2_buffer(),
      _tf2_listener(_tf2_buffer),
      _Tsc(),
+     _Trc(),
      _nsteps_u(nh.param<int>("nsteps_u", 10)),
      _nsteps_v(nh.param<int>("nsteps_v", 10)),
      _mesh()
 {
-  // Set ID of the screen frame.
+  // Set ID of the screen frame and reference frame.
     _Tsc.header.frame_id = nh.param<std::string>("screen_frame",
 						 "conveyor_origin");
+    _Trc.header.frame_id = nh.param<std::string>("reference_frame",
+						 _Tsc.header.frame_id);
 
   // *** Set up mesh to be published. ***
   // 1. Allocate buffers for triangles, vertices and texture coordinates.
@@ -107,6 +111,10 @@ MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
 					   camera_info->header.frame_id,
 					   camera_info->header.stamp,
 					   ros::Duration(1.0));
+	_Trc = _tf2_buffer.lookupTransform(_Trc.header.frame_id,
+					   camera_info->header.frame_id,
+					   camera_info->header.stamp,
+					   ros::Duration(1.0));
     }
     catch (const tf2::TransformException& err)
     {
@@ -134,7 +142,7 @@ MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
     for (size_t idx = 0; idx < _mesh.mesh.vertices.size(); ++idx)
 	_mesh.mesh.vertices[idx] = get_intersection(xy(idx));
 
-    _mesh.header = camera_info->header;
+    _mesh.header = _Trc.header;
     _mesh_pub.publish(_mesh);
 }
 
@@ -147,7 +155,7 @@ MeshGenerator::get_intersection(const cv::Point2d& image_point) const
     vc.y = image_point.y;
     vc.z = 1;
 
-  // Convert the view vector to the screen frame.
+  // Transform the view vector to the screen frame.
     geometry_msgs::Vector3	vs;
     tf2::doTransform(vc, vs, _Tsc);
 
@@ -157,6 +165,9 @@ MeshGenerator::get_intersection(const cv::Point2d& image_point) const
     p.x = k * vc.x;
     p.y = k * vc.y;
     p.z = k;
+
+  // Transform the intersection from camera frame to reference frame.
+    tf2::doTransform(p, p, _Trc);
 
     return p;
 }
