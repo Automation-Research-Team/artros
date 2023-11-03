@@ -38,7 +38,7 @@ class MeshGenerator
     tf2_ros::Buffer			_tf2_buffer;
     const tf2_ros::TransformListener	_tf2_listener;
 
-    transform_t				_Toc;
+    transform_t				_Tsc;
     const size_t			_nsteps_u;
     const size_t			_nsteps_v;
     mesh_t				_mesh;
@@ -51,13 +51,13 @@ MeshGenerator::MeshGenerator(ros::NodeHandle& nh)
      _mesh_pub(nh.advertise<mesh_t>("mesh", 1)),
      _tf2_buffer(),
      _tf2_listener(_tf2_buffer),
-     _Toc(),
+     _Tsc(),
      _nsteps_u(nh.param<int>("nsteps_u", 10)),
      _nsteps_v(nh.param<int>("nsteps_v", 10)),
      _mesh()
 {
-  // Set ID of the conveyor frame.
-    _Toc.header.frame_id = nh.param<std::string>("conveyor_frame",
+  // Set ID of the screen frame.
+    _Tsc.header.frame_id = nh.param<std::string>("screen_frame",
 						 "conveyor_origin");
 
   // *** Set up mesh to be published. ***
@@ -100,10 +100,10 @@ MeshGenerator::MeshGenerator(ros::NodeHandle& nh)
 void
 MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
 {
-  // Get a transform from the camera frame to the conveyor frame.
+  // Get a transform from the camera frame to the screen frame.
     try
     {
-	_Toc = _tf2_buffer.lookupTransform(_Toc.header.frame_id,
+	_Tsc = _tf2_buffer.lookupTransform(_Tsc.header.frame_id,
 					   camera_info->header.frame_id,
 					   camera_info->header.stamp,
 					   ros::Duration(1.0));
@@ -130,7 +130,7 @@ MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
     cv::Mat_<cv::Point2d>	xy(_mesh.mesh.vertices.size(), 1);
     cv::undistortPoints(uv, xy, K, D);
 
-  // Backproject canonical image points onto the conveyor surface.
+  // Backproject canonical image points onto the screen.
     for (size_t idx = 0; idx < _mesh.mesh.vertices.size(); ++idx)
 	_mesh.mesh.vertices[idx] = get_intersection(xy(idx));
 
@@ -147,12 +147,12 @@ MeshGenerator::get_intersection(const cv::Point2d& image_point) const
     vc.y = image_point.y;
     vc.z = 1;
 
-  // Convert the view vector to the conveyor frame.
-    geometry_msgs::Vector3	vo;
-    tf2::doTransform(vc, vo, _Toc);
+  // Convert the view vector to the screen frame.
+    geometry_msgs::Vector3	vs;
+    tf2::doTransform(vc, vs, _Tsc);
 
-  // Compute the intersection of the view vector and the conveyor surface.
-    const auto			k = -_Toc.transform.translation.z / vo.z;
+  // Compute the intersection of the view vector and the screen.
+    const auto			k = -_Tsc.transform.translation.z / vs.z;
     geometry_msgs::Point	p;
     p.x = k * vc.x;
     p.y = k * vc.y;
