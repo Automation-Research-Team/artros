@@ -286,6 +286,7 @@ class SuctionGripper(GripperClient):
         self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
     def grasp(self, timeout=rospy.Duration()):
+        rospy.sleep(0.5)
         return self._send_command(True, rospy.Duration(0), rospy.Duration(-1))
 
     def postgrasp(self):

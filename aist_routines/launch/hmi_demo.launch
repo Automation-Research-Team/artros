@@ -21,17 +21,19 @@
   </node>
 
   <group unless="$(arg nep)">
+
     <!-- Start rosbridge server -->
-    <arg name="port"	value="9090"/>
     <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
-      <arg name="port"	value="$(arg port)"/>
+      <arg name="port"	value="9090"/>
     </include>
+
   </group>
 
   <group if="$(arg nep)">
+
+    <!-- Start nep_bridge server -->
     <include file="$(find nep_bridge)/launch/run.launch">
-      <arg name="config_file"	value="$(find nep_bridge
-				       )/config/nep_bridge.yaml"/>
+      <arg name="config_file"	value="$(dirname)/../config/nep_bridge.yaml"/>
     </include>
 
     <!-- <arg name="nep_ip"	value="163.220.51.108"/> -->
