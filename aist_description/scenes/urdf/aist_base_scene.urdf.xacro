@@ -9,7 +9,7 @@
   <xacro:property name="b_bot_y"	value="0.4875"/>
   <xacro:property name="b_bot_theta"	value="${pi}"/>
   <xacro:property name="bots_z"		value="0.770"/>
-  <xacro:property name="screen_z"	value="${bots_z} + 0.0347"/>
+  <xacro:property name="screen_z"	value="${bots_z + 0.0347}"/>
 
   <!-- ground and workspace -->
   <link name="ground"/>
@@ -162,7 +162,7 @@
   <!-- virtual screen -->
   <link name="virtual_screen"/>
   <joint name="virtual_screen_joint" type="fixed">
-    <parnet link="ground"/>
+    <parent link="ground"/>
     <child  link="virtual_screen"/>
     <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/>
   </joint>
