@@ -1,9 +1,9 @@
 <launch>
 
   <arg name="node"		default="mesh_generator"/>
-  <arg name="screen_frame"	default="conveyor_origin"/>
+  <arg name="screen_frame"	default="virtual_screen"/>
   <arg name="reference_frame"	default="world"/>
-  <arg name="camera_info_topic"	default="/camera/camera_info"/>
+  <arg name="camera_info_topic"	default="/live_camera/camera_info"/>
 
   <node name="$(arg node)"
 	pkg="aist_visualization" type="mesh_generator" output="screen">

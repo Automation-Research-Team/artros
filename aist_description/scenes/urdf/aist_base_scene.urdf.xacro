@@ -9,6 +9,7 @@
   <xacro:property name="b_bot_y"	value="0.4875"/>
   <xacro:property name="b_bot_theta"	value="${pi}"/>
   <xacro:property name="bots_z"		value="0.770"/>
+  <xacro:property name="screen_z"	value="${bots_z} + 0.0347"/>
 
   <!-- ground and workspace -->
   <link name="ground"/>
@@ -141,13 +142,13 @@
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:phoxi_m_camera>
 
-  <!-- Add RealSense camera -->
+  <!-- RealSense cameras -->
   <xacro:include filename="$(find aist_description
   			   )/devices/urdf/wrist_cameras.urdf.xacro" />
   <xacro:wrist_cameras prefix="a_bot_"
   		       parent="a_bot_gripper_base_link"/>
 
-  <!-- Add live camera -->
+  <!-- live camera -->
   <xacro:load_calibration filename="$(find aist_camera_calibration
 				    )/calib/live_camera.yaml"/>
   <link name="live_camera_optical_frame"/>
@@ -158,6 +159,14 @@
     	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </joint>
 
+  <!-- virtual screen -->
+  <link name="virtual_screen"/>
+  <joint name="virtual_screen_joint" type="fixed">
+    <parnet link="ground"/>
+    <child  link="virtual_screen"/>
+    <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/>
+  </joint>
+  
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
   <joint name="world_ground_joint" type="fixed">

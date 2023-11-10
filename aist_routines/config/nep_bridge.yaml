@@ -1,0 +1,22 @@
+nep_ip: 163.220.51.108
+rate:   10.0
+ros_to_nep:
+  - from: /joint_states
+    to:   /joint_states
+  - from: /live_camera/camera_info
+    to:   camera_web/camera_info
+  - from: /live_camera/image_raw
+    to:   camera_web/image
+#  - from: /urdf_publisher/link_elements
+#    to:   link_elements
+  - from: /urdf_publisher/link_transforms
+    to:   link_transforms
+  - from: /live_camera/image_raw
+    to:   camera_web/image
+  - from: /help
+    to:   VR/RequestHelp
+
+nep_to_ros:
+  - from: VR/Pointing
+    to:   pointing
+    type: finger_pointing_msgs/pointing

@@ -11,7 +11,9 @@
   </include>
 
   <!-- Launch mesh_generator -->
-  <include file="$(dirname)/run.launch">
+  <include file="$(dirname)/mesh_generator.launch">
+    <arg name="screen_frame"	  value="conveyor_origin"/>
+    <arg name="reference_frame"	  value="conveyor_origin"/>
     <arg name="camera_info_topic" value="$(arg camera_name)/camera_info"/>
   </include>
 

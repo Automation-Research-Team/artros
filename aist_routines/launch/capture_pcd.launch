@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="camera_name"	default="a_phoxi_m_camera"/>
+
+  <!-- Setup subscribed topic names -->
+  <arg if="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="color_topic"	value="$(arg camera_name)/texture"/>
+  <arg if="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="depth_topic"	value="$(arg camera_name)/depth_map"/>
+  <arg if="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
+  <arg if="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="cloud_topic"	value="$(arg camera_name)/pointcloud"/>
+  <arg unless="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="color_topic"	value="$(arg camera_name)/color/image_raw"/>
+  <arg unless="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="depth_topic"	value="$(arg camera_name
+				       )/aligned_depth_to_color/image_raw"/>
+  <arg unless="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="camera_info_topic"	value="$(arg camera_name
+				       )/aligned_depth_to_color/camera_info"/>
+  <arg unless="$(eval camera_name == 'a_phoxi_m_camera')"
+       name="cloud_topic"	value="$(arg camera_name)/depth/color/points"/>
+
+  <!-- Launch example program -->
+  <node name="capture_pcd"
+	pkg="aist_utility" type="capture_pcd" output="screen">
+    <remap from="/color"	to="$(arg color_topic)"/>
+    <remap from="/depth"	to="$(arg depth_topic)"/>
+    <remap from="/camera_info"	to="$(arg camera_info_topic)"/>
+    <remap from="/pointcloud"	to="$(arg cloud_topic)"/>
+    <param name="cloud_frame"	value="ground"/>
+  </node>
+
+</launch>
