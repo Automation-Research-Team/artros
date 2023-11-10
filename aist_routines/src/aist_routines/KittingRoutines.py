@@ -120,7 +120,7 @@ class KittingRoutines(URRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, bin_id, max_slant=pi/4):
+    def search_bin(self, bin_id, min_height=0.004, max_slant=pi/4):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
@@ -129,8 +129,8 @@ class KittingRoutines(URRoutines):
         self.camera(part_props['camera_name']).trigger_frame()
         return self.graspability_wait_for_result(
                    bin_props['name'],
-                   lambda pose, max_slant=max_slant:
-                       self._pose_filter(pose, max_slant))
+                   lambda pose, min_height=min_height, max_slant=max_slant:
+                       self._pose_filter(pose, min_height, max_slant))
 
     def demo(self):
         bin_ids = ('bin_1', 'bin_4', 'bin_5')
@@ -148,8 +148,8 @@ class KittingRoutines(URRoutines):
         self.go_to_named_pose(self.current_robot_name, 'home')
 
     # Utilities
-    def _pose_filter(self, pose, max_slant):
-        if pose.position.z < 0.004:
+    def _pose_filter(self, pose, min_height, max_slant):
+        if pose.position.z < min_height:
             return None
 
         T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,

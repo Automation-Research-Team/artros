@@ -1,5 +1,40 @@
+// Software License Agreement (BSD License)
+//
+// Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials provided
+//    with the distribution.
+//  * Neither the name of National Institute of Advanced Industrial
+//    Science and Technology (AIST) nor the names of its contributors
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+//
+// Author: Toshio Ueshiba
+//
 /*!
-  \file		image_projector.cpp
+  \file		mesh_generator.cpp
   \author	Toshio Ueshiba
 */
 #include <ros/ros.h>
@@ -59,8 +94,7 @@ MeshGenerator::MeshGenerator(ros::NodeHandle& nh)
      _mesh()
 {
   // Set ID of the screen frame and reference frame.
-    _Tsc.header.frame_id = nh.param<std::string>("screen_frame",
-						 "conveyor_origin");
+    _Tsc.header.frame_id = nh.param<std::string>("screen_frame", "world");
     _Trc.header.frame_id = nh.param<std::string>("reference_frame",
 						 _Tsc.header.frame_id);
 
@@ -104,7 +138,8 @@ MeshGenerator::MeshGenerator(ros::NodeHandle& nh)
 void
 MeshGenerator::camera_info_cb(const camera_info_cp& camera_info)
 {
-  // Get a transform from the camera frame to the screen frame.
+  // Get a transform from the camera frame to the screen frame
+  // and the one from the camera frame to the reference frame.
     try
     {
 	_Tsc = _tf2_buffer.lookupTransform(_Tsc.header.frame_id,

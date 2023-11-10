@@ -103,9 +103,9 @@ class HMIRoutines(KittingRoutines):
         return robot_name, axis, speed
 
     # Graspability stuffs
-    def search_bin(self, bin_id, max_slant=pi/4):
+    def search_bin(self, bin_id, min_height=0.004, max_slant=pi/4):
         return super(HMIRoutines, self).search_bin(
-                   bin_id,
+                   bin_id, min_height,
                    0 if self.using_hmi_graspability_params else max_slant)
 
     @property
