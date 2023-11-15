@@ -603,7 +603,7 @@
     <joint name="cage_upper_right_bar" type="fixed">
         <parent link="cage_front_left_pillar" />
         <child link="cage_upper_right_bar" />
-        <origin rpy="0 0 0" xyz="1.16 0.04 1.38" />
+        <origin rpy="0 0 0" xyz="1.16 0.04 1.3" />
     </joint>
     <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="cage_workspace_bar">
@@ -2058,7 +2058,7 @@
     <joint name="a_phoxi_m_camera_link_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="a_phoxi_m_camera_link" />
-        <origin rpy="-0.05809603311925469 1.097335615317803 3.053149944967766" xyz="0.492856774041131 -0.036792816347522905 0.6845615969657455" />
+        <origin rpy="-0.10603238790759253 1.1010904348550707 3.0052545162178608" xyz="0.5123515156516534 -0.03873553287518036 0.7016694751611658" />
     </joint>
     <joint name="a_phoxi_m_camera_reference_joint" type="fixed">
         <parent link="a_phoxi_m_camera_link" />
@@ -2435,7 +2435,14 @@
     <joint name="workspace_live_camera_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="live_camera_optical_frame" />
-        <origin rpy="-2.844520734424458 -0.07655721902523285 1.5144117286631504" xyz="0.3733700748941794 -0.030741582314842072 0.720839795840623" />
+        <origin rpy="-2.752197931668187 -0.09513034339063342 1.5593619369146734" xyz="0.39763658958628 -0.03830545174707677 0.8102031301665178" />
+    </joint>
+    <!-- virtual screen -->
+    <link name="virtual_screen" />
+    <joint name="virtual_screen_joint" type="fixed">
+        <parent link="ground" />
+        <child link="virtual_screen" />
+        <origin rpy="0 0 0" xyz="0 0 0.8047" />
     </joint>
     <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
     <link name="world" />
