@@ -3,14 +3,12 @@ rate:   10.0
 ros_to_nep:
   - from: /joint_states
     to:   /joint_states
-  - from: /live_camera/camera_info
-    to:   camera_web/camera_info
-  - from: /live_camera/image_raw
-    to:   camera_web/image
 #  - from: /urdf_publisher/link_elements
 #    to:   link_elements
   - from: /urdf_publisher/link_transforms
     to:   link_transforms
+  - from: /mesh_generator/mesh
+    to:   screen_mesh
   - from: /live_camera/image_raw
     to:   camera_web/image
   - from: /help

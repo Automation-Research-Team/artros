@@ -2260,7 +2260,7 @@ Visualization Manager:
         tray_2_screw_m4_9:
           Value: false
         virtual_screen:
-          Value: true
+          Value: false
         workspace_ar_marker:
           Value: true
         workspace_center:
@@ -2331,11 +2331,11 @@ Visualization Manager:
                                         a_bot_inside_camera_connector_link:
                                           a_bot_inside_camera_link:
                                             a_bot_inside_camera_aligned_depth_to_color_frame:
-                                              a_bot_inside_camera_color_optical_frame:
-                                                {}
-                                            a_bot_inside_camera_color_frame:
                                               {}
                                             a_bot_inside_camera_depth_frame:
+                                              a_bot_inside_camera_color_frame:
+                                                a_bot_inside_camera_color_optical_frame:
+                                                  {}
                                               a_bot_inside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_inside_camera_left_ir_frame:
@@ -2347,11 +2347,11 @@ Visualization Manager:
                                         a_bot_outside_camera_connector_link:
                                           a_bot_outside_camera_link:
                                             a_bot_outside_camera_aligned_depth_to_color_frame:
-                                              a_bot_outside_camera_color_optical_frame:
-                                                {}
-                                            a_bot_outside_camera_color_frame:
                                               {}
                                             a_bot_outside_camera_depth_frame:
+                                              a_bot_outside_camera_color_frame:
+                                                a_bot_outside_camera_color_optical_frame:
+                                                  {}
                                               a_bot_outside_camera_depth_optical_frame:
                                                 {}
                                               a_bot_outside_camera_left_ir_frame:
@@ -2693,17 +2693,11 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: true
-    - Class: aist_lenti_mark/TexturedMesh
-      Enabled: true
-      Image Topic: /live_camera/image_raw
-      Mesh Topic: /image_projector/mesh
-      Name: TexturedMesh
-      Value: true
     - Class: aist_visualization/TexturedMesh
       Enabled: true
       Image Topic: /live_camera/image_raw
       Mesh Topic: /mesh_generator/mesh
-      Name: VirtualScreemImage
+      Name: VirtualScreen
       Value: true
   Enabled: true
   Global Options:
@@ -2733,7 +2727,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.4183499813079834
+      Distance: 0.9349327087402344
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2749,9 +2743,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1247953176498413
+      Pitch: 0.5647949576377869
       Target Frame: <Fixed Frame>
-      Yaw: 0.221102774143219
+      Yaw: 0.25610148906707764
     Saved: ~
 Window Geometry:
   Displays:

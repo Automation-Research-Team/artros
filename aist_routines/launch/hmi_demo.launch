@@ -20,6 +20,13 @@
       <rosparam file="$(dirname)/../config/live_camera.yaml"/>
   </node>
 
+  <!-- Start mesh generator -->
+  <include file="$(find aist_visualization)/launch/mesh_generator.launch">
+    <arg name="screen_frame"	  value="virtual_screen"/>
+    <arg name="reference_frame"	  value="world"/>
+    <arg name="camera_info_topic" value="/live_camera/camera_info"/>
+  </include>
+
   <group unless="$(arg nep)">
 
     <!-- Start rosbridge server -->
