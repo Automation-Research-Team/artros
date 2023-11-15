@@ -25,6 +25,7 @@ grippers:
   base_fixture:
     type:          SuctionGripper
     controller_ns: base_fixture_controller
+
 cameras:
   a_phoxi_m_camera:     PhoXiCamera
   a_bot_inside_camera:  CodedLightRealSenseCamera

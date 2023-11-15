@@ -34,7 +34,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, collections, numpy as np
+import rospy, collections, copy, numpy as np
 from math                          import pi
 from tf                            import transformations as tfs
 from geometry_msgs.msg             import (PoseStamped, PointStamped,
@@ -118,9 +118,10 @@ class HMIRoutines(KittingRoutines):
         if self.using_hmi_graspability_params:
             rospy.logwarn('(hmi_demo) Already using graspability paramters for HMI demo.')
             return
-        self._graspability_params_back = self._graspability_params[part_id]
+        self._graspability_params_back \
+            = copy.deepcopy(self._graspability_params[part_id])
         self._graspability_params[part_id] \
-            = self._hmi_graspability_params[part_id]
+            = copy.deepcopy(self._hmi_graspability_params[part_id])
         rospy.loginfo('(hmi_demo) Set graspability paramters for HMI demo.')
 
     def restore_original_graspability_params(self, bin_id):
