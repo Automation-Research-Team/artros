@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="camera_name"		default="f_bot_camera"/>
+  <arg name="check"			default="false"/>
+  <arg name="use_dual_quaternion"	default="true"/>
+
+  <!-- Set camera topic names -->
+  <arg name="is_phoxi_camera"	value="$(eval 'phoxi' in camera_name)"/>
+  <arg if="$(arg is_phoxi_camera)"
+       name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
+  <arg if="$(arg is_phoxi_camera)"
+       name="image_topic"	value="$(arg camera_name)/texture"/>
+  <arg if="$(arg is_phoxi_camera)"
+       name="depth_topic"	value="$(arg camera_name)/depth_map"/>
+  <arg unless="$(arg is_phoxi_camera)"
+       name="camera_info_topic"	value="$(arg camera_name)/color/camera_info"/>
+  <arg unless="$(arg is_phoxi_camera)"
+       name="image_topic"	value="$(arg camera_name)/color/image_raw"/>
+  <arg unless="$(arg is_phoxi_camera)"
+       name="depth_topic"	value="$(arg camera_name
+				       )/aligned_depth_to_color/image_raw"/>
+
+  <!-- Launch ArUco and calibrator -->
+  <include file="$(dirname)/include/calibrator.launch">
+    <arg name="camera_name"		value="$(arg camera_name)"/>
+    <arg name="check"			value="$(arg check)"/>
+    <arg name="use_dual_quaternion"	value="$(arg use_dual_quaternion)"/>
+
+    <arg name="camera_info_topic"	value="$(arg camera_info_topic)"/>
+    <arg name="image_topic"		value="$(arg image_topic)"/>
+    <arg name="depth_topic"		value="$(arg depth_topic)"/>
+  </include>
+
+</launch>

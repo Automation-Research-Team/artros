@@ -9,9 +9,10 @@
 
     <xacro:include filename="$(find aist_description
 			     )/devices/urdf/_sr305.urdf.xacro"/>
-      <!-- Add the holder and two SR305 cameras -->
-      <xacro:property name="mount_mesh_file"
-		      value="package://aist_description/devices/meshes/sr305_mount.stl"/>
+
+    <!-- Add the holder and two SR305 cameras -->
+    <xacro:property name="mount_mesh_file"
+		    value="package://aist_description/devices/meshes/sr305_mount.stl"/>
 
     <link name="${prefix}camera_mount">
       <inertial>

@@ -1,9 +1,6 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="config"/>
-
-  <arg name="sim"/>
   <arg name="camera_name"/>
   <arg name="check"/>
   <arg name="use_dual_quaternion"/>

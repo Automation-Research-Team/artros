@@ -2,7 +2,6 @@
 <launch>
 
   <arg name="sim"			default="false"/>
-  <arg name="config"			default="aist"/>
   <arg name="camera_name"		default="a_phoxi_m_camera"/>
   <arg name="check"			default="false"/>
   <arg name="use_dual_quaternion"	default="true"/>
@@ -18,30 +17,8 @@
     <arg name="manager"			value=""/>
   </include>
 
-  <!-- Set camera topic names -->
-  <arg if="$(arg is_phoxi_camera)"
-       name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
-  <arg if="$(arg is_phoxi_camera)"
-       name="image_topic"	value="$(arg camera_name)/texture"/>
-  <arg if="$(arg is_phoxi_camera)"
-       name="depth_topic"	value="$(arg camera_name)/depth_map"/>
-  <arg unless="$(arg is_phoxi_camera)"
-       name="camera_info_topic"	value="$(arg camera_name)/color/camera_info"/>
-  <arg unless="$(arg is_phoxi_camera)"
-       name="image_topic"	value="$(arg camera_name)/color/image_raw"/>
-  <arg unless="$(arg is_phoxi_camera)"
-       name="depth_topic"	value="$(arg camera_name
-				       )/aligned_depth_to_color/image_raw"/>
-
   <!-- Launch ArUco and calibrator -->
-  <include file="$(dirname)/include/handeye_calibration.launch">
-    <arg name="config"			value="$(arg config)"/>
-
-    <arg name="camera_info_topic"	value="$(arg camera_info_topic)"/>
-    <arg name="image_topic"		value="$(arg image_topic)"/>
-    <arg name="depth_topic"		value="$(arg depth_topic)"/>
-
-    <arg name="sim"			value="$(arg sim)"/>
+  <include file="$(dirname)/handeye_calibration.launch">
     <arg name="camera_name"		value="$(arg camera_name)"/>
     <arg name="check"			value="$(arg check)"/>
     <arg name="use_dual_quaternion"	value="$(arg use_dual_quaternion)"/>

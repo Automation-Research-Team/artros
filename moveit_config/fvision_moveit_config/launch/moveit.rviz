@@ -7,8 +7,8 @@ Panels:
         - /MotionPlanning1/Planning Request1
         - /Realsense1/Auto Size1
         - /PhoXi1/Auto Size1
-      Splitter Ratio: 0.7425600290298462
-    Tree Height: 1280
+      Splitter Ratio: 0.5392895340919495
+    Tree Height: 1111
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -274,11 +274,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_phoxi_m_camera_sensor:
+          d_phoxi_m_camera_reference:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_phoxi_m_camera_sensor_reference:
+          d_phoxi_m_camera_sensor:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -544,11 +544,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          d_phoxi_m_camera_sensor:
+          d_phoxi_m_camera_reference:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          d_phoxi_m_camera_sensor_reference:
+          d_phoxi_m_camera_sensor:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -576,6 +576,8 @@ Visualization Manager:
       Velocity_Scaling_Factor: 1
     - Class: rviz/TF
       Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
@@ -667,9 +669,9 @@ Visualization Manager:
           Value: false
         d_phoxi_m_camera_link:
           Value: true
-        d_phoxi_m_camera_sensor:
+        d_phoxi_m_camera_reference:
           Value: true
-        d_phoxi_m_camera_sensor_reference:
+        d_phoxi_m_camera_sensor:
           Value: true
         ground:
           Value: false
@@ -746,8 +748,8 @@ Visualization Manager:
               {}
             workspace_center:
               d_phoxi_m_camera_link:
-                d_phoxi_m_camera_sensor:
-                  d_phoxi_m_camera_sensor_reference:
+                d_phoxi_m_camera_reference:
+                  d_phoxi_m_camera_sensor:
                     {}
       Update Interval: 0
       Value: true
@@ -897,11 +899,11 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000005fbfc0200000007fc0000006e000004ff0000030301000039fa000000000100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000003a300fffffffb000000100044006900730070006c0061007900730100000000000002ad000001f700fffffffb0000000800480065006c00700000000342000000bb000000d400fffffffb0000000a0056006900650077007300000003b0000000b00000013200fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000002600000026fb0000001a005200650061006c00730065006e00730065002d0052004700420100000579000000f00000002600ffffff000004ff000005fb00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000005fbfc0200000007fc0000006e000004ff000002f201000039fa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000003a300fffffffb000000100044006900730070006c0061007900730100000000000002ad000001f700fffffffb0000000800480065006c00700000000342000000bb000000d400fffffffb0000000a0056006900650077007300000003b0000000b00000013200fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000002600000026fb0000001a005200650061006c00730065006e00730065002d0052004700420100000579000000f00000002600ffffff000004ff000005fb00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Realsense-RGB:
     collapsed: false
   Views:
     collapsed: false
   Width: 2222
-  X: 652
-  Y: 382
+  X: 161
+  Y: 104

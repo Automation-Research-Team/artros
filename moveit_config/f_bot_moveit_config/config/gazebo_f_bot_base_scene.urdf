@@ -976,18 +976,18 @@
         <color rgba="0.1 0.1 0.1 1" />
     </material>
     <!-- camera body, with origin at bottom screw mount -->
-    <joint name="d_bot_camera_joint" type="fixed">
+    <joint name="f_bot_camera_joint" type="fixed">
         <origin rpy="0 0.0 0" xyz="0.030 0.000 0.043" />
         <parent link="f_bot_gripper_base_link" />
-        <child link="d_bot_camera_bottom_screw_frame" />
+        <child link="f_bot_camera_bottom_screw_frame" />
     </joint>
-    <link name="d_bot_camera_bottom_screw_frame" />
-    <joint name="d_bot_camera_link_joint" type="fixed">
+    <link name="f_bot_camera_bottom_screw_frame" />
+    <joint name="f_bot_camera_link_joint" type="fixed">
         <origin rpy="0 0 0" xyz="0.010600000000000002 0.0175 0.0125" />
-        <parent link="d_bot_camera_bottom_screw_frame" />
-        <child link="d_bot_camera_link" />
+        <parent link="f_bot_camera_bottom_screw_frame" />
+        <child link="f_bot_camera_link" />
     </joint>
-    <link name="d_bot_camera_link">
+    <link name="f_bot_camera_link">
         <visual>
             <!-- the mesh origin is at front plate in between the two infrared camera axes -->
             <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.0043 -0.0175 0" />
@@ -1008,8 +1008,8 @@
             <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257" />
         </inertial>
     </link>
-    <gazebo reference="d_bot_camera_depth_frame">
-        <sensor name="d_bot_camera" type="depth">
+    <gazebo reference="f_bot_camera_depth_frame">
+        <sensor name="f_bot_camera" type="depth">
             <always_on>true</always_on>
             <visualize>true</visualize>
             <camera>
@@ -1025,12 +1025,12 @@
                     <far>100</far>
                 </clip>
             </camera>
-            <plugin filename="libgazebo_ros_openni_kinect.so" name="d_bot_camera_controller">
+            <plugin filename="libgazebo_ros_openni_kinect.so" name="f_bot_camera_controller">
                 <baseline>0.2</baseline>
                 <alwaysOn>true</alwaysOn>
                 <updateRate>10.0</updateRate>
-                <cameraName>d_bot_camera</cameraName>
-                <frameName>d_bot_camera_color_optical_frame</frameName>
+                <cameraName>f_bot_camera</cameraName>
+                <frameName>f_bot_camera_color_optical_frame</frameName>
                 <imageTopicName>color/image_raw</imageTopicName>
                 <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
                 <depthImageTopicName>aligned_depth_to_color/image_raw</depthImageTopicName>
@@ -1108,4 +1108,3 @@
         </actuator>
     </transmission>
 </robot>
-

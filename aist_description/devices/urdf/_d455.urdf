@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
   <xacro:include filename="$(find aist_description
-			   )/devices/urdf/_sr305.urdf.xacro" />
+			   )/devices/urdf/_d455.urdf.xacro" />
 
   <link name ="base_link"/>
 
-  <xacro:sensor_sr305 name="camera" parent="base_link"
-		      use_nominal_extrinsics="true">
+  <xacro:sensor_d455 name="camera" parent="base_link"
+		     use_nominal_extrinsics="true">
     <origin xyz="0 0 0" rpy="0 0 0" />
-  </xacro:sensor_sr305>
+  </xacro:sensor_d455>
 </robot>

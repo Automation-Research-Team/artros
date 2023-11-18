@@ -1,22 +1,24 @@
 <?xml version="1.0"?>
 
 <!--
-This file is based on the d435 urdf from the realsense package.
-The origin of the mesh is at the center of the back mount.
+License: Apache 2.0. See LICENSE file in root directory.
+Copyright(c) 2017 Intel Corporation. All Rights Reserved
+
+This is the URDF model for the Intel RealSense 430 camera, in it's
+aluminum peripherial evaluation case.
 -->
 
-<robot name="sensor_sr305" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="sensor_sr305" params="parent *origin name:=camera
-					   use_nominal_extrinsics:=true
-					   use_bottom_mount:=false">
+<robot name="sensor_d455" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="sensor_d455" params="parent *origin name:=camera
+					  use_nominal_extrinsics:=true">
 
     <xacro:include filename="$(find realsense2_description
-			     )/urdf/_sr305.urdf.xacro" />
-    <xacro:sensor_sr305 parent="${parent}" name="${name}"
-			use_nominal_extrinsics="${use_nominal_extrinsics}"
-		        use_bottom_mount="${use_bottom_mount}">
+			     )/urdf/_d455.urdf.xacro" />
+    <xacro:sensor_d455 parent="${parent}" name="${name}"
+		       use_nominal_extrinsics="${use_nominal_extrinsics}">
       <xacro:insert_block name="origin"/>
-    </xacro:sensor_sr305>
+    </xacro:sensor_d455>
 
     <gazebo reference="${name}_depth_frame">
       <sensor type="depth" name="${name}">
@@ -38,7 +40,7 @@ The origin of the mesh is at the center of the back mount.
 	</camera>
 	<plugin name="${name}_controller"
 		filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.018</baseline>
+          <baseline>0.095</baseline>
           <alwaysOn>true</alwaysOn>
           <updateRate>10.0</updateRate>
           <cameraName>${name}</cameraName>
@@ -64,4 +66,5 @@ The origin of the mesh is at the center of the back mount.
     </gazebo>
 
   </xacro:macro>
+
 </robot>

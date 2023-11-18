@@ -10,13 +10,16 @@ aluminum peripherial evaluation case.
 
 <robot name="sensor_d435" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="sensor_d435"
-  	       params="parent *origin name:=camera use_nominal_extrinsics:=false">
+  <xacro:macro name="sensor_d435" params="parent *origin name:=camera
+					  use_nominal_extrinsics:=true
+					  add_plug:=false
+					  use_mesh:=true">
 
     <xacro:include filename="$(find realsense2_description
 			     )/urdf/_d435.urdf.xacro" />
     <xacro:sensor_d435 parent="${parent}" name="${name}"
-		       use_nominal_extrinsics="${use_nominal_extrinsics}">
+		       use_nominal_extrinsics="${use_nominal_extrinsics}"
+		       add_plug="${add_plug}" use_mesh="${use_mesh}">
       <xacro:insert_block name="origin"/>
     </xacro:sensor_d435>
 
@@ -40,7 +43,7 @@ aluminum peripherial evaluation case.
 	</camera>
 	<plugin name="${name}_controller"
 		filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.2</baseline>
+          <baseline>0.050</baseline>
           <alwaysOn>true</alwaysOn>
           <updateRate>10.0</updateRate>
           <cameraName>${name}</cameraName>

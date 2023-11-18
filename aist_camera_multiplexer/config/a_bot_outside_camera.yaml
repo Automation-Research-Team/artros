@@ -29,7 +29,7 @@ enable_pointcloud: false
 enable_sync: true
 align_depth: true
 
-publish_tf: true
+publish_tf: false
 tf_publish_rate: 0  # 0 - static transform
 
 filters: ""
