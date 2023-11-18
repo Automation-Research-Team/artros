@@ -4,7 +4,7 @@
 
   <xacro:macro name="cabinet"
 	       params="prefix width length base_height
-		       shelf1_height shelf2_height shelf3_height shelf4_height
+		       shelf1_height shelf2_height shelf3_height
 		       back_height parent *origin">
 
     <xacro:property name="thickness"	value="0.030" />
@@ -49,13 +49,13 @@
       <origin xyz="0 0 ${shelf3_height - thickness}" rpy="0 0 0"/>
     </xacro:aist_box>
 
-    <xacro:aist_box name="${prefix}cabinet_shelf4"
-		    width="${width}"
-		    length="${length - thickness}"
-		    height="${thickness}"
-		    parent="${prefix}cabinet_base">
-      <origin xyz="0 0 ${shelf4_height - thickness}" rpy="0 0 0"/>
-    </xacro:aist_box>
+    <!-- <xacro:aist_box name="${prefix}cabinet_shelf4" -->
+    <!-- 		    width="${width}" -->
+    <!-- 		    length="${length - thickness}" -->
+    <!-- 		    height="${thickness}" -->
+    <!-- 		    parent="${prefix}cabinet_base"> -->
+    <!--   <origin xyz="0 0 ${shelf4_height - thickness}" rpy="0 0 0"/> -->
+    <!-- </xacro:aist_box> -->
 
     <xacro:macro name="auxiliary_frame" params="parent framename *origin">
       <joint name="${parent}_${framename}" type="fixed">

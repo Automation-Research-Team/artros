@@ -1,0 +1,19 @@
+controller_list:
+  - name: fake_g_bot_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - g_bot_shoulder_pan_joint
+      - g_bot_shoulder_lift_joint
+      - g_bot_elbow_joint
+      - g_bot_wrist_1_joint
+      - g_bot_wrist_2_joint
+      - g_bot_wrist_3_joint
+  - name: fake_g_bot_gripper_controller
+    type: $(arg fake_execution_type)
+    joints:
+      - g_bot_gripper_finger_joint
+initial:  # Define initial robot poses.
+  - group: g_bot
+    pose: home
+  - group: g_bot_gripper
+    pose: grasp
