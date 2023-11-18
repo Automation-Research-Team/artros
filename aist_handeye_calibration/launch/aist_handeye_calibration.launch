@@ -6,12 +6,9 @@
   <arg name="check"			default="false"/>
   <arg name="use_dual_quaternion"	default="true"/>
 
-  <arg name="is_phoxi_camera"		value="$(eval 'phoxi' in camera_name)"/>
-
   <!-- Start cameras -->
-  <include if="$(eval config=='aist')"
-	   file="$(find aist_routines)/launch/aist_cameras.launch">
-    <arg unless="$(arg is_phoxi_camera)"
+  <include file="$(find aist_routines)/launch/aist_cameras.launch">
+    <arg unless="$(eval 'phoxi' in camera_name)"
 	 name="active_camera_name"	value="$(arg camera_name)"/>
     <arg name="sim"			value="$(arg sim)"/>
     <arg name="manager"			value=""/>
@@ -27,9 +24,8 @@
   <!-- Start rviz -->
   <include file="$(find aist_bringup)/launch/include/rviz.launch">
     <arg name="moveit_config"	value="$(find aist_moveit_config)"/>
-    <arg name="rviz_config"
-  	 value="$(find aist_handeye_calibration
-  		)/launch/include/handeye_calibration.rviz"/>
+    <arg name="rviz_config"	value="$(dirname
+				       )/aist_handeye_calibration.rviz"/>
   </include>
 
 </launch>
