@@ -6,156 +6,17 @@ The origin of the mesh is at the center of the back mount.
 -->
 
 <robot name="sensor_sr305" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="sensor_sr305" params="parent *origin name:=camera use_bottom_mount:=false">
-    <!-- TODO: Allow placing the camera using bottom mount or back mount -->
-    <xacro:property name="M_PI" value="3.1415926535897931" />
+  <xacro:macro name="sensor_sr305" params="parent *origin name:=camera
+					   use_nominal_extrinsics:=false
+					   use_bottom_mount:=false">
 
-    <!-- The following values are approximate -->
-    <xacro:property name="sr305_cam_depth_to_left_ir_offset" value="0.0"/>
-    <xacro:property name="sr305_cam_depth_to_right_ir_offset" value="0.040"/>
-    <xacro:property name="sr305_cam_depth_to_color_offset" value="0.015"/>
-
-    <!-- The following values model the aluminum case of the
-  	sr305 camera, with the camera joint represented by the actual
-  	peripherial camera tripod mount -->
-    <xacro:property name="sr305_cam_width" value="0.140"/>
-    <xacro:property name="sr305_cam_height" value="0.023"/>
-    <xacro:property name="sr305_cam_depth" value="0.012"/>
-    <!-- <xacro:property name="sr305_cam_mount_from_center_offset" value="0.0149"/> -->
-    <xacro:property name="sr305_cam_mount_from_center_offset" value="0.004"/>
-
-    <!-- Left sensor (looking from front):  -7.54 mm, 0, -3.721 mm -->
-    <!-- Right sensor (RGB?)(looking from front): 16.492 mm, 0, -3.721 mm -->
-    <!-- 24.033 mm distance between the camera centers, apparently -->
-    <!-- camera mount to origin: 4mm; cameras to origin: 3.721 mm. = 7.721 mm offset? -->
-
-    <!-- The following offset is relative to the physical sr305 camera peripheral
-  	camera tripod mount -->
-    <xacro:property name="sr305_cam_depth_px" value="${sr305_cam_mount_from_center_offset}"/>
-    <xacro:property name="sr305_cam_depth_py" value="0.0"/>
-    <xacro:property name="sr305_cam_depth_pz" value=".013063"/>
-
-
-    <!-- camera body, with origin at bottom screw mount -->
-    <xacro:if value="${use_bottom_mount}">
-      <joint name="${name}_joint" type="fixed">
-        <xacro:insert_block name="origin" />
-        <parent link="${parent}"/>
-        <child link="${name}_bottom_screw_frame" />
-      </joint>
-      <link name="${name}_bottom_screw_frame"/>
-
-      <joint name="${name}_link_joint" type="fixed">
-        <origin xyz="${sr305_cam_depth_px} ${sr305_cam_depth_py} ${sr305_cam_depth_pz}" rpy="0 0 0"/>
-        <parent link="${name}_bottom_screw_frame"/>
-        <child link="${name}_link" />
-      </joint>
-    </xacro:if>
-
-    <xacro:if value="${not use_bottom_mount}">
-      <!-- I forgot which conventions exist for "camera_joint" and "camera_link_joint" so I hesitate to delete one. -->
-      <joint name="${name}_joint" type="fixed">
-        <xacro:insert_block name="origin" />
-        <parent link="${parent}"/>
-        <child link="${name}_connector_link" />
-      </joint>
-      <link name="${name}_connector_link"/>
-
-      <joint name="${name}_link_joint" type="fixed">
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <parent link="${name}_connector_link"/>
-        <child link="${name}_link" />
-      </joint>
-    </xacro:if>
-
-    <link name="${name}_link">
-      <visual>
-      <origin xyz="${0} ${-sr305_cam_depth_py} 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
-        <geometry>
-          <xacro:if value="${use_bottom_mount}">
-	          <mesh filename="package://aist_description/devices/meshes/sr305_simplified.stl" scale=".001 .001 .001" />
-          </xacro:if>
-          <xacro:if value="${not use_bottom_mount}">
-	          <mesh filename="package://aist_description/devices/meshes/sr305_simplified_body.stl" scale=".001 .001 .001" />
-          </xacro:if>
-        </geometry>
-        <material name="sr305_aluminum">
-          <color rgba="0.5 0.5 0.5 1"/>
-        </material>
-      </visual>
-      <collision>
-        <origin xyz="${sr305_cam_depth/2} ${-sr305_cam_depth_py} 0" rpy="0 0 0"/>
-        <geometry>
-          <box size="${sr305_cam_depth} ${sr305_cam_width} ${sr305_cam_height}"/>
-        </geometry>
-      </collision>
-      <inertial>
-        <!-- The following are not reliable values, and should not be used for modeling -->
-        <mass value="0.564" />
-        <origin xyz="0 0 0" />
-        <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257" />
-      </inertial>
-    </link>
-
-    <!-- camera depth joints and links -->
-    <joint name="${name}_depth_joint" type="fixed">
-      <origin xyz=".003721 0 0" rpy="0 0 0"/>
-      <parent link="${name}_link"/>
-      <child link="${name}_depth_frame" />
-    </joint>
-    <link name="${name}_depth_frame"/>
-
-    <joint name="${name}_depth_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${name}_depth_frame" />
-      <child link="${name}_depth_optical_frame" />
-    </joint>
-    <link name="${name}_depth_optical_frame"/>
-
-    <!-- camera left IR joints and links -->
-    <joint name="${name}_left_ir_joint" type="fixed">
-      <origin xyz="0 ${sr305_cam_depth_to_left_ir_offset} 0" rpy="0 0 0" />
-      <parent link="${name}_depth_frame" />
-      <child link="${name}_left_ir_frame" />
-    </joint>
-    <link name="${name}_left_ir_frame"/>
-
-    <joint name="${name}_left_ir_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${name}_left_ir_frame" />
-      <child link="${name}_left_ir_optical_frame" />
-    </joint>
-    <link name="${name}_left_ir_optical_frame"/>
-
-    <!-- camera right IR joints and links -->
-    <joint name="${name}_right_ir_joint" type="fixed">
-      <origin xyz="0 ${sr305_cam_depth_to_right_ir_offset} 0" rpy="0 0 0" />
-      <parent link="${name}_depth_frame" />
-      <child link="${name}_right_ir_frame" />
-    </joint>
-    <link name="${name}_right_ir_frame"/>
-
-    <joint name="${name}_right_ir_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${name}_right_ir_frame" />
-      <child link="${name}_right_ir_optical_frame" />
-    </joint>
-    <link name="${name}_right_ir_optical_frame"/>
-
-    <!-- camera color joints and links -->
-    <joint name="${name}_color_joint" type="fixed">
-      <origin xyz="0 ${sr305_cam_depth_to_color_offset} 0" rpy="0 0 0" />
-      <parent link="${name}_depth_frame" />
-      <child link="${name}_color_frame" />
-    </joint>
-    <link name="${name}_color_frame"/>
-
-    <joint name="${name}_color_optical_joint" type="fixed">
-      <origin xyz="0 0 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
-      <parent link="${name}_color_frame" />
-      <child link="${name}_color_optical_frame" />
-    </joint>
-    <link name="${name}_color_optical_frame"/>
+    <xacro:include filename="$(find realsense2_description
+			     )/urdf/_sr305.urdf.xacro" />
+    <xacro:sensor_sr305 parent="${parent}" name="${name}"
+			use_nominal_extrinsics="${use_nominal_extrinsics}"
+		        use_bottom_mount="${use_bottom_mount}">
+      <xacro:insert_block name="origin"/>
+    </xacro:sensor_sr305>
 
     <gazebo reference="${name}_depth_frame">
       <sensor type="depth" name="${name}">
@@ -177,7 +38,7 @@ The origin of the mesh is at the center of the back mount.
 	</camera>
 	<plugin name="${name}_controller"
 		filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.2</baseline>
+          <baseline>0.018</baseline>
           <alwaysOn>true</alwaysOn>
           <updateRate>10.0</updateRate>
           <cameraName>${name}</cameraName>

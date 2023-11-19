@@ -5,13 +5,15 @@
 
 <robot name="wrist_cameras" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="wrist_cameras" params="prefix parent">
+  <xacro:macro name="wrist_cameras"
+	       params="prefix parent use_nominal_extrinsics:=false">
 
     <xacro:include filename="$(find aist_description
 			     )/devices/urdf/_sr305.urdf.xacro"/>
-      <!-- Add the holder and two SR305 cameras -->
-      <xacro:property name="mount_mesh_file"
-		      value="package://aist_description/devices/meshes/sr305_mount.stl"/>
+
+    <!-- Add the holder and two SR305 cameras -->
+    <xacro:property name="mount_mesh_file"
+		    value="package://aist_description/devices/meshes/sr305_mount.stl"/>
 
     <link name="${prefix}camera_mount">
       <inertial>
@@ -46,7 +48,8 @@
     <xacro:load_calibration filename="$(find aist_handeye_calibration
 				      )/calib/${prefix}inside_camera.yaml"
 			    propname="inside_camera_origin"/>
-    <xacro:sensor_sr305 name="${prefix}inside_camera" parent="${parent}">
+    <xacro:sensor_sr305 name="${prefix}inside_camera" parent="${parent}"
+			use_nominal_extrinsics="${use_nominal_extrinsics}">
       <origin xyz="${inside_camera_origin[0]}
 		   ${inside_camera_origin[1]}
 		   ${inside_camera_origin[2]}"
@@ -58,7 +61,8 @@
     <xacro:load_calibration filename="$(find aist_handeye_calibration
 				      )/calib/${prefix}outside_camera.yaml"
 			    propname="outside_camera_origin"/>
-    <xacro:sensor_sr305 name="${prefix}outside_camera" parent="${parent}">
+    <xacro:sensor_sr305 name="${prefix}outside_camera" parent="${parent}"
+			use_nominal_extrinsics="${use_nominal_extrinsics}">
       <origin xyz="${outside_camera_origin[0]}
 		   ${outside_camera_origin[1]}
 		   ${outside_camera_origin[2]}"

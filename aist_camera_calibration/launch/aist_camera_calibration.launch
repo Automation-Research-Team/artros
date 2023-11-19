@@ -1,30 +1,22 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_names"	default="live_camera"/>
-  <arg name="image_topics"	default="image_raw"/>
-  <arg name="config"		default="aist"/>
+  <arg name="camera_name"	default="live_camera"/>
+  <arg name="image_topic"	default="image_raw"/>
   <arg name="manager"		default="camera_manager"/>
 
-  <!-- Start cameras -->
-  <include if="$(eval config=='aist')"
-	   file="$(find aist_routines)/launch/aist_cameras.launch">
-    <arg name="sim"		value="false"/>
-    <arg name="manager"		value="$(arg manager)"/>
-  </include>
-
   <!-- Start live camera -->
-  <node name="live_camera"
+  <node name="$(arg camera_name)"
 	pkg="usb_cam" type="usb_cam_node" output="screen">
-    <rosparam file="$(find aist_routines)/config/live_camera.yaml"/>
+    <rosparam file="$(find aist_routines)/config/$(arg camera_name).yaml"/>
   </node>
 
   <!-- Launch ArUco and calibrator -->
-  <include file="$(dirname)/include/camera_calibration.launch">
-    <arg name="camera_names"	value="$(arg camera_names)"/>
-    <arg name="image_topics"	value="$(arg image_topics)"/>
-    <arg name="config_file"	value="$(dirname
-				       )/../config/$(arg config).yaml"/>
+  <include file="$(dirname)/include/camera_calibrator.launch">
+    <arg name="camera_names"	value="$(arg camera_name)"/>
+    <arg name="image_topics"	value="$(arg image_topic)"/>
+    <arg name="config_file"	value="$(find aist_camera_calibration
+				       )/config/$(arg camera_name).yaml"/>
     <arg name="manager"		value="$(arg manager)"/>
   </include>
 
@@ -33,7 +25,7 @@
     <arg name="moveit_config"	value="$(find aist_moveit_config)"/>
     <arg name="rviz_config"
   	 value="$(find aist_camera_calibration
-  		)/launch/include/camera_calibration.rviz"/>
+  		)/launch/include/aist_camera_calibration.rviz"/>
   </include>
 
 </launch>

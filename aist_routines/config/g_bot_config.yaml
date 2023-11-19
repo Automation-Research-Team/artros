@@ -1,0 +1,11 @@
+robots:
+  g_bot:
+    default_gripper: g_bot_gripper
+
+grippers:
+  g_bot_gripper:
+    type:          RobotiqGripper
+    controller_ns: g_bot_gripper_controller
+
+cameras:
+  g_bot_camera:  RealSenseCamera

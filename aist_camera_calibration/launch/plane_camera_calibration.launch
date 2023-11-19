@@ -11,14 +11,14 @@
     <param name="num_worker_threads"    value="4"/>
   </node>
 
-  <!-- Start live camera -->
+  <!-- Start camera -->
   <node name="$(arg camera_name)"
 	pkg="usb_cam" type="usb_cam_node" output="screen">
     <rosparam file="$(find aist_routines)/config/$(arg camera_name).yaml"/>
   </node>
 
   <!-- Launch ArUco and calibrator -->
-  <include file="$(dirname)/include/camera_calibration.launch">
+  <include file="$(dirname)/include/camera_calibrator.launch">
     <arg name="camera_names"	value="$(arg camera_name)"/>
     <arg name="image_topics"	value="$(arg image_topic)"/>
     <arg name="config_file"	value="$(find aist_camera_calibration

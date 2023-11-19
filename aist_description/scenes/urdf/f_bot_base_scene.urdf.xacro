@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="f_bot_base_scene" >
+
+  <!-- This is the main file defining our robot arrangement and physical environment. -->
+
+  <xacro:arg name="scene" default=""/>
+
+  <xacro:property name="f_bot_x"   value="0"/>
+  <xacro:property name="f_bot_y"   value="-0.610"/>
+  <xacro:property name="f_bot_z"   value="0.880"/>
+  <xacro:property name="table_w"   value="1.800"/>
+  <xacro:property name="table_l"   value="1.000"/>
+  <xacro:property name="table_h"   value="0.705"/>
+  <xacro:property name="mounter_w" value="0.200"/>
+  <xacro:property name="mounter_l" value="0.200"/>
+
+  <link name="ground"/>
+
+  <!-- Main workspace -->
+  <xacro:include filename="$(find aist_description)/objects/urdf/aist_box.urdf.xacro"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="worksapce_"
+	       width="${table_w}" length="${table_l}" height="${table_h}"
+	       parent="ground">
+    <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
+  </xacro:table>
+
+  <link name="workspace_center"/>
+  <joint name="ground_to_workspace" type="fixed">
+    <parent link="ground"/>
+    <child  link="workspace_center"/>
+    <origin xyz="0 0 ${table_h}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Robot mounter -->
+  <xacro:table prefix="mounter_"
+	       width="${mounter_w}" length="${mounter_l}" height="${f_bot_z}"
+	       parent="ground">
+    <origin xyz="${f_bot_x - mounter_w/2} ${f_bot_y - mounter_l/2} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
+
+  <!-- Robot arm -->
+  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
+  <xacro:ur_robot_gazebo
+      prefix="f_bot_"
+      joint_limits_parameters_file="$(find ur_description
+				    )/config/ur5/joint_limits.yaml"
+      physical_parameters_file="$(find ur_description
+				)/config/ur5/physical_parameters.yaml"
+      visual_parameters_file="$(find ur_description
+			      )/config/ur5/visual_parameters.yaml"
+      kinematics_parameters_file="$(find aist_bringup
+				  )/config/f_bot_calibration.yaml"
+      transmission_hw_interface="hardware_interface/PositionJointInterface"/>
+
+  <joint name="ground_f_bot_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="f_bot_base_link"/>
+    <origin xyz="${f_bot_x} ${f_bot_y} ${f_bot_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Attach force sensor -->
+  <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
+  <xacro:ft300 prefix="f_bot_ftsensor_" parent="f_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  </xacro:ft300>
+
+  <!-- Attach gripper -->
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
+  <xacro:robotiq_arg2f_coupling prefix="f_bot_gripper_coupling_"
+				parent="f_bot_ftsensor_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
+  <xacro:robotiq_140_gripper prefix="f_bot_gripper_"
+			     parent="f_bot_gripper_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_140_gripper>
+
+  <!-- Attach RealSense camera -->
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/f_bot_camera.yaml"
+			  propname="camera_origin"/>
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/_d435.urdf.xacro"/> -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/_d435.urdf.xacro"/>
+  <xacro:sensor_d435 name="f_bot_camera" parent="f_bot_gripper_base_link"
+		     use_nominal_extrinsics="true">
+    <origin xyz="${camera_origin[0]} ${camera_origin[1]} ${camera_origin[2]}"
+    	    rpy="${camera_origin[3]} ${camera_origin[4]} ${camera_origin[5]}"/>
+  </xacro:sensor_d435>
+
+  <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
+  <link name="world"/>
+  <joint name="world_ground_joint" type="fixed">
+    <parent link="world"/>
+    <child  link="ground"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Include indivisual scene file -->
+  <xacro:if value="${'$(arg scene)' != ''}">
+    <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
+			     scene).urdf.xacro"/>
+  </xacro:if>
+
+</robot>

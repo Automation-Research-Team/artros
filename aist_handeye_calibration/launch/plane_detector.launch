@@ -1,18 +1,23 @@
 <launch>
+
   <arg name="camera_name"	default="a_phoxi_m_camera"/>
   <arg name="tolerance"		default="0.008"/>
+
+  <arg name="is_phoxi_camera"	value="$(eval 'phoxi' in camera_name)"/>
+  <arg if="$(arg is_phoxi_camera)"
+       name="cloud_topic"	value="$(arg camera_name)/pointcloud"/>
+  <arg if="$(arg is_phoxi_camera)"
+       name="cloud_topic"	value="$(arg camera_name)/depth/points"/>
+  
   <node name="plane_detector"
 	pkg="aist_handeye_calibration" type="plane_detector" output="screen">
-    <remap from="/pointcloud"	to="/$(arg camera_name)/pointcloud"
-	   if="$(eval arg('camera_name') == 'a_phoxi_m_camera')"/>
-    <remap from="/pointcloud"	to="/$(arg camera_name)/depth/points"
-	   unless="$(eval arg('camera_name') == 'a_phoxi_m_camera')"/>
+    <remap from="/pointcloud"	to="$(arg cloud_topic)"/>
     <param name="tolerance"	value="$(arg tolerance)"/>
   </node>
 
   <node name="$(anon rviz)" pkg="rviz" type="rviz"
 	respawn="false" output="screen"
-	args="-d $(dirname)/plane_detector.rviz"/>
+	args="-d $(dirname)/include/plane_detector.rviz"/>
 
   <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
 

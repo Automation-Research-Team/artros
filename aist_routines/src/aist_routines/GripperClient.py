@@ -200,9 +200,12 @@ class RobotiqGripper(GenericGripper):
         self._min_velocity = rospy.get_param(controller_ns + '/min_velocity')
         self._max_velocity = rospy.get_param(controller_ns + '/max_velocity')
 
-        self._set_velocity = rospy.ServiceProxy(controller_ns + '/set_velocity',
-                                                SetVelocity)
-        self.set_velocity(velocity)
+        if (velocity > 0.0):
+            self._set_velocity = rospy.ServiceProxy(controller_ns + '/set_velocity',
+                                                    SetVelocity)
+            self.set_velocity(velocity)
+        else:
+            self._set_velocity = None
 
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
@@ -216,10 +219,11 @@ class RobotiqGripper(GenericGripper):
 
     @staticmethod
     def simulated(name, controller_ns, max_effort=0.0, velocity=0.1):
-        return RobotiqGripper(name, controller_ns, max_effort, velocity)
+        return RobotiqGripper(name, controller_ns, max_effort, 0.0)
 
     def set_velocity(self, velocity):
-        return self._set_velocity(velocity).success
+        if _set_velocity is not None:
+            return self._set_velocity(velocity).success
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration()):
         return super(RobotiqGripper, self).move(self._position(gap),

@@ -714,13 +714,6 @@ class AISTBaseRoutines(object):
         return poses
 
     # Private functions
-    def _create_device(self, type_name, kwargs):
-        Device = globals()[type_name]
-        if rospy.get_param('/use_real_robot', False):
-            return Device(**kwargs)
-        else:
-            return Device.base(**kwargs)
-
     def _all_close(self, goal, actual, tolerance):
         goal_list   = pose_to_list(goal)
         actual_list = pose_to_list(actual)

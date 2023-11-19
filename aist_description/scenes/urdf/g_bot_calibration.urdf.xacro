@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_calibration">
+
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/ar_markers.urdf.xacro"/>
+  <xacro:ar_marker_70_5 prefix="g_bot_"
+  			parent="g_bot_gripper_base_link"
+  			marker_id="26"
+			thickness="0.005">
+    <origin xyz="0.180 0.0 0.0215" rpy="0 0 0"/>
+  </xacro:ar_marker_70_5>
+
+</robot>
