@@ -7,7 +7,7 @@ The origin of the mesh is at the center of the back mount.
 
 <robot name="sensor_sr305" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="sensor_sr305" params="parent *origin name:=camera
-					   use_nominal_extrinsics:=true
+					   use_nominal_extrinsics:=false
 					   use_bottom_mount:=false">
 
     <xacro:include filename="$(find realsense2_description

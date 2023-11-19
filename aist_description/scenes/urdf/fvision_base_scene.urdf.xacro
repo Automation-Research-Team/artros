@@ -101,7 +101,8 @@
   <!-- Add RealSense camera -->
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/_sr305.urdf.xacro"/>
-  <xacro:sensor_sr305 name="d_bot_camera" parent="d_bot_gripper_base_link">
+  <xacro:sensor_sr305 name="d_bot_camera" parent="d_bot_gripper_base_link"
+		      use_nominal_extrinsics="true">
     <origin xyz="0.030 0.000 0.043" rpy="0 ${0.0*pi/180.0} 0" />
   </xacro:sensor_sr305>
 

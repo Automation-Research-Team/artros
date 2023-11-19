@@ -94,7 +94,8 @@
   <!-- 			   )/devices/urdf/_d435.urdf.xacro"/> -->
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/_d435.urdf.xacro"/>
-  <xacro:sensor_d435 name="f_bot_camera" parent="f_bot_gripper_base_link">
+  <xacro:sensor_d435 name="f_bot_camera" parent="f_bot_gripper_base_link"
+		     use_nominal_extrinsics="true">
     <origin xyz="${camera_origin[0]} ${camera_origin[1]} ${camera_origin[2]}"
     	    rpy="${camera_origin[3]} ${camera_origin[4]} ${camera_origin[5]}"/>
   </xacro:sensor_d435>
