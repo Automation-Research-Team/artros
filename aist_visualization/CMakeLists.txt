@@ -12,6 +12,7 @@ find_package(catkin REQUIRED
     tf2_geometry_msgs
     shape_msgs
     rviz
+    cv_bridge
 )
 
 find_package(OpenCV)
