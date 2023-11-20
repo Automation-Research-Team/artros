@@ -14,6 +14,7 @@
   <xacro:property name="shelf1_h"  value="0.600"/>
   <xacro:property name="shelf2_h"  value="0.990"/>
   <xacro:property name="back_h"    value="1.500"/>
+  <xacro:property name="wall_t"    value="0.012"/>
   <xacro:property name="mounter_w" value="0.200"/>
   <xacro:property name="mounter_l" value="0.200"/>
 
@@ -27,7 +28,6 @@
 		 base_height="${cabinet_b}"
 		 shelf1_height="${shelf1_h}"
 		 shelf2_height="${shelf2_h}"
-		 shelf3_height="${shelf3_h}"
 		 back_height  ="${back_h}"
 		 parent="ground">
     <origin xyz="${-cabinet_w/2} ${-cabinet_l/2} 0" rpy="0 0 0"/>
@@ -37,8 +37,21 @@
   <joint name="ground_to_workspace" type="fixed">
     <parent link="ground"/>
     <child  link="workspace_center"/>
-    <origin xyz="0 0 ${shelf3_h}" rpy="0 0 0"/>
+    <origin xyz="0 0 ${shelf2_h}" rpy="0 0 0"/>
   </joint>
+
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/aist_box.urdf.xacro"/>
+  <xacro:aist_box name="left_wall"
+  		  width="${wall_t}" length="${cabinet_l}" height="${back_h}"
+  		  parent="cabinet_base">
+    <origin xyz="${-wall_t} 0 0" rpy="0 0 0"/>
+  </xacro:aist_box>
+  <xacro:aist_box name="right_wall"
+  		  width="${wall_t}" length="${cabinet_l}" height="${back_h}"
+  		  parent="cabinet_base">
+    <origin xyz="${cabinet_w} 0 0" rpy="0 0 0"/>
+  </xacro:aist_box>
 
   <!-- Robot mounter -->
   <xacro:include filename="$(find aist_description

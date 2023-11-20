@@ -2,8 +2,8 @@ child: g_bot_camera_bottom_screw_frame
 origin:
 - 0.0
 - 0.18
-- 0.33
+- 0.50
 - 0.0
-- 1.0472
+- 1.309
 - -1.57
 parent: workspace_center
