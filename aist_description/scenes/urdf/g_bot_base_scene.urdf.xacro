@@ -6,15 +6,14 @@
   <xacro:arg name="scene" default=""/>
 
   <xacro:property name="g_bot_x"   value="0"/>
-  <xacro:property name="g_bot_y"   value="-0.610"/>
-  <xacro:property name="g_bot_z"   value="0.770"/>
+  <xacro:property name="g_bot_y"   value="-0.920"/>
+  <xacro:property name="g_bot_z"   value="0.700"/>
   <xacro:property name="cabinet_w" value="0.900"/>
   <xacro:property name="cabinet_l" value="0.400"/>
   <xacro:property name="cabinet_b" value="0.100"/>
-  <xacro:property name="shelf1_h"  value="0.443"/>
-  <xacro:property name="shelf2_h"  value="0.743"/>
-  <xacro:property name="shelf3_h"  value="1.043"/>
-  <xacro:property name="back_h"    value="1.366"/>
+  <xacro:property name="shelf1_h"  value="0.600"/>
+  <xacro:property name="shelf2_h"  value="0.990"/>
+  <xacro:property name="back_h"    value="1.500"/>
   <xacro:property name="mounter_w" value="0.200"/>
   <xacro:property name="mounter_l" value="0.200"/>
 
