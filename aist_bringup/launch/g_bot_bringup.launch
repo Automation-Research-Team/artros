@@ -15,7 +15,7 @@
   				       -J g_bot_wrist_2_joint -1.5708
   				       -J g_bot_wrist_3_joint 0.0"/>
   <arg name="prefixes"		value="g_bot_, g_bot_gripper_"/>
-  <arg name="devices"		value="ur5e, robotiq_85"/>
+  <arg name="devices"		value="ur5e, robotiq_140"/>
   <arg name="controllers"	value="ur, cmodel"/>
   <arg name="drivers"		value="ur, cmodel"/>
   <arg name="driver_args"	value="172.16.58.20,
@@ -45,7 +45,7 @@
     <arg name="vis"			value="true"/>
   </include>
 
-  <!-- Launch calibration publisher and other hardware drivers -->
+  <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
     <!-- Launch Realsense camera -->
@@ -73,14 +73,6 @@
       <arg name="manager"		value="$(arg manager)"
     	   unless="$(eval manager == '')"/>
     </include>
-
-    <!-- Drivers for the force sensors -->
-    <!-- <include ns="g_bot_ftsensor" -->
-    <!-- 	     file="$(find aist_robotiq)/launch/ft300.launch"> -->
-    <!--   <arg name="calib_file"		value="g_bot_ftsensor"/> -->
-    <!--   <arg name="frame_id"		value="g_bot_ftsensor_wrench_link"/> -->
-    <!--   <arg name="hostname"		value="g_bot"/> -->
-    <!-- </include> -->
 
   </group>
 
