@@ -2,7 +2,6 @@
 <launch>
 
   <arg name="rviz_config"	default="hmi_demo"/>
-  <arg name="nep"		default="false"/>
 
   <!-- Start kitting servers -->
   <include file="$(dirname)/kitting.launch">
@@ -28,14 +27,12 @@
   </include>
 
   <!-- Start rosbridge server -->
-  <include unless="$(arg nep)"
-	   file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
     <arg name="port"	value="9090"/>
   </include>
 
   <!-- Start nep_bridge server -->
-  <include if="$(arg nep)"
-	   file="$(find nep_bridge)/launch/run.launch">
+  <include file="$(find nep_bridge)/launch/run.launch">
     <arg name="config_file"	value="$(dirname)/../config/nep_bridge.yaml"/>
   </include>
 

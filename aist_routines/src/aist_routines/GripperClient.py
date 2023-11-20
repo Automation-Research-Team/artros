@@ -222,7 +222,7 @@ class RobotiqGripper(GenericGripper):
         return RobotiqGripper(name, controller_ns, max_effort, 0.0)
 
     def set_velocity(self, velocity):
-        if _set_velocity is not None:
+        if self._set_velocity is not None:
             return self._set_velocity(velocity).success
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration()):
