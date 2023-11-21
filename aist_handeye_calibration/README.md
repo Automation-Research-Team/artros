@@ -2,11 +2,10 @@ aist_handeye_calibration: a ROS package for estimating camera poses w.r.t. robot
 ==================================================
 
 ## Overview
-This package provides a set of software for estimating a relative transformation between a depth camera and a robotic arm. There are three functions:
+This package provides a set of software for estimating a relative transformation between a depth camera and a robotic arm. You can do two things with this software:
 
-- **Calibrating cameras** -- Estimate a relative transformation between the camera and the robot by showing an AR marker to the camera while moving the robot to several known keyposes.
+- **Calibrating cameras** -- Estimate a relative transformation between the camera and the robot by showing an AR marker to the camera while moving the robot to several known key poses.
 - **Checking calibration results** -- Validate the estimated transformation by showing a marker to the camera and then commanding the robot to move its tooltip to the center of the marker.
-- **Publishing calibration results** -- Broadcast the estimated transformation between the camera and the robot as a tf message so that vision programs can make use of it.
 
 The calibration is possible under the following two cases:
 
@@ -22,19 +21,25 @@ The configuration parameters also should be modified in accordance with the mark
 
 ## Step 1: Calibrating cameras
 
-First, you bring up robots, cameras and the calibrator, i.e. *calibration server*, with the following command:
+First, you bring up robots and cameras with the following command:
 ```bash
-$ roslaunch aist_handeye_calibration <config>_handeye_calibration.launch [sim:=true] camera_name:=<camera name>
+$ roslaunch aist_bringup <config>_bringup.launch [sim:=true]
 ```
-where `<config>` and `<camera name>` are names of the configuration, e.g. *aist*, and the camera to be calibrated, e.g. *a_bot_inside_camera*, respectively. The calibration process is simulated with gazebo if `sim:=true` is specified, or performed with real robots and cameras otherwise.
+where `<config>` is the name of the hardware configuration of the total robot system, e.g. *aist*. If `sim:=true` is specified, the gazebo simulator is launched instead of real robot and camera hardware.
 
-Next, the *calibration client* should be launched in another terminal with the following command:
+Then, you start the calibrator, i.e. *calibration server*, in another terminal with the following command:
+```bash
+$ roslaunch aist_handeye_calibration handeye_calibration.launch camera_name:=<camera name>
+```
+where `<camera name>` is the name of the camera to be calibrated, e.g. *a_bot_inside_camera*.
+
+Finally, the *calibration client* should be launched in the third terminal with the following command:
 ```bash
 $ roslaunch aist_handeye_calibration run_calibration.launch config:=<config> camera_name:=<camera name>
 ```
-Here, `<config>` and `<camera name>` must be same as the ones specified for the server.
+Here, `<config>` and `<camera name>` must be same as the ones specified above.
 
-After the client comes up, please simply hit **return** key to start the calibration process. The robot moves to several key poses at each of which the client takes an image of the marker and estimates its pose. After visiting allHere, `<config>` and `<camera name>` must be same as the ones specified for the server. the key poses, a 3D transformation from the camera to the robot is computed and saved in `${HOME}/.ros/aist_handeye_calibration/<camera_name>.yaml`. The estimated transformation is also displayed in the terminal which has launched the client together with the residual errors.
+After the client comes up, type **calib** command and hit **return** key to start the calibration process. The robot moves to several key poses at each of which the client takes an image of the marker and estimates its pose w.r.t. the camera. After visiting all key poses, a 3D transformation from the camera to the robot is computed and saved in `aist_handeye_calibration/calib/<camera_name>.yaml` and `${HOME}/.ros/aist_handeye_calibration/<camera_name>.yaml`. The former contains only the camera-to-robot transformation, while the latter holds also the marker-to-robot transformation. The estimated transformation is also displayed in the terminal which has launched the client together with the residual errors.
 
 You can terminate the client by hitting **q** and **return**.
 
