@@ -25,9 +25,9 @@ First, you bring up robots and cameras with the following command:
 ```bash
 $ roslaunch aist_bringup <config>_bringup.launch [sim:=true]
 ```
-where `<config>` is the name of the hardware configuration of the total robot system, e.g. *aist*. If `sim:=true` is specified, the gazebo simulator is launched instead of real robot and camera hardware.
+where `<config>` is the name of the hardware configuration of the total robot system, e.g. *aist*. If `sim:=true` is specified, the gazebo simulator is launched instead of real robots and cameras.
 
-Then, you start the calibrator, i.e. *calibration server*, in another terminal with the following command:
+Then, you start the calibrator which acts as a *calibration server* in another terminal with the following command:
 ```bash
 $ roslaunch aist_handeye_calibration handeye_calibration.launch camera_name:=<camera name>
 ```
@@ -39,37 +39,44 @@ $ roslaunch aist_handeye_calibration run_calibration.launch config:=<config> cam
 ```
 Here, `<config>` and `<camera name>` must be same as the ones specified above.
 
-After the client comes up, type **calib** command and hit **return** key to start the calibration process. The robot moves to several key poses at each of which the client takes an image of the marker and estimates its pose w.r.t. the camera. After visiting all key poses, a 3D transformation from the camera to the robot is computed and saved in `aist_handeye_calibration/calib/<camera_name>.yaml` and `${HOME}/.ros/aist_handeye_calibration/<camera_name>.yaml`. The former contains only the camera-to-robot transformation, while the latter holds also the marker-to-robot transformation. The estimated transformation is also displayed in the terminal which has launched the client together with the residual errors.
+After the client comes up, type **calib** command and hit **return** key to start the calibration process. The robot moves to several key poses at each of which the client takes an image of the marker and estimates its pose w.r.t. the camera. After visiting all key poses, a 3D transformation from the camera to the robot is computed and saved in `aist_handeye_calibration/calib/<camera_name>.yaml` and `${HOME}/.ros/aist_handeye_calibration/<camera_name>.yaml`. The former contains only the camera-to-robot transformation, while the latter holds also the marker-to-robot transformation as well. The estimated transformation is also displayed in the terminal which has launched the client together with the residual errors.
 
 You can terminate the client by hitting **q** and **return**.
 
-## Step 2: Checking calibration results
+### Important note
+The calibration result stored in `aist_handeye_calibration/calib/<camera_name>.yaml` is loaded into the ROS parameter `/robot_description` when bringing up robots and cameras. The parameter `/robot_description` contains all information about geometric configuration of robots, cameras and other devices as well as their surrounding environment. This means the following two things:
+
+1. Before the first calibration, you do not have `<camera_name>.yaml` and bringing up robots will fail. To avoid this, you have to use nominal calibration values as temporary settings by:
+```
+$ cd aist_handeye_calibration/calib
+$ cp <camera_name>-nominal.yaml <camera_name>.yaml
+```
+2. After performing calibration, you have to terminate all ROS nodes and bring up the robots again so that the new calibration values are made effective by loading them into `/robot_description`.
+
+## Step 2: Checking calibrat'ion results
 
 You can validate the calibration result by checking whether the robot can move its tooltip to the target position specified by the marker placed at an arbitrary position.
 
-First, you should bring up robots, cameras and the *calibration publisher* with the following command:
+First, you should bring up robots and cameras again to load new calibration values:
 ```bash
-$ roslaunch aist_handeye_calibration <config>_handeye_calibration.launch [sim:=true] camera_name:=<camera name> check:=true
+$ roslaunch aist_bringup <config>_bringup.launch
 ```
-where `<config>` and `<camera name>` are names of the configuration and the calibrated camera, respectively.
+Then, you start the ArUco marker detector in another terminal with the following command:
+```bash
+$ roslaunch aist_handeye_calibration handeye_calibration.launch camera_name:=<camera name>
+```
+Here, `<config>` and `<camera name>` should be same as the ones specified in Step 1, respectively.
 
-Next, the *checking client* should be launched in another terminal with the following command:
+Next, the *checking client* is launched in another terminal with the following command:
 ```bash
 $ roslaunch aist_handeye_calibration check_calibration.launch config:=<config> camera_name:=<camera name>
 ```
-Here, `<config>` and `<camera name>` must be same as the ones specified for the publisher.
+Here, `<config>` and `<camera name>` should be same as the above.
 
 After the client comes up, please simply hit **i** and **return** keys to move the robot to the initial position. Then place the marker at an arbitrary position with an arbitrary orientation within the camera's field of view and hit **return**. The robot will go to the approach position 50mm above the marker and descend to the center along the normal direction. You can repeat this process varying the marker positions and orientations.
 
 You can terminate the client by hitting **q** and **return**.
 
-## Step 3: Publishing calibration results
-
-In order to make the calibration results available to the vision programs, they need to be published to `tf` as a transformation. This can be done with the *calibration publisher* which can be launched by:
-```
-$ roslaunch aist_handeye_calibration publish_calibration.launch config:=<config> camera_name:=<camera name>
-```
-where `<config>` and `<camera name>` are names of the configuration and the calibrated camera, respectively. The ID of the published camera frame is prefixed with `calibrated_<camera_name>`. For example, the ID of the frame associated with color images of the `a_bot_inside_camera` will become `calibrated_a_bot_inside_camera_color_optical_frame`.
 
 ## Parameters for configuring calibration
 
