@@ -1,7 +1,7 @@
 # Goal
 ---
 # Result
-geometry_msgs/TransformStamped cMo  # camera <- object   transform
-geometry_msgs/TransformStamped wMe  # world  <- effector transform
+geometry_msgs/TransformStamped Tcm  # camera <- marker   transform
+geometry_msgs/TransformStamped Twe  # world  <- effector transform
 ---
 # Feedback

@@ -7,17 +7,17 @@ This package provides a set of software for estimating a relative transformation
 - **Calibrating cameras** -- Estimate a relative transformation between the camera and the robot by showing an AR marker to the camera while moving the robot to several known key poses.
 - **Checking calibration results** -- Validate the estimated transformation by showing a marker to the camera and then commanding the robot to move its tooltip to the center of the marker.
 
-The calibration is possible under the following two cases:
+The calibration is possible under the following two situations:
 
 - **eye_on_hand** -- Camera is mounted on the end-effector of the robot.
 - **eye_on_base** -- Camera is fixed to the stationary environment.
 
 ## Step 0: Preparing an AR marker
 
-A square AR marker, [ArUco](http://www.uco.es/investiga/grupos/ava/node/26), is required for calibration. Default marker used in this package is the one of ID=26, size=0.07 and margin=0.005 which can be found in `aist_handeye_calibration/markers/aruco-26-70-5.pdf`. Please print and paste it to a square plate of 80mm x 80mm size. Then, you should fix the marker plate to the environment(`eye_on_hand`) or to the end-effector(`eye_on_base`).
+A square AR marker, [ArUco](https://www.uco.es/investiga/grupos/ava/portfolio/aruco/), is required for calibration. Default marker used in this package is the one of ID=26, size=0.07 and margin=0.005 which can be found in [aist_handeye_calibration/markers/aruco-26-70-5.pdf](markers/aruco-26-70-5.pdf). Please print and paste it to a square plate of 80mm x 80mm size. Then, you should fix the marker plate to the environment(`eye_on_hand`) or to the end-effector(`eye_on_base`).
 
 If you want to use a marker with different ID or size, please visit [marker generator site](https://chev.me/arucogen). You should select `Original ArUco` dictionary and specify marker ID as well as its size you want.
-The configuration parameters also should be modified in accordance with the marker properties. Please see the section [Parameters for configuring calibration](#Parameters) for details.
+The configuration parameters also should be modified in accordance with the marker properties. Please see the section [Parameters for configuring calibration](#parameters-for-configuring-calibration) for details.
 
 ## Step 1: Calibrating cameras
 
@@ -25,7 +25,7 @@ First, you bring up robots and cameras with the following command:
 ```bash
 $ roslaunch aist_bringup <config>_bringup.launch [sim:=true]
 ```
-where `<config>` is the name of the hardware configuration of the total robot system, e.g. *aist*. If `sim:=true` is specified, the gazebo simulator is launched instead of real robots and cameras.
+where `<config>` is the name of the hardware configuration of the total robot system, e.g. *aist*. If `sim:=true` is specified, the gazebo simulator is launched instead of the drivers for real robots and cameras.
 
 Then, you start the calibrator which acts as a *calibration server* in another terminal with the following command:
 ```bash
@@ -33,7 +33,7 @@ $ roslaunch aist_handeye_calibration handeye_calibration.launch camera_name:=<ca
 ```
 where `<camera name>` is the name of the camera to be calibrated, e.g. *a_bot_inside_camera*.
 
-Finally, the *calibration client* should be launched in the third terminal with the following command:
+Finally, a *calibration client* should be launched in the third terminal with the following command:
 ```bash
 $ roslaunch aist_handeye_calibration run_calibration.launch config:=<config> camera_name:=<camera name>
 ```
@@ -80,14 +80,14 @@ You can terminate the client by hitting **q** and **return**.
 
 ## Parameters for configuring calibration
 
-The calibration process can be customized by adjusting the parameters listed below. They are stored in `aist_handeye_calibration/config/<config>/<camera_name>.yaml` where `<config>` and `<camera_name>` are names of the configuration and the camera to be calibrated, respectively.
+The calibration process can be customized by adjusting the parameters listed below. They are stored in `aist_handeye_calibration/config/<camera_name>.yaml` where `<camera_name>` is the name of the camera to be calibrated.
 - **camera_type** -- If the camera continuously streams the depth and intensity/color images, this value should be *DepthCamera*. Otherwise, a special camera type should be specified according to the API for triggering image frames. Currently, only *PhoXiCamera* is supported.
 - **camera_name** -- Name of the camera, e.g. *a_bot_inside_camera*
 - **robot_name** -- Name of the robot used for calibration, e.g. *a_bot*. In the **eye_on_hand** configurations, the name of the robot on which the camera is mounted should be given. In the **eye_on_base** configurations, name of the robot to which the marker attached should be specified.
 - **eye_on_hand** -- *true* for the **eye_on_hand** configurations while *false* for **eye_on_base** configurations.
 - **robot_base_frame** -- ID of the frame with respect to which the cartesian robot poses are specified, e.g. *workspace_center*.
 - **robot_effector_frame** -- ID of the frame attached to the end-effector of the robot,e.g. *a_bot_ee_link*. When calibrating a camera, robot motions are given as poses of this frame with respect to the *robot_base_frame*.
-- **camera_frame** -- ID of the frame associated with the depth and intensity/color images, e.g. *calibrated_a_bot_inside_camera_color_optical_frame*. This value must be identical to that specified when launching tha camera. In addition, depth images must be aligned to intensity/color images so that they have a common projection center.
+- **camera_frame** -- ID of the frame associated with the depth and intensity/color images, e.g. *a_bot_inside_camera_color_optical_frame*. This value must be identical to that specified when launching tha camera. In addition, depth images must be aligned to intensity/color images so that they have a common projection center.
 - **marker_id** -- ID of the marker
 - **marker_size** -- Side length of the square marker (in meters). Margins are not included.
 - **planarity_tolerance** -- Thresholding value for filtering out outliers when fitting a plane to the 3D points within a detected marker region in the depth image (in meters).

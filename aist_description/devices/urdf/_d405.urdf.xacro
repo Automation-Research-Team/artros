@@ -23,15 +23,23 @@ aluminum peripherial evaluation case.
       <xacro:insert_block name="origin"/>
     </xacro:sensor_d405>
 
-    <gazebo reference="${name}_depth_frame">
+    <!-- Reference should be color_frame because depth is alighed to color -->
+    <gazebo reference="${name}_color_frame">
       <sensor type="depth" name="${name}">
 	<always_on>true</always_on>
 	<visualize>true</visualize>
 	<camera>
-          <horizontal_fov>1.034</horizontal_fov>
+	  <!-- Color sensor's FOV(HD): 84 deg. -->
+          <horizontal_fov>1.4661</horizontal_fov>
+	  <!-- Color sensor's FOV(VGA): 48.47 deg. -->
+          <!-- <horizontal_fov>0.846</horizontal_fov> -->
           <image>
-            <width>640</width>
-            <height>480</height>
+	    <!-- HD -->
+            <width>1280</width>
+            <height>720</height>
+	    <!-- VGA -->
+            <!-- <width>640</width> -->
+            <!-- <height>480</height> -->
             <format>R8G8B8</format>
           </image>
           <depth_camera>

@@ -100,13 +100,13 @@ class Calibrator
     const ros::ServiceServer	_reset_srv;
     action_server_t		_take_sample_srv;
 
-    tf2_ros::Buffer			_transform_buffer;
-    const tf2_ros::TransformListener	_transform_listener;
+    tf2_ros::Buffer			_tf2_buffer;
+    const tf2_ros::TransformListener	_tf2_listener;
 
-    std::vector<transformMsg_t>	_cMo;	//!< in:  camera <- object   transform
-    std::vector<transformMsg_t>	_wMe;	//!< in:  world  <- effector transform
-    transformMsg_t		_eMc;	//!< out: effector <- camera transform
-    transformMsg_t		_wMo;	//!< out: world    <- object transform
+    std::vector<transformMsg_t>	_Tcm;	//!< in:  camera <- marker   transform
+    std::vector<transformMsg_t>	_Twe;	//!< in:  world  <- effector transform
+    transformMsg_t		_Tec;	//!< out: effector <- camera transform
+    transformMsg_t		_Twm;	//!< out: world    <- marker transform
 
     const bool			_use_dual_quaternion;
     const bool			_eye_on_hand;

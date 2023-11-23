@@ -60,23 +60,8 @@
     <disable_collisions link1="cabinet_back" link2="cabinet_shelf1" reason="Default" />
     <disable_collisions link1="cabinet_back" link2="g_bot_base_link_inertia" reason="Never" />
     <disable_collisions link1="cabinet_back" link2="g_bot_camera_link" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_forearm_link" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_coupling_base_link" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_left_inner_finger" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_left_inner_finger_pad" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_left_inner_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_left_outer_finger" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_left_outer_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_right_inner_finger" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_right_inner_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_right_outer_finger" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_right_outer_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_gripper_robotiq_arg2f_base_link" reason="Never" />
     <disable_collisions link1="cabinet_back" link2="g_bot_shoulder_link" reason="Never" />
     <disable_collisions link1="cabinet_back" link2="g_bot_upper_arm_link" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_wrist_1_link" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_wrist_2_link" reason="Never" />
-    <disable_collisions link1="cabinet_back" link2="g_bot_wrist_3_link" reason="Never" />
     <disable_collisions link1="cabinet_back" link2="mounter_table_leg0" reason="Never" />
     <disable_collisions link1="cabinet_back" link2="mounter_table_leg1" reason="Never" />
     <disable_collisions link1="cabinet_back" link2="mounter_table_leg2" reason="Never" />
@@ -87,20 +72,9 @@
     <disable_collisions link1="cabinet_base" link2="g_bot_base_link_inertia" reason="Adjacent" />
     <disable_collisions link1="cabinet_base" link2="g_bot_camera_link" reason="Adjacent" />
     <disable_collisions link1="cabinet_base" link2="g_bot_forearm_link" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_coupling_base_link" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_left_inner_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_left_outer_finger" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_left_outer_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_right_inner_finger" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_right_inner_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_right_outer_finger" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_right_outer_knuckle" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_gripper_robotiq_arg2f_base_link" reason="Never" />
     <disable_collisions link1="cabinet_base" link2="g_bot_shoulder_link" reason="Never" />
     <disable_collisions link1="cabinet_base" link2="g_bot_upper_arm_link" reason="Never" />
     <disable_collisions link1="cabinet_base" link2="g_bot_wrist_1_link" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_wrist_2_link" reason="Never" />
-    <disable_collisions link1="cabinet_base" link2="g_bot_wrist_3_link" reason="Never" />
     <disable_collisions link1="cabinet_base" link2="left_wall" reason="Adjacent" />
     <disable_collisions link1="cabinet_base" link2="mounter_table_leg0" reason="Adjacent" />
     <disable_collisions link1="cabinet_base" link2="mounter_table_leg1" reason="Never" />
@@ -112,7 +86,6 @@
     <disable_collisions link1="cabinet_shelf1" link2="g_bot_base_link_inertia" reason="Never" />
     <disable_collisions link1="cabinet_shelf1" link2="g_bot_camera_link" reason="Never" />
     <disable_collisions link1="cabinet_shelf1" link2="g_bot_shoulder_link" reason="Never" />
-    <disable_collisions link1="cabinet_shelf1" link2="g_bot_upper_arm_link" reason="Never" />
     <disable_collisions link1="cabinet_shelf1" link2="left_wall" reason="Default" />
     <disable_collisions link1="cabinet_shelf1" link2="mounter_table_leg0" reason="Never" />
     <disable_collisions link1="cabinet_shelf1" link2="mounter_table_leg1" reason="Never" />
@@ -123,12 +96,12 @@
     <disable_collisions link1="cabinet_shelf2" link2="g_bot_base_link_inertia" reason="Never" />
     <disable_collisions link1="cabinet_shelf2" link2="g_bot_camera_link" reason="Never" />
     <disable_collisions link1="cabinet_shelf2" link2="g_bot_shoulder_link" reason="Never" />
-    <disable_collisions link1="cabinet_shelf2" link2="g_bot_upper_arm_link" reason="Never" />
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_leg0" reason="Never" />
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_leg1" reason="Never" />
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_leg2" reason="Never" />
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_leg3" reason="Never" />
     <disable_collisions link1="cabinet_shelf2" link2="mounter_table_top" reason="Never" />
+    <disable_collisions link1="cabinet_shelf2" link2="right_wall" reason="Never" />
     <disable_collisions link1="g_bot_base_link_inertia" link2="g_bot_camera_link" reason="Adjacent" />
     <disable_collisions link1="g_bot_base_link_inertia" link2="g_bot_shoulder_link" reason="Adjacent" />
     <disable_collisions link1="g_bot_base_link_inertia" link2="left_wall" reason="Never" />
@@ -139,23 +112,14 @@
     <disable_collisions link1="g_bot_base_link_inertia" link2="mounter_table_top" reason="Default" />
     <disable_collisions link1="g_bot_base_link_inertia" link2="right_wall" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_forearm_link" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_coupling_base_link" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_left_inner_finger" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_left_inner_finger_pad" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_left_inner_knuckle" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_left_outer_finger" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_left_outer_knuckle" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_right_inner_finger" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_right_inner_finger_pad" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_right_inner_knuckle" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_right_outer_finger" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_right_outer_knuckle" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_gripper_robotiq_arg2f_base_link" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_shoulder_link" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_upper_arm_link" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="g_bot_wrist_1_link" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_wrist_2_link" reason="Never" />
-    <disable_collisions link1="g_bot_camera_link" link2="g_bot_wrist_3_link" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="left_wall" reason="Never" />
     <disable_collisions link1="g_bot_camera_link" link2="mounter_table_leg0" reason="Adjacent" />
     <disable_collisions link1="g_bot_camera_link" link2="mounter_table_leg1" reason="Never" />
@@ -166,7 +130,6 @@
     <disable_collisions link1="g_bot_forearm_link" link2="g_bot_upper_arm_link" reason="Adjacent" />
     <disable_collisions link1="g_bot_forearm_link" link2="g_bot_wrist_1_link" reason="Adjacent" />
     <disable_collisions link1="g_bot_forearm_link" link2="g_bot_wrist_2_link" reason="Never" />
-    <disable_collisions link1="g_bot_forearm_link" link2="left_wall" reason="Never" />
     <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="g_bot_gripper_left_inner_finger" reason="Never" />
     <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="g_bot_gripper_left_inner_finger_pad" reason="Never" />
     <disable_collisions link1="g_bot_gripper_coupling_base_link" link2="g_bot_gripper_left_inner_knuckle" reason="Never" />
@@ -235,7 +198,6 @@
     <disable_collisions link1="g_bot_gripper_left_outer_knuckle" link2="g_bot_wrist_1_link" reason="Never" />
     <disable_collisions link1="g_bot_gripper_left_outer_knuckle" link2="g_bot_wrist_2_link" reason="Never" />
     <disable_collisions link1="g_bot_gripper_left_outer_knuckle" link2="g_bot_wrist_3_link" reason="Never" />
-    <disable_collisions link1="g_bot_gripper_left_outer_knuckle" link2="right_wall" reason="Never" />
     <disable_collisions link1="g_bot_gripper_right_inner_finger" link2="g_bot_gripper_right_inner_finger_pad" reason="Adjacent" />
     <disable_collisions link1="g_bot_gripper_right_inner_finger" link2="g_bot_gripper_right_inner_knuckle" reason="Default" />
     <disable_collisions link1="g_bot_gripper_right_inner_finger" link2="g_bot_gripper_right_outer_finger" reason="Adjacent" />

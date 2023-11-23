@@ -151,7 +151,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                 res = self._compute_calibration()
                 print(res.message)
                 if res.success:
-                    self._save_camera_placement(res.eMc)
+                    self._save_camera_placement(res.Tec)
                     res = self._save_calibration()
                     print(res.message)
             except rospy.ServiceException as e:
@@ -194,9 +194,9 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         for i in range(3):
             print('\n--- Subpose [{}/5]: Try! ---'.format(i + 1))
             if self._move_to(subpose, keypose_num, i + 1):
-                print('--- Subpose [{}/5]: Succeeded. ---'.format(i + 1))
+                rospy.loginfo('Subpose [%d/5]: Succeeded.', i + 1)
             else:
-                print('--- Subpose [{}/5]: Failed. ---'.format(i + 1))
+                rospy.logerr('Subpose [%d/5]: Failed.', i + 1)
             subpose[3] -= 30
 
         subpose[3] = roll - 30
@@ -205,9 +205,9 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         for i in range(2):
             print('\n--- Subpose [{}/5]: Try! ---'.format(i + 4))
             if self._move_to(subpose, keypose_num, i + 4):
-                print('--- Subpose [{}/5]: Succeeded. ---'.format(i + 4))
+                rospy.loginfo('Subpose [%d/5]: Succeeded.', i + 4)
             else:
-                print('--- Subpose [{}/5]: Failed. ---'.format(i + 4))
+                rospy.logerr('Subpose [%d/5]: Failed.', i + 4)
             subpose[4] -= 30
 
     def _move_to(self, subpose, keypose_num, subpose_num):
@@ -218,7 +218,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             rospy.sleep(self._sleep_time)  # Wait for the robot to settle.
             self._take_sample.send_goal(TakeSampleGoal())
             self.trigger_frame(self._camera_name)
-            if not self._take_sample.wait_for_result(rospy.Duration(5.0)):
+            if not self._take_sample.wait_for_result(rospy.Duration(3.0)):
                 self._take_sample.cancel_goal()  # timeout expired
                 rospy.logerr('TakeSampleAction: timeout expired')
                 return False
@@ -228,16 +228,16 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
             result = self._take_sample.get_result()
             pose = PoseStamped()
-            pose.header = result.cMo.header
-            pose.pose.position    = result.cMo.transform.translation
-            pose.pose.orientation = result.cMo.transform.rotation
+            pose.header = result.Tcm.header
+            pose.pose.position    = result.Tcm.transform.translation
+            pose.pose.orientation = result.Tcm.transform.rotation
 #            print('  camera <= obejct   ' + self.format_pose(pose))
-            pose.header = result.wMe.header
-            pose.pose.position    = result.wMe.transform.translation
-            pose.pose.orientation = result.wMe.transform.rotation
+            pose.header = result.Twe.header
+            pose.pose.position    = result.Twe.transform.translation
+            pose.pose.orientation = result.Twe.transform.rotation
             print('  world  <= effector ' + self.format_pose(pose))
 
-            n = len(self._get_sample_list().cMo)
+            n = len(self._get_sample_list().Tcm)
             print('  {} samples taken'.format(n))
 
         return True
@@ -252,13 +252,13 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         print('  reached ' + self.format_pose(current_pose))
         return success
 
-    def _save_camera_placement(self, eMc):
+    def _save_camera_placement(self, Tec):
         # Frame to which the camera attached
         camera_parent_frame = rospy.get_param('~camera_parent_frame')
 
         # Get camera base frame whose parent is camera_parent_frame.
-        camera_frame      = eMc.child_frame_id
-        stamp             = eMc.header.stamp
+        camera_frame      = Tec.child_frame_id
+        stamp             = Tec.header.stamp
         chain             = self.listener.chain(camera_parent_frame, stamp,
                                                 camera_frame, stamp,
                                                 camera_parent_frame)
@@ -266,17 +266,17 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
 
         # Compute transform from camera base frame to its parent.
         eTc = self.listener.fromTranslationRotation(
-                                (eMc.transform.translation.x,
-                                 eMc.transform.translation.y,
-                                 eMc.transform.translation.z),
-                                (eMc.transform.rotation.x,
-                                 eMc.transform.rotation.y,
-                                 eMc.transform.rotation.z,
-                                 eMc.transform.rotation.w))
+                                (Tec.transform.translation.x,
+                                 Tec.transform.translation.y,
+                                 Tec.transform.translation.z),
+                                (Tec.transform.rotation.x,
+                                 Tec.transform.rotation.y,
+                                 Tec.transform.rotation.z,
+                                 Tec.transform.rotation.w))
         pTe = self.listener.fromTranslationRotation(
                                 *self.listener.lookupTransform(
                                     camera_parent_frame,
-                                    eMc.header.frame_id, stamp))
+                                    Tec.header.frame_id, stamp))
         cTb = self.listener.fromTranslationRotation(
                                 *self.listener.lookupTransform(
                                     camera_frame, camera_base_frame, stamp))

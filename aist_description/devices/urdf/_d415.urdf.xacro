@@ -8,27 +8,38 @@ This is the URDF model for the Intel RealSense 430 camera, in it's
 aluminum peripherial evaluation case.
 -->
 
-<robot name="sensor_d455" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="sensor_d415" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:macro name="sensor_d455" params="parent *origin name:=camera
-					  use_nominal_extrinsics:=false">
+  <xacro:macro name="sensor_d415" params="parent *origin name:=camera
+					  use_nominal_extrinsics:=false
+					  add_plug:=false
+					  use_mesh:=true">
 
     <xacro:include filename="$(find realsense2_description
-			     )/urdf/_d455.urdf.xacro" />
-    <xacro:sensor_d455 parent="${parent}" name="${name}"
-		       use_nominal_extrinsics="${use_nominal_extrinsics}">
+			     )/urdf/_d415.urdf.xacro" />
+    <xacro:sensor_d415 parent="${parent}" name="${name}"
+		       use_nominal_extrinsics="${use_nominal_extrinsics}"
+		       add_plug="${add_plug}" use_mesh="${use_mesh}">
       <xacro:insert_block name="origin"/>
-    </xacro:sensor_d455>
+    </xacro:sensor_d415>
 
-    <gazebo reference="${name}_depth_frame">
+    <!-- Reference should be color_frame because depth is alighed to color -->
+    <gazebo reference="${name}_color_frame">
       <sensor type="depth" name="${name}">
 	<always_on>true</always_on>
 	<visualize>true</visualize>
 	<camera>
-          <horizontal_fov>1.5708</horizontal_fov>	<!-- 90 deg. -->
+	  <!-- Color sensor's FOV(HD): 69 deg. -->
+          <horizontal_fov>1.2043</horizontal_fov>
+	  <!-- Color sensor's FOV(VGA): 42.27 deg. -->
+          <!-- <horizontal_fov>0.9091</horizontal_fov> -->
           <image>
+	    <!-- HD -->
             <width>1280</width>
-            <height>800</height>
+            <height>720</height>
+	    <!-- VGA -->
+            <!-- <width>640</width> -->
+            <!-- <height>480</height> -->
             <format>R8G8B8</format>
           </image>
           <depth_camera>
@@ -40,7 +51,7 @@ aluminum peripherial evaluation case.
 	</camera>
 	<plugin name="${name}_controller"
 		filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.095</baseline>
+          <baseline>0.055</baseline>
           <alwaysOn>true</alwaysOn>
           <updateRate>10.0</updateRate>
           <cameraName>${name}</cameraName>

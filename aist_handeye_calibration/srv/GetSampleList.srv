@@ -1,5 +1,5 @@
 ---
 bool success
 string message
-geometry_msgs/TransformStamped[] cMo  # camera <- object   transformation
-geometry_msgs/TransformStamped[] wMe  # world  <- effector transformation
+geometry_msgs/TransformStamped[] Tcm  # camera <- marker   transformation
+geometry_msgs/TransformStamped[] Twe  # world  <- effector transformation

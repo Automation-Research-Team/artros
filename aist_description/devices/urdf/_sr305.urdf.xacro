@@ -18,13 +18,16 @@ The origin of the mesh is at the center of the back mount.
       <xacro:insert_block name="origin"/>
     </xacro:sensor_sr305>
 
-    <gazebo reference="${name}_depth_frame">
+    <!-- Reference should be color_frame because depth is alighed to color -->
+    <gazebo reference="${name}_color_frame">
       <sensor type="depth" name="${name}">
 	<always_on>true</always_on>
 	<visualize>true</visualize>
 	<camera>
-          <horizontal_fov>1.034</horizontal_fov>
+	  <!-- Color sensor's FOV(VGA): 68 deg. -->
+          <horizontal_fov>1.1868</horizontal_fov>
           <image>
+	    <!-- VGA -->
             <width>640</width>
             <height>480</height>
             <format>R8G8B8</format>
@@ -38,7 +41,7 @@ The origin of the mesh is at the center of the back mount.
 	</camera>
 	<plugin name="${name}_controller"
 		filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.018</baseline>
+          <baseline>0.048</baseline>
           <alwaysOn>true</alwaysOn>
           <updateRate>10.0</updateRate>
           <cameraName>${name}</cameraName>

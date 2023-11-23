@@ -83,8 +83,8 @@ Calibrator::Calibrator(const ros::NodeHandle& nh)
 			      &Calibrator::save_calibration, this)),
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
      _take_sample_srv(_nh, "take_sample", false),
-     _transform_buffer(),
-     _transform_listener(_transform_buffer),
+     _tf2_buffer(),
+     _tf2_listener(_tf2_buffer),
      _use_dual_quaternion(_nh.param<bool>("use_dual_quaternion", true)),
      _eye_on_hand(_nh.param<bool>("eye_on_hand", true)),
      _timeout(_nh.param<double>("timeout", 5.0))
@@ -93,21 +93,21 @@ Calibrator::Calibrator(const ros::NodeHandle& nh)
 
     if (_eye_on_hand)
     {
-	_eMc.header.frame_id = _nh.param<std::string>("robot_effector_frame",
+	_Tec.header.frame_id = _nh.param<std::string>("robot_effector_frame",
 						      "tool0");
-	_wMo.header.frame_id = _nh.param<std::string>("robot_base_frame",
+	_Twm.header.frame_id = _nh.param<std::string>("robot_base_frame",
 						      "base_link");
     }
     else
     {
-	_wMo.header.frame_id = _nh.param<std::string>("robot_effector_frame",
+	_Twm.header.frame_id = _nh.param<std::string>("robot_effector_frame",
 						      "tool0");
-	_eMc.header.frame_id = _nh.param<std::string>("robot_base_frame",
+	_Tec.header.frame_id = _nh.param<std::string>("robot_base_frame",
 						      "base_link");
     }
 
-    _eMc.child_frame_id = "";
-    _wMo.child_frame_id = _nh.param<std::string>("marker_frame",
+    _Tec.child_frame_id = "";
+    _Twm.child_frame_id = _nh.param<std::string>("marker_frame",
 						 "marker_frame");
 
     _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::take_sample,
@@ -130,25 +130,25 @@ Calibrator::run()
 const std::string&
 Calibrator::camera_frame() const
 {
-    return _eMc.child_frame_id;
+    return _Tec.child_frame_id;
 }
 
 const std::string&
 Calibrator::effector_frame() const
 {
-    return _eMc.header.frame_id;
+    return _Tec.header.frame_id;
 }
 
 const std::string&
 Calibrator::object_frame() const
 {
-    return _wMo.child_frame_id;
+    return _Twm.child_frame_id;
 }
 
 const std::string&
 Calibrator::world_frame() const
 {
-    return _wMo.header.frame_id;
+    return _Twm.header.frame_id;
 }
 
 void
@@ -159,26 +159,24 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
 
     try
     {
-	using aist_utility::operator <<;
-
       // Set camera frame.
-	_eMc.child_frame_id = poseMsg->header.frame_id;
+	_Tec.child_frame_id = poseMsg->header.frame_id;
 
       // Convert marker pose to camera <= object transform.
 	TakeSampleResult	result;
-	result.cMo = fromPoseToTransform(*poseMsg);
-	result.cMo.child_frame_id = object_frame();
+	result.Tcm = fromPoseToTransform(*poseMsg);
+	result.Tcm.child_frame_id = object_frame();
 
       // Lookup world <= effector transform at the moment marker detected.
-	result.wMe = _transform_buffer.lookupTransform(world_frame(),
-						       effector_frame(),
-						       poseMsg->header.stamp,
-						       _timeout);
-	ROS_DEBUG_STREAM(result.cMo);
-	ROS_DEBUG_STREAM(result.wMe);
+	result.Twe = _tf2_buffer.lookupTransform(world_frame(),
+						 effector_frame(),
+						 poseMsg->header.stamp,
+						 _timeout);
+	ROS_DEBUG_STREAM(result.Tcm);
+	ROS_DEBUG_STREAM(result.Twe);
 
-	_cMo.emplace_back(result.cMo);
-	_wMe.emplace_back(result.wMe);
+	_Tcm.emplace_back(result.Tcm);
+	_Twe.emplace_back(result.Twe);
 
 	_take_sample_srv.setSucceeded(result);
 
@@ -197,9 +195,9 @@ Calibrator::get_sample_list(GetSampleList::Request&,
 			    GetSampleList::Response& res)
 {
     res.success = true;
-    res.message = std::to_string(_cMo.size()) + " samples in hand.";
-    res.cMo	= _cMo;
-    res.wMe	= _wMe;
+    res.message = std::to_string(_Tcm.size()) + " samples in hand.";
+    res.Tcm	= _Tcm;
+    res.Twe	= _Twe;
 
     ROS_INFO_STREAM("get_sample_list(): " << res.message);
 
@@ -219,39 +217,39 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 						 : "SINGLE quaternion")
 			<< " algorithm...");
 
-	std::vector<transform_t>	cMo, wMe;
-	for (size_t i = 0; i < _cMo.size(); ++i)
+	std::vector<transform_t>	Tcm, Twe;
+	for (size_t i = 0; i < _Tcm.size(); ++i)
 	{
-	    cMo.emplace_back(_cMo[i].transform);
-	    wMe.emplace_back(_wMe[i].transform);
+	    Tcm.emplace_back(_Tcm[i].transform);
+	    Twe.emplace_back(_Twe[i].transform);
 	}
 
-	const auto	eMc = (_use_dual_quaternion ?
-			       TU::cameraToEffectorDual(cMo, wMe) :
-			       TU::cameraToEffectorSingle(cMo, wMe));
-	const auto	wMo = TU::objectToWorld(cMo, wMe, eMc);
+	const auto	Tec = (_use_dual_quaternion ?
+			       TU::cameraToEffectorDual(Tcm, Twe) :
+			       TU::cameraToEffectorSingle(Tcm, Twe));
+	const auto	Twm = TU::objectToWorld(Tcm, Twe, Tec);
 
 	const auto	now = ros::Time::now();
-	_eMc.header.stamp = now;
-	_eMc.transform	  = eMc;
-	_wMo.header.stamp = now;
-	_wMo.transform	  = wMo;
+	_Tec.header.stamp = now;
+	_Tec.transform	  = Tec;
+	_Twm.header.stamp = now;
+	_Twm.transform	  = Twm;
 
 	std::ostringstream	sout;
-	TU::evaluateAccuracy(sout, cMo, wMe, eMc, wMo);
+	TU::evaluateAccuracy(sout, Tcm, Twe, Tec, Twm);
 	res.success = true;
 	res.message = sout.str();
-	res.eMc	    = _eMc;
-	res.wMo	    = _wMo;
+	res.Tec	    = _Tec;
+	res.Twm	    = _Twm;
 
 	ROS_INFO_STREAM("compute_calibration(): " << res.message);
 
 #ifdef DEBUG
-	std::ofstream	out("cMo_wMe_pairs.txt");
-	out << cMo.size() << std::endl;
-	for (size_t i = 0; i < cMo.size(); ++i)
-	    out << cMo[i] << std::endl
-		<< wMe[i] << std::endl << std::endl;
+	std::ofstream	out("Tcm_Twe_pairs.txt");
+	out << Tcm.size() << std::endl;
+	for (size_t i = 0; i < Tcm.size(); ++i)
+	    out << Tcm[i] << std::endl
+		<< Twe[i] << std::endl << std::endl;
 	out << sout.str();
 #endif
     }
@@ -290,19 +288,19 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 		<< YAML::Flow
 		<< YAML::BeginMap
 		<< YAML::Key   << "x"
-		<< YAML::Value << _eMc.transform.translation.x
+		<< YAML::Value << _Tec.transform.translation.x
 		<< YAML::Key   << "y"
-		<< YAML::Value << _eMc.transform.translation.y
+		<< YAML::Value << _Tec.transform.translation.y
 		<< YAML::Key   << "z"
-		<< YAML::Value << _eMc.transform.translation.z
+		<< YAML::Value << _Tec.transform.translation.z
 		<< YAML::Key   << "qx"
-		<< YAML::Value << _eMc.transform.rotation.x
+		<< YAML::Value << _Tec.transform.rotation.x
 		<< YAML::Key   << "qy"
-		<< YAML::Value << _eMc.transform.rotation.y
+		<< YAML::Value << _Tec.transform.rotation.y
 		<< YAML::Key   << "qz"
-		<< YAML::Value << _eMc.transform.rotation.z
+		<< YAML::Value << _Tec.transform.rotation.z
 		<< YAML::Key   << "qw"
-		<< YAML::Value << _eMc.transform.rotation.w
+		<< YAML::Value << _Tec.transform.rotation.w
 		<< YAML::EndMap;
 	emitter << YAML::EndMap;
 
@@ -318,19 +316,19 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 		<< YAML::Flow
 		<< YAML::BeginMap
 		<< YAML::Key   << "x"
-		<< YAML::Value << _wMo.transform.translation.x
+		<< YAML::Value << _Twm.transform.translation.x
 		<< YAML::Key   << "y"
-		<< YAML::Value << _wMo.transform.translation.y
+		<< YAML::Value << _Twm.transform.translation.y
 		<< YAML::Key   << "z"
-		<< YAML::Value << _wMo.transform.translation.z
+		<< YAML::Value << _Twm.transform.translation.z
 		<< YAML::Key   << "qx"
-		<< YAML::Value << _wMo.transform.rotation.x
+		<< YAML::Value << _Twm.transform.rotation.x
 		<< YAML::Key   << "qy"
-		<< YAML::Value << _wMo.transform.rotation.y
+		<< YAML::Value << _Twm.transform.rotation.y
 		<< YAML::Key   << "qz"
-		<< YAML::Value << _wMo.transform.rotation.z
+		<< YAML::Value << _Twm.transform.rotation.z
 		<< YAML::Key   << "qw"
-		<< YAML::Value << _wMo.transform.rotation.w
+		<< YAML::Value << _Twm.transform.rotation.w
 		<< YAML::EndMap;
 	emitter << YAML::EndMap;
 
@@ -383,8 +381,8 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 bool
 Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
-    _cMo.clear();
-    _wMe.clear();
+    _Tcm.clear();
+    _Twe.clear();
 
     ROS_INFO_STREAM("reset(): all samples cleared.");
 

@@ -86,10 +86,10 @@ qdiff_matrix(const Quaternion<T>& a, const Quaternion<T>& b)
     Eigen::Matrix<T, 3, 4>	C;
     const auto	sdiff		 = a.scalar() - b.scalar();
     const auto	vdiff		 = a.vector() - b.vector();
-    C[0, 0)			 = vdiff(0);
+    C(0, 0)			 = vdiff(0);
     C(1, 0)			 = vdiff(1);
     C(2, 0)			 = vdiff(2);
-    C.template block<3, 3>(0, 1) = skew(a.vector() + b.vector());
+    C.template block<3, 3>(0, 1) = skew((a.vector() + b.vector()).eval());
     C(0, 1)			+= sdiff;
     C(1, 2)			+= sdiff;
     C(2, 3)			+= sdiff;
@@ -154,31 +154,31 @@ computeDualQuaternion(const Eigen::Block<const E, 4, 1>& up,
 *  global functions							*
 ************************************************************************/
 template <class T> Transform<T>
-cameraToEffectorSingle(const std::vector<Transform<T> >& cMo,
-		       const std::vector<Transform<T> >& wMe)
+cameraToEffectorSingle(const std::vector<Transform<T> >& Tcm,
+		       const std::vector<Transform<T> >& Twe)
 {
     using vector3_t	= Eigen::Matrix<T, 3, 1>;
     using matrix33_t	= Eigen::Matrix<T, 3, 3>;
     using matrix44_t	= Eigen::Matrix<T, 4, 4>;
     using quaternion_t	= Quaternion<T>;
 
-    if (cMo.size() != wMe.size())
+    if (Tcm.size() != Twe.size())
 	throw std::runtime_error("transformations with different sizes("
-				 + std::to_string(cMo.size()) + "!="
-				 + std::to_string(wMe.size()) + ").");
-    else if (cMo.size() < 2)
+				 + std::to_string(Tcm.size()) + "!="
+				 + std::to_string(Twe.size()) + ").");
+    else if (Tcm.size() < 2)
 	throw std::runtime_error("too few transformations("
-				 + std::to_string(cMo.size()) + ").");
+				 + std::to_string(Tcm.size()) + ").");
 
-    const auto	nposes = cMo.size();
+    const auto	nposes = Tcm.size();
 
   // Compute rotation.
     matrix44_t	M(matrix44_t::Zero());	// 4x4 matrix initialized with zeros.
     for (size_t i = 0; i < nposes; ++i)
 	for (size_t j = i + 1; j < nposes; ++j)
 	{
-	    const auto	A = wMe[j].inverse() * wMe[i];
-	    const auto	B = cMo[j] * cMo[i].inverse();
+	    const auto	A = Twe[j].inverse() * Twe[i];
+	    const auto	B = Tcm[j] * Tcm[i].inverse();
 	    const auto	C = detail::qdiff_matrix(A.primary(), B.primary());
 	    M += C.transpose() * C;
 	}
@@ -197,8 +197,8 @@ cameraToEffectorSingle(const std::vector<Transform<T> >& cMo,
     for (size_t i = 0; i < nposes; ++i)
 	for (size_t j = i + 1; j < nposes; ++j)
 	{
-	    const auto	A  = wMe[j].inverse() * wMe[i];
-	    const auto	B  = cMo[j] * cMo[i].inverse();
+	    const auto	A  = Twe[j].inverse() * Twe[i];
+	    const auto	B  = Tcm[j] * Tcm[i].inverse();
 	    auto	Rt = A.Rt();
 	    Rt(0, 0) -= 1;
 	    Rt(1, 1) -= 1;
@@ -215,29 +215,28 @@ cameraToEffectorSingle(const std::vector<Transform<T> >& cMo,
 }
 
 template <class T> Transform<T>
-cameraToEffectorDual(const std::vector<Transform<T> >& cMo,
-		     const std::vector<Transform<T> >& wMe)
+cameraToEffectorDual(const std::vector<Transform<T> >& Tcm,
+		     const std::vector<Transform<T> >& Twe)
 {
-    using vector8_t	= Eigen::Matrix<T, 8, 1>;
     using matrix88_t	= Eigen::Matrix<T, 8, 8>;
 
-    if (cMo.size() != wMe.size())
+    if (Tcm.size() != Twe.size())
 	throw std::runtime_error("transformations with different sizes("
-				 + std::to_string(cMo.size()) + "!="
-				 + std::to_string(wMe.size()) + ").");
-    else if (cMo.size() < 2)
+				 + std::to_string(Tcm.size()) + "!="
+				 + std::to_string(Twe.size()) + ").");
+    else if (Tcm.size() < 2)
 	throw std::runtime_error("too few transformations("
-				 + std::to_string(cMo.size()) + ").");
+				 + std::to_string(Tcm.size()) + ").");
 
-    const auto	nposes = cMo.size();
+    const auto	nposes = Tcm.size();
 
   // Compute rotation.
     matrix88_t	M(matrix88_t::Zero());	// 4x4 matrix initialized with zeros.
     for (size_t i = 0; i < nposes; ++i)
 	for (size_t j = i + 1; j < nposes; ++j)
 	{
-	    const auto	A = wMe[j].inverse() * wMe[i];
-	    const auto	B = cMo[j] * cMo[i].inverse();
+	    const auto	A = Twe[j].inverse() * Twe[i];
+	    const auto	B = Tcm[j] * Tcm[i].inverse();
 	    const auto	C = detail::qdiff_matrix(A.primary(), B.primary());
 	    const auto	D = detail::qdiff_matrix(A.dual(),    B.dual());
 	    M.template block<4, 4>(0, 0) += C.transpose() * C
@@ -254,27 +253,27 @@ cameraToEffectorDual(const std::vector<Transform<T> >& cMo,
 	      << "\n--- Eigenvalues ---\n" << esolver.eigenvalues()
 	      << std::endl;
 #endif
-    const Transform<T>	eMc(detail::computeDualQuaternion(
+    const Transform<T>	Tec(detail::computeDualQuaternion(
 				U.template block<4, 1>(0, 1),
 				U.template block<4, 1>(4, 1),
 				U.template block<4, 1>(0, 0),
 				U.template block<4, 1>(4, 0)));
 
-    return eMc;
+    return Tec;
 }
 
 template <class T> Transform<T>
-objectToWorld(const std::vector<Transform<T> >& cMo,
-	      const std::vector<Transform<T> >& wMe, const Transform<T>& eMc)
+objectToWorld(const std::vector<Transform<T> >& Tcm,
+	      const std::vector<Transform<T> >& Twe, const Transform<T>& Tec)
 {
     using vector4_type	= typename Quaternion<T>::vector4_type;
 
-    const auto		nposes = cMo.size();
+    const auto		nposes = Tcm.size();
     vector4_type	p(vector4_type::Zero()), d(vector4_type::Zero());
     for (size_t i = 0; i < nposes; ++i)
     {
-      // Transformation from object to world computed from estimated eMc.
-	const auto	M = wMe[i] * eMc * cMo[i];
+      // Transformation from object to world computed from estimated Tec.
+	const auto	M = Twe[i] * Tec * Tcm[i];
 	p += M.primary().operator vector4_type();
 	d += M.dual().operator vector4_type();
     }
@@ -287,11 +286,11 @@ objectToWorld(const std::vector<Transform<T> >& cMo,
 
 template <class T> void
 evaluateAccuracy(std::ostream& out,
-		 const std::vector<Transform<T> >& cMo,
-		 const std::vector<Transform<T> >& wMe,
-		 const Transform<T>& eMc, const Transform<T>& wMo)
+		 const std::vector<Transform<T> >& Tcm,
+		 const std::vector<Transform<T> >& Twe,
+		 const Transform<T>& Tec, const Transform<T>& Twm)
 {
-    const auto	nposes = cMo.size();
+    const auto	nposes = Tcm.size();
     T		tdiff_mean = 0;	// mean translational distance
     T		tdiff_max  = 0;	// max. translational distance
     T		adiff_mean = 0;	// mean angular distance
@@ -299,8 +298,8 @@ evaluateAccuracy(std::ostream& out,
 
     for (size_t i = 0; i < nposes; ++i)
     {
-	const auto	AX    = wMe[i] * eMc;
-	const auto	YBinv = wMo * cMo[i].inverse();
+	const auto	AX    = Twe[i] * Tec;
+	const auto	YBinv = Twm * Tcm[i].inverse();
 	const auto	tdiff = AX.translational_distance(YBinv);
 	const auto	adiff = AX.angular_distance(YBinv);
 
@@ -317,9 +316,9 @@ evaluateAccuracy(std::ostream& out,
 
     constexpr T	degree = 180.0/M_PI;
     out << "\n=== estimated camera pose ====\n";
-    eMc.print(out);
+    Tec.print(out);
     out << "\n=== estimated marker pose ===\n";
-    wMo.print(out);
+    Twm.print(out);
     out << "\ntrans. err(m)  : (mean, max) = ("
 	<< tdiff_mean << ", " << tdiff_max
 	<< ")\nangle err(deg.): (mean, max) = ("
