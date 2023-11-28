@@ -16,6 +16,7 @@ from aist_moveit_servo.msg import (PoseTrackingAction, PoseTrackingGoal,
                                    PoseTrackingFeedback)
 from std_srvs.srv          import Empty
 from moveit_msgs.srv       import ChangeDriftDimensions, ChangeControlDimensions
+from geometry_msgs.msg     import Transform
 from math                  import degrees
 
 ######################################################################
@@ -56,12 +57,11 @@ class PoseTrackingClient(SimpleActionClient):
                                 drift_x_translation, drift_y_translation,
                                 drift_z_translation, drift_x_rotation,
                                 drift_y_rotation,    drift_z_rotation):
-        return self._change_drift_dimensions(drift_x_translation,
-                                             drift_y_translation,
-                                             drift_z_translation,
-                                             drift_x_rotation,
-                                             drift_y_rotation,
-                                             drift_z_rotation).success
+        transform_jog_frame_to_drift_frame = Transform()
+        return self._change_drift_dimensions(
+                drift_x_translation, drift_y_translation, drift_z_translation,
+                drift_x_rotation, drift_y_rotation, drift_z_rotation,
+                transform_jog_frame_to_drift_frame).success
 
     def change_control_dimensions(self,
                                   control_x_translation, control_y_translation,

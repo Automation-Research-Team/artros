@@ -1,11 +1,11 @@
-aist_handeye_calibration: a ROS package for estimating camera poses w.r.t. robots or the world
+aist_handeye_calibration: ROS package for estimating camera poses w.r.t. the robot or the world
 ==================================================
 
 ## Overview
 This package provides a set of software for estimating a relative transformation between a depth camera and a robotic arm. You can do two things with this software:
 
 - **Calibrating cameras** -- Estimate a relative transformation between the camera and the robot by showing an AR marker to the camera while moving the robot to several known key poses.
-- **Checking calibration results** -- Validate the estimated transformation by showing a marker to the camera and then commanding the robot to move its tooltip to the center of the marker.
+- **Checking calibration result** -- Validate the estimated transformation by showing a marker to the camera and then commanding the robot to move its tooltip to the center of the marker.
 
 The calibration is possible under the following two situations:
 
@@ -19,7 +19,7 @@ A square AR marker, [ArUco](https://www.uco.es/investiga/grupos/ava/portfolio/ar
 If you want to use a marker with different ID or size, please visit [marker generator site](https://chev.me/arucogen). You should select `Original ArUco` dictionary and specify marker ID as well as its size you want.
 The configuration parameters also should be modified in accordance with the marker properties. Please see the section [Parameters for configuring calibration](#parameters-for-configuring-calibration) for details.
 
-## Step 1: Calibrating cameras
+## Step 1: Calibrating camera
 
 First, you bring up robots and cameras with the following command:
 ```bash
@@ -53,7 +53,7 @@ $ cp <camera_name>-nominal.yaml <camera_name>.yaml
 ```
 2. After performing calibration, you have to terminate all ROS nodes and bring up the robots again so that the new calibration values are made effective by loading them into `/robot_description`.
 
-## Step 2: Checking calibrat'ion results
+## Step 2: Checking calibration result
 
 You can validate the calibration result by checking whether the robot can move its tooltip to the target position specified by the marker placed at an arbitrary position.
 
@@ -73,7 +73,7 @@ $ roslaunch aist_handeye_calibration check_calibration.launch config:=<config> c
 ```
 Here, `<config>` and `<camera name>` should be same as the above.
 
-After the client comes up, please simply hit **i** and **return** keys to move the robot to the initial position. Then place the marker at an arbitrary position with an arbitrary orientation within the camera's field of view and hit **return**. The robot will go to the approach position 50mm above the marker and descend to the center along the normal direction. You can repeat this process varying the marker positions and orientations.
+After the client coming up, simply hit **i** and **return** keys to move the robot to the initial position. Then place the marker at an arbitrary position with an arbitrary orientation within the camera's field of view and hit **return**. The robot will go to the approach position 50mm above the marker and descend to the center along the normal direction. You can repeat this process varying the marker positions and orientations.
 
 You can terminate the client by hitting **q** and **return**.
 
