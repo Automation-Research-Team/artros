@@ -2,8 +2,8 @@
 <launch>
 
   <!-- Start hmi_demo client -->
-  <node name="hmi_demo"
-  	pkg="aist_routines" type="hmi_demo.py" output="screen">
+  <node name="hmi_demo"	pkg="aist_routines" type="hmi_demo.py"
+	clear_params="true" output="screen">
     <rosparam file="$(dirname)/../config/aist_config.yaml"/>
     <rosparam file="$(dirname)/../config/kitting.yaml"/>
   </node>

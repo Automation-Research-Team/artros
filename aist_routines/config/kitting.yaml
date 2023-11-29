@@ -240,7 +240,7 @@ graspability_parameters:
     nz: 0.7
     object_size: 15
     min_distance: 30
-    contact_radius: 15
+    contact_radius: 10
     open_width: 45
     finger_width: 1
     finger_thickness: 5
@@ -395,7 +395,7 @@ hmi_graspability_parameters:
     open_width: 45
     finger_width: 1
     finger_thickness: 5
-    insertion_depth: 0.002
+    insertion_depth: 0.001
   07_SBARB6200ZZ_30:
     ns: 2
     nz: 0.7

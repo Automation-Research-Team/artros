@@ -59,10 +59,10 @@ class HMIRoutines(KittingRoutines):
 
     MarkerProps = collections.namedtuple('MarkerProps', 'id, scale, color')
     _marker_props = {
-        # 'finger' : MarkerProps(0, (0.006, 0.014, 0.015), (0.0, 1.0, 1.0, 1.0)),
-        # 'sweep'  : MarkerProps(1, (0.006, 0.014, 0.015), (1.0, 1.0, 0.0, 1.0))
-        'finger' : MarkerProps(0, (0.006, 0.030, 0.015), (0.0, 1.0, 1.0, 1.0)),
-        'sweep'  : MarkerProps(1, (0.006, 0.030, 0.015), (1.0, 1.0, 0.0, 1.0))
+        'finger' : MarkerProps(0, (0.006, 0.014, 0.015), (0.0, 1.0, 1.0, 1.0)),
+        'sweep'  : MarkerProps(1, (0.006, 0.014, 0.015), (1.0, 1.0, 0.0, 1.0))
+        # 'finger' : MarkerProps(0, (0.006, 0.030, 0.015), (0.0, 1.0, 1.0, 1.0)),
+        # 'sweep'  : MarkerProps(1, (0.006, 0.030, 0.015), (1.0, 1.0, 0.0, 1.0))
         }
 
     def __init__(self, server='hmi_server'):
@@ -347,8 +347,8 @@ class HMIRoutines(KittingRoutines):
         if marker_type == 'finger':
             workspace_center = PointStamped()
             workspace_center.header.stamp    = header.stamp
-            # workspace_center.header.frame_id = 'workspace_center'
             workspace_center.header.frame_id = 'workspace_center'
+            # workspace_center.header.frame_id = 'ground'
             workspace_center.point           = Point(0, 0, 0)
             t = (self.listener.transformPoint(header.frame_id,
                                               workspace_center).point.z
