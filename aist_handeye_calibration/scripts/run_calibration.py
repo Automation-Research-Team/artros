@@ -164,13 +164,12 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         self.trigger_frame(self._camera_name)
         marker_pose = rospy.wait_for_message('/aruco_detector_3d/pose',
                                              PoseStamped, 10)
-        approach_pose = self.effector_target_pose(marker_pose, (0, 0, 0.05))
+        approach_pose = self.add_offset_to_pose(marker_pose, (0, 0, 0.05))
 
         # We have to transform the target pose to reference frame before moving
         # to the approach pose because the marker pose is given w.r.t. camera
         # frame which will change while moving in the case of "eye on hand".
-        target_pose = self.transform_pose_to_target_frame(
-                        self.effector_target_pose(marker_pose, (0, 0, 0)))
+        target_pose = self.transform_pose_to_target_frame(marker_pose)
         print('  move to ' + self.format_pose(approach_pose))
         success, _, current_pose \
             = self.go_to_pose_goal(

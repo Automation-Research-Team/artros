@@ -135,9 +135,9 @@ class PickOrPlace(SimpleActionClient):
         feedback.stage = PickOrPlaceFeedback.MOVING
         self._server.publish_feedback(feedback)
         scaling_factor = goal.speed_fast if goal.pick else goal.speed_slow
-        success, _, _ = routines.go_to_pose_goal(
+        success, _, _  = routines.go_to_pose_goal(
                              goal.robot_name,
-                             routines.effector_target_pose(
+                             routines.add_offset_to_pose(
                                  goal.pose,
                                  (goal.approach_offset.translation.x,
                                   goal.approach_offset.translation.y,
@@ -161,14 +161,14 @@ class PickOrPlace(SimpleActionClient):
         self._server.publish_feedback(feedback)
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
-        target_pose = routines.effector_target_pose(goal.pose,
-                                                    (goal.offset.translation.x,
-                                                     goal.offset.translation.y,
-                                                     goal.offset.translation.z,
-                                                     goal.offset.rotation.x,
-                                                     goal.offset.rotation.y,
-                                                     goal.offset.rotation.z,
-                                                     goal.offset.rotation.w))
+        target_pose = routines.add_offset_to_pose(goal.pose,
+                                                  (goal.offset.translation.x,
+                                                   goal.offset.translation.y,
+                                                   goal.offset.translation.z,
+                                                   goal.offset.rotation.x,
+                                                   goal.offset.rotation.y,
+                                                   goal.offset.rotation.z,
+                                                   goal.offset.rotation.w))
         routines.add_marker('pick_pose' if goal.pick else 'place_pose',
                             target_pose)
         routines.publish_marker()
@@ -204,7 +204,7 @@ class PickOrPlace(SimpleActionClient):
             offset         = goal.approach_offset
             scaling_factor = goal.speed_fast
         success, _, _ = routines.go_to_pose_goal(goal.robot_name,
-                                                 routines.effector_target_pose(
+                                                 routines.add_offset_to_pose(
                                                      goal.pose,
                                                      (offset.translation.x,
                                                       offset.translation.y,

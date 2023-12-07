@@ -22,7 +22,7 @@
     <joint name="${prefix}gripper/tip_joint" type="fixed">
       <parent link="${prefix}gripper/grasping_frame"/>
       <child  link="${prefix}gripper/tip_link"/>
-      <origin xyz="0 0 0" rpy="0 ${-pi/2} 0"/>
+      <origin xyz="0 0 0.025" rpy="${pi} 0 ${pi}"/>
     </joint>
   </xacro:macro>
 

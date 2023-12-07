@@ -313,8 +313,8 @@ class AISTBaseRoutines(object):
         target_pose.pose            = Pose(Point(0, 0, 0),
                                            Quaternion(0, 0, 0, 1))
         return self.go_to_pose_goal(robot_name,
-                                    self.effector_target_pose(target_pose,
-                                                              offset),
+                                    self.add_offset_to_pose(target_pose,
+                                                            offset),
                                     speed, accel, end_effector_link,
                                     high_precision, move_lin)
 
@@ -685,13 +685,13 @@ class AISTBaseRoutines(object):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]' \
               .format(*xyzrpy)
 
-    def effector_target_pose(self, target_pose, offset):
-        poses = self.effector_target_poses(PoseArray(target_pose.header,
-                                                     [target_pose.pose]),
-                                           [offset])
+    def add_offset_to_pose(self, target_pose, offset):
+        poses = self.add_offset_to_poses(PoseArray(target_pose.header,
+                                                   [target_pose.pose]),
+                                         [offset])
         return PoseStamped(poses.header, poses.poses[0])
 
-    def effector_target_poses(self, target_poses, offsets):
+    def add_offset_to_poses(self, target_poses, offsets):
         poses = PoseArray(target_poses.header, [])
         for target_pose, offset in zip(target_poses.poses, offsets):
             T = tfs.concatenate_matrices(
@@ -705,10 +705,7 @@ class AISTBaseRoutines(object):
                          target_pose.orientation.w)),
                     self._listener.fromTranslationRotation(
                         offset[0:3],
-                        self._quaternion_from_offset(offset[3:])),
-                    self._listener.fromTranslationRotation(
-                        (0, 0, 0),
-                        tfs.quaternion_from_euler(0, radians(90), 0)))
+                        self._quaternion_from_offset(offset[3:])))
             poses.poses.append(Pose(Point(*tfs.translation_from_matrix(T)),
                                     Quaternion(*tfs.quaternion_from_matrix(T))))
         return poses

@@ -124,7 +124,7 @@ class Sweep(SimpleActionClient):
         self._server.publish_feedback(feedback)
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
-                             routines.effector_target_pose(
+                             routines.add_offset_to_pose(
                                  goal.pose,
                                  (goal.approach_offset.translation.x,
                                   goal.approach_offset.translation.y,
@@ -144,7 +144,7 @@ class Sweep(SimpleActionClient):
         # Approach sweep pose.
         feedback.stage = SweepFeedback.APPROACHING
         self._server.publish_feedback(feedback)
-        target_pose = routines.effector_target_pose(
+        target_pose = routines.add_offset_to_pose(
                           goal.pose,
                           (goal.sweep_offset.translation.x,
                            goal.sweep_offset.translation.y,
@@ -168,7 +168,7 @@ class Sweep(SimpleActionClient):
         rospy.loginfo("--- Sweep. ---")
         feedback.stage = SweepFeedback.SWEEPING
         self._server.publish_feedback(feedback)
-        target_pose = routines.effector_target_pose(
+        target_pose = routines.add_offset_to_pose(
                           goal.pose,
                           (goal.sweep_offset.translation.x,
                            goal.sweep_offset.translation.y + goal.sweep_length,
@@ -194,7 +194,7 @@ class Sweep(SimpleActionClient):
         self._server.publish_feedback(feedback)
         success, _, _ = routines.go_to_pose_goal(
                              goal.robot_name,
-                             routines.effector_target_pose(
+                             routines.add_offset_to_pose(
                                  goal.pose,
                                  (goal.departure_offset.translation.x,
                                   goal.departure_offset.translation.y,
