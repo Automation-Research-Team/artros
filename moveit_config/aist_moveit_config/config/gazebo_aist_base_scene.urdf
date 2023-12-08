@@ -1648,7 +1648,7 @@
     <joint name="a_bot_gripper_tip_link_joint" type="fixed">
         <parent link="a_bot_gripper_base_link" />
         <child link="a_bot_gripper_tip_link" />
-        <origin rpy="0.0 0.0 0.0" xyz="0.1628 0.0 0.0" />
+        <origin rpy="0.0 -1.5707963267948966 0.0" xyz="0.1628 0.0 0.0" />
     </joint>
     <link name="a_bot_gripper_tip_link" />
     <link name="a_bot_gripper_robotiq_arg2f_base_link">
@@ -2048,7 +2048,7 @@
     <joint name="b_bot_gripper_tip_joint" type="fixed">
         <parent link="b_bot_gripper_base_link" />
         <child link="b_bot_gripper_tip_link" />
-        <origin rpy="0 0 0" xyz="0.1855 0 0" />
+        <origin rpy="0 -1.5707963267948966 0" xyz="0.1855 0 0" />
     </joint>
     <!-- Add virtual wall to avoid collisions-->
     <!-- <xacro:aist_box name="vwall1" width="0.01" length="0.35" height="0.55" -->
@@ -2058,7 +2058,7 @@
     <joint name="a_phoxi_m_camera_link_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="a_phoxi_m_camera_link" />
-        <origin rpy="-0.10603238790759253 1.1010904348550707 3.0052545162178608" xyz="0.5123515156516534 -0.03873553287518036 0.7016694751611658" />
+        <origin rpy="-0.06660879099232307 1.0432812514428629 3.014328066314531" xyz="0.5129667610334572 -0.037047806454438365 0.6226614314794279" />
     </joint>
     <joint name="a_phoxi_m_camera_reference_joint" type="fixed">
         <parent link="a_phoxi_m_camera_link" />
@@ -2185,7 +2185,7 @@
         <visual>
             <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 -0.0 0" />
             <geometry>
-                <mesh filename="package://aist_description/devices/meshes/sr305_simplified_body.stl" scale=".001 .001 .001" />
+                <mesh filename="package://realsense2_description/meshes/sr305_without_mount.stl" scale=".001 .001 .001" />
             </geometry>
             <material name="sr305_aluminum">
                 <color rgba="0.5 0.5 0.5 1" />
@@ -2256,13 +2256,16 @@
         <child link="a_bot_inside_camera_color_optical_frame" />
     </joint>
     <link name="a_bot_inside_camera_color_optical_frame" />
-    <gazebo reference="a_bot_inside_camera_depth_frame">
+    <!-- Reference should be color_frame because depth is alighed to color -->
+    <gazebo reference="a_bot_inside_camera_color_frame">
         <sensor name="a_bot_inside_camera" type="depth">
             <always_on>true</always_on>
             <visualize>true</visualize>
             <camera>
-                <horizontal_fov>1.034</horizontal_fov>
+                <!-- Color sensor's FOV(VGA): 68 deg. -->
+                <horizontal_fov>1.1868</horizontal_fov>
                 <image>
+                    <!-- VGA -->
                     <width>640</width>
                     <height>480</height>
                     <format>R8G8B8</format>
@@ -2274,7 +2277,7 @@
                 </clip>
             </camera>
             <plugin filename="libgazebo_ros_openni_kinect.so" name="a_bot_inside_camera_controller">
-                <baseline>0.2</baseline>
+                <baseline>0.048</baseline>
                 <alwaysOn>true</alwaysOn>
                 <updateRate>10.0</updateRate>
                 <cameraName>a_bot_inside_camera</cameraName>
@@ -2318,7 +2321,7 @@
         <visual>
             <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 -0.0 0" />
             <geometry>
-                <mesh filename="package://aist_description/devices/meshes/sr305_simplified_body.stl" scale=".001 .001 .001" />
+                <mesh filename="package://realsense2_description/meshes/sr305_without_mount.stl" scale=".001 .001 .001" />
             </geometry>
             <material name="sr305_aluminum">
                 <color rgba="0.5 0.5 0.5 1" />
@@ -2389,13 +2392,16 @@
         <child link="a_bot_outside_camera_color_optical_frame" />
     </joint>
     <link name="a_bot_outside_camera_color_optical_frame" />
-    <gazebo reference="a_bot_outside_camera_depth_frame">
+    <!-- Reference should be color_frame because depth is alighed to color -->
+    <gazebo reference="a_bot_outside_camera_color_frame">
         <sensor name="a_bot_outside_camera" type="depth">
             <always_on>true</always_on>
             <visualize>true</visualize>
             <camera>
-                <horizontal_fov>1.034</horizontal_fov>
+                <!-- Color sensor's FOV(VGA): 68 deg. -->
+                <horizontal_fov>1.1868</horizontal_fov>
                 <image>
+                    <!-- VGA -->
                     <width>640</width>
                     <height>480</height>
                     <format>R8G8B8</format>
@@ -2407,7 +2413,7 @@
                 </clip>
             </camera>
             <plugin filename="libgazebo_ros_openni_kinect.so" name="a_bot_outside_camera_controller">
-                <baseline>0.2</baseline>
+                <baseline>0.048</baseline>
                 <alwaysOn>true</alwaysOn>
                 <updateRate>10.0</updateRate>
                 <cameraName>a_bot_outside_camera</cameraName>
@@ -2435,7 +2441,7 @@
     <joint name="workspace_live_camera_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="live_camera_optical_frame" />
-        <origin rpy="-2.752197931668187 -0.09513034339063342 1.5593619369146734" xyz="0.39763658958628 -0.03830545174707677 0.8102031301665178" />
+        <origin rpy="-2.6956831173735374 0.04101229395800053 1.5544348139645294" xyz="0.405235138268645 -0.0356851775630231 0.7399153983016764" />
     </joint>
     <!-- virtual screen -->
     <link name="virtual_screen" />
