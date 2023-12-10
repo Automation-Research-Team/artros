@@ -44,7 +44,6 @@
 #include <sys/stat.h>	// for mkdir()
 #include <errno.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <yaml-cpp/yaml.h>
 #include <aist_utility/geometry_msgs.h>
 #include "Calibrator.h"
 #include "HandeyeCalibration.h"
@@ -53,19 +52,6 @@
 
 namespace aist_handeye_calibration
 {
-static geometry_msgs::TransformStamped
-fromPoseToTransform(const geometry_msgs::PoseStamped pose)
-{
-    geometry_msgs::TransformStamped	transform;
-    transform.header = pose.header;
-    transform.transform.translation.x = pose.pose.position.x;
-    transform.transform.translation.y = pose.pose.position.y;
-    transform.transform.translation.z = pose.pose.position.z;
-    transform.transform.rotation      = pose.pose.orientation;
-
-    return transform;
-}
-
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
@@ -140,7 +126,7 @@ Calibrator::effector_frame() const
 }
 
 const std::string&
-Calibrator::object_frame() const
+Calibrator::marker_frame() const
 {
     return _Twm.child_frame_id;
 }
@@ -164,8 +150,7 @@ Calibrator::pose_cb(const poseMsg_cp& poseMsg)
 
       // Convert marker pose to camera <= object transform.
 	TakeSampleResult	result;
-	result.Tcm = fromPoseToTransform(*poseMsg);
-	result.Tcm.child_frame_id = object_frame();
+	result.Tcm = aist_utility::toTransform(*poseMsg, marker_frame());
 
       // Lookup world <= effector transform at the moment marker detected.
 	result.Twe = _tf2_buffer.lookupTransform(world_frame(),
@@ -243,15 +228,6 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	res.Twm	    = _Twm;
 
 	ROS_INFO_STREAM("compute_calibration(): " << res.message);
-
-#ifdef DEBUG
-	std::ofstream	out("Tcm_Twe_pairs.txt");
-	out << Tcm.size() << std::endl;
-	for (size_t i = 0; i < Tcm.size(); ++i)
-	    out << Tcm[i] << std::endl
-		<< Twe[i] << std::endl << std::endl;
-	out << sout.str();
-#endif
     }
     catch (const std::exception& err)
     {
@@ -270,80 +246,36 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
 {
     try
     {
-	YAML::Emitter	emitter;
-	emitter << YAML::BeginMap;
-
-	emitter << YAML::Key   << "eye_on_hand"
-		<< YAML::Value << _eye_on_hand;
-
-	emitter << YAML::Key   << "camera_transform"
-		<< YAML::Value
-		<< YAML::BeginMap;
-	emitter << YAML::Key   << "parent"
-		<< YAML::Value << effector_frame();
-	emitter << YAML::Key   << "child"
-		<< YAML::Value << camera_frame();
-	emitter << YAML::Key   << "transform"
-		<< YAML::Value
-		<< YAML::Flow
-		<< YAML::BeginMap
-		<< YAML::Key   << "x"
-		<< YAML::Value << _Tec.transform.translation.x
-		<< YAML::Key   << "y"
-		<< YAML::Value << _Tec.transform.translation.y
-		<< YAML::Key   << "z"
-		<< YAML::Value << _Tec.transform.translation.z
-		<< YAML::Key   << "qx"
-		<< YAML::Value << _Tec.transform.rotation.x
-		<< YAML::Key   << "qy"
-		<< YAML::Value << _Tec.transform.rotation.y
-		<< YAML::Key   << "qz"
-		<< YAML::Value << _Tec.transform.rotation.z
-		<< YAML::Key   << "qw"
-		<< YAML::Value << _Tec.transform.rotation.w
-		<< YAML::EndMap;
-	emitter << YAML::EndMap;
-
-	emitter << YAML::Key   << "marker_transform"
-		<< YAML::Value
-		<< YAML::BeginMap;
-	emitter << YAML::Key   << "parent"
-		<< YAML::Value << world_frame();
-	emitter << YAML::Key   << "child"
-		<< YAML::Value << object_frame();
-	emitter << YAML::Key   << "transform"
-		<< YAML::Value
-		<< YAML::Flow
-		<< YAML::BeginMap
-		<< YAML::Key   << "x"
-		<< YAML::Value << _Twm.transform.translation.x
-		<< YAML::Key   << "y"
-		<< YAML::Value << _Twm.transform.translation.y
-		<< YAML::Key   << "z"
-		<< YAML::Value << _Twm.transform.translation.z
-		<< YAML::Key   << "qx"
-		<< YAML::Value << _Twm.transform.rotation.x
-		<< YAML::Key   << "qy"
-		<< YAML::Value << _Twm.transform.rotation.y
-		<< YAML::Key   << "qz"
-		<< YAML::Value << _Twm.transform.rotation.z
-		<< YAML::Key   << "qw"
-		<< YAML::Value << _Twm.transform.rotation.w
-		<< YAML::EndMap;
-	emitter << YAML::EndMap;
+	using	aist_utility::operator <<;
 
 	const auto	tval = time(nullptr);
 	const auto	tstr = ctime(&tval);
 	tstr[strlen(tstr)-1] = '\0';
-	emitter << YAML::Key   << "calibration_date"
-		<< YAML::Value << tstr;
 
+	YAML::Emitter	emitter;
+	emitter << YAML::BeginMap
+		<< YAML::Key   << "calibration_date"
+		<< YAML::Value << tstr
+		<< YAML::Key   << "eye_on_hand"
+		<< YAML::Value << _eye_on_hand
+		<< YAML::Key   << "use_dual_quaternion"
+		<< YAML::Value << _use_dual_quaternion
+		<< YAML::Key   << "camera_transform"
+		<< YAML::Value << _Tec
+		<< YAML::Key   << "marker_transform"
+		<< YAML::Value << _Twm;
+	aist_utility::operator <<(emitter << YAML::Key << "Tcm"<< YAML::Value,
+				  _Tcm);
+	aist_utility::operator <<(emitter << YAML::Key << "Twe"<< YAML::Value,
+				  _Twe);
 	emitter << YAML::EndMap;
 
       // Read calibration file name from parameter server.
-	std::string	calib_file;
-	_nh.param<std::string>("calib_file", calib_file,
-			       getenv("HOME") + std::string("/.ros/aist_handeye_calibration/calib.yaml"));
+	const auto	calib_file = std::string(getenv("HOME"))
+				   + "/.ros/aist_handeye_calibration/"
+				   + _nh.param<std::string>("camera_name",
+							    "camera")
+				   + ".yaml";
 
       // Open/create parent directory of the calibration file.
 	const auto	dir = calib_file.substr(0,

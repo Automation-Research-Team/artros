@@ -74,7 +74,7 @@ class Calibrator
   private:
     const std::string&	camera_frame()				const	;
     const std::string&	effector_frame()			const	;
-    const std::string&	object_frame()				const	;
+    const std::string&	marker_frame()				const	;
     const std::string&	world_frame()				const	;
 
     void	pose_cb(const poseMsg_cp& pose)				;

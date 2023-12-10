@@ -41,10 +41,10 @@
 #ifndef AIST_UTILITY_GEOMETRY_MSGS_H
 #define AIST_UTILITY_GEOMETRY_MSGS_H
 
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/Transform.h>
-#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/PoseArray.h>
 #include <aist_utility/tf.h>
+#include <yaml-cpp/yaml.h>
 
 namespace aist_utility
 {
@@ -300,7 +300,7 @@ identity(geometry_msgs::Transform)
 
     return ret;
 }
-    
+
 /*
  *  I/O operators
  */
@@ -345,7 +345,7 @@ operator <<(std::ostream& out, const geometry_msgs::Twist& twist)
 }
 
 /*
- *  Conversion betwenn Transform and Pose
+ *  Conversion between Transform and Pose
  */
 inline geometry_msgs::Pose
 toPose(const geometry_msgs::Transform& transform)
@@ -391,6 +391,289 @@ toTransform(const geometry_msgs::PoseStamped& pose,
     transform.transform	     = toTransform(pose.pose);
 
     return transform;
+}
+
+/*
+ *  Emit geometry messages in YAML format
+ */
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const ros::Time& time)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key << "secs"  << YAML::Value << time.sec
+		   << YAML::Key << "nsecs" << YAML::Value << time.nsec
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const std_msgs::Header& header)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key << "seq"      << YAML::Value << header.seq
+		   << YAML::Key << "stamp"    << YAML::Value << header.stamp
+		   << YAML::Key << "frame_id" << YAML::Value << header.frame_id
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::Vector3& v)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key << "x" << YAML::Value << v.x
+		   << YAML::Key << "y" << YAML::Value << v.y
+		   << YAML::Key << "z" << YAML::Value << v.z
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::Quaternion& q)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key << "x" << YAML::Value << q.x
+		   << YAML::Key << "y" << YAML::Value << q.y
+		   << YAML::Key << "z" << YAML::Value << q.z
+		   << YAML::Key << "w" << YAML::Value << q.w
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::Point& p)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key << "x" << YAML::Value << p.x
+		   << YAML::Key << "y" << YAML::Value << p.y
+		   << YAML::Key << "z" << YAML::Value << p.z
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::Pose& pose)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key   << "position"
+		   << YAML::Value << pose.position
+		   << YAML::Key   << "orientation"
+		   << YAML::Value << pose.orientation
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::Twist& twist)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key << "linear"  << YAML::Value << twist.linear
+		   << YAML::Key << "angular" << YAML::Value << twist.angular
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::Transform& t)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key   << "translation"
+		   << YAML::Value << t.translation
+		   << YAML::Key   << "rotation"
+		   << YAML::Value << t.rotation
+		   << YAML::EndMap;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::TransformStamped& t)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key   << "header"
+		   << YAML::Value << t.header
+		   << YAML::Key   << "child_frame_id"
+		   << YAML::Value << t.child_frame_id
+		   << YAML::Key   << "transform"
+		   << YAML::Value << t.transform
+		   << YAML::EndMap;
+}
+
+template <class MSG> YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const std::vector<MSG>& msgs)
+{
+    emitter << YAML::BeginSeq;
+    for (const auto& msg : msgs)
+	aist_utility::operator <<(emitter, msg);
+    return emitter << YAML::EndSeq;
+}
+
+namespace detail
+{
+template <class MSG> inline YAML::Emitter&
+put(YAML::Emitter& emitter,
+    const std_msgs::Header& header, const MSG& msg, const std::string& key)
+{
+    using aist_utility::operator <<;
+
+    emitter << YAML::BeginMap
+	    << YAML::Key << "header" << YAML::Value << header
+	    << YAML::Key << key      << YAML::Value;
+    return aist_utility::operator <<(emitter, msg) << YAML::EndMap;
+}
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::Vector3Stamped& v)
+{
+    return detail::put(emitter, v.header, v.vector, "vector");
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::QuaternionStamped& q)
+{
+    return detail::put(emitter, q.header, q.quaternion, "quaternion");
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::PointStamped& p)
+{
+    return detail::put(emitter, p.header, p.point, "point");
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::PoseStamped& pose)
+{
+    return detail::put(emitter, pose.header, pose.pose, "pose");
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::PoseArray& poses)
+{
+    return detail::put(emitter, poses.header, poses.poses, "poses");
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const geometry_msgs::TwistStamped& twist)
+{
+    return detail::put(emitter, twist.header, twist.twist, "twist");
+}
+
+/*
+ *  Restore YAML as geometry messages
+ */
+inline void
+operator >>(const YAML::Node& node, ros::Time& time)
+{
+    time.sec  = node["secs"] .as<uint32_t>();
+    time.nsec = node["nsecs"].as<uint32_t>();
+}
+
+inline void
+operator >>(const YAML::Node& node, std_msgs::Header& header)
+{
+    header.seq = node["seq"].as<uint32_t>();
+    node["stamp"] >> header.stamp;
+    header.frame_id = node["frame_id"].as<std::string>();
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::Vector3& vector)
+{
+    vector.x = node["x"].as<double>();
+    vector.y = node["y"].as<double>();
+    vector.z = node["z"].as<double>();
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::Quaternion& q)
+{
+    q.x = node["x"].as<double>();
+    q.y = node["y"].as<double>();
+    q.z = node["z"].as<double>();
+    q.w = node["w"].as<double>();
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::Transform& t)
+{
+    node["translation"] >> t.translation;
+    node["rotation"]    >> t.rotation;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::Point& point)
+{
+    point.x = node["x"].as<double>();
+    point.y = node["y"].as<double>();
+    point.z = node["z"].as<double>();
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::Pose& pose)
+{
+    node["position"]    >> pose.position;
+    node["orientation"] >> pose.orientation;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::Twist& twist)
+{
+    node["linear"]  >> twist.linear;
+    node["angular"] >> twist.angular;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::Vector3Stamped& v)
+{
+    node["header"] >> v.header;
+    node["vector"] >> v.vector;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::QuaternionStamped& q)
+{
+    node["header"]     >> q.header;
+    node["quaternion"] >> q.quaternion;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::PointStamped& p)
+{
+    node["header"] >> p.header;
+    node["point"]  >> p.point;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::PoseStamped& pose)
+{
+    node["header"] >> pose.header;
+    node["pose"]   >> pose.pose;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::TwistStamped& twist)
+{
+    node["header"] >> twist.header;
+    node["twist"]  >> twist.twist;
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::TransformStamped& t)
+{
+    node["header"] >> t.header;
+    t.child_frame_id = node["child_frame_id"].as<std::string>();
+    node["transform"]  >> t.transform;
+}
+
+template <class MSG> void
+operator >>(const YAML::Node& node, std::vector<MSG>& msgs)
+{
+    if (node.IsSequence())
+	for (const auto& sub_node : node)
+	{
+	    MSG	msg;
+	    aist_utility::operator >>(sub_node, msg);
+	    msgs.push_back(msg);
+	}
+}
+
+inline void
+operator >>(const YAML::Node& node, geometry_msgs::PoseArray& poses)
+{
+    node["header"] >> poses.header;
+    aist_utility::operator >>(node["poses"], poses.poses);
 }
 
 }	// namespace aist_utility

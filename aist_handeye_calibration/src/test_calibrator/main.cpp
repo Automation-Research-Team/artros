@@ -30,55 +30,72 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-#include <cstdlib>
+#include <cstdlib>	// for std::getenv()
+#include <aist_utility/geometry_msgs.h>
 #include "HandeyeCalibration.h"
 
 namespace TU
 {
 template <class T> void
-doJob(bool single, bool eye_on_hand)
+doJob(const std::string& camera_name, bool single)
 {
-    size_t	nposes;
-    std::cin >> nposes;
-    std::vector<Transform<T> >	cMo(nposes), wMe(nposes);
-    for (size_t n = 0; n < nposes; ++n)
-    {
-	std::cin >> cMo[n] >> wMe[n];
-	std::cout << "=== cMo[" << n << "] ===" << std::endl;
-	cMo[n].print(std::cout);
+    using	aist_utility::operator >>;
 
-	std::cout << "=== wMe[" << n << "] ===" << std::endl;
-	if (eye_on_hand)
-	    wMe[n].print(std::cout) << std::endl;
-	else
-	    wMe[n].inverse().print(std::cout) << std::endl;
-    }
+  // Load YAML containing sampled transformations.
+    const auto		calib_file = std::string(getenv("HOME"))
+				   + "/.ros/aist_handeye_calibration/"
+				   + camera_name + ".yaml";
+    const YAML::Node	node = YAML::LoadFile(calib_file);
+    const auto		eye_on_hand = node["eye_on_hand"].as<bool>();
 
+    std::vector<geometry_msgs::TransformStamped>	Tcm_msgs, Twe_msgs;
+    node["Tcm"] >> Tcm_msgs;
+    node["Twe"] >> Twe_msgs;
 
-    const auto	eMc = (single ? cameraToEffectorSingle(cMo, wMe)
-			      : cameraToEffectorDual(cMo, wMe));
-    const auto	wMo = objectToWorld(cMo, wMe, eMc);
-    evaluateAccuracy(std::cout, cMo, wMe, eMc, wMo);
+  // Convert geometry_msgs::TransformStamped to TU::Transform<T>.
+    std::vector<Transform<T> >	Tcm, Twe;
+    for (const auto& Tcm_msg : Tcm_msgs)
+	Tcm.push_back(Tcm_msg.transform);
+    for (const auto& Twe_msg : Twe_msgs)
+	Twe.push_back(Twe_msg.transform);
+
+  // Do calibration.
+    const auto	Tec = (single ? cameraToEffectorSingle(Tcm, Twe)
+			      : cameraToEffectorDual(Tcm, Twe));
+    const auto	Twm = objectToWorld(Tcm, Twe, Tec);
+    evaluateAccuracy(std::cout, Tcm, Twe, Tec, Twm);
+
+  // Print calibration result.
+    std::cout << "\n=== camera_transform ===\n" << Tec << std::endl
+	      << "=== marker_transform ===\n" << Twm << std::endl << std::endl;
 }
-
 }	// namespace TU
 
 int
 main(int argc, char* argv[])
 {
-    bool	single = false, eye_on_hand = false;
-    for (int c; (c = getopt(argc, argv, "se")) !=EOF; )
+    bool	single = false;
+    std::string	camera_name("camera");
+    for (int c; (c = getopt(argc, argv, "sc:")) !=EOF; )
 	switch (c)
 	{
 	  case 's':
 	    single = true;
 	    break;
-	  case 'e':
-	    eye_on_hand = true;
+	  case 'c':
+	    camera_name = optarg;
 	    break;
 	}
 
-    TU::doJob<double>(single, eye_on_hand);
+    try
+    {
+	TU::doJob<double>(camera_name, single);
+    }
+    catch (const std::exception& err)
+    {
+	std::cerr << err.what();
+	return -1;
+    }
 
     return 0;
 }

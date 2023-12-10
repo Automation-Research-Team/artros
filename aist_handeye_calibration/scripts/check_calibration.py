@@ -71,13 +71,13 @@ class CheckCalibrationRoutines(AISTBaseRoutines):
                                     gmsg.Quaternion(
                                          *tfs.quaternion_from_euler(
                                              *map(radians, pose[3:6]))))
-        print('  move to ' + self.format_pose(poseStamped))
+        print('  move to %s' % self.format_pose(poseStamped))
         (success, _, current_pose) \
             = self.go_to_pose_goal(
                 self._robot_name, poseStamped, self._speed,
                 end_effector_link=self._robot_effector_frame,
                 move_lin=True)
-        print('  reached ' + self.format_pose(current_pose))
+        print('  reached %s' % self.format_pose(current_pose))
         return success
 
     def move_to_marker(self):
@@ -90,21 +90,21 @@ class CheckCalibrationRoutines(AISTBaseRoutines):
         #  to the approach pose because the marker pose is given w.r.t. camera
         #  frame which will change while moving in the case of "eye on hand".
         target_pose = self.transform_pose_to_target_frame(marker_pose)
-        print('  move to ' + self.format_pose(approach_pose))
+        print('  move to %s' % self.format_pose(approach_pose))
         (success, _, current_pose) \
             = self.go_to_pose_goal(
                 self._robot_name, approach_pose, self._speed,
                 end_effector_link=self._robot_effector_tip_frame,
                 move_lin=True)
-        print('  reached ' + self.format_pose(current_pose))
+        print('  reached %s' % self.format_pose(current_pose))
         rospy.sleep(1)
-        print('  move to ' + self.format_pose(target_pose))
+        print('  move to %s' % self.format_pose(target_pose))
         (success, _, current_pose) \
             = self.go_to_pose_goal(
                 self._robot_name, target_pose, 0.05,
                 end_effector_link=self._robot_effector_tip_frame,
                 move_lin=True)
-        print('  reached ' + self.format_pose(current_pose))
+        print('  reached %s' % self.format_pose(current_pose))
 
     def run(self):
         self.go_to_named_pose(self._robot_name, 'home')

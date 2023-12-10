@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="camera_name"		default="a_phoxi_m_camera"/>
+  <arg name="use_dual_quaternion"	default="true"/>
+
+  <arg if="$(arg use_dual_quaternion)"
+       name="single"	value=""/>
+  <arg unless="$(arg use_dual_quaternion)"
+       name="single"	value="-s"/>
+
+  <node name="test_calibrator"
+	pkg="aist_handeye_calibration" type="test_calibrator"
+	args="$(arg single) -c $(arg camera_name)" output="screen"/>
+
+</launch>

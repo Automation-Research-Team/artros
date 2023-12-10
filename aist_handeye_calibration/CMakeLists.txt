@@ -94,17 +94,18 @@ target_link_libraries(calibrator
   ${YAML-CPP_LIBRARIES}
 )
 
-add_executable(calibrator_test
-  src/calibrator_test/main.cpp
+add_executable(test_calibrator
+  src/test_calibrator/main.cpp
 )
 
-add_dependencies(calibrator_test
+add_dependencies(test_calibrator
   ${PROJECT_NAME}_generate_messages_cpp
 )
 
-target_link_libraries(calibrator_test
+target_link_libraries(test_calibrator
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
+  ${YAML-CPP_LIBRARIES}
 )
 
 add_executable(plane_detector
@@ -127,7 +128,7 @@ target_link_libraries(plane_detector
 #############
 install(
   TARGETS
-    calibrator calibrator_test plane_detector
+    calibrator test_calibrator plane_detector
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

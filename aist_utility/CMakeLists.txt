@@ -14,6 +14,7 @@ set(CMAKE_CXX_BUILD_TYPE	Release)
 
 find_package(PkgConfig)
 pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
+pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -102,6 +103,7 @@ target_link_libraries(
   ${roscpp_LIBRARIES}
   ${LIBTIFF_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${YAML-CPP_LIBRARIES}
 )
 
 #

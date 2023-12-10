@@ -138,13 +138,12 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         # Collect samples over pre-defined poses
         keyposes = self._keyposes
         for i, keypose in enumerate(keyposes, 1):
-            print('\n*** Keypose [{}/{}]: Try! ***'.format(i, len(keyposes)))
+            print('\n*** Keypose [%d/%d]: Try! ***' % (i, len(keyposes)))
             if self._eye_on_hand:
                 self._move_to(keypose, i, 1)
             else:
                 self._move_to_subposes(keypose, i)
-            print('*** Keypose [{}/{}]: Completed. ***'
-                  .format(i, len(keyposes)))
+            print('*** Keypose [%d/%d]: Completed. ***' % (i, len(keyposes)))
 
         if self._compute_calibration:
             try:
@@ -155,43 +154,43 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                     res = self._save_calibration()
                     print(res.message)
             except rospy.ServiceException as e:
-                rospy.logerr('Service call failed: %s' % e)
+                rospy.logerr('Service call failed: %s', e)
             except Exception as e:
                 rospy.logerr(e)
         self.go_to_named_pose(self._robot_name, 'home')
 
     def go_to_marker(self):
         self.trigger_frame(self._camera_name)
-        marker_pose = rospy.wait_for_message('/aruco_detector_3d/pose',
-                                             PoseStamped, 10)
+        marker_pose   = rospy.wait_for_message('/aruco_detector_3d/pose',
+                                               PoseStamped, 10)
         approach_pose = self.add_offset_to_pose(marker_pose, (0, 0, 0.05))
 
         # We have to transform the target pose to reference frame before moving
         # to the approach pose because the marker pose is given w.r.t. camera
         # frame which will change while moving in the case of "eye on hand".
         target_pose = self.transform_pose_to_target_frame(marker_pose)
-        print('  move to ' + self.format_pose(approach_pose))
+        print('  move to %s' % self.format_pose(approach_pose))
         success, _, current_pose \
             = self.go_to_pose_goal(
                 self._robot_name, approach_pose, self._speed,
                 end_effector_link=self._robot_effector_tip_frame,
                 move_lin=True)
-        print('  reached ' + self.format_pose(current_pose))
+        print('  reached %s' % self.format_pose(current_pose))
         rospy.sleep(1)
-        print('  move to ' + self.format_pose(target_pose))
+        print('  move to %s' % self.format_pose(target_pose))
         success, _, current_pose \
             = self.go_to_pose_goal(
                 self._robot_name, target_pose, 0.05,
                 end_effector_link=self._robot_effector_tip_frame,
                 move_lin=True)
-        print('  reached ' + self.format_pose(current_pose))
+        print('  reached %s' % self.format_pose(current_pose))
 
     # Move stuffs
     def _move_to_subposes(self, keypose, keypose_num):
         subpose = copy.copy(keypose)
         roll = subpose[3]
         for i in range(3):
-            print('\n--- Subpose [{}/5]: Try! ---'.format(i + 1))
+            print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
             if self._move_to(subpose, keypose_num, i + 1):
                 rospy.loginfo('Subpose [%d/5]: Succeeded.', i + 1)
             else:
@@ -202,7 +201,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         subpose[4] += 15
 
         for i in range(2):
-            print('\n--- Subpose [{}/5]: Try! ---'.format(i + 4))
+            print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
             if self._move_to(subpose, keypose_num, i + 4):
                 rospy.loginfo('Subpose [%d/5]: Succeeded.', i + 4)
             else:
@@ -230,25 +229,25 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             pose.header = result.Tcm.header
             pose.pose.position    = result.Tcm.transform.translation
             pose.pose.orientation = result.Tcm.transform.rotation
-#            print('  camera <= obejct   ' + self.format_pose(pose))
+#            print('  camera <= marker   %s' % self.format_pose(pose))
             pose.header = result.Twe.header
             pose.pose.position    = result.Twe.transform.translation
             pose.pose.orientation = result.Twe.transform.rotation
-            print('  world  <= effector ' + self.format_pose(pose))
+            print('  world  <= effector %s' % self.format_pose(pose))
 
             n = len(self._get_sample_list().Tcm)
-            print('  {} samples taken'.format(n))
+            print('  %d samples taken' % n)
 
         return True
 
     def _move(self, xyzrpy, end_effector_link):
         pose = self.pose_from_xyzrpy(xyzrpy)
-        print('  move to ' + self.format_pose(pose))
+        print('  move to %s' % self.format_pose(pose))
         success, _, current_pose \
             = self.go_to_pose_goal(self._robot_name, pose, self._speed,
                                    end_effector_link=end_effector_link,
                                    move_lin=True)
-        print('  reached ' + self.format_pose(current_pose))
+        print('  reached %s' % self.format_pose(current_pose))
         return success
 
     def _save_camera_placement(self, Tec):
@@ -264,7 +263,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         camera_base_frame = chain[-2]
 
         # Compute transform from camera base frame to its parent.
-        eTc = self.listener.fromTranslationRotation(
+        Mec = self.listener.fromTranslationRotation(
                                 (Tec.transform.translation.x,
                                  Tec.transform.translation.y,
                                  Tec.transform.translation.z),
@@ -272,22 +271,22 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
                                  Tec.transform.rotation.y,
                                  Tec.transform.rotation.z,
                                  Tec.transform.rotation.w))
-        pTe = self.listener.fromTranslationRotation(
+        Mpe = self.listener.fromTranslationRotation(
                                 *self.listener.lookupTransform(
                                     camera_parent_frame,
                                     Tec.header.frame_id, stamp))
-        cTb = self.listener.fromTranslationRotation(
+        Mcb = self.listener.fromTranslationRotation(
                                 *self.listener.lookupTransform(
                                     camera_frame, camera_base_frame, stamp))
-        pTb = tfs.concatenate_matrices(pTe, eTc, cTb)
+        Mpb = tfs.concatenate_matrices(Mpe, Mec, Mcb)
 
         # Convert the transform to xyz-rpy representation.
-        xyz  = list(map(float, tfs.translation_from_matrix(pTb)))
-        rpy  = list(map(float, tfs.euler_from_matrix(pTb)))
+        xyz  = list(map(float, tfs.translation_from_matrix(Mpb)))
+        rpy  = list(map(float, tfs.euler_from_matrix(Mpb)))
         data = {'parent': camera_parent_frame,
                 'child' : camera_base_frame,
                 'origin': xyz + rpy}
-        print(data)
+
         # Save the transform.
         filename = rospkg.RosPack().get_path('aist_handeye_calibration') \
                  + '/calib/' + self._camera_name + '.yaml'
@@ -295,7 +294,6 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
             yaml.dump(data, file, default_flow_style=False)
             rospy.loginfo('Saved transform from camera base frame[%s] to camera parent frame[%s] into %s'
                           % (camera_base_frame, camera_parent_frame, filename))
-
 
 ######################################################################
 #  global functions                                                  #
