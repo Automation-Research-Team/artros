@@ -444,9 +444,8 @@ class AISTBaseRoutines(object):
         if fraction < 0.995:
             rospy.logerr('Computed only %3.1f%% of cartesian path.',
                          100*fraction)
-            return None, None
+            return None
         rospy.loginfo('Computed %3.1f%% of cartesian path.', 100*fraction)
-
         return path
 
     def create_timed_path(self, robot_name, poses, times_from_start):
