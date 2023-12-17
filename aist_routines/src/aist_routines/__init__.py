@@ -263,7 +263,7 @@ class AISTBaseRoutines(object):
             else:
                 xyzrpy[5] = float(key)
             self.go_to_pose_goal(robot_name,
-                                 self.pose_from_xyzrpy(xyzrpy), speed)
+                                 self.pose_from_xyzrpy(xyzrpy), speed=speed)
         elif key == 'home':
             self.go_to_named_pose(robot_name, "home")
         elif key == 'back':
@@ -362,48 +362,30 @@ class AISTBaseRoutines(object):
     def get_current_pose(self, robot_name):
         return self._cmd.get_group(robot_name).get_current_pose()
 
-    def move_relative(self, robot_name, offset, speed=1.0, accel=1.0,
-                      end_effector_link='', move_lin=True):
+    def move_relative(self, robot_name, offset,
+                      speed=1.0, accel=1.0, end_effector_link=''):
         return self.go_to_pose_goal(robot_name,
-                                    self.add_offset_to_pose(
-                                        self.get_current_pose(robot_name),
-                                        offset),
-                                    speed, accel, end_effector_link, move_lin)
+                                    self.get_current_pose(robot_name),
+                                    offset, speed, accel, end_effector_link)
 
-    def go_to_frame(self, robot_name, target_frame, offset=(0, 0, 0),
-                    speed=1.0, accel=1.0, end_effector_link='', move_lin=True):
+    def go_to_frame(self, robot_name, target_frame, offset=(),
+                    speed=1.0, accel=1.0, end_effector_link=''):
         return self.go_to_pose_goal(robot_name,
-                                    self.add_offset_to_pose(
-                                        PoseStamped(
-                                            Header(frame_id=target_frame),
-                                            Pose(Point(0, 0, 0),
-                                                 Quaternion(0, 0, 0, 1))),
-                                        offset),
-                                    speed, accel, end_effector_link, move_lin)
+                                    PoseStamped(Header(frame_id=target_frame),
+                                                Pose(Point(0, 0, 0),
+                                                     Quaternion(0, 0, 0, 1))),
+                                    offset, speed, accel, end_effector_link)
 
-    def go_to_pose_goal(self, robot_name, target_pose, speed=1.0, accel=1.0,
-                        end_effector_link='', move_lin=True):
-        self.add_marker('pose', target_pose)
-        self.publish_marker()
+    def go_to_pose_goal(self, robot_name, target_pose, offset=(),
+                        speed=1.0, accel=1.0, end_effector_link=''):
+        return self.go_along_poses(robot_name, PoseArray(target_pose.header,
+                                                         [target_pose.pose]),
+                                   offset, speed, accel, end_effector_link)
 
-        if move_lin:
-            return self.go_along_poses(robot_name,
-                                       PoseArray(target_pose.header,
-                                                 [target_pose.pose]),
-                                       speed, accel, end_effector_link)
-
-        group = self._cmd.get_group(robot_name)
-
-        if end_effector_link == '':
-            end_effector_link = self.gripper(robot_name).tip_link
-        group.set_end_effector_link(end_effector_link)
-
-        return self._go(group, speed, accel), group.get_current_pose()
-
-    def go_along_poses(self, robot_name, poses,
+    def go_along_poses(self, robot_name, poses, offset=(),
                        speed=1.0, accel=1.0, end_effector_link=''):
         group = self._cmd.get_group(robot_name)
-        path  = self.create_path(robot_name, poses,
+        path  = self.create_path(robot_name, poses, offset,
                                  speed, accel, end_effector_link)
         if path is None:
             return False, group.get_current_pose()
@@ -422,7 +404,7 @@ class AISTBaseRoutines(object):
         self.stop(robot_name)
         return success
 
-    def create_path(self, robot_name, poses,
+    def create_path(self, robot_name, poses, offset=(),
                     speed=1.0, accel=1.0, end_effector_link=''):
         group = self._cmd.get_group(robot_name)
 
@@ -432,7 +414,7 @@ class AISTBaseRoutines(object):
 
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
-        transformed_poses = self.transform_poses_to_target_frame(poses)
+        transformed_poses = self.transform_poses_to_target_frame(poses, offset)
 
         try:
             path, fraction = group.compute_cartesian_path(
@@ -624,19 +606,17 @@ class AISTBaseRoutines(object):
                                              wait, done_cb, active_cb)
 
     def pick_at_frame(self, robot_name, target_frame, part_id,
-                      offset=(0, 0, 0),
-                      wait=True, done_cb=None, active_cb=None):
+                      offset=(), wait=True, done_cb=None, active_cb=None):
         return self.pick(robot_name,
                          PoseStamped(Header(frame_id=target_frame),
-                                     self.pose_from_list(offset)),
+                                     self.pose_from_offset(offset)),
                          part_id, wait, done_cb, active_cb)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
-                       offset=(0, 0, 0),
-                       wait=True, done_cb=None, active_cb=None):
+                       offset=(), wait=True, done_cb=None, active_cb=None):
         return self.place(robot_name,
                           PoseStamped(Header(frame_id=target_frame),
-                                      self.pose_from_list(offset)),
+                                      self.pose_from_offset(offset)),
                           part_id, wait, done_cb, active_cb)
 
     def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
@@ -650,13 +630,14 @@ class AISTBaseRoutines(object):
         self._pick_or_place.cancel_goal()
 
     # Utility functions
-    def transform_pose_to_target_frame(self, pose, target_frame=''):
+    def transform_pose_to_target_frame(self, pose, offset=(), target_frame=''):
         poses = self.transform_poses_to_target_frame(PoseArray(pose.header,
                                                                [pose.pose]),
-                                                     target_frame)
+                                                     offset, target_frame)
         return PoseStamped(poses.header, poses.poses[0])
 
-    def transform_poses_to_target_frame(self, poses, target_frame=''):
+    def transform_poses_to_target_frame(self, poses,
+                                        offset=(), target_frame=''):
         if target_frame == '':
             target_frame = self.reference_frame
 
@@ -679,25 +660,13 @@ class AISTBaseRoutines(object):
                     self._listener.fromTranslationRotation(
                         (pose.position.x, pose.position.y, pose.position.z),
                         (pose.orientation.x, pose.orientation.y,
-                         pose.orientation.z, pose.orientation.w)))
+                         pose.orientation.z, pose.orientation.w)),
+                    self._listener.fromTranslationRotation(
+                        self._position_from_offset(offset[0:3]),
+                        self._orientation_from_offset(offset[3:])))
             transformed_poses.poses.append(
                 Pose(Point(*tuple(tfs.translation_from_matrix(T))),
                      Quaternion(*tuple(tfs.quaternion_from_matrix(T)))))
-        return transformed_poses
-
-    def add_offset_to_poses(self, poses, offset):
-        transformed_poses = PoseArray(poses.header, [])
-        for pose in poses.poses:
-            T = tfs.concatenate_matrices(
-                    self._listener.fromTranslationRotation(
-                        (pose.position.x, pose.position.y, pose.position.z),
-                        (pose.orientation.x, pose.orientation.y,
-                         pose.orientation.z, pose.orientation.w)),
-                    self._listener.fromTranslationRotation(
-                        offset[0:3], self._quaternion_from_list(offset[3:])))
-            transformed_poses.poses.append(
-                Pose(Point(*tfs.translation_from_matrix(T)),
-                     Quaternion(*tfs.quaternion_from_matrix(T))))
         return transformed_poses
 
     def correct_orientation(self, pose):
@@ -719,7 +688,7 @@ class AISTBaseRoutines(object):
 
     def pose_from_xyzrpy(self, xyzrpy):
         return PoseStamped(Header(frame_id=self.reference_frame),
-                           self.pose_from_list(xyzrpy))
+                           self.pose_from_offset(xyzrpy))
 
     def xyz_rpy(self, pose):
         transformed_pose = self.transform_pose_to_target_frame(pose).pose
@@ -736,12 +705,15 @@ class AISTBaseRoutines(object):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
             *self.xyz_rpy(target_pose))
 
-    def pose_from_list(self, l):
-        return Pose(Point(*l[0:3]),
-                    Quaternion(*self._quaternion_from_list(l[3:])))
+    def pose_from_offset(self, offset):
+        return Pose(Point(*self._position_from_offset(offset[0:3])),
+                    Quaternion(*self._orientation_from_offset(offset[3:])))
 
     # Private functions
-    def _quaternion_from_list(self, offset):
+    def _position_from_offset(self, offset):
+        return np.array((0, 0, 0) if len(offset) < 3 else offset[0:3])
+
+    def _orientation_from_offset(self, offset):
         return np.array((0, 0, 0, 1)) if len(offset) < 3 else \
                tfs.quaternion_from_euler(*np.radians(offset[0:3])) if len(offset) == 3 else \
                np.array(offset[0:4])
@@ -762,11 +734,6 @@ class AISTBaseRoutines(object):
         return [ Point(*tuple(np.dot(mat44,
                                      np.array((p.x, p.y, p.z, 1.0)))[:3]))
                  for p in points ]
-
-    def add_offset_to_pose(self, pose, offset):
-        poses = self.add_offset_to_poses(PoseArray(pose.header, [pose.pose]),
-                                         offset)
-        return PoseStamped(poses.header, poses.poses[0])
 
     def _correct_orientation(self, orientation, up):
         q     = (orientation.x, orientation.y, orientation.z, orientation.w)

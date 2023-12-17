@@ -118,13 +118,9 @@ class PickOrPlace(SimpleActionClient):
         rospy.loginfo('--- Go to approach pose. ---')
         feedback.stage = PickOrPlaceFeedback.MOVING
         self._server.publish_feedback(feedback)
-        scaling_factor = goal.speed_fast if goal.pick else goal.speed_slow
-        success, _     = routines.go_to_pose_goal(goal.robot_name,
-                                                  routines.add_offset_to_pose(
-                                                      goal.pose,
-                                                      goal.approach_offset),
-                                                  scaling_factor,
-                                                  scaling_factor)
+        speed      = goal.speed_fast if goal.pick else goal.speed_slow
+        success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                              goal.approach_offset, speed)
         if not self._server.is_active():
             return
         if not success:
@@ -139,12 +135,8 @@ class PickOrPlace(SimpleActionClient):
         self._server.publish_feedback(feedback)
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
-        target_pose = routines.add_offset_to_pose(goal.pose, goal.offset)
-        routines.add_marker('pick_pose' if goal.pick else 'place_pose',
-                            target_pose)
-        routines.publish_marker()
-        success, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
-                                              goal.speed_slow)
+        success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                              goal.offset, goal.speed_slow)
         if not self._server.is_active():
             return
         if not success:
@@ -169,15 +161,13 @@ class PickOrPlace(SimpleActionClient):
         self._server.publish_feedback(feedback)
         if goal.pick:
             gripper.postgrasp()                 # Postgrasp (not wait)
-            offset         = goal.departure_offset
-            scaling_factor = goal.speed_slow
+            offset = goal.departure_offset
+            speed  = goal.speed_slow
         else:
-            offset         = goal.approach_offset
-            scaling_factor = goal.speed_fast
+            offset = goal.approach_offset
+            speed  = goal.speed_fast
         success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              routines.add_offset_to_pose(
-                                                  goal.pose, offset),
-                                              scaling_factor, scaling_factor)
+                                              goal.pose, offset, speed)
         if not self._server.is_active():
             return
         if not success:

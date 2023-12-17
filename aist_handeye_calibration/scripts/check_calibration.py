@@ -46,15 +46,13 @@ from aist_utility.compat import *
 #  class CheckCalibrationRoutines                                    #
 ######################################################################
 class CheckCalibrationRoutines(AISTBaseRoutines):
-    """Wrapper of MoveGroupCommander specific for this script"""
-
     def __init__(self):
-        super(CheckCalibrationRoutines, self).__init__()
+        super(CheckCalibrationRoutines, self).__init__(
+            rospy.get_param('~robot_base_frame', 'workspace_center'))
+
         self._camera_name      = rospy.get_param('~camera_name',
                                                  'realsenseD435')
         self._robot_name       = rospy.get_param('~robot_name', 'b_bot')
-        self._robot_base_frame = rospy.get_param('~robot_base_frame',
-                                                 'workspace_center')
         self._robot_effector_frame \
                                = rospy.get_param('~robot_effector_frame',
                                                  'b_bot_ee_link')
@@ -64,73 +62,73 @@ class CheckCalibrationRoutines(AISTBaseRoutines):
         self._initpose         = rospy.get_param('~initpose', [])
         self._speed            = rospy.get_param('~speed', 1)
 
-    def move(self, pose):
-        poseStamped = gmsg.PoseStamped()
-        poseStamped.header.frame_id = self._robot_base_frame
-        poseStamped.pose = gmsg.Pose(gmsg.Point(*pose[0:3]),
-                                    gmsg.Quaternion(
-                                         *tfs.quaternion_from_euler(
-                                             *map(radians, pose[3:6]))))
-        print('  move to %s' % self.format_pose(poseStamped))
-        (success, _, current_pose) \
-            = self.go_to_pose_goal(
-                self._robot_name, poseStamped, self._speed,
-                end_effector_link=self._robot_effector_frame,
-                move_lin=True)
-        print('  reached %s' % self.format_pose(current_pose))
-        return success
-
-    def move_to_marker(self):
-        self.trigger_frame(self._camera_name)
-        marker_pose = rospy.wait_for_message('/aruco_detector_3d/pose',
-                                            gmsg.PoseStamped, 10)
-        approach_pose = self.add_offset_to_pose(marker_pose, (0, 0, 0.05))
-
-        #  We have to transform the target pose to reference frame before moving
-        #  to the approach pose because the marker pose is given w.r.t. camera
-        #  frame which will change while moving in the case of "eye on hand".
-        target_pose = self.transform_pose_to_target_frame(marker_pose)
-        print('  move to %s' % self.format_pose(approach_pose))
-        (success, _, current_pose) \
-            = self.go_to_pose_goal(
-                self._robot_name, approach_pose, self._speed,
-                end_effector_link=self._robot_effector_tip_frame,
-                move_lin=True)
-        print('  reached %s' % self.format_pose(current_pose))
-        rospy.sleep(1)
-        print('  move to %s' % self.format_pose(target_pose))
-        (success, _, current_pose) \
-            = self.go_to_pose_goal(
-                self._robot_name, target_pose, 0.05,
-                end_effector_link=self._robot_effector_tip_frame,
-                move_lin=True)
-        print('  reached %s' % self.format_pose(current_pose))
-
     def run(self):
-        self.go_to_named_pose(self._robot_name, 'home')
+        # Reset pose
+        self.go_to_named_pose(self._robot_name, "home")
+        self.print_help_messages()
+        print('')
+
+        axis = 'Y'
 
         while not rospy.is_shutdown():
-            try:
-                print('\n  RET: go to the marker')
-                print('  i  : go to initial position')
-                print('  h  : go to home position')
-                print('  q  : go to home position and quit')
-                key = raw_input('>> ')
-                if key == 'i':
-                    self.move(self._initpose)
-                elif key == 'h':
-                    self.go_to_named_pose(self._robot_name, 'home')
-                elif key == 'q':
-                    break
-                else:
-                    self.move_to_marker()
-            except rospy.ROSException as ex:
-                rospy.logwarn(ex.message)
-            except Exception as ex:
-                rospy.logerr(ex)
-                break
+            prompt = '{:>5}:{}>> '.format(axis, self.format_pose(
+                                                    self.get_current_pose(
+                                                        self._robot_name)))
+            key = raw_input(prompt)
+            _, axis, _ = self.interactive(key, self._robot_name, axis,
+                                          self._speed)
 
         self.go_to_named_pose(self._robot_name, 'home')
+
+    # interactive stuffs
+    def print_help_messages(self):
+        super(CheckCalibrationRoutines, self).print_help_messages()
+        print('=== Checking commands ===')
+        print('  init:  go to initial pose')
+        print('  RET:   go to marker')
+
+    def interactive(self, key, robot_name, axis, speed):
+        if key == 'init':
+            self.go_to_initpose()
+        elif key == '':
+            self.go_to_marker()
+        else:
+            return super(CheckCalibrationRoutines, self) \
+                  .interactive(key, robot_name, axis, speed)
+        return robot_name, axis, speed
+
+    def go_to_initpose(self):
+        pose = self.pose_from_xyzrpy(self._initpose)
+        print('  move to %s' % self.format_pose(pose))
+        success, current_pose = self.go_to_pose_goal(self._robot_name, pose,
+                                                     speed=self._speed,
+                                                     end_effector_link=self._robot_effector_frame)
+        print('  reached %s' % self.format_pose(current_pose))
+
+    def go_to_marker(self):
+        self.trigger_frame(self._camera_name)
+        try:
+            marker_pose = rospy.wait_for_message('/aruco_detector_3d/pose',
+                                                 gmsg.PoseStamped, 5)
+        except rospy.exceptions.ROSException as e:
+            rospy.logerr(e)
+            return
+
+        #  We must transform the marker pose to reference frame before moving
+        #  to the approach pose because the marker pose is given w.r.t. camera
+        #  frame which will change while moving in the case of "eye on hand".
+        marker_pose = self.transform_pose_to_target_frame(marker_pose)
+        success, current_pose = self.go_to_pose_goal(self._robot_name,
+                                                     marker_pose, (0, 0, 0.05),
+                                                     speed=self._speed,
+                                                     end_effector_link=self._robot_effector_tip_frame)
+        print('  reached %s' % self.format_pose(current_pose))
+        rospy.sleep(1)
+        print('  move to %s' % self.format_pose(marker_pose))
+        success, current_pose = self.go_to_pose_goal(self._robot_name,
+                                                     marker_pose, speed=0.05,
+                                                     end_effector_link=self._robot_effector_tip_frame)
+        print('  reached %s' % self.format_pose(current_pose))
 
 
 ######################################################################
@@ -139,5 +137,5 @@ class CheckCalibrationRoutines(AISTBaseRoutines):
 if __name__ == '__main__':
     rospy.init_node('check_calibration')
 
-    with CheckCalibrationRoutines() as routines:
-        routines.run()
+    routines = CheckCalibrationRoutines()
+    routines.run()

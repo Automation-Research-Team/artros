@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, threading, numpy as np
+import rospy, threading, copy, numpy as np
 from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg  import Transform, Vector3, Quaternion
@@ -63,16 +63,11 @@ class Sweep(SimpleActionClient):
                   sweep_offset, approach_offset, departure_offset,
                   speed_fast, speed_slow,
                   wait=True, done_cb=None, active_cb=None):
-        goal = SweepGoal()
-        goal.robot_name       = robot_name
-        goal.pose             = pose_stamped
-        goal.sweep_length     = sweep_length
-        goal.sweep_offset     = self._create_transform(sweep_offset)
-        goal.approach_offset  = self._create_transform(approach_offset)
-        goal.departure_offset = self._create_transform(departure_offset)
-        goal.speed_fast       = speed_fast
-        goal.speed_slow       = speed_slow
-        SimpleActionClient.send_goal(self, goal,
+        SimpleActionClient.send_goal(self,
+                                     SweepGoal(robot_name, pose, sweep_length,
+                                               sweep_offset, approach_offset,
+                                               departure_offset,
+                                               speed_fast, speed_slow),
                                      done_cb, active_cb, self._feedback_cb)
         if wait:
             self.wait_for_result()
@@ -104,14 +99,6 @@ class Sweep(SimpleActionClient):
     def shutdown(self):
         self._server.__del__()
 
-    def _create_transform(self, offset):
-        xyz = (0, 0, 0)    if len(offset) < 3 else offset[0:3]
-        q   = (0, 0, 0, 1) if len(offset) < 6 else \
-              tfs.quaternion_from_euler(
-                  *np.radians(offset[3:6])) if len(offset) == 6 else \
-              offset[3:7]
-        return Transform(Vector3(*xyz), Quaternion(*q))
-
     def _execute_cb(self, goal):
         rospy.loginfo("*** Do sweeping ***")
         routines = self._routines
@@ -122,18 +109,9 @@ class Sweep(SimpleActionClient):
         rospy.loginfo("--- Go to approach pose. ---")
         feedback.stage = SweepFeedback.MOVING
         self._server.publish_feedback(feedback)
-        success, _, _ = routines.go_to_pose_goal(
-                             goal.robot_name,
-                             routines.add_offset_to_pose(
-                                 goal.pose,
-                                 (goal.approach_offset.translation.x,
-                                  goal.approach_offset.translation.y,
-                                  goal.approach_offset.translation.z,
-                                  goal.approach_offset.rotation.x,
-                                  goal.approach_offset.rotation.y,
-                                  goal.approach_offset.rotation.z,
-                                  goal.approach_offset.rotation.w)),
-                             goal.speed_fast)
+        success, _ = routines.go_to_pose_goal(goal.robot_name,
+                                              goal.pose, goal.approach_offset,
+                                              goal.speed_fast)
         if not self._server.is_active():
             return
         if not success:
@@ -144,19 +122,9 @@ class Sweep(SimpleActionClient):
         # Approach sweep pose.
         feedback.stage = SweepFeedback.APPROACHING
         self._server.publish_feedback(feedback)
-        target_pose = routines.add_offset_to_pose(
-                          goal.pose,
-                          (goal.sweep_offset.translation.x,
-                           goal.sweep_offset.translation.y,
-                           goal.sweep_offset.translation.z,
-                           goal.sweep_offset.rotation.x,
-                           goal.sweep_offset.rotation.y,
-                           goal.sweep_offset.rotation.z,
-                           goal.sweep_offset.rotation.w))
-        routines.add_marker("pick_pose", target_pose)
-        routines.publish_marker()
-        success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
-                                                 goal.speed_slow)
+        success, _ = routines.go_to_pose_goal(goal.robot_name,
+                                              goal.pose, goal.sweep_offset,
+                                              goal.speed_slow)
         if not self._server.is_active():
             return
         if not success:
@@ -168,19 +136,11 @@ class Sweep(SimpleActionClient):
         rospy.loginfo("--- Sweep. ---")
         feedback.stage = SweepFeedback.SWEEPING
         self._server.publish_feedback(feedback)
-        target_pose = routines.add_offset_to_pose(
-                          goal.pose,
-                          (goal.sweep_offset.translation.x,
-                           goal.sweep_offset.translation.y + goal.sweep_length,
-                           goal.sweep_offset.translation.z,
-                           goal.sweep_offset.rotation.x,
-                           goal.sweep_offset.rotation.y,
-                           goal.sweep_offset.rotation.z,
-                           goal.sweep_offset.rotation.w))
-        routines.add_marker("place_pose", target_pose)
-        routines.publish_marker()
-        success, _, _ = routines.go_to_pose_goal(goal.robot_name, target_pose,
-                                                 goal.speed_fast)
+        offset = copy.deepcopy(goal.sweep_offset)
+        offset[1] += goal.sweep_length
+        success, _ = routines.go_to_pose_goal(goal.robot_name,
+                                              goal.pose, offset,
+                                              goal.speed_fast)
         if not self._server.is_active():
             return
         if not success:
@@ -192,18 +152,9 @@ class Sweep(SimpleActionClient):
         rospy.loginfo("--- Go back to departure pose. ---")
         feedback.stage = SweepFeedback.DEPARTING
         self._server.publish_feedback(feedback)
-        success, _, _ = routines.go_to_pose_goal(
-                             goal.robot_name,
-                             routines.add_offset_to_pose(
-                                 goal.pose,
-                                 (goal.departure_offset.translation.x,
-                                  goal.departure_offset.translation.y,
-                                  goal.departure_offset.translation.z,
-                                  goal.departure_offset.rotation.x,
-                                  goal.departure_offset.rotation.y,
-                                  goal.departure_offset.rotation.z,
-                                  goal.departure_offset.rotation.w)),
-                             goal.speed_fast)
+        success, _ = routines.go_to_pose_goal(goal.robot_name,
+                                              goal.pose, goal.departure_offset,
+                                              goal.speed_fast)
         if not self._server.is_active():
             return
         if not success:
