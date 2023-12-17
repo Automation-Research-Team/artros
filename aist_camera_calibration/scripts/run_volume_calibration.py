@@ -169,11 +169,10 @@ class CameraCalibrationRoutines(AISTBaseRoutines):
     def _move(self, xyzrpy, end_effector_link):
         pose = self.pose_from_xyzrpy(xyzrpy)
         print('  move to ' + self.format_pose(pose))
-        success, _, current_pose \
-            = self.go_to_pose_goal(self._robot_name, pose, self._speed,
-                                   end_effector_link=end_effector_link,
-                                   move_lin=True)
-        print('  reached ' + self.format_pose(current_pose))
+        success, current_pose \
+            = self.go_to_pose_goal(self._robot_name, pose, speed=self._speed,
+                                   end_effector_link=end_effector_link)
+        print('  reached %s' % self.format_pose(current_pose))
         return success
 
     def _save_camera_pose(self, camera_name, intrinsic, pose):
