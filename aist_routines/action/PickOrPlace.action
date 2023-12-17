@@ -1,12 +1,12 @@
 # Goal
-string robot_name
+string                    robot_name
 geometry_msgs/PoseStamped pose
-bool pick
-geometry_msgs/Transform offset
-geometry_msgs/Transform approach_offset
-geometry_msgs/Transform departure_offset
-float32 speed_fast
-float32 speed_slow
+bool                      pick
+float64[]                 offset
+float64[]                 approach_offset
+float64[]                 departure_offset
+float32                   speed_fast
+float32                   speed_slow
 ---
 # Result
 int32 SUCCESS=0

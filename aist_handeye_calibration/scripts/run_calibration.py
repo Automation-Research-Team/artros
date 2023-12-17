@@ -243,7 +243,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
     def _move(self, xyzrpy, end_effector_link):
         pose = self.pose_from_xyzrpy(xyzrpy)
         print('  move to %s' % self.format_pose(pose))
-        success, _, current_pose \
+        success, current_pose \
             = self.go_to_pose_goal(self._robot_name, pose, self._speed,
                                    end_effector_link=end_effector_link,
                                    move_lin=True)

@@ -34,18 +34,23 @@
 # Author: Toshio Ueshiba
 #
 import sys
-import copy
-import collections
 import rospy
 import numpy as np
-
-from math import pi, radians, degrees, cos, sin, sqrt
-from tf import TransformListener, transformations as tfs
 import moveit_commander
-from moveit_commander.conversions import pose_to_list
 
-from geometry_msgs.msg import Point, Quaternion, Pose, PoseStamped, PoseArray
-
+from math                            import degrees, sqrt
+from tf                              import (TransformListener,
+                                             transformations as tfs)
+from std_msgs.msg                    import Header
+from geometry_msgs.msg               import (PoseStamped, Pose, Point,
+                                             Quaternion, PoseArray,
+                                             Vector3, Vector3Stamped)
+from moveit_msgs.msg                 import (RobotTrajectory,
+                                             PositionIKRequest,
+                                             MoveItErrorCodes)
+from moveit_msgs.srv                 import GetPositionIK
+from trajectory_msgs.msg             import (JointTrajectoryPoint,
+                                             JointTrajectory)
 from aist_routines.GripperClient     import GripperClient, VoidGripper
 from aist_routines.CameraClient      import CameraClient
 from aist_routines.MarkerPublisher   import MarkerPublisher
@@ -79,21 +84,23 @@ class AISTBaseRoutines(object):
         rospy.sleep(1.0)        # Necessary for listner spinning up
 
         # MoveIt planning parameters
+        self._eef_step = eef_step if eef_step is not None else \
+                         rospy.get_param('~moveit_eef_step', 0.0005)
         self._reference_frame = reference_frame if reference_frame != '' else \
                                 rospy.get_param('~moveit_pose_reference_frame',
                                                 'workspace_center')
-        self._eef_step        = eef_step if eef_step is not None else \
-                                rospy.get_param('~moveit_eef_step', 0.0005)
-        rospy.loginfo('reference_frame = {}, eef_step = {}'
-                      .format(self._reference_frame, self._eef_step))
 
         # MoveIt RobotCommander
         self._cmd = moveit_commander.RobotCommander('robot_description')
-        print('*** planning_frame=%s' % self._cmd.get_planning_frame())
         for group_name in self._cmd.get_group_names():
             group = self._cmd.get_group(group_name)
-            print('*** [%s] pose_reference_frame=%s'
-                  % (group_name, group.get_pose_reference_frame()))
+            group.set_pose_reference_frame(self.reference_frame)
+
+        rospy.loginfo('planning_frame: %s, reference_frame: %s, eef_step: %f',
+                      self.planning_frame, self.reference_frame, self.eef_step)
+
+        # MoveIt GetPositionIK service client
+        self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
 
         # Grippers
         self._grippers = {}
@@ -143,6 +150,10 @@ class AISTBaseRoutines(object):
     @property
     def listener(self):
         return self._listener
+
+    @property
+    def planning_frame(self):
+        return self._cmd.get_planning_frame()
 
     @property
     def reference_frame(self):
@@ -215,11 +226,11 @@ class AISTBaseRoutines(object):
             elif axis == 'Z':
                 offset[2] = 0.01
             elif axis == 'Roll':
-                offset[3] = radians(10)
+                offset[3] = 10.0
             elif axis == 'Pitch':
-                offset[4] = radians(10)
+                offset[4] = 10.0
             else:
-                offset[5] = radians(10)
+                offset[5] = 10.0
             self.move_relative(robot_name, offset, speed)
         elif key == '-':
             offset = [0, 0, 0, 0, 0, 0]
@@ -230,14 +241,15 @@ class AISTBaseRoutines(object):
             elif axis == 'Z':
                 offset[2] = -0.01
             elif axis == 'Roll':
-                offset[3] = radians(-10)
+                offset[3] = -10.0
             elif axis == 'Pitch':
-                offset[4] = radians(-10)
+                offset[4] = -10.0
             else:
-                offset[5] = radians(-10)
+                offset[5] = -10.0
             self.move_relative(robot_name, offset, speed)
         elif _is_num(key):
-            xyzrpy = self.xyzrpy_from_pose(self.get_current_pose(robot_name))
+            xyzrpy = self.xyz_rpy(self.get_current_pose(robot_name))
+            print(xyzrpy)
             if axis == 'X':
                 xyzrpy[0] = float(key)
             elif axis == 'Y':
@@ -250,8 +262,8 @@ class AISTBaseRoutines(object):
                 xyzrpy[4] = float(key)
             else:
                 xyzrpy[5] = float(key)
-            self.go_to_pose_goal(robot_name, self.pose_from_xyzrpy(xyzrpy),
-                                 speed)
+            self.go_to_pose_goal(robot_name,
+                                 self.pose_from_xyzrpy(xyzrpy), speed)
         elif key == 'home':
             self.go_to_named_pose(robot_name, "home")
         elif key == 'back':
@@ -290,37 +302,87 @@ class AISTBaseRoutines(object):
             print('  unknown command! [%s]' % key)
         return robot_name, axis, speed
 
-    # Basic motion stuffs
-    def go_to_named_pose(self, robot_name, named_pose):
-        group = self._cmd.get_group(robot_name)  # get MoveGroupCommander
+    # Joint motion stuffs
+    def get_joint_names(self, robot_name):
+        return self._cmd.get_group(robot_name).get_active_joints()
+
+    def get_current_joint_values(self, robot_name):
+        return self._cmd.get_group(robot_name).get_current_joint_values()
+
+    def get_named_joint_values(self, robot_name, named_pose):
+        target_values = self._cmd.get_group(robot_name)\
+                                 .get_named_target_values(named_pose)
+        return [target_values[joint_name]
+                for joint_name in self.get_joint_names(robot_name)]
+
+    def remember_joint_values(self, robot_name, name, joint_values):
+        self._cmd.get_group(robot_name).remember_joint_values(name,
+                                                              joint_values)
+
+    def go_to_named_pose(self, robot_name, named_pose, speed=1.0, accel=1.0):
+        group = self._cmd.get_group(robot_name)
         try:
             group.set_named_target(named_pose)
         except moveit_commander.exception.MoveItCommanderException as e:
-            rospy.logerr('AISTBaseRoutines.go_to_named_pose(): {}'
-                         .format(e))
+            rospy.logerr('AistBaseRoutines.go_to_named_pose(): %s', e)
             return False
-        group.set_max_velocity_scaling_factor(1.0)
-        #group.set_max_acceleration_scaling_factor(1.0)
+        return self._go(group, speed, accel)
+
+    def go_to_joint_value_target(self, robot_name, joint_values,
+                                 speed=1.0, accel=1.0):
+        group = self._cmd.get_group(robot_name)
+        group.set_joint_value_target(joint_values)
+        return self._go(group, speed, accel)
+
+    def go_directly_to_joint_value_target(self, robot_name,
+                                          joint_values, duration):
+        joint_trajectory \
+            = JointTrajectory(joint_names=self.joint_names,
+                              points=[
+                                  JointTrajectoryPoint(
+                                      positions=self.get_current_joint_values(robot_name),
+                                      time_from_start=rospy.Duration(0)),
+                                  JointTrajectoryPoint(
+                                      positions=joint_values,
+                                      time_from_start=duration)])
+        return self.execute_path(robot_name,
+                                 RobotTrajectory(
+                                     joint_trajectory=joint_trajectory))
+
+    def _go(self, group, speed=1.0, accel=1.0):
+        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
+        group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         success = group.go(wait=True)
+        if not success:
+            rospy.logerr('Failed to go to target.')
         group.clear_pose_targets()
         return success
 
-    def go_to_frame(self, robot_name, target_frame, offset=(0, 0, 0),
-                    speed=1.0, accel=1.0,
-                    end_effector_link='', high_precision=False, move_lin=True):
-        target_pose = PoseStamped()
-        target_pose.header.frame_id = target_frame
-        target_pose.pose            = Pose(Point(0, 0, 0),
-                                           Quaternion(0, 0, 0, 1))
+    # Cartesian motion stuffs
+    def get_current_pose(self, robot_name):
+        return self._cmd.get_group(robot_name).get_current_pose()
+
+    def move_relative(self, robot_name, offset, speed=1.0, accel=1.0,
+                      end_effector_link='', move_lin=True):
         return self.go_to_pose_goal(robot_name,
-                                    self.add_offset_to_pose(target_pose,
-                                                            offset),
-                                    speed, accel, end_effector_link,
-                                    high_precision, move_lin)
+                                    self.add_offset_to_pose(
+                                        self.get_current_pose(robot_name),
+                                        offset),
+                                    speed, accel, end_effector_link, move_lin)
+
+    def go_to_frame(self, robot_name, target_frame, offset=(0, 0, 0),
+                    speed=1.0, accel=1.0, end_effector_link='', move_lin=True):
+        return self.go_to_pose_goal(robot_name,
+                                    self.add_offset_to_pose(
+                                        PoseStamped(
+                                            Header(frame_id=target_frame),
+                                            Pose(Point(0, 0, 0),
+                                                 Quaternion(0, 0, 0, 1))),
+                                        offset),
+                                    speed, accel, end_effector_link, move_lin)
 
     def go_to_pose_goal(self, robot_name, target_pose, speed=1.0, accel=1.0,
-                        end_effector_link='', high_precision=False,
-                        move_lin=True):
+                        end_effector_link='', move_lin=True):
         self.add_marker('pose', target_pose)
         self.publish_marker()
 
@@ -328,9 +390,40 @@ class AISTBaseRoutines(object):
             return self.go_along_poses(robot_name,
                                        PoseArray(target_pose.header,
                                                  [target_pose.pose]),
-                                       speed, accel,
-                                       end_effector_link, high_precision)
+                                       speed, accel, end_effector_link)
 
+        group = self._cmd.get_group(robot_name)
+
+        if end_effector_link == '':
+            end_effector_link = self.gripper(robot_name).tip_link
+        group.set_end_effector_link(end_effector_link)
+
+        return self._go(group, speed, accel), group.get_current_pose()
+
+    def go_along_poses(self, robot_name, poses,
+                       speed=1.0, accel=1.0, end_effector_link=''):
+        group = self._cmd.get_group(robot_name)
+        path  = self.create_path(robot_name, poses,
+                                 speed, accel, end_effector_link)
+        if path is None:
+            return False, group.get_current_pose()
+
+        return (self.execute_path(robot_name,
+                                  group.retime_trajectory(
+                                      self._cmd.get_current_state(), path,
+                                          velocity_scaling_factor=speed,
+                                          acceleration_scaling_factor=accel)),
+                group.get_current_pose())
+
+    def execute_path(self, robot_name, path):
+        success = self._cmd.get_group(robot_name).execute(path, wait=True)
+        if not success:
+            rospy.logerr('Failed to execute path.')
+        self.stop(robot_name)
+        return success
+
+    def create_path(self, robot_name, poses,
+                    speed=1.0, accel=1.0, end_effector_link=''):
         group = self._cmd.get_group(robot_name)
 
         if end_effector_link == '':
@@ -339,89 +432,51 @@ class AISTBaseRoutines(object):
 
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
-        group.set_pose_target(target_pose)
-        success      = group.go(wait=True)
-        current_pose = group.get_current_pose()
-        is_all_close = self._all_close(target_pose.pose,
-                                       current_pose.pose, 0.01)
-        return (success, is_all_close, current_pose)
-
-    def go_along_poses(self, robot_name, poses, speed=1.0, accel=1.0,
-                       end_effector_link='', high_precision=False):
-        group = self._cmd.get_group(robot_name)
+        transformed_poses = self.transform_poses_to_target_frame(poses)
 
         try:
-            transformed_poses = self.transform_poses_to_target_frame(
-                                    poses, group.get_planning_frame()).poses
+            path, fraction = group.compute_cartesian_path(
+                                 transformed_poses.poses, self._eef_step, 0.0)
         except Exception as e:
-            return (False, False, group.get_current_pose())
+            fraction = 0.0
+            rospy.logerr(e)
 
-        if end_effector_link == '':
-            end_effector_link = self.gripper(robot_name).tip_link
-        group.set_end_effector_link(end_effector_link)
+        if fraction < 0.995:
+            rospy.logerr('Computed only %3.1f%% of cartesian path.',
+                         100*fraction)
+            return None, None
+        rospy.loginfo('Computed %3.1f%% of cartesian path.', 100*fraction)
 
-        if high_precision:
-            goal_tolerance = group.get_goal_tolerance()
-            planning_time  = group.get_planning_time()
-            group.set_goal_tolerance(.000001)
-            group.set_planning_time(10)
+        return path
 
-        group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
-        group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
-        plan, fraction = group.compute_cartesian_path(transformed_poses,
-                                                      self._eef_step, 0.0)
-        if fraction > 0.995:
-            success = group.execute(group.retime_trajectory(
-                                        self._cmd.get_current_state(),
-                                        plan,
-                                        velocity_scaling_factor=speed,
-                                        acceleration_scaling_factor=accel),
-                                    wait=True)
-            group.stop()
-            if success:
-                rospy.loginfo('Executed plan with %3.1f%% computed cartesian path.',
-                              100*fraction)
-            else:
-                rospy.logerr('Computed %3.1f%% of cartesian path but failed to execute.',
-                             100*fraction)
-        else:
-            success = False
-            rospy.logwarn('Computed only %3.1f%% of the total cartesian path.',
-                          100*fraction)
-
-        group.clear_pose_targets()
-
-        if high_precision:
-            group.set_goal_tolerance(goal_tolerance[1])
-            group.set_planning_time(planning_time)
-
-        current_pose = group.get_current_pose()
-        is_all_close = self._all_close(transformed_poses[-1],
-                                       current_pose.pose, 0.01)
-        return (success, is_all_close, current_pose)
-
-    def move_relative(self, robot_name, offset,
-                      speed=1.0, accel=1.0, end_effector_link='',
-                      high_precision=False, move_lin=True):
-        return self.go_to_pose_goal(
-                   robot_name,
-                   self.shift_pose(self.get_current_pose(robot_name,
-                                                         end_effector_link),
-                                   offset),
-                   speed, accel, end_effector_link, high_precision, move_lin)
+    def create_timed_path(self, robot_name, poses, times_from_start):
+        robot_state = self._cmd.get_current_state()
+        robot_state.joint_state.header.stamp = poses.header.stamp
+        req = PositionIKRequest(group_name=robot_name,
+                                robot_state=robot_state)
+        joint_trajectory = JointTrajectory(req.robot_state.joint_state.header,
+                                           req.robot_state.joint_state.name,
+                                           [])
+        transformed_poses = self.transform_poses_to_target_frame(poses)
+        for pose, time_from_start in zip(transformed_poses.poses,
+                                         times_from_start):
+            req.pose_stamped = PoseStamped(transformed_poses.header, pose)
+            res = self._compute_ik(req)
+            if res.error_code.val != MoveItErrorCodes.SUCCESS:
+                rospy.logerr('Failed to solve IK[%d]', res.error_code.val)
+                return None
+            joint_state = res.solution.joint_state
+            point = JointTrajectoryPoint(positions=joint_state.position,
+                                         velocities=joint_state.velocity,
+                                         effort=joint_state.effort)
+            point.time_from_start = time_from_start
+            joint_trajectory.points.append(point)
+        return RobotTrajectory(joint_trajectory=joint_trajectory)
 
     def stop(self, robot_name):
         group = self._cmd.get_group(robot_name)
         group.stop()
         group.clear_pose_targets()
-
-    def get_current_pose(self, robot_name, end_effector_link=''):
-        if end_effector_link == '' and robot_name in self._grippers:
-            end_effector_link = self.gripper(robot_name).tip_link
-        group = self._cmd.get_group(robot_name)
-        if len(end_effector_link) > 0:
-            group.set_end_effector_link(end_effector_link)
-        return group.get_current_pose()
 
     # Gripper stuffs
     def set_gripper(self, robot_name, gripper_name):
@@ -572,24 +627,18 @@ class AISTBaseRoutines(object):
     def pick_at_frame(self, robot_name, target_frame, part_id,
                       offset=(0, 0, 0),
                       wait=True, done_cb=None, active_cb=None):
-        target_pose = PoseStamped()
-        target_pose.header.frame_id = target_frame
-        target_pose.pose = Pose(Point(*offset[0:3]),
-                                Quaternion(
-                                    *self._quaternion_from_offset(offset[3:])))
-        return self.pick(robot_name, target_pose, part_id,
-                         wait, done_cb, active_cb)
+        return self.pick(robot_name,
+                         PoseStamped(Header(frame_id=target_frame),
+                                     self.pose_from_list(offset)),
+                         part_id, wait, done_cb, active_cb)
 
     def place_at_frame(self, robot_name, target_frame, part_id,
                        offset=(0, 0, 0),
                        wait=True, done_cb=None, active_cb=None):
-        target_pose = PoseStamped()
-        target_pose.header.frame_id = target_frame
-        target_pose.pose = Pose(Point(*offset[0:3]),
-                                Quaternion(
-                                    *self._quaternion_from_offset(offset[3:])))
-        return self.place(robot_name, target_pose, part_id,
-                          wait, done_cb, active_cb)
+        return self.place(robot_name,
+                          PoseStamped(Header(frame_id=target_frame),
+                                      self.pose_from_list(offset)),
+                          part_id, wait, done_cb, active_cb)
 
     def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
         return self._pick_or_place.wait_for_stage(stage, timeout)
@@ -602,24 +651,6 @@ class AISTBaseRoutines(object):
         self._pick_or_place.cancel_goal()
 
     # Utility functions
-    def shift_pose(self, pose, offset):
-        m44 = tfs.concatenate_matrices(self._listener.fromTranslationRotation(
-                                           (pose.pose.position.x,
-                                            pose.pose.position.y,
-                                            pose.pose.position.z),
-                                           (pose.pose.orientation.x,
-                                            pose.pose.orientation.y,
-                                            pose.pose.orientation.z,
-                                            pose.pose.orientation.w)),
-                                       self._listener.fromTranslationRotation(
-                                           offset[0:3],
-                                           self._quaternion_from_offset(
-                                               offset[3:])))
-        return PoseStamped(
-                   pose.header,
-                   Pose(Point(*tuple(tfs.translation_from_matrix(m44))),
-                        Quaternion(*tuple(tfs.quaternion_from_matrix(m44)))))
-
     def transform_pose_to_target_frame(self, pose, target_frame=''):
         poses = self.transform_poses_to_target_frame(PoseArray(pose.header,
                                                                [pose.pose]),
@@ -628,7 +659,7 @@ class AISTBaseRoutines(object):
 
     def transform_poses_to_target_frame(self, poses, target_frame=''):
         if target_frame == '':
-            target_frame = self._reference_frame
+            target_frame = self.reference_frame
 
         try:
             self._listener.waitForTransform(target_frame,
@@ -640,84 +671,81 @@ class AISTBaseRoutines(object):
             rospy.logerr('AISTBaseRoutines.transform_poses_to_target_frame(): {}'.format(e))
             raise e
 
-        transformed_poses = PoseArray()
-        transformed_poses.header.frame_id = target_frame
-        transformed_poses.header.stamp    = poses.header.stamp
+        transformed_poses = PoseArray(Header(frame_id=target_frame,
+                                             stamp=poses.header.stamp),
+                                      [])
         for pose in poses.poses:
-            m44 = tfs.concatenate_matrices(
-                        mat44,
-                        self._listener.fromTranslationRotation(
-                            (pose.position.x,
-                             pose.position.y,
-                             pose.position.z),
-                            (pose.orientation.x,
-                             pose.orientation.y,
-                             pose.orientation.z,
-                             pose.orientation.w)))
+            T = tfs.concatenate_matrices(
+                    mat44,
+                    self._listener.fromTranslationRotation(
+                        (pose.position.x, pose.position.y, pose.position.z),
+                        (pose.orientation.x, pose.orientation.y,
+                         pose.orientation.z, pose.orientation.w)))
             transformed_poses.poses.append(
-                Pose(Point(*tuple(tfs.translation_from_matrix(m44))),
-                     Quaternion(*tuple(tfs.quaternion_from_matrix(m44)))))
+                Pose(Point(*tuple(tfs.translation_from_matrix(T))),
+                     Quaternion(*tuple(tfs.quaternion_from_matrix(T)))))
         return transformed_poses
 
-    def xyzrpy_from_pose(self, pose, deg=True):
+    def add_offset_to_poses(self, poses, offset):
+        transformed_poses = PoseArray(poses.header, [])
+        for pose in poses.poses:
+            T = tfs.concatenate_matrices(
+                    self._listener.fromTranslationRotation(
+                        (pose.position.x, pose.position.y, pose.position.z),
+                        (pose.orientation.x, pose.orientation.y,
+                         pose.orientation.z, pose.orientation.w)),
+                    self._listener.fromTranslationRotation(
+                        offset[0:3], self._quaternion_from_list(offset[3:])))
+            transformed_poses.poses.append(
+                Pose(Point(*tfs.translation_from_matrix(T)),
+                     Quaternion(*tfs.quaternion_from_matrix(T))))
+        return transformed_poses
+
+    def correct_orientation(self, pose):
+        poses = self.correct_orientations(PoseArray(pose.header, [pose.pose]))
+        return PoseStamped(poses.header, poses.poses[0])
+
+    def correct_orientations(self, poses):
+        up = self._listener.transformVector3(
+                 poses.header.frame_id,
+                 Vector3Stamped(Header(stamp=poses.header.stamp,
+                                       frame_id=self.reference_frame),
+                                Vector3(0, 0, 1)))
+        corrected_poses = PoseArray(poses.header, [])
+        for pose in poses.poses:
+            corrected_poses.poses.append(Pose(pose.position,
+                                              self._correct_orientation(
+                                                  pose.orientation, up.vector)))
+        return corrected_poses
+
+    def pose_from_xyzrpy(self, xyzrpy):
+        return PoseStamped(Header(frame_id=self.reference_frame),
+                           self.pose_from_list(xyzrpy))
+
+    def xyz_rpy(self, pose):
         transformed_pose = self.transform_pose_to_target_frame(pose).pose
         rpy = tfs.euler_from_quaternion((transformed_pose.orientation.x,
                                          transformed_pose.orientation.y,
                                          transformed_pose.orientation.z,
                                          transformed_pose.orientation.w))
-        if deg:
-            rpy = list(map(degrees, rpy))
         return [transformed_pose.position.x,
                 transformed_pose.position.y,
                 transformed_pose.position.z,
-                rpy[0], rpy[1], rpy[2]]
-
-    def pose_from_xyzrpy(self, xyzrpy, deg=True):
-        rpy = list(map(radians, xyzrpy[3:6])) if deg else xyzrpy[3:6]
-        pose = PoseStamped()
-        pose.header.frame_id = self._reference_frame
-        pose.pose = Pose(Point(*xyzrpy[0:3]),
-                         Quaternion(*tfs.quaternion_from_euler(*rpy)))
-        return pose
+                degrees(rpy[0]), degrees(rpy[1]), degrees(rpy[2])]
 
     def format_pose(self, target_pose):
-        xyzrpy = self.xyzrpy_from_pose(target_pose)
-        return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]' \
-              .format(*xyzrpy)
+        return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
+            *self.xyz_rpy(target_pose))
 
-    def add_offset_to_pose(self, target_pose, offset):
-        poses = self.add_offset_to_poses(PoseArray(target_pose.header,
-                                                   [target_pose.pose]),
-                                         [offset])
-        return PoseStamped(poses.header, poses.poses[0])
-
-    def add_offset_to_poses(self, target_poses, offsets):
-        poses = PoseArray(target_poses.header, [])
-        for target_pose, offset in zip(target_poses.poses, offsets):
-            T = tfs.concatenate_matrices(
-                    self._listener.fromTranslationRotation(
-                        (target_pose.position.x,
-                         target_pose.position.y,
-                         target_pose.position.z),
-                        (target_pose.orientation.x,
-                         target_pose.orientation.y,
-                         target_pose.orientation.z,
-                         target_pose.orientation.w)),
-                    self._listener.fromTranslationRotation(
-                        offset[0:3],
-                        self._quaternion_from_offset(offset[3:])))
-            poses.poses.append(Pose(Point(*tfs.translation_from_matrix(T)),
-                                    Quaternion(*tfs.quaternion_from_matrix(T))))
-        return poses
+    def pose_from_list(self, l):
+        return Pose(Point(*l[0:3]),
+                    Quaternion(*self._quaternion_from_list(l[3:])))
 
     # Private functions
-    def _all_close(self, goal, actual, tolerance):
-        goal_list   = pose_to_list(goal)
-        actual_list = pose_to_list(actual)
-        for i in range(len(goal_list)):
-            if abs(actual_list[i] - goal_list[i]) > tolerance:
-                return False
-        return True
+    def _quaternion_from_list(self, offset):
+        return np.array((0, 0, 0, 1)) if len(offset) < 3 else \
+               tfs.quaternion_from_euler(*np.radians(offset[0:3])) if len(offset) == 3 else \
+               np.array(offset[0:4])
 
     def _transform_points_to_target_frame(self, header, points,
                                           target_frame=''):
@@ -736,9 +764,20 @@ class AISTBaseRoutines(object):
                                      np.array((p.x, p.y, p.z, 1.0)))[:3]))
                  for p in points ]
 
-    def _quaternion_from_offset(self, offset):
-        return (0, 0, 0, 1) if len(offset) < 3 else \
-               tfs.quaternion_from_euler(offset[0],
-                                         offset[1],
-                                         offset[2]) if len(offset) == 3 else \
-               offset[0:4]
+    def add_offset_to_pose(self, pose, offset):
+        poses = self.add_offset_to_poses(PoseArray(pose.header, [pose.pose]),
+                                         offset)
+        return PoseStamped(poses.header, poses.poses[0])
+
+    def _correct_orientation(self, orientation, up):
+        q     = (orientation.x, orientation.y, orientation.z, orientation.w)
+        r     = tfs.quaternion_matrix(q)[0:3, 2]  # current up vector
+        n     = (up.x, up.y, up.z)                # desired up vector
+        a     = np.cross(r, n)                    # rotation axis
+        dq    = np.empty(4)
+        dq[3] = sqrt(0.5 + 0.5*np.dot(r, n))
+        if abs(dq[3]) < 1e-7:                     # n == -r ?
+            dq[0:3] = (sqrt(0.5), sqrt(0.5), 0)   # swap x and y, then flip z
+        else:
+            dq[0:3] = (0.5/dq[3])*a
+        return Quaternion(*tfs.quaternion_multiply(q, dq))
