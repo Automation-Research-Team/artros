@@ -39,7 +39,7 @@ import rospy, copy
 import moveit_msgs.msg
 from geometry_msgs.msg   import PoseStamped, Pose, Point, Quaternion
 from tf                  import transformations as tfs
-from math                import radians, degrees
+from math                import degrees
 from aist_routines       import AISTBaseRoutines
 from aist_utility.compat import *
 
@@ -48,10 +48,10 @@ from aist_utility.compat import *
 ######################################################################
 class ToolCalibrationRoutines(AISTBaseRoutines):
     refposes = {
-        'a_bot': [0.00, 0.00, 0.15, radians(  0), radians( 90), radians( 90)],
-        'b_bot': [0.00, 0.00, 0.15, radians(  0), radians( 90), radians(-90)],
-        'c_bot': [0.00, 0.00, 0.15, radians(  0), radians( 90), radians( 90)],
-        'd_bot': [0.00, 0.00, 0.15, radians(  0), radians( 90), radians(  0)],
+        'a_bot': [0.00, 0.00, 0.15, 0, 90,  90],
+        'b_bot': [0.00, 0.00, 0.15, 0, 90, -90],
+        'c_bot': [0.00, 0.00, 0.15, 0, 90,  90],
+        'd_bot': [0.00, 0.00, 0.15, 0, 90,   0],
     }
 
     def __init__(self):
@@ -119,14 +119,14 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
                                      .interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
 
-    def move(self, pose):
+    def move(self, xyzrpy):
         R = self.listener.fromTranslationRotation(
                 tfs.translation_from_matrix(self._R0),
                 tfs.quaternion_from_euler(*self._rpy))
         T = tfs.concatenate_matrices(
                 self.listener.fromTranslationRotation(
-                    (pose[0], pose[1], pose[2]),
-                    tfs.quaternion_from_euler(pose[3], pose[4], pose[5])),
+                    (xyzrpy[0], xyzrpy[1], xyzrpy[2]),
+                    tfs.quaternion_from_euler(*np.radians(xyzrpy(3:6)))),
                 tfs.inverse_matrix(self._D0),
                 tfs.inverse_matrix(R),
                 self._R0,
@@ -136,51 +136,49 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
         target_pose.pose = Pose(Point(*tfs.translation_from_matrix(T)),
                                 Quaternion(*tfs.quaternion_from_matrix(T)))
         print('move to ' + self.format_pose(target_pose))
-        success, _, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                        target_pose,
-                                                        self._speed,
-                                                        move_lin=True,
-                                                        high_precision=True)
-        print('reached ' + self.format_pose(current_pose))
+        success, current_pose = self.go_to_pose_goal(self._robot_name,
+                                                     target_pose,
+                                                     speed=self._speed)
+        print('reached %s' % self.format_pose(current_pose))
         return success
 
     def rolling_motion(self):
-        pose = copy.deepcopy(self._refpose)
+        xyzrpy = copy.deepcopy(self._refpose)
         for i in range(4):
-            pose[3] += radians(30)
-            self.move(pose)
+            xyzrpy[3] += 30
+            self.move(xyzrpy)
         for i in range(8):
-            pose[3] -= radians(30)
-            self.move(pose)
+            xyzrpy[3] -= 30
+            self.move(xyzrpy)
         for i in range(4):
-            pose[3] += radians(30)
-            self.move(pose)
+            xyzrpy[3] += 30
+            self.move(xyzrpy)
 
     def pitching_motion(self):
-        pose = copy.deepcopy(self._refpose)
+        xyzrpy = copy.deepcopy(self._refpose)
         for i in range(5):
-            pose[4] += radians(6)
-            self.move(pose)
+            xyzrpy[4] += 6
+            self.move(xyzrpy)
         for i in range(10):
-            pose[4] -= radians(6)
-            self.move(pose)
+            xyzrpy[4] -= 6
+            self.move(xyzrpy)
         for i in range(5):
-            pose[4] += radians(6)
-            self.move(pose)
+            xyzrpy[4] += 6
+            self.move(xyzrpy)
 
     def yawing_motion(self):
-        pose = copy.deepcopy(self._refpose)
-        pose[3] = radians(-90)
-        pose[5] = radians(180)
+        xyzrpy = copy.deepcopy(self._refpose)
+        xyzrpy[3] = -90
+        xyzrpy[5] = 180
         for i in range(5):
-            pose[4] += radians(6)
-            self.move(pose)
+            xyzrpy[4] += 6
+            self.move(xyzrpy)
         for i in range(10):
-            pose[4] -= radians(6)
-            self.move(pose)
+            xyzrpy[4] -= 6
+            self.move(xyzrpy)
         for i in range(5):
-            pose[4] += radians(6)
-            self.move(pose)
+            xyzrpy[4] += 6
+            self.move(xyzrpy)
 
     def print_tip_link(self):
         R   = self.listener.fromTranslationRotation(

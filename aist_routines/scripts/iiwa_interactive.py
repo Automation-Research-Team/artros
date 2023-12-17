@@ -40,7 +40,7 @@ import os
 import copy
 import rospy
 import argparse
-from geometry_msgs import msg as gmsg
+from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 
 from moveit_commander import PlanningSceneInterface
 
@@ -65,13 +65,13 @@ def is_num(s):
 ######################################################################
 class InteractiveRoutines(IiwaRoutines):
     refposes = {
-        'a_iiwa': [0.00,  0.00, 2.10, radians(0), radians(0), radians(0)],
-        'b_iiwa': [0.00,  1.20, 2.10, radians(0), radians(0), radians(0)],
+        'a_iiwa': [0.00,  0.00, 2.10, 0, 0, 0],
+        'b_iiwa': [0.00,  1.20, 2.10, 0, 0, 0],
     }
     refposes2 = {
-        # 'a_iiwa': [0.70, -0.20, 1.50, radians(0), radians(0), radians(0)],
-        'a_iiwa': [0.30,  0.00, 2.00, radians(0), radians(0), radians(0)],
-        'b_iiwa': [0.70,  1.40, 1.50, radians(0), radians(0), radians(0)],
+        # 'a_iiwa': [0.70, -0.20, 1.50, 0, 0, 0],
+        'a_iiwa': [0.30,  0.00, 2.00, 0, 0, 0],
+        'b_iiwa': [0.70,  1.40, 1.50, 0, 0, 0],
     }
 
     def __init__(self, robot_name, camera_name, speed, ns):
@@ -92,29 +92,28 @@ class InteractiveRoutines(IiwaRoutines):
         self.go_to_named_pose(self._robot_name, 'back')
     """
 
-    def move(self, pose):
-        target_pose = gmsg.PoseStamped()
+    def move(self, xyzrpy):
+        target_pose = PoseStamped()
         # target_pose.header.frame_id = "workspace_center"
         target_pose.header.frame_id = "world"
 
         if type(pose) is list:
-            target_pose.pose = gmsg.Pose(
-                gmsg.Point(pose[0], pose[1], pose[2]),
-                gmsg.Quaternion(
-                    *tfs.quaternion_from_euler(pose[3], pose[4], pose[5])))
-        elif type(pose) is gmsg.Pose:
+            target_pose.pose = Pose(Point(*xyzrpy[0:3]),
+                                    Quaternion(
+                                        *tfs.quaternion_from_euler(
+                                            *np.radians(xyzrpy[3:6]))))
+        elif type(pose) is Pose:
             target_pose.pose = pose
 
-        (success, _, current_pose) = self.go_to_pose_goal(
-                                                self._robot_name, target_pose,
-                                                self._speed,
-                                                move_lin=False)
+        success, current_pose = self.go_to_pose_goal(self._robot_name,
+                                                     target_pose,
+                                                     speed=self._speed)
         return success
 
     def create_objects(self, scene, robot_commander, z_ext):
         scene.remove_world_object()
 
-        p = gmsg.PoseStamped()
+        p = PoseStamped()
         p.header.frame_id = robot_commander.get_planning_frame()
 
         p.pose.position.x =  0.8
@@ -157,7 +156,7 @@ class InteractiveRoutines(IiwaRoutines):
                 else:
                     pose.position.x += 0.1
                 pose.position.z += 0.2
-                pose.orientation = gmsg.Quaternion(q_tf[0], q_tf[1], q_tf[2], q_tf[3])
+                pose.orientation = Quaternion(*q_tf)
 
                 self.move(pose)
 
