@@ -353,6 +353,8 @@ class HMIRoutines(KittingRoutines):
             t = (self.listener.transformPoint(header.frame_id,
                                               workspace_center).point.z
                  - pos.z) / dir.z
+            if t < 0.0:
+                return
         else:
             t = 0.03
 

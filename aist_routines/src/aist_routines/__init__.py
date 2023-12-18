@@ -542,7 +542,8 @@ class AISTBaseRoutines(object):
                                             graspabilities.contact_points,
                                             target_frame)
         graspabilities.poses          = self.transform_poses_to_target_frame(
-                                            graspabilities.poses, target_frame)
+                                            graspabilities.poses, (),
+                                            target_frame)
         if pose_filter is not None:
             poses          = []
             gscores        = []

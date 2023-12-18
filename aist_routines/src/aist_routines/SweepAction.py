@@ -59,9 +59,8 @@ class Sweep(SimpleActionClient):
         self.wait_for_server()
 
     # Client stuffs
-    def send_goal(self, robot_name, pose_stamped, sweep_length,
-                  sweep_offset, approach_offset, departure_offset,
-                  speed_fast, speed_slow,
+    def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
+                  approach_offset, departure_offset, speed_fast, speed_slow,
                   wait=True, done_cb=None, active_cb=None):
         SimpleActionClient.send_goal(self,
                                      SweepGoal(robot_name, pose, sweep_length,
@@ -136,7 +135,7 @@ class Sweep(SimpleActionClient):
         rospy.loginfo("--- Sweep. ---")
         feedback.stage = SweepFeedback.SWEEPING
         self._server.publish_feedback(feedback)
-        offset = copy.deepcopy(goal.sweep_offset)
+        offset = list(goal.sweep_offset)
         offset[1] += goal.sweep_length
         success, _ = routines.go_to_pose_goal(goal.robot_name,
                                               goal.pose, offset,
