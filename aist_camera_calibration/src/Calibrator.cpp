@@ -209,9 +209,9 @@ class Calibrator
 		convert_correspondences_sets()			const	;
     correses_set_t<corres32_t>
 		rearrange_correspondences_sets()		const	;
-    void	save_calibration(const correses_msg_t& correses,
+    void	save_calibration(const std::string& camera_name,
 				 const camera_info_t& intrinsic,
-				 const pose_t& pose)		const	;
+				 const pose_t& camera_pose)	const	;
 
   private:
     const std::string			_nodelet_name;
@@ -227,7 +227,7 @@ class Calibrator
 
     std::vector<correses_set_msg_t>	_correspondences_sets;
     std::vector<camera_info_t>		_intrinsics;
-    std::vector<pose_t>			_poses;
+    std::vector<pose_t>			_camera_poses;
 };
 
 Calibrator::Calibrator(const ros::NodeHandle& nh,
@@ -249,7 +249,7 @@ Calibrator::Calibrator(const ros::NodeHandle& nh,
      _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
      _correspondences_sets(),
      _intrinsics(),
-     _poses()
+     _camera_poses()
 {
     _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::goal_cb,
 						      this));
@@ -389,7 +389,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 
 	res.camera_names.clear();
 	res.intrinsics.clear();
-	res.poses.clear();
+	res.camera_poses.clear();
 
 	std::transform(first_correspondences_set.cbegin(),
 		       first_correspondences_set.cend(),
@@ -400,15 +400,15 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 		       to_camera_info(ros::Time::now()));
 	std::transform(cameras.cbegin(), cameras.cend(),
 		       first_correspondences_set.cbegin(),
-		       std::back_inserter(res.poses), to_pose());
+		       std::back_inserter(res.camera_poses), to_pose());
 
 	res.error   = calibrator.reprojectionError();
 	res.success = true;
 	res.message = "ComputeCalibration: succesfully computed calibration with reprojection error["
 		    + std::to_string(res.error) + "(pix)]";
 
-	_intrinsics = res.intrinsics;
-	_poses	    = res.poses;
+	_intrinsics   = res.intrinsics;
+	_camera_poses = res.camera_poses;
 
 	NODELET_INFO_STREAM('(' << getName() << ") " << res.message);
     }
@@ -433,8 +433,8 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
     {
 	for (size_t i = 0; i < _intrinsics.size(); ++i)
 	    save_calibration(_correspondences_sets.front()
-			     .correspondences_set[i],
-			     _intrinsics[i], _poses[i]);
+			     .correspondences_set[i].camera_name,
+			     _intrinsics[i], _camera_poses[i]);
 
 	res.success = true;
 	res.message = "SaveCalibration: succesfully saved";
@@ -458,7 +458,7 @@ Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
 {
     _correspondences_sets.clear();
     _intrinsics.clear();
-    _poses.clear();
+    _camera_poses.clear();
 
     NODELET_INFO_STREAM('(' << getName()
 			<< ") All samples and cameras cleared");
@@ -522,7 +522,7 @@ Calibrator::rearrange_correspondences_sets() const
 }
 
 void
-Calibrator::save_calibration(const correses_msg_t& correses,
+Calibrator::save_calibration(const std::string& camera_name,
 			     const camera_info_t& intrinsic,
 			     const pose_t& pose) const
 {
@@ -530,11 +530,11 @@ Calibrator::save_calibration(const correses_msg_t& correses,
     emitter << YAML::BeginMap;
 
     emitter << YAML::Key   << "image_width"
-	    << YAML::Value << correses.width
+	    << YAML::Value << intrinsic.width
 	    << YAML::Key   << "image_height"
-	    << YAML::Value << correses.height
+	    << YAML::Value << intrinsic.height
 	    << YAML::Key   << "camera_name"
-	    << YAML::Value << correses.camera_name;
+	    << YAML::Value << camera_name;
 
     emitter << YAML::Key   << "camera_matrix"
 	    << YAML::Value
@@ -608,7 +608,7 @@ Calibrator::save_calibration(const correses_msg_t& correses,
 	    << YAML::Key   << "parent"
 	    << YAML::Value << pose.header.frame_id
 	    << YAML::Key   << "child"
-	    << YAML::Value << correses.header.frame_id
+	    << YAML::Value << intrinsic.header.frame_id
 	    << YAML::Key   << "transform"
 	    << YAML::Value
 	    << YAML::Flow
@@ -650,7 +650,7 @@ Calibrator::save_calibration(const correses_msg_t& correses,
 				 + "\" exists but not a directory");
 
     const auto		calib_file = calib_dir
-				   / fs::path(correses.camera_name + ".yaml");
+				   / fs::path(camera_name + ".yaml");
     std::ofstream	out(calib_file);
     if (!out)
 	throw std::runtime_error("cannot open " + calib_file.string()
@@ -681,8 +681,11 @@ Calibrator::to_camera_info::operator()(const camera_t& camera,
 {
     camera_info_t	camera_info;
 
-    camera_info.header = correses.header;
-    camera_info.header.stamp = _stamp;
+    camera_info.header.frame_id = correses.header.frame_id;
+    camera_info.header.stamp    = _stamp;
+
+    camera_info.height = correses.height;
+    camera_info.width  = correses.width;
 
   // Set distortion parameters.
     camera_info.distortion_model = "plumb_bob";

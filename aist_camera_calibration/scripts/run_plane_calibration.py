@@ -123,9 +123,10 @@ class CameraCalibrationRoutines(object):
             return
         rospy.loginfo(res.message)
 
-        for camera_name, intrinsic, pose in zip(res.camera_names,
-                                                res.intrinsics, res.poses):
-            self._save_camera_pose(camera_name, intrinsic, pose)
+        for camera_name, intrinsic, camera_pose in zip(res.camera_names,
+                                                       res.intrinsics,
+                                                       res.camera_poses):
+            self._save_camera_pose(camera_name, intrinsic, camera_pose)
 
         res = self._save_calibration()
         if res.success:
@@ -133,15 +134,15 @@ class CameraCalibrationRoutines(object):
         else:
             rospy.logerr(res.message)
 
-    def _save_camera_pose(self, camera_name, intrinsic, pose):
+    def _save_camera_pose(self, camera_name, intrinsic, camera_pose):
         # Convert camera  pose to a transform with xyz-rpy representation.
-        xyz  = [pose.pose.position.x,
-                pose.pose.position.y, pose.pose.position.z]
-        rpy  = list(tfs.euler_from_quaternion((pose.pose.orientation.x,
-                                               pose.pose.orientation.y,
-                                               pose.pose.orientation.z,
-                                               pose.pose.orientation.w)))
-        data = {'parent': pose.header.frame_id,
+        xyz  = [camera_pose.pose.position.x,
+                camera_pose.pose.position.y, camera_pose.pose.position.z]
+        rpy  = list(tfs.euler_from_quaternion((camera_pose.pose.orientation.x,
+                                               camera_pose.pose.orientation.y,
+                                               camera_pose.pose.orientation.z,
+                                               camera_pose.pose.orientation.w)))
+        data = {'parent': camera_pose.header.frame_id,
                 'child' : intrinsic.header.frame_id,
                 'origin': xyz + rpy}
         print(data)

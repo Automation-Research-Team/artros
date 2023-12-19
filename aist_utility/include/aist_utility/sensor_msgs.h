@@ -50,6 +50,7 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
+#include <aist_utility/geometry_msgs.h>
 
 namespace aist_utility
 {
@@ -77,7 +78,7 @@ inline void	set_color(const sensor_msgs::PointCloud2Iterator<uint8_t>& p,
 		{
 		    p[0] = p[1] = p[2] = grey;
 		}
-    
+
 //! Get depth value in meters.
 template <class T>
 inline float	meters(T depth)			{ return depth; }
@@ -458,5 +459,58 @@ add_3field_to_pointcloud(sensor_msgs::PointCloud2& cloud,
     return cloud;
 }
 
+/*
+ *  Emit sensor messages in YAML format
+ */
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const sensor_msgs::RegionOfInterest& roi)
+{
+    return emitter << YAML::BeginMap
+		   << YAML::Key   << "x_offset" << YAML::Value << roi.x_offset
+		   << YAML::Key   << "y_offset" << YAML::Value << roi.y_offset
+		   << YAML::Key   << "height"   << YAML::Value << roi.height
+		   << YAML::Key   << "width"    << YAML::Value << roi.width
+		   << YAML::Key   << "do_rectify"
+		   << YAML::Value << roi.do_rectify;
+}
+
+inline YAML::Emitter&
+operator <<(YAML::Emitter& emitter, const sensor_msgs::CameraInfo& camera_info)
+{
+    emitter << YAML::BeginMap
+	    << YAML::Key   << "header" << YAML::Value << camera_info.header
+	    << YAML::Key   << "height" << YAML::Value << camera_info.height
+	    << YAML::Key   << "width"  << YAML::Value << camera_info.width
+	    << YAML::Key   << "distortion_model"
+	    << YAML::Value << camera_info.distortion_model;
+
+    emitter << YAML::Key << "D" << YAML::Value << YAML::BeginSeq;
+    for (const auto& d : camera_info.D)
+	emitter << d;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "K" << YAML::Value << YAML::BeginSeq;
+    for (const auto& k : camera_info.K)
+	emitter << k;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "R" << YAML::Value << YAML::BeginSeq;
+    for (const auto& r : camera_info.R)
+	emitter << r;
+    emitter << YAML::EndSeq;
+
+    emitter << YAML::Key << "P" << YAML::Value << YAML::BeginSeq;
+    for (const auto& p : camera_info.P)
+	emitter << p;
+    emitter << YAML::EndSeq;
+
+    return emitter << YAML::Key   << "binning_x"
+		   << YAML::Value << camera_info.binning_x
+		   << YAML::Key   << "binning_y"
+		   << YAML::Value << camera_info.binning_y
+		   << YAML::Key   << "roi"
+		   << YAML::Value << camera_info.roi
+		   << YAML::EndMap;
+}
 }	// namespace aist_utility
 #endif	// !AIST_UTILITY_SENSOR_MSGS_H
