@@ -195,7 +195,7 @@ class InteractiveRoutines(IiwaRoutines):
             elif key == 'W':
                 axis = 'Yaw'
             elif key == '+':
-                goal_pose = self.xyz_rpy(current_pose)
+                goal_pose = self.xyzrpy_from_pose(current_pose)
                 if axis == 'X':
                     goal_pose[0] += 0.01
                 elif axis == 'Y':
@@ -210,7 +210,7 @@ class InteractiveRoutines(IiwaRoutines):
                     goal_pose[5] += radians(10)
                 self.move(goal_pose)
             elif key == '-':
-                goal_pose = self.xyz_rpy(current_pose)
+                goal_pose = self.xyzrpy_from_pose(current_pose)
                 if axis == 'X':
                     goal_pose[0] -= 0.01
                 elif axis == 'Y':
@@ -226,7 +226,7 @@ class InteractiveRoutines(IiwaRoutines):
                 self.move(goal_pose)
             elif is_num(key):
                 if _pose is None:
-                    _pose = self.xyz_rpy(current_pose)
+                    _pose = self.xyzrpy_from_pose(current_pose)
                 if axis == 'X':
                     _pose[0] = float(key)
                 elif axis == 'Y':

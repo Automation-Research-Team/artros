@@ -248,7 +248,7 @@ class AISTBaseRoutines(object):
                 offset[5] = -10.0
             self.move_relative(robot_name, offset, speed)
         elif _is_num(key):
-            xyzrpy = self.xyz_rpy(self.get_current_pose(robot_name))
+            xyzrpy = self.xyzrpy_from_pose(self.get_current_pose(robot_name))
             print(xyzrpy)
             if axis == 'X':
                 xyzrpy[0] = float(key)
@@ -691,7 +691,7 @@ class AISTBaseRoutines(object):
         return PoseStamped(Header(frame_id=self.reference_frame),
                            self.pose_from_offset(xyzrpy))
 
-    def xyz_rpy(self, pose):
+    def xyzrpy_from_pose(self, pose):
         transformed_pose = self.transform_pose_to_target_frame(pose).pose
         rpy = tfs.euler_from_quaternion((transformed_pose.orientation.x,
                                          transformed_pose.orientation.y,
@@ -704,7 +704,7 @@ class AISTBaseRoutines(object):
 
     def format_pose(self, target_pose):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
-            *self.xyz_rpy(target_pose))
+            *self.xyzrpy_from_pose(target_pose))
 
     def pose_from_offset(self, offset):
         return Pose(Point(*self._position_from_offset(offset[0:3])),
