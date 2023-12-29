@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="robotiq_epick" params="prefix parent *origin">
+  <xacro:macro name="robotiq_epick" params="prefix parent
+					    plunger_radius:=0
+					    plunger_length:=0
+					    *origin">
 
     <xacro:property name="epick_length" value="0.101"/>
     <xacro:property name="epick_offset" value="-0.006"/>
@@ -47,6 +50,45 @@
       <child  link="${prefix}flange_link"/>
       <origin xyz="${epick_length} 0 0" rpy="0 0 0"/>
     </joint>
+
+    <xacro:if value="${plunger_length > 0}">
+      <link name="${prefix}plunger_link">
+	<inertial>
+    	  <origin xyz="0 0 0" rpy="0 0 0"/>
+    	  <mass value="0.100"/>
+    	  <inertia ixx="0.0045" ixy="0" ixz="0"
+		   iyy="0.0045"  iyz="0" izz="0.005"/>
+	</inertial>
+	<visual>
+    	  <origin xyz="${plunger_length/2} 0 0" rpy="0 ${pi/2} 0"/>
+    	  <geometry>
+	    <cylinder radius="${plunger_radius}" length="${plunger_length}"/>
+    	  </geometry>
+          <material name="Grey">
+            <color rgba="0.7 0.7 0.7 1.0"/>
+          </material>
+	</visual>
+	<collision>
+    	  <origin xyz="${plunger_length/2} 0 0" rpy="0 ${pi/2} 0"/>
+    	  <geometry>
+	    <cylinder radius="${plunger_radius}" length="${plunger_length}"/>
+    	  </geometry>
+	</collision>
+      </link>
+      <joint name="${prefix}plunger_joint" type="fixed">
+	<parent link="${prefix}flange_link"/>
+	<child  link="${prefix}plunger_link"/>
+	<origin xyz="0 0 0" rpy="0 0 0"/>
+      </joint>
+
+      <link name="${prefix}tip_link"/>
+      <joint name="${prefix}tip_joint" type="fixed">
+	<parent link="${prefix}plunger_link"/>
+	<child  link="${prefix}tip_link"/>
+	<origin xyz="${plunger_length} 0 0" rpy="0 ${-pi/2} 0"/>
+      </joint>
+
+    </xacro:if>
 
   </xacro:macro>
 </robot>

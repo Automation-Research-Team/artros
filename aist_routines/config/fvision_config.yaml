@@ -8,6 +8,9 @@ grippers:
     controller_ns: d_bot_gripper_controller
     max_effort:    5.0
     velocity:      0.1
+  d_bot_suction:
+    type:          SuctionGripper
+    controller_ns: d_bot_suction_controller
 
 cameras:
   d_bot_camera: RealSenseCamera

@@ -82,7 +82,8 @@
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_epick.urdf.xacro"/>
   <xacro:robotiq_epick prefix="d_bot_suction_"
-		       parent="d_bot_right_coupling_flange_link">
+		       parent="d_bot_right_coupling_flange_link"
+		       plunger_radius="0.005" plunger_length="0.050">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_epick>
 
@@ -90,12 +91,8 @@
   <xacro:include filename="$(find
 			   aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
   <xacro:phoxi_m_camera name="d_phoxi_m_camera" parent="workspace_center">
-    <origin xyz="-0.0149511700982
-		 -0.483543436025
-		 0.633792706454"
-	    rpy="${-152.286950706*pi/180}
-		 ${-2.00315281361*pi/180}
-		 ${0*pi/180}"/>
+    <origin xyz="-0.0149511700982 -0.483543436025 0.633792706454"
+	    rpy="0.0 1.043 1.5708"/>
   </xacro:phoxi_m_camera>
 
   <!-- Add RealSense camera -->
@@ -104,6 +101,10 @@
   <xacro:sensor_sr305 name="d_bot_camera" parent="d_bot_gripper_base_link"
 		      use_nominal_extrinsics="true">
     <origin xyz="0.030 0.000 0.043" rpy="0 ${0.0*pi/180.0} 0" />
+-
+- 1.0432812514428629
+- 3.014328066314531
+
   </xacro:sensor_sr305>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->

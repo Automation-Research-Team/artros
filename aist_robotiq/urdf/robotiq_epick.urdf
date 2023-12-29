@@ -7,7 +7,8 @@
 
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_epick.urdf.xacro" />
-  <xacro:robotiq_epick prefix="$(arg prefix)" parent="world">
+  <xacro:robotiq_epick prefix="$(arg prefix)" parent="world"
+		       plunger_radius="0.005" plunger_length="0.050">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_epick>
 

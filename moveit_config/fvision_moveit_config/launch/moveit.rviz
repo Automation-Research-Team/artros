@@ -5,10 +5,11 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Planning Request1
+        - /TF1/Frames1
         - /Realsense1/Auto Size1
         - /PhoXi1/Auto Size1
-      Splitter Ratio: 0.5392895340919495
-    Tree Height: 1111
+      Splitter Ratio: 0.773950457572937
+    Tree Height: 800
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -242,6 +243,15 @@ Visualization Manager:
             Show Trail: false
             Value: true
           d_bot_suction_flange_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          d_bot_suction_plunger_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_suction_tip_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -515,6 +525,15 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          d_bot_suction_plunger_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          d_bot_suction_tip_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           d_bot_tool0:
             Alpha: 1
             Show Axes: false
@@ -656,6 +675,10 @@ Visualization Manager:
         d_bot_suction_base_link:
           Value: false
         d_bot_suction_flange_link:
+          Value: false
+        d_bot_suction_plunger_link:
+          Value: false
+        d_bot_suction_tip_link:
           Value: true
         d_bot_tool0:
           Value: false
@@ -668,9 +691,9 @@ Visualization Manager:
         d_bot_wrist_3_link:
           Value: false
         d_phoxi_m_camera_link:
-          Value: true
+          Value: false
         d_phoxi_m_camera_reference:
-          Value: true
+          Value: false
         d_phoxi_m_camera_sensor:
           Value: true
         ground:
@@ -741,7 +764,9 @@ Visualization Manager:
                                     d_bot_right_coupling_flange_link:
                                       d_bot_suction_base_link:
                                         d_bot_suction_flange_link:
-                                          {}
+                                          d_bot_suction_plunger_link:
+                                            d_bot_suction_tip_link:
+                                              {}
                               d_bot_tool0:
                                 {}
             workbox:
@@ -863,29 +888,30 @@ Visualization Manager:
       Hide Inactive Objects: true
     - Class: rviz/MoveCamera
     - Class: rviz/Select
+    - Class: rviz/FocusCamera
   Value: true
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.7793383598327637
+      Distance: 3.040879011154175
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.26426923274993896
-        Y: 0.6188502907752991
-        Z: -1.341098823104403e-7
-      Focal Shape Fixed Size: true
+        X: -0.016042351722717285
+        Y: -0.03129205107688904
+        Z: 0
+      Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6097967028617859
+      Pitch: 0.8158972263336182
       Target Frame: world
       Value: XYOrbit (rviz)
-      Yaw: 5.304947853088379
+      Yaw: 5.3498430252075195
     Saved: ~
 Window Geometry:
   Displays:
@@ -899,11 +925,11 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000005fbfc0200000007fc0000006e000004ff000002f201000039fa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000003a300fffffffb000000100044006900730070006c0061007900730100000000000002ad000001f700fffffffb0000000800480065006c00700000000342000000bb000000d400fffffffb0000000a0056006900650077007300000003b0000000b00000013200fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000002600000026fb0000001a005200650061006c00730065006e00730065002d0052004700420100000579000000f00000002600ffffff000004ff000005fb00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000005fbfc0200000007fc0000006e000003c80000030301000039fa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000003a300fffffffb000000100044006900730070006c0061007900730100000000000002ad000001f700fffffffb0000001a005200650061006c00730065006e00730065002d0052004700420100000442000002270000002600fffffffb0000000800480065006c00700000000342000000bb000000d400fffffffb0000000a0056006900650077007300000003b0000000b00000013200fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000002600000026000004ff000005fb00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Realsense-RGB:
     collapsed: false
   Views:
     collapsed: false
   Width: 2222
-  X: 161
-  Y: 104
+  X: 1195
+  Y: 188
