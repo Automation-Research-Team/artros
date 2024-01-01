@@ -10,9 +10,9 @@ grippers:
     controller_ns: a_bot_gripper_controller
     max_effort:    5.0
     velocity:      0.1
-#  a_bot_precision:
+#  precision_tool:
 #    type: PrecisionGripper
-#    controller_ns: a_bot_gripper_controller
+#    controller_ns: precision_tool_controller
   screw_tool_m3:
     type:          SuctionGripper
     controller_ns: screw_tool_m3_controller
@@ -30,5 +30,16 @@ cameras:
   a_phoxi_m_camera:     PhoXiCamera
   a_bot_inside_camera:  CodedLightRealSenseCamera
   a_bot_outside_camera: CodedLightRealSenseCamera
+
+tools:
+  precision_tool:
+    holder_link:   precision_tool_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  screw_tool_m3:
+    holder_link:   screw_tool_m3_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  screw_tool_m4:
+    holder_link:   screw_tool_m4_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
 
 moveit_eef_step: 0.002

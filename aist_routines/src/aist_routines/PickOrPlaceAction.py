@@ -43,15 +43,14 @@ from aist_routines.msg  import (PickOrPlaceAction, PickOrPlaceGoal,
 #  class PickOrPlace                                                 #
 ######################################################################
 class PickOrPlace(SimpleActionClient):
-    def __init__(self, routines):
-        SimpleActionClient.__init__(self, 'pick_or_place', PickOrPlaceAction)
+    def __init__(self, routines, ns='pick_or_place'):
+        SimpleActionClient.__init__(self, ns, PickOrPlaceAction)
 
         self._routines      = routines
         self._current_stage = PickOrPlaceFeedback.IDLING
         self._target_stage  = None
         self._condition     = threading.Condition()
-        self._server        = SimpleActionServer('pick_or_place',
-                                                 PickOrPlaceAction,
+        self._server        = SimpleActionServer(ns, PickOrPlaceAction,
                                                  self._execute_cb, False)
         self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()

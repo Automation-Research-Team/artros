@@ -90,7 +90,7 @@ class AISTBaseRoutines(object):
                                 rospy.get_param('~moveit_pose_reference_frame',
                                                 'workspace_center')
 
-        # MoveIt RobotCommander
+        # MoveIt RobotCommander and MoveGroup
         self._cmd = moveit_commander.RobotCommander('robot_description')
         for group_name in self._cmd.get_group_names():
             group = self._cmd.get_group(group_name)
@@ -101,6 +101,9 @@ class AISTBaseRoutines(object):
 
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
+
+        # MoveIt PlanningSceneInterface
+        self._scene = moveit_commander.PlanningSceneInterface()
 
         # Grippers
         self._grippers = {}

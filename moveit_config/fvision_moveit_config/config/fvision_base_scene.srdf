@@ -47,7 +47,7 @@
         <joint name="d_bot_gripper_finger_joint" value="0" />
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="d_bot_gripper" parent_link="d_bot_left_coupling_flange_link" group="d_bot_gripper" />
+    <end_effector name="d_bot_gripper" parent_link="d_bot_left_coupling_flange_link" group="d_bot_gripper" parent_group="d_bot" />
     <end_effector name="d_bot_suction_gripper" parent_link="d_bot_right_coupling_flange_link" group="d_bot" />
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
     <virtual_joint name="ground_d_bot_joint" type="fixed" parent_frame="d_bot_base_link" child_link="ground" />
