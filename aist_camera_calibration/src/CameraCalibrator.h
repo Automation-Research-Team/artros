@@ -34,10 +34,9 @@
   \file		CameraCalibrator.h
   \brief	クラス#TU::CameraCalibratorの定義と実装
 */
-#include "TU/Geometry++.h"
-#include "TU/BlockDiagonalMatrix++.h"
+#include <aist_utility/eigen.h>
 
-namespace TU
+namespace aist_camera_calibration
 {
 /************************************************************************
 *  class ReferencePlane<T>						*
@@ -47,13 +46,13 @@ template <class T>
 class ReferencePlane
 {
   public:
-    typedef T						element_type;
-    typedef Point2<element_type>			point2_type;
-    typedef Point3<element_type>			point3_type;
-    typedef Vector<element_type>			vector_type;
-    typedef Matrix<element_type>			matrix_type;
-    typedef Matrix<element_type, 3, 3>			matrix33_type;
-    typedef PlaneP<element_type>			plane_type;
+    using element_type	= T;
+    using point2_type	= Eigen::Matrix<element_type, 2, 1>;
+    using point3_type	= Eigen::Matrix<element_type, 3, 1>;
+    using vector_type	= Eigen::Matrix<element_type, Eigen::Dynamic, 1>;
+    using matrix_type	= Eigen::Matrix<element_type>;
+    using matrix33_type	= Eigen::Matrix<element_type, 3, 3>;
+    using plane_type	= aist_utility::eigen::Plane<element_type, 3>;
 
   public:
   //! 参照平面を生成する．
@@ -85,12 +84,13 @@ template <class T> inline void
 ReferencePlane<T>::initialize(const matrix33_type& Qt)
 {
   // Optimal rotation matrix representing the orientation of the plane.
-    SVDecomposition<element_type>	svd(slice<2, 3>(Qt, 0, 0));
-    slice<2, 3>(_Rt, 0, 0) = transpose(svd.Vt()) * slice<2, 3>(svd.Ut(), 0, 0);
-    _Rt[2] = _Rt[0] ^ _Rt[1];
+    Eigen::JacobiSVD<matrix_type>	svd(Qt.block<2, 3>(0, 0));
+    _Rt.block<2, 3>(0, 0) = svd.matrixU()
+			  * svd.matrixV().transpose().block<2, 3>(0, 0);
+    _Rt.row(2) = _Rt.row(0).cross(_Rt.row(1));
 
   // Location of the plane.
-    _d = Qt[2] / sqrt(square(svd.diagonal()) / 2);
+    _d = Qt.row(2) / sqrt(svd.singularValues().squareNorm() / 2);
 
   /*element_type	scale = Qt[0].length();
     (_Rt[0] = Qt[0]) /= scale;
@@ -131,9 +131,9 @@ template <class T> inline typename ReferencePlane<T>::matrix33_type
 ReferencePlane<T>::Qt() const
 {
     matrix33_type	Qt;
-    Qt[0] = _Rt[0];
-    Qt[1] = _Rt[1];
-    Qt[2] = _d;
+    Qt.row(0) = _Rt.row(0);
+    Qt.row(1) = _Rt.row(1);
+    Qt.row(2) = _d;
 
     return Qt;
 }
@@ -146,11 +146,7 @@ ReferencePlane<T>::Qt() const
 template <class T> inline typename ReferencePlane<T>::plane_type
 ReferencePlane<T>::h() const
 {
-    plane_type	h;
-    h(0, 3) = _Rt[2];
-    h[3]    = -_Rt[2] * _d;
-
-    return h;
+    return {_Rt.row(2), _Rt.row(2).dot(_d)};
 }
 
 //! 参照平面上の点の2次元座標をワールド座標系から見た3次元座標に変換する．
@@ -162,7 +158,7 @@ ReferencePlane<T>::h() const
 template <class T> inline typename ReferencePlane<T>::point3_type
 ReferencePlane<T>::operator ()(const point2_type& x) const
 {
-    return _d + x[0] * _Rt[0] + x[1] * _Rt[1];
+    return _d + x(0) * _Rt.row(0) + x(1) * _Rt.row(1);
 }
 
 //! 平面パラメータに関する参照平面上の点の3次元座標の1階微分を求める．
@@ -183,8 +179,9 @@ template <class T> inline typename ReferencePlane<T>::matrix_type
 ReferencePlane<T>::derivative(const point2_type& x) const
 {
     matrix_type	J(3, 6);
-    slice<3, 3>(J, 0, 0) = diag(element_type(1), 3);
-    slice<3, 3>(J, 0, 3) = x[0] * skew(_Rt[0]) + x[1] * skew(_Rt[1]);
+    J.block<3, 3>(0, 0).setIdentity();
+    J.block<3, 3>(0, 3) = x(0) * aist_utility::skew(_Rt.row(0))
+			+ x(1) * aist_utility::skew(_Rt.row(1));
 
     return J;
 }
@@ -196,8 +193,8 @@ ReferencePlane<T>::derivative(const point2_type& x) const
 template <class T> inline void
 ReferencePlane<T>::update(const vector_type& dq)
 {
-    _d -= slice<3>(dq, 0);
-    _Rt = evaluate(_Rt * rotation(slice<3>(dq, 3)));
+    _d -= dq.segment<3>(0);
+    _Rt = _Rt * aist_utility::rodrigues(dq.segment<3>(3));
 }
 
 //! 出力ストリームに平面パラメータを3x3行列の形式で書き出す(ASCII)．
@@ -231,10 +228,10 @@ class CameraCalibrator
     typedef T						element_type;
     typedef ReferencePlane<element_type>		plane_type;
     typedef Vector<element_type>			vector_type;
-    typedef Matrix<element_type>			matrix_type;
-    typedef Point2<element_type>			point2_type;
-    typedef Point3<element_type>			point3_type;
-    typedef Matrix<element_type, 3, 3>			matrix33_type;
+    typedef Eigen::Matrix<element_type>			matrix_type;
+    typedef Eigen::Matrix<element_type, 2, 1>		point2_type;
+    typedef Eigen::Matrix<element_type, 3, 1>		point3_type;
+    typedef Eigen::Matrix<element_type, 3, 3>		matrix33_type;
 
   private:
     typedef Normalize<element_type, 2>			normalize_type;

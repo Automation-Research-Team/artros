@@ -60,14 +60,16 @@ polynomial3(T a0, T a1, T a2, T a3, T x)
   \return	求められた定数
 */
 template <class T> static T
-optimalEigenValue(const Matrix<T, 3, 3>& G)
+optimalEigenValue(const Eigen::Matrix<T, 3, 3>& G)
 {
-    const Vector<T, 3>	a = G[1] ^ G[2], b = G[2] ^ G[0], c = G[0] ^ G[1];
-    return -(a[1]*G[1][0] + a[2]*G[2][0] + b[0]*G[0][1] + b[2]*G[2][1] +
-	     c[0]*G[0][2] + c[1]*G[1][2])
-	   /(G[0][1]*G[0][1] + G[0][2]*G[0][2] +
-	     G[1][0]*G[1][0] + G[1][2]*G[1][2] +
-	     G[2][0]*G[2][0] + G[2][1]*G[2][1]);
+    const Eigen::Matrix<T, 1, 3>	a = G.row(1).cross(G.row(2)),
+					b = G.row(2).cross(G.row(0)),
+					c = G.row(0).cross(G.row(1));
+    return -(a(1)*G(1, 0) + a(2)*G(2, 0) + b(0)*G(0, 1) + b(2)*G(2, 1) +
+	     c(0)*G(0, 2) + c(1)*G(1, 2))
+	   /(G(0, 1)*G(0, 1) + G(0, 2)*G(0, 2) +
+	     G(1, 0)*G(1, 0) + G(1, 2)*G(1, 2) +
+	     G(2, 0)*G(2, 0) + G(2, 1)*G(2, 1));
 }
 
 //! 同一次元を持つ2つのベクトルからそれらの要素の積から成る新しいベクトルを作る．
@@ -89,17 +91,16 @@ optimalEigenValue(const Matrix<T, 3, 3>& G)
   \param q	pと同一次元を持つベクトル
   \return	計算されたベクトル
 */
-template <class T> static Vector<T>
-extpro(const Vector<T>& p, const Vector<T>& q)
+template <class T, size_t N> static Eigen::Matrix<T, N*(N+1)/2>
+extpro(const Eigen::Matrix<T, 1, N>& p, const Eigen::Matrix<T, 1, N>& q)
 {
-    const size_t	d = p.size();
-    Vector<T>		v(d * (d+1) / 2);
-    int			n = 0;
+    Eigen::Matrix<T, 1, N*(N+1)/2>	v;
+    int					n = 0;
     for (size_t i = 0; i < d; ++i)
     {
-	v[n++] = p[i]*q[i];
+	v(n++) = p(i)*q(i);
 	for (size_t j = i+1; j < d; ++j)
-	    v[n++] = p[i]*q[j] + p[j]*q[i];
+	    v(n++) = p(i)*q(j) + p(j)*q(i);
     }
     return v;
 }
@@ -109,17 +110,17 @@ extpro(const Vector<T>& p, const Vector<T>& q)
   \param Qt	平面数個の参照平面行列を縦に並べた(3*平面数)x[3|4]行列
   \return	IACを表す3x3対称行列
 */
-template <class T> static Matrix<T, 3, 3>
-computeIAC(const Matrix<T>& Qt)
+template <class T> static Eigen::Matrix<T, 3, 3>
+computeIAC(const Eigen::Matrix<T>& Qt)
 {
-    const size_t	nplanes = Qt.nrow() / 3;
+    const size_t	nplanes = Qt.rows() / 3;
     
   // Compute IAC(Image of Absolute Conic).
-    Matrix<T>	A(6, 6);
+    Eigen::Matrix<T, 6, 6>	A;
     for (size_t j = 0; j < nplanes; ++j)
     {
-	const Vector<T>	p = slice<3>(Qt[3*j], 0);
-	const Vector<T>	q = slice<3>(Qt[3*j+1], 0);
+	const Eigen::Matrix<T, 1, 3>	p = Qt.block<1, 3>(3*j,   0);
+	const Eigen::Matrix<T, 1, 3>	q = Qt.block<1, 3>(3*j+1, 0);
 	const Vector<T>	a = extpro(p, p) - extpro(q, q);
 	const auto	b = extpro(p, q);
 	A += (a % a + b % b);
@@ -148,26 +149,26 @@ computeIAC(const Matrix<T>& Qt)
 		与えるとそのスケールを調整されたものが返される．  
 */
 template <class T> static void
-rescaleHomographies(Matrix<T>& W)
+rescaleHomographies(Eigen::Matrix<T>& W)
 {
 #ifdef _DEBUG
     using namespace	std;
     
     cerr << "*** Begin: TU::rescaleHomographies() ***" << endl;
 #endif
-    const auto	ncameras = W.nrow()/3;
-    const auto	nplanes  = W.ncol()/3;
-    const auto	H00inv   = inverse(slice<3, 3>(W, 0, 0));
+    const auto	ncameras = W.rows()/3;
+    const auto	nplanes  = W.cols()/3;
+    const auto	H00inv   = W.block<3, 3>(0, 0).inverse();
     for (size_t i = 1; i < ncameras; ++i)		// for each camera...
     {
       // Inter-image homography between camera 0 and i through plane 0.
-	const auto	A = slice<3, 3>(W, 3*i, 0) * H00inv;
+	const auto	A = W.block<3, 3>(3*i, 0) * H00inv;
 
 	for (size_t j = 1; j < nplanes; ++j)	// for each plane...
 	{
-	    auto	Hij = slice<3, 3>(W, 3*i, 3*j);
+	    auto	Hij = W.block<3, 3>(3*i, 3*j);
 	    const Matrix<T, 3, 3>
-			G   = slice<3, 3>(W, 0, 3*j) * inverse(Hij) * A;
+			G   = W.block<3, 3>(0, 3*j) * Hij.inverse() * A;
 	    const T	mu  = optimalEigenValue(G);
 	    Hij *= mu;
 #ifdef _DEBUG
@@ -198,25 +199,26 @@ rescaleHomographies(Matrix<T>& W)
 			そうでなければfalse
 */
 template <class T> static void
-factorHomographies(const Matrix<T>& W, Matrix<T>& P, Matrix<T>& Qt,
+factorHomographies(const Eigen::Matrix<T>& W,
+		   Eigen::Matrix<T>& P, Eigen::Matrix<T>& Qt,
 		   bool commonCenters)
 {
-    SVDecomposition<T>	svd(W);
+    Eigen::JacobiSVD<Eigen::Matrix<T> >	svd(W);
 #ifdef _DEBUG
     using namespace		std;
     
     cerr << "*** Begin: TU::factorHomographies() ***\n"
 	 << " singular values: " << svd.diagonal()(0, 5);
 #endif
-    P.resize(W.nrow(), 4);
-    Qt.resize(W.ncol(), 4);
+    P.resize(W.rows(), 4);
+    Qt.resize(W.cols(), 4);
     const size_t	rank = (commonCenters ? 3 : 4);
     for (size_t n = 0; n < rank; ++n)
     {
-	for (size_t i = 0; i < P.nrow(); ++i)
-	    P[i][n] = svd.Vt()[n][i];
-	for (size_t j = 0; j < Qt.nrow(); ++j)
-	    Qt[j][n] = svd[n] * svd.Ut()[n][j];
+	for (size_t i = 0; i < P.rows(); ++i)
+	    P(i, n) = svd.Vt()[n][i];
+	for (size_t j = 0; j < Qt.rows(); ++j)
+	    Qt(j, n) = svd[n] * svd.Ut()[n][j];
     }
 #ifdef _DEBUG
     cerr << "*** End:   TU::factorHomographies() ***\n" << endl;
@@ -237,14 +239,14 @@ template <class T> static void
 projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 		   bool commonCenters)
 {
-    using vector4_type	= Vector<T, 4>;
-    using matrix44_type	= Matrix<T, 4, 4>;
+    using vector4_type	= Eigen::Matrix<T, 4, 1>;
+    using matrix44_type	= Eigen::Matrix<T, 4, 4>;
 #ifdef _DEBUG
     using namespace	std;
 
     cerr << "*** Begin: TU::projectiveToMetric() ***" << endl;
 #endif
-    const auto		nplanes = Qt.nrow() / 3;
+    const auto		nplanes = Qt.rows() / 3;
     
   // Fix WC(World Coordinates) to 0-th camera.
     SVDecomposition<T>	svd(slice<3, 4>(P, 0, 0));
@@ -263,9 +265,9 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 
     if (commonCenters)
     {
-	P( 0, P.nrow(),  0, 3) = evaluate(P( 0, P.nrow(),  0, 3) *
+	P( 0, P.rows(),  0, 3) = evaluate(P( 0, P.rows(),  0, 3) *
 					  inverse(K1inv));
-	Qt(0, Qt.nrow(), 0, 3) = evaluate(Qt(0, Qt.nrow(), 0, 3) *
+	Qt(0, Qt.rows(), 0, 3) = evaluate(Qt(0, Qt.rows(), 0, 3) *
 					  transpose(K1inv));
     }
     else
@@ -298,7 +300,7 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
     }
     
   // Ensure the left 3x3 part of camera matrices to have positive determinant.
-    const size_t	ncameras = P.nrow() / 3;
+    const size_t	ncameras = P.rows() / 3;
     for (size_t i = 0; i < ncameras; ++i)
 	if (det(slice<3, 3>(P, 3*i, 0)) < 0.0)
 	    slice<3, 4>(P, 3*i, 0) *= -1.0;
@@ -350,10 +352,11 @@ CameraCalibrator<T>::zhangCalib(const matrix_type& W,
 				matrix_type& P, matrix_type& Qt)
 {
     P.resize(3, 4);
-    Qt = transpose(W);
-    const matrix33_type	Kinv = cholesky(computeIAC(Qt));
-    slice<3, 3>(P, 0, 0) = inverse(Kinv);
-    Qt = evaluate(Qt * transpose(Kinv));
+    Qt = W.transpose();
+    Eigen::LLT<matrix33_type>	cholesky(computeIAC(Qt));
+    const matrix33_type		Kinv = cholesky.matrixU();
+    P.block<3, 3>(0, 0) = Kinv.inverse();
+    Qt = Qt * Kinv.transpose();
 }
     
 //! 植芝の方法により観測行列を複数のカメラの投影行列と複数の参照平面行列に分解する．
