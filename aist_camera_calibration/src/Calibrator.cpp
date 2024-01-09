@@ -114,8 +114,8 @@ class Calibrator
     using action_server_t	= actionlib::SimpleActionServer<
 				      TakeSampleAction>;
 
-    using point2_t		= TU::Point2<element_t>;
-    using point3_t		= TU::Point3<element_t>;
+    using point2_t		= Eigen::Matrix<element_t, 2, 1>;
+    using point3_t		= Eigen::Matrix<element_t, 3, 1>;
     using corres22_t		= std::pair<point2_t, point2_t>;
     using corres32_t		= std::pair<point3_t, point2_t>;
     template <class CORRES>
@@ -134,11 +134,9 @@ class Calibrator
 	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
 	{
 	    SRC_PNT	p;
-	    p[0] = corres.source_point.x;
-	    p[1] = corres.source_point.y;
+	    p << corres.source_point.x, corres.source_point.y;
 	    DST_PNT	q;
-	    q[0] = corres.image_point.x;
-	    q[1] = corres.image_point.y;
+	    q << corres.image_point.x, corres.image_point.y;
 
 	    return {p, q};
 	}
@@ -150,12 +148,10 @@ class Calibrator
 	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
 	{
 	    point3_t	p;
-	    p[0] = corres.source_point.x;
-	    p[1] = corres.source_point.y;
-	    p[2] = corres.source_point.z;
+	    p << corres.source_point.x,
+		 corres.source_point.y, corres.source_point.z;
 	    DST_PNT	q;
-	    q[0] = corres.image_point.x;
-	    q[1] = corres.image_point.y;
+	    q << corres.image_point.x, corres.image_point.y;
 
 	    return {p, q};
 	}
@@ -187,7 +183,7 @@ class Calibrator
     };
 
   public:
-		Calibrator(const ros::NodeHandle& nh,
+		Calibrator(ros::NodeHandle& nh,
 			   const std::string& nodelet_name)		;
 		~Calibrator()						;
 
@@ -216,7 +212,6 @@ class Calibrator
   private:
     const std::string			_nodelet_name;
 
-    ros::NodeHandle			_nh;
     ros::Subscriber			_corres_sub;
 
     action_server_t			_take_sample_srv;
@@ -230,23 +225,22 @@ class Calibrator
     std::vector<pose_t>			_camera_poses;
 };
 
-Calibrator::Calibrator(const ros::NodeHandle& nh,
+Calibrator::Calibrator(ros::NodeHandle& nh,
 		       const std::string& nodelet_name)
     :_nodelet_name(nodelet_name),
-     _nh(nh),
-     _corres_sub(_nh.subscribe("/point_correspondences_set", 5,
-			       &Calibrator::corres_cb, this)),
-     _take_sample_srv(_nh, "take_sample", false),
-     _get_sample_list_srv(
-	 _nh.advertiseService("get_sample_list",
+     _corres_sub(nh.subscribe("/point_correspondences_set", 5,
+			      &Calibrator::corres_cb, this)),
+     _take_sample_srv(nh, "take_sample", false),
+     _get_sample_list_srv(nh.advertiseService(
+			      "get_sample_list",
 			      &Calibrator::get_sample_list, this)),
-     _compute_calibration_srv(
-	 _nh.advertiseService("compute_calibration",
-			      &Calibrator::compute_calibration, this)),
-     _save_calibration_srv(
-	 _nh.advertiseService("save_calibration",
-			      &Calibrator::save_calibration, this)),
-     _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
+     _compute_calibration_srv(nh.advertiseService(
+				  "compute_calibration",
+				  &Calibrator::compute_calibration, this)),
+     _save_calibration_srv(nh.advertiseService(
+			       "save_calibration",
+			       &Calibrator::save_calibration, this)),
+     _reset_srv(nh.advertiseService("reset", &Calibrator::reset, this)),
      _correspondences_sets(),
      _intrinsics(),
      _camera_poses()
@@ -360,7 +354,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 						.correspondences_set;
 
 	TU::CameraCalibrator<element_t>	calibrator;
-	TU::Array<camera_t>		cameras;
+	std::vector<camera_t>		cameras;
 
       // If reference and camera frames are identical for the first camera,
       // the calibration object is planar.

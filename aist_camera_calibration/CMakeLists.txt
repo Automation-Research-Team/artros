@@ -70,6 +70,7 @@ catkin_package(
 ###########
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
 )
 
 add_library(camera_calibrator

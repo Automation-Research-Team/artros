@@ -70,8 +70,25 @@ operator %(const Eigen::Matrix<T, M, 1>& x,
     return x * y.transpose();
 }
 
+template <class T, int M, int N> Eigen::Matrix<T, M, N>
+operator %(const Eigen::Matrix<T, 1, M>& x,
+	   const Eigen::Matrix<T, 1, N>& y)
+{
+    return x.transpose() * y;
+}
+
 template <class T> Eigen::Matrix<T, 3, 3>
 skew(const Eigen::Matrix<T, 3, 1>& vec)
+{
+    Eigen::Matrix<T, 3, 3>	mat;
+    mat <<       0, -vec(2),  vec(1),
+	    vec(2),	  0, -vec(0),
+	   -vec(1),  vec(0),	   0;
+    return mat;
+}
+
+template <class T> Eigen::Matrix<T, 3, 3>
+skew(const Eigen::Matrix<T, 1, 3>& vec)
 {
     Eigen::Matrix<T, 3, 3>	mat;
     mat <<       0, -vec(2),  vec(1),

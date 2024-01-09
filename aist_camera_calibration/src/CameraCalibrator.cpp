@@ -91,54 +91,70 @@ optimalEigenValue(const Eigen::Matrix<T, 3, 3>& G)
   \param q	pと同一次元を持つベクトル
   \return	計算されたベクトル
 */
-template <class T, size_t N> static Eigen::Matrix<T, N*(N+1)/2>
-extpro(const Eigen::Matrix<T, 1, N>& p, const Eigen::Matrix<T, 1, N>& q)
+template <class T, size_t N> static Eigen::Matrix<T, N*(N+1)/2, 1>
+extpro(const Eigen::Matrix<T, N, 1>& p, const Eigen::Matrix<T, N, 1>& q)
 {
-    Eigen::Matrix<T, 1, N*(N+1)/2>	v;
+    Eigen::Matrix<T, N*(N+1)/2, 1>	v;
     int					n = 0;
-    for (size_t i = 0; i < d; ++i)
+    for (size_t i = 0; i < N; ++i)
     {
 	v(n++) = p(i)*q(i);
-	for (size_t j = i+1; j < d; ++j)
+	for (size_t j = i+1; j < N; ++j)
 	    v(n++) = p(i)*q(j) + p(j)*q(i);
     }
     return v;
 }
 
+template <class T, int R, int C> Eigen::Matrix<T, R, C>
+swap_rows_and_cols(const Eigen::Matrix<T, R, C>& A)
+{
+    Eigen::Matrix<T, R, C>	B(A.rows(), A.cols());
+    for (size_t i = 0; i < B.rows(); ++i)
+	for (size_t j = 0; j < B.cols(); ++j)
+	    B(i, j) = A(B.rows() - 1 - i, B.cols() - 1 - j);
+
+    return B;
+}
+    
 //! 射影空間において表現された参照平面行列から絶対円錐曲線の投影像(IAC)を計算する．
 /*!
-  \param Qt	平面数個の参照平面行列を縦に並べた(3*平面数)x[3|4]行列
+  \param Q	平面数個の参照平面行列を縦に並べた[3|4]x(3*平面数)行列
   \return	IACを表す3x3対称行列
 */
 template <class T> static Eigen::Matrix<T, 3, 3>
-computeIAC(const Eigen::Matrix<T>& Qt)
+computeIAC(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Q)
 {
-    const size_t	nplanes = Qt.rows() / 3;
+    using vector3_type	= Eigen::Matrix<T, 3, 1>;
+    using vector6_type	= Eigen::Matrix<T, 6, 1>;
+    using matrix33_type	= Eigen::Matrix<T, 3, 3>;
+    using matrix66_type	= Eigen::Matrix<T, 6, 6>;
+    
+    const size_t	nplanes = Q.cols() / 3;
     
   // Compute IAC(Image of Absolute Conic).
-    Eigen::Matrix<T, 6, 6>	A;
+    matrix66_type	A;
     for (size_t j = 0; j < nplanes; ++j)
     {
-	const Eigen::Matrix<T, 1, 3>	p = Qt.block<1, 3>(3*j,   0);
-	const Eigen::Matrix<T, 1, 3>	q = Qt.block<1, 3>(3*j+1, 0);
-	const Vector<T>	a = extpro(p, p) - extpro(q, q);
-	const auto	b = extpro(p, q);
+	const vector3_type	p = Q.template block<3, 1>(0, 3*j);
+	const vector3_type	q = Q.template block<3, 1>(0, 3*j+1);
+	const vector6_type	a = extpro(p, p) - extpro(q, q);
+	const auto		b = extpro(p, q);
 	A += (a % a + b % b);
     }
-    
-    Vector<T>		evalue;
-    const auto		evector = eigen(A, evalue);
-    Vector<T>		a;
+
+    const auto	 evectors = Eigen::SelfAdjointEigenSolver<matrix66_type>(A)
+			   .eigenvectors();
+    vector6_type a;
     if (nplanes < 3)			// two reference planes.
-	a = evector[5][1] * evector[4] - evector[4][1] * evector[5];
+	a = evectors(1, 5)*evectors.col(4) - evectors(1, 4)*evectors.col(5);
     else
-	a = evector[5];
-    Matrix<T, 3, 3>	omega({{a[0], a[1], a[2]},
-			       {a[1], a[3], a[4]},
-			       {a[2], a[4], a[5]}});
+	a = evectors.col(5);
+    matrix33_type	omega;
+    omega << a[0], a[1], a[2], a[1], a[3], a[4], a[2], a[4], a[5];
 
   // Make the lower-right element of omega.inv(), i.e. DIAC, becomes unity.
-    omega *= (omega[0][0]*omega[1][1] - omega[0][1]*omega[1][0]) / det(omega);
+    omega *= (omega(0, 0)*omega(1, 1) -
+	      omega(0, 1)*omega(1, 0)) / omega.determinant();
 
     return omega;
 }
@@ -149,7 +165,7 @@ computeIAC(const Eigen::Matrix<T>& Qt)
 		与えるとそのスケールを調整されたものが返される．  
 */
 template <class T> static void
-rescaleHomographies(Eigen::Matrix<T>& W)
+rescaleHomographies(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& W)
 {
 #ifdef _DEBUG
     using namespace	std;
@@ -158,21 +174,21 @@ rescaleHomographies(Eigen::Matrix<T>& W)
 #endif
     const auto	ncameras = W.rows()/3;
     const auto	nplanes  = W.cols()/3;
-    const auto	H00inv   = W.block<3, 3>(0, 0).inverse();
+    const auto	H00inv   = W.template block<3, 3>(0, 0).inverse();
     for (size_t i = 1; i < ncameras; ++i)		// for each camera...
     {
       // Inter-image homography between camera 0 and i through plane 0.
-	const auto	A = W.block<3, 3>(3*i, 0) * H00inv;
+	const auto	A = W.template block<3, 3>(3*i, 0) * H00inv;
 
 	for (size_t j = 1; j < nplanes; ++j)	// for each plane...
 	{
-	    auto	Hij = W.block<3, 3>(3*i, 3*j);
-	    const Matrix<T, 3, 3>
-			G   = W.block<3, 3>(0, 3*j) * Hij.inverse() * A;
+	    auto	Hij = W.template block<3, 3>(3*i, 3*j);
+	    const Eigen::Matrix<T, 3, 3>
+			G   = W.template block<3, 3>(0, 3*j) * Hij.inverse() * A;
 	    const T	mu  = optimalEigenValue(G);
 	    Hij *= mu;
 #ifdef _DEBUG
-	    const T	trG = trace(G), trAdjG = trace(adjoint(G));
+	    const T	trG = G.trace(), trAdjG = trace(adjoint(G));
 	    cerr << " H" << i << j
 		 << ": a0 = " << polynomial3(-det(G), trAdjG, -trG, T(1), mu)
 		 << ", a1 = " << polynomial3(trAdjG, -2*trG, T(3), T(0), mu)
@@ -193,32 +209,35 @@ rescaleHomographies(Eigen::Matrix<T>& W)
 			観測行列
   \param P		カメラ数個の投影行列を縦に並べた(3*カメラ数)x4行列が
 			返される
-  \param Qt		平面数個の参照平面行列を縦に並べた(3*平面数)x4行列が
+  \param Q		平面数個の参照平面行列を横に並べた4x(3*平面数)行列が
 			返される
   \param commonCenters	全カメラの投影中心が共通ならばtrue,
 			そうでなければfalse
 */
 template <class T> static void
-factorHomographies(const Eigen::Matrix<T>& W,
-		   Eigen::Matrix<T>& P, Eigen::Matrix<T>& Qt,
+factorHomographies(const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& W,
+		   Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& P,
+		   Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Q,
 		   bool commonCenters)
 {
-    Eigen::JacobiSVD<Eigen::Matrix<T> >	svd(W);
+    using namespace	Eigen;
+    
+    JacobiSVD	svd(W);
 #ifdef _DEBUG
     using namespace		std;
     
     cerr << "*** Begin: TU::factorHomographies() ***\n"
 	 << " singular values: " << svd.diagonal()(0, 5);
 #endif
-    P.resize(W.rows(), 4);
-    Qt.resize(W.cols(), 4);
+    P.setZero(W.rows(), 4);
+    Q.setZero(4, W.cols());
     const size_t	rank = (commonCenters ? 3 : 4);
     for (size_t n = 0; n < rank; ++n)
     {
 	for (size_t i = 0; i < P.rows(); ++i)
-	    P(i, n) = svd.Vt()[n][i];
-	for (size_t j = 0; j < Qt.rows(); ++j)
-	    Qt(j, n) = svd[n] * svd.Ut()[n][j];
+	    P(i, n) = svd.matrixU()(i, n);
+	for (size_t j = 0; j < Q.cols(); ++j)
+	    Q(n, j) = svd.singularValues(n) * svd.matrixV()(j, n);
     }
 #ifdef _DEBUG
     cerr << "*** End:   TU::factorHomographies() ***\n" << endl;
@@ -229,112 +248,117 @@ factorHomographies(const Eigen::Matrix<T>& W,
 /*!
   \param P		カメラ数個の投影行列を縦に並べた行列を与えると，
 			それがユークリッド空間における表現に直されて返される
-  \param Qt		平面数個の参照平面行列を縦に並べた行列を与えると，
+  \param Q		平面数個の参照平面行列を横に並べた行列を与えると，
 			それがユークリッド空間における表現に直されて返される
   \param scales		#computePlaneNormalizations で計算された各参照平面の
 			2次元座標正規化変換のスケール
   \param commonCenters	全カメラの投影中心が共通ならばtrue, そうでなければfalse
 */ 
 template <class T> static void
-projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
-		   bool commonCenters)
+projectiveToMetric(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& P,
+		   Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Q,
+		   const std::vector<T>& scales, bool commonCenters)
 {
-    using vector4_type	= Eigen::Matrix<T, 4, 1>;
-    using matrix44_type	= Eigen::Matrix<T, 4, 4>;
+    using namespace	Eigen;
+    
+    using vector4_type	= Matrix<T, 4, 1>;
+    using matrix34_type	= Matrix<T, 3, 4>;
+    using matrix44_type	= Matrix<T, 4, 4>;
+    using vector_type	= Matrix<T, 1, Dynamic>;
 #ifdef _DEBUG
-    using namespace	std;
-
-    cerr << "*** Begin: TU::projectiveToMetric() ***" << endl;
+    std::cerr << "*** Begin: TU::projectiveToMetric() ***" << std::endl;
 #endif
-    const auto		nplanes = Qt.rows() / 3;
+    const auto		nplanes = Q.cols() / 3;
     
   // Fix WC(World Coordinates) to 0-th camera.
-    SVDecomposition<T>	svd(slice<3, 4>(P, 0, 0));
-    matrix44_type	Sinv;
-    slice<3, 4>(Sinv, 0, 0) = slice<3, 4>(P, 0, 0);
-    Sinv[3] = svd.Ut()[3];
+    JacobiSVD<matrix34_type>	svd(P.template block<3, 4>(0, 0));
+    matrix44_type		Sinv;
+    Sinv.template block<3, 4>(0, 0) = P.template block<3, 4>(0, 0);
+    Sinv.row(3) = svd.matrixV().col(3).transpose();
 #ifdef _DEBUG
-    cerr << "  det(Sinv) = " << det(Sinv) << endl;
+    std::cerr << "  det(Sinv) = " << Sinv.determinant() << std::endl;
 #endif    
-    P  = evaluate(P  * inverse(Sinv));
-    Qt = evaluate(Qt * transpose(Sinv));
+    P = P * Sinv.inverse();
+    Q = Sinv * Q;
 
   // Compute IAC(Image of Absolute Conic) of 0-th camera.
-    const auto	omega = computeIAC(Qt);
-    const auto	K1inv = cholesky(omega);
+    const auto	omega = computeIAC(Q);
+    const auto	K0inv = swap_rows_and_cols(
+			    matrix33_t(
+				swap_rows_and_cols(omega).llt().matrixL()));
 
     if (commonCenters)
     {
-	P( 0, P.rows(),  0, 3) = evaluate(P( 0, P.rows(),  0, 3) *
-					  inverse(K1inv));
-	Qt(0, Qt.rows(), 0, 3) = evaluate(Qt(0, Qt.rows(), 0, 3) *
-					  transpose(K1inv));
+	P.block(0, 0, P.rows(), 3) = P.block(0, 0, P.rows(), 3)
+				   * K0inv.inverse();
+	Q.block(0, 0, 3, Q.cols()) = K0inv * Q.block(0, 0, 3, Q.cols());
     }
     else
     {
       // Compute PI(Plane at Inifinity).
-	Vector<T>	b(3*nplanes), beta(nplanes);
+	vector_type	b(3*nplanes), beta(nplanes);
 	for (size_t j = 0; j < nplanes; ++j)
 	{
-	    const auto	Qt2x3 = slice<2, 3>(Qt, 3*j, 0);
-	    beta[j] = sqrt((Qt2x3[0]*omega*Qt2x3[0] +
-			    Qt2x3[1]*omega*Qt2x3[1])/2.0);
+	    const auto	Q3x2 = Q.template block<3, 2>(0, 3*j);
+	    beta(j) = sqrt((Q.col(3*j  ).transpose()*omega*Q.col(3*j) +
+			    Q.col(3*j+1).transpose()*omega*Q.col(3*j+1))/2.0);
 #ifdef _DEBUG
-	    cerr << "  " << j << "-th plane: beta = " << beta[j] << endl;
+	    std::cerr << "  " << j << "-th plane: beta = " << beta[j]
+		      << std::endl;
 #endif
-	    b[3*j  ] = 0.0;
-	    b[3*j+1] = 0.0;
-	    b[3*j+2] = beta[j] * scales[j];
+	    b(3*j  ) = 0.0;
+	    b(3*j+1) = 0.0;
+	    b(3*j+2) = beta(j) * scales(j);
 	}
-	vector4_type	h = b * Qt;		// PI(Plane at Infinity)
-	solve(transpose(Qt) * Qt, h);
+	vector4_type	h = Q * b;		// PI(Plane at Infinity)
+	solve(Q * Q.transpose(), h);
 
       // Compute transformation from projective to Euclidean coordinates.
-	matrix44_type	TT;
-	slice<3, 3>(TT, 0, 0) = K1inv;
-	TT[3] = h;
-	P  = evaluate(P  * inverse(TT));
-	Qt = evaluate(Qt * transpose(TT));
+	auto	TT = matrix44_type::Zero();
+	TT.template block<3, 3>(0, 0) = K0inv;
+	TT.row(3) = h;
+	P = P * TT.inverse();
+	Q = TT * Q;
 	for (size_t j = 0; j < nplanes; ++j)
-	    slice<3, 4>(Qt, 3*j, 0) /= beta[j];
+	    Q.template block<4, 3>(0, 3*j) /= beta[j];
     }
     
   // Ensure the left 3x3 part of camera matrices to have positive determinant.
     const size_t	ncameras = P.rows() / 3;
     for (size_t i = 0; i < ncameras; ++i)
-	if (det(slice<3, 3>(P, 3*i, 0)) < 0.0)
-	    slice<3, 4>(P, 3*i, 0) *= -1.0;
+	if (P.template block<3, 3>(3*i, 0).determinant() < 0.0)
+	    P.template block<3, 4>(3*i, 0) *= -1.0;
 
   // Ensure that the plane origins are in front of the cameras.
     size_t	nnegatives = 0;
     for (size_t i = 0; i < ncameras; ++i)
     {
-	const auto	r3 = slice<3>(P[3*i+2], 0);
+	const auto	r3 = P.template block<1, 3>(3*i+2, 0);
 	
 	for (size_t j = 0; j < nplanes; ++j)
 	{
-	    if (r3 * slice<3>(Qt[3*j+2], 0) < 0.0)
+	    if (r3 * Q.template block<3, 1>(0, 3*j+2) < 0.0)
 		++nnegatives;
 	}
     }
     if (2*nnegatives > ncameras*nplanes)
     {
 	for (size_t i = 0; i < ncameras; ++i)
-	    slice<3, 1>(P, 3*i, 3) *= -1.0;
+	    P.template block<3, 1>(3*i, 3) *= -1.0;
 	for (size_t j = 0; j < nplanes; ++j)
-	    slice<3, 3>(Qt, 3*j, 0) *= -1.0;
+	    Q.template block<3, 3>(0, 3*j) *= -1.0;
     }
     
 #ifdef _DEBUG
     for (size_t j = 0; j < nplanes; ++j)
     {
-	cerr << " === " << j << "-th plane ===\n"
-	     << "  Q30 = " << Qt[3*j  ][3] << ", Q31 = " << Qt[3*j+1][3]
-	     << ", Q32 = " << Qt[3*j+2][3] << endl;
-	const auto	Qt2x3 = slice<2, 3>(Qt, 3*j, 0);
-	cerr << " --- I(2x2) ---\n" <<  evaluate(Qt2x3 * transpose(Qt2x3));
+	std::cerr << " === " << j << "-th plane ===\n"
+		  << "  Q30 = " << Q(3, 3*j) << ", Q31 = " << Q(3, 3*j+1)
+		  << ", Q32 = " << Q(3, 3*j+2) << std::endl;
+	const auto	Q3x2 = Q.template block<3, 2>(0, 3*j);
+	std::cerr << " --- I(2x2) ---\n" <<  (Q3x2.transpose() * Q3x2).eval();
     }
-    cerr << "*** End:   TU::projectiveToMetric() ***\n" << endl;
+    std::cerr << "*** End:   TU::projectiveToMetric() ***\n" << std::endl;
 #endif    
 }
 
@@ -345,18 +369,19 @@ projectiveToMetric(Matrix<T>& P, Matrix<T>& Qt, const Vector<T>& scales,
 /*!
   \param W	参照平面数個の2次元射影変換行列を横に並べた観測行列
   \param P	カメラの3x4投影行列が返される
-  \param Qt	平面数個の参照平面行列を縦に並べた(3*平面数)x3行列が返される
+  \param Q	平面数個の参照平面行列を縦に並べた3x(3*平面数)行列が返される
 */
 template <class T> void
 CameraCalibrator<T>::zhangCalib(const matrix_type& W,
-				matrix_type& P, matrix_type& Qt)
+				matrix_type& P, matrix_type& Q)
 {
-    P.resize(3, 4);
-    Qt = W.transpose();
-    Eigen::LLT<matrix33_type>	cholesky(computeIAC(Qt));
-    const matrix33_type		Kinv = cholesky.matrixU();
-    P.block<3, 3>(0, 0) = Kinv.inverse();
-    Qt = Qt * Kinv.transpose();
+    P.setZero(3, 4);
+    Q = W;
+    const auto	Kinv = swap_rows_and_cols(
+			   matrix33_t(swap_rows_and_cols(
+					  computeIAC(Q)).llt().matrixL()));
+    P.template block<3, 3>(0, 0) = Kinv.inverse();
+    Q = Kinv * Q;
 }
     
 //! 植芝の方法により観測行列を複数のカメラの投影行列と複数の参照平面行列に分解する．
@@ -365,7 +390,7 @@ CameraCalibrator<T>::zhangCalib(const matrix_type& W,
 			観測行列
   \param P		カメラ数個の投影行列を縦に並べた(3*カメラ数)x4行列が
 			返される
-  \param Qt		平面数個の参照平面行列を縦に並べた(3*平面数)x4行列が
+  \param Q		平面数個の参照平面行列を縦に並べた4x(3*平面数)行列が
 			返される
   \param scales		#computePlaneNormalizations で計算された
 			各参照平面の2次元座標正規化変換のスケール
@@ -374,13 +399,13 @@ CameraCalibrator<T>::zhangCalib(const matrix_type& W,
 */
 template <class T> void
 CameraCalibrator<T>::ueshibaCalib(matrix_type& W,
-				  matrix_type& P, matrix_type& Qt,
-				  const vector_type& scales,
+				  matrix_type& P, matrix_type& Q,
+				  const std::vector<T>& scales,
     				  bool commonCenters)
 {
     rescaleHomographies(W);
-    factorHomographies(W, P, Qt, commonCenters);
-    projectiveToMetric(P, Qt, scales, commonCenters);
+    factorHomographies(W, P, Q, commonCenters);
+    projectiveToMetric(P, Q, scales, commonCenters);
 }
 
 template class CameraCalibrator<float>;

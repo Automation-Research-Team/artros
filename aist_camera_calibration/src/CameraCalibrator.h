@@ -27,13 +27,12 @@
  *
  *  $Id$
  */
-#ifndef __CAMERACALIBRATOR_H
-#define __CAMERACALIBRATOR_H
-
 /*!
   \file		CameraCalibrator.h
   \brief	クラス#TU::CameraCalibratorの定義と実装
 */
+#pragma once
+
 #include <aist_utility/eigen.h>
 
 namespace aist_camera_calibration
@@ -49,55 +48,49 @@ class ReferencePlane
     using element_type	= T;
     using point2_type	= Eigen::Matrix<element_type, 2, 1>;
     using point3_type	= Eigen::Matrix<element_type, 3, 1>;
-    using vector_type	= Eigen::Matrix<element_type, Eigen::Dynamic, 1>;
-    using matrix_type	= Eigen::Matrix<element_type>;
+    using vector6_type	= Eigen::Matrix<element_type, 6, 1>;
+    using matrix32_type	= Eigen::Matrix<element_type, 3, 2>;
     using matrix33_type	= Eigen::Matrix<element_type, 3, 3>;
+    using matrix36_type	= Eigen::Matrix<element_type, 3, 6>;
     using plane_type	= aist_utility::eigen::Plane<element_type, 3>;
 
   public:
   //! 参照平面を生成する．
-    ReferencePlane()	:_d(), _Rt()					{}
+    ReferencePlane()	:_d(), _R()					{}
 
-    void		initialize(const matrix33_type& Qt)		;
+    void		initialize(const matrix33_type& Q)		;
     const point3_type&	d()					const	;
     const matrix33_type&
-			Rt()					const	;
-    matrix33_type	Qt()					const	;
+			R()					const	;
+    matrix33_type	Q()					const	;
     plane_type		h()					const	;
     point3_type		operator ()(const point2_type& x)	const	;
-    matrix_type		derivative(const point2_type& x)	const	;
-    void		update(const vector_type& dq)			;
+    matrix36_type	derivative(const point2_type& x)	const	;
+    void		update(const vector6_type& dq)			;
 
   private:
     point3_type		_d;		//!< 参照平面の位置
-    matrix33_type	_Rt;		//!< 参照平面の姿勢
+    matrix33_type	_R;		//!< 参照平面の姿勢
 };
 
 //! 参照平面の位置と姿勢を設定する．
 /*!
-  \param Qt	位置と姿勢を表す3x3行列．1行目／2行目は，平面上に設定された座標
-		系の横軸／縦軸の向き，3行目は座標系原点の位置(いずれもワールド
-		座標系から見たもの)．すなわち\f$\TUtvec{Q}{} =
-		[\TUvec{i}{}, \TUvec{j}{}, \TUvec{d}{}]^\top\f$
+  \param Q	位置と姿勢を表す3x3行列．1列目／2列目は，平面上に設定された座標
+		系の横軸／縦軸の向き，3列目は座標系原点の位置(いずれもワールド
+		座標系から見たもの)．すなわち\f$\TUvec{Q}{} =
+		[\TUvec{i}{}, \TUvec{j}{}, \TUvec{d}{}]f$
 */
 template <class T> inline void
-ReferencePlane<T>::initialize(const matrix33_type& Qt)
+ReferencePlane<T>::initialize(const matrix33_type& Q)
 {
   // Optimal rotation matrix representing the orientation of the plane.
-    Eigen::JacobiSVD<matrix_type>	svd(Qt.block<2, 3>(0, 0));
-    _Rt.block<2, 3>(0, 0) = svd.matrixU()
-			  * svd.matrixV().transpose().block<2, 3>(0, 0);
-    _Rt.row(2) = _Rt.row(0).cross(_Rt.row(1));
+    Eigen::JacobiSVD<matrix32_type>	svd(Q.block<3, 2>(0, 0));
+    _R.template block<3, 2>(0, 0) = svd.matrixU().template block<3, 2>(0, 0)
+				  * svd.matrixV().transpose();
+    _R.col(2) = _R.col(0).cross(_R.col(1));
 
-  // Location of the plane.
-    _d = Qt.row(2) / sqrt(svd.singularValues().squareNorm() / 2);
-
-  /*element_type	scale = Qt[0].length();
-    (_Rt[0] = Qt[0]) /= scale;
-    (_Rt[2] = Qt[0] ^ Qt[1]).normalize();
-    _Rt[1] = _Rt[2] ^ _Rt[0];
-
-    (_d = Qt[2]) /= scale;*/
+  // Position of the plane.
+    _d = Q.col(2) / sqrt(svd.singularValues().squareNorm() / 2);
 }
 
 //! 参照平面の位置を返す．
@@ -115,27 +108,27 @@ ReferencePlane<T>::d() const
   \return	参照平面の姿勢
 */
 template <class T> inline const typename ReferencePlane<T>::matrix33_type&
-ReferencePlane<T>::Rt() const
+ReferencePlane<T>::R() const
 {
-    return _Rt;
+    return _R;
 }
 
 //! 参照平面の位置と姿勢を返す．
 /*!
-  \return	位置と姿勢を表す3x3行列．1行目／2行目は，平面上に設定された
-		座標系の横軸／縦軸の向き，3行目は座標系原点の位置(いずれも
-		ワールド座標系から見たもの)．すなわち\f$\TUtvec{Q}{} =
-		[\TUvec{i}{}, \TUvec{j}{}, \TUvec{d}{}]^\top\f$
+  \return	位置と姿勢を表す3x3行列．1列目／2列目は，平面上に設定された
+		座標系の横軸／縦軸の向き，3列目は座標系原点の位置(いずれも
+		ワールド座標系から見たもの)．すなわち\f$\TUvec{Q}{} =
+		[\TUvec{i}{}, \TUvec{j}{}, \TUvec{d}{}]\f$
 */
 template <class T> inline typename ReferencePlane<T>::matrix33_type
-ReferencePlane<T>::Qt() const
+ReferencePlane<T>::Q() const
 {
-    matrix33_type	Qt;
-    Qt.row(0) = _Rt.row(0);
-    Qt.row(1) = _Rt.row(1);
-    Qt.row(2) = _d;
+    matrix33_type	Q;
+    Q.col(0) = _R.col(0);
+    Q.col(1) = _R.col(1);
+    Q.col(2) = _d;
 
-    return Qt;
+    return Q;
 }
 
 //! 参照平面の同次座標を返す．
@@ -146,7 +139,7 @@ ReferencePlane<T>::Qt() const
 template <class T> inline typename ReferencePlane<T>::plane_type
 ReferencePlane<T>::h() const
 {
-    return {_Rt.row(2), _Rt.row(2).dot(_d)};
+    return {_R.col(2), _R.col(2).dot(_d)};
 }
 
 //! 参照平面上の点の2次元座標をワールド座標系から見た3次元座標に変換する．
@@ -158,7 +151,7 @@ ReferencePlane<T>::h() const
 template <class T> inline typename ReferencePlane<T>::point3_type
 ReferencePlane<T>::operator ()(const point2_type& x) const
 {
-    return _d + x(0) * _Rt.row(0) + x(1) * _Rt.row(1);
+    return _d + x(0)*_R.col(0) + x(1)*_R.col(1);
 }
 
 //! 平面パラメータに関する参照平面上の点の3次元座標の1階微分を求める．
@@ -175,13 +168,13 @@ ReferencePlane<T>::operator ()(const point2_type& x) const
 		\TUendarray
 		\f$
 */
-template <class T> inline typename ReferencePlane<T>::matrix_type
+template <class T> inline typename ReferencePlane<T>::matrix36_type
 ReferencePlane<T>::derivative(const point2_type& x) const
 {
-    matrix_type	J(3, 6);
-    J.block<3, 3>(0, 0).setIdentity();
-    J.block<3, 3>(0, 3) = x(0) * aist_utility::skew(_Rt.row(0))
-			+ x(1) * aist_utility::skew(_Rt.row(1));
+    matrix36_type	J;
+    J.template block<3, 3>(0, 0) = matrix33_type::Identity();
+    J.template block<3, 3>(0, 3) = x(0) * aist_utility::skew(_R.col(0))
+				 + x(1) * aist_utility::skew(_R.col(1));
 
     return J;
 }
@@ -191,10 +184,10 @@ ReferencePlane<T>::derivative(const point2_type& x) const
   \param dq	更新量を表す6次元ベクトル
 */
 template <class T> inline void
-ReferencePlane<T>::update(const vector_type& dq)
+ReferencePlane<T>::update(const vector6_type& dq)
 {
-    _d -= dq.segment<3>(0);
-    _Rt = _Rt * aist_utility::rodrigues(dq.segment<3>(3));
+    _d -= dq.template segment<3>(0);
+    _R  = _R * aist_utility::rodrigues(dq.template segment<3>(3));
 }
 
 //! 出力ストリームに平面パラメータを3x3行列の形式で書き出す(ASCII)．
@@ -205,14 +198,15 @@ ReferencePlane<T>::update(const vector_type& dq)
 template <class T> inline std::ostream&
 operator <<(std::ostream& out, const ReferencePlane<T>& plane)
 {
-    using namespace	std;
-    typedef T		element_type;
-
-    const element_type	DEG = element_type(180) / element_type(M_PI);
-    cerr << "Position:       ";
+    std::cerr << "Position:    ";
     out << plane.d();
-    cerr << "Rotation(deg.): ";
-    out << evaluate(DEG * rotation_axis(plane.Rt()));
+
+    constexpr T		DEG = T(180) / T(M_PI);
+    Eigen::AngleAxis<T>	angleAxis(plane.R());
+    std::cerr << "Angle(deg.): ";
+    out << DEG * angleAxis.angle();
+    std::cerr << "Axis:        ";
+    out << angleAxis.axis();
 
     return out;
 }
@@ -225,13 +219,14 @@ template <class T>
 class CameraCalibrator
 {
   public:
-    typedef T						element_type;
-    typedef ReferencePlane<element_type>		plane_type;
-    typedef Vector<element_type>			vector_type;
-    typedef Eigen::Matrix<element_type>			matrix_type;
-    typedef Eigen::Matrix<element_type, 2, 1>		point2_type;
-    typedef Eigen::Matrix<element_type, 3, 1>		point3_type;
-    typedef Eigen::Matrix<element_type, 3, 3>		matrix33_type;
+    using element_type	= T;
+    using plane_type	= ReferencePlane<element_type>;
+    using vector_type	= Eigen::Matrix<element_type, Eigen::Dynamic, 1>;
+    using matrix_type	= Eigen::Matrix<element_type,
+					Eigen::Dynamic, Eigen::Dynamic>;
+    using point2_type	= Eigen::Matrix<element_type, 2, 1>;
+    using point3_type	= Eigen::Matrix<element_type, 3, 1>;
+    using matrix33_type	= Eigen::Matrix<element_type, 3, 3>;
 
   private:
     typedef Normalize<element_type, 2>			normalize_type;
@@ -246,7 +241,7 @@ class CameraCalibrator
     class VolumeCost
     {
       public:
-	typedef CameraCalibrator::element_type		element_type;
+	using element_type = CameraCalibrator::element_type;
 
       public:
 	VolumeCost(Iter begin, Iter end)				;
@@ -276,40 +271,40 @@ class CameraCalibrator
     class PlaneCost
     {
       public:
-	typedef CameraCalibrator::element_type		element_type;
-	typedef BlockDiagonalMatrix<element_type>	derivative_type;
+	using element_type	= CameraCalibrator::element_type;
+	using derivative_type	= BlockDiagonalMatrix<element_type>;
       //! 特定の参照平面について，全カメラに渡る参照点とその投影像の対データ
-	typedef typename Iter::value_type		CorresListArray;
+	using CorresListArray	= typename Iter::value_type;
       //! 特定の参照平面とカメラについて，それらの間の参照点とその投影像の対データ
-	typedef typename CorresListArray::value_type	CorresList;
+	using CorresList	= typename CorresListArray::value_type;
 
 	PlaneCost(Iter begin, Iter end, bool commonCenters)		;
 
       //! 全カメラの総自由度数を返す．
 	size_t			adim()		const	{return _adim;}
       //! 各カメラの自由度を返す．
-	const Array<size_t>&	adims()		const	{return _adims;}
+	const std::vector<size_t>&	adims()		const	{return _adims;}
       //! 1枚の参照平面の自由度を返す．
 	size_t			bdim()		const	{return 6;}
 
-	vector_type	operator ()(const Array<Cam>& cameras,
+	vector_type	operator ()(const std::vector<Cam>& cameras,
 				    const plane_type& plane, int j)
 								const	;
-	derivative_type	derivativeA(const Array<Cam>& cameras,
+	derivative_type	derivativeA(const std::vector<Cam>& cameras,
 				  const plane_type& plane, int j)
 								const	;
-	matrix_type	derivativeB(const Array<Cam>& cameras,
+	matrix_type	derivativeB(const std::vector<Cam>& cameras,
 				  const plane_type& plane, int j)
 								const	;
-	void		updateA(Array<Cam>& cameras,
+	void		updateA(std::vector<Cam>& cameras,
 				const vector_type& dcameras)	const	;
 	void		updateB(plane_type& plane,
 				const vector_type& dplane)	const	;
 
-	element_type	reprojectionError(const Array<Cam>& cameras,
-					  const Array<plane_type>& planes)
+	element_type	reprojectionError(const std::vector<Cam>& cameras,
+					  const std::vector<plane_type>& planes)
 								const	;
-	matrix_type	standardDeviations(const Array<Cam>& cameras,
+	matrix_type	standardDeviations(const std::vector<Cam>& cameras,
 					   const matrix_type& covariance)
 								const	;
 
@@ -319,11 +314,11 @@ class CameraCalibrator
 	const CorresListArray&
 			corresListArray(int j)	const	;
 
-	const Iter	_begin;		//!< 参照平面データの先頭を示す反復子
-	const Iter	_end;		//!< 参照平面データの末尾の次を示す反復子
-	size_t		_adim;		//!< 全カメラの総自由度数
-	Array<size_t>	_adims;		//!< 各カメラの自由度
-	Array<size_t>	_npoints;	//!< 各参照平面に関わる点対数
+	const Iter		_begin;    //!< 参照平面データの先頭を示す反復子
+	const Iter		_end;	   //!< 参照平面データの末尾の次を示す反復子
+	size_t			_adim;	   //!< 全カメラの総自由度数
+	std::vector<size_t>	_adims;	   //!< 各カメラの自由度
+	std::vector<size_t>	_npoints;  //!< 各参照平面に関わる点対数
     };
 
   public:
@@ -340,7 +335,7 @@ class CameraCalibrator
 
   //! キャリブレーションによって求められたカメラパラメータの標準偏差を返す．
   /*!
-    \return	各行にカメラ毎の推定パラメータの標準偏差を収めた
+    \return	各列にカメラ毎の推定パラメータの標準偏差を収めた
 		(カメラ数x内部・外部パラメータ数)行列
   */
     const matrix_type&
@@ -349,7 +344,7 @@ class CameraCalibrator
   //! キャリブレーションによって求められたカメラパラメータの標準偏差を返す．
   /*!
     \param i	カメラを指定するindex
-    \return	各行にカメラ毎の推定パラメータの標準偏差を収めた
+    \return	各列にカメラ毎の推定パラメータの標準偏差を収めた
 		内部・外部パラメータ数次元のベクトル
   */
     const vector_type
@@ -358,14 +353,14 @@ class CameraCalibrator
     template <class Iter, class Cam> void
 		volumeCalib(Iter begin, Iter end,
 			    Cam& camera, bool refine)			;
-    template <class Iter, class Cam> Array<plane_type>
-		planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
+    template <class Iter, class Cam> std::vector<plane_type>
+		planeCalib(Iter begin, Iter end, std::vector<Cam>& cameras,
 			   bool commonCenters, bool refine)		;
 
   private:
-    template <class Iter> static Array<normalize_type>
+    template <class Iter> static std::vector<normalize_type>
 		computeCameraNormalizations(Iter begin, Iter end)	;
-    template <class Iter> static Array<normalize_type>
+    template <class Iter> static std::vector<normalize_type>
 		computePlaneNormalizations(Iter begin, Iter end)	;
     template <class Iter> static matrix_type
 		computeHomographies(Iter begin, Iter end)		;
@@ -373,7 +368,7 @@ class CameraCalibrator
 			   matrix_type& P, matrix_type& Qt)		;
     static void	ueshibaCalib(matrix_type& W,
 			     matrix_type& P, matrix_type& Qt,
-			     const vector_type& scales,
+			     const std::vector<T>& scales,
 			     bool commonCenters)			;
 
     element_type	_reprojectionError;
@@ -419,9 +414,9 @@ CameraCalibrator<T>::volumeCalib(Iter begin, Iter end, Cam& camera, bool refine)
   カメラが1台の場合はZhangの方法，2台以上の場合は植芝の方法でキャリブレーションを行う．
 
   テンプレートパラメータIterは以下の条件を満たすこと：
-  -# TU::Array<Container>
+  -# TU::std::vector<Container>
      を指す前進反復子(forward iterator)である．
-  -# Array<Container>は1枚の参照平面と複数のカメラ間の対応点データを収めた配列で，
+  -# std::vector<Container>は1枚の参照平面と複数のカメラ間の対応点データを収めた配列で，
      そのサイズはカメラの台数に等しい．
   -# Containerは1枚の参照平面と1台のカメラ間の対応点データを収めたコンテナで，
      参照点とその投影像の2次元座標の組
@@ -441,8 +436,9 @@ CameraCalibrator<T>::volumeCalib(Iter begin, Iter end, Cam& camera, bool refine)
   \return		推定された参照平面
 */
 template <class T> template <class Iter, class Cam>
-Array<typename CameraCalibrator<T>::plane_type>
-CameraCalibrator<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
+std::vector<typename CameraCalibrator<T>::plane_type>
+CameraCalibrator<T>::planeCalib(Iter begin, Iter end,
+				std::vector<Cam>& cameras,
 				bool commonCenters, bool refine)
 {
     using namespace	std;
@@ -456,47 +452,45 @@ CameraCalibrator<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
     const auto	nplanes  = W.ncol() / 3;
 
   // Normalize the homography matrices.
-    Array<normalize_type >
+    std::vector<normalize_type>
 	cameraNorms = computeCameraNormalizations(begin, end);
-    Array<normalize_type >
+    std::vector<normalize_type>
 	planeNorms  = computePlaneNormalizations(begin, end);
     for (size_t i = 0; i < ncameras; ++i)
 	for (size_t j = 0; j < nplanes; ++j)
-	    slice<3, 3>(W, 3*i, 3*j)
+	    W.block<3, 3>(3*i, 3*j)
 		= evaluate(cameraNorms[i].T() *
-			   slice<3, 3>(W, 3*i, 3*j) * planeNorms[j].Tinv());
+			   W.block<3, 3>(3*i, 3*j) * planeNorms[j].Tinv());
 
   // Factor the homography matrices into cameras and planes.
-    matrix_type	P, Qt;				// cameras and planes
+    matrix_type	P, Q;				// cameras and planes
     if (ncameras <= 1)
-	zhangCalib(W, P, Qt);			// Zhang's algorithm
+	zhangCalib(W, P, Q);			// Zhang's algorithm
     else
     {
       // Extract scale factors for each plane.
-	vector_type	scales(nplanes);
+	std::vector<T>	scales(nplanes);
 	for (size_t j = 0; j < nplanes; ++j)
 	    scales[j] = planeNorms[j].T()[0][0];
 
-	ueshibaCalib(W, P, Qt, scales, commonCenters);	// Ueshiba's algorithm
+	ueshibaCalib(W, P, Q, scales, commonCenters);	// Ueshiba's algorithm
     }
 
   // Unnormalize computed camera and plane parameters.
     for (size_t i = 0; i < ncameras; ++i)
-	slice<3, 4>(P, 3*i, 0) = evaluate(cameraNorms[i].Tinv() *
-					  slice<3, 4>(P, 3*i, 0));
+	P.block<3, 4>(3*i, 0) = cameraNorms[i].Tinv() * P.block<3, 4>(3*i, 0);
     for (size_t j = 0; j < nplanes; ++j)
-	Qt(3*j, 3, 0, Qt.ncol())
-	    = evaluate(planeNorms[j].Tt() * Qt(3*j, 3, 0, Qt.ncol()));
+	Q.block<4, 3>(0, 3*j) = planeNorms[j].Tt() * Q.block<3, 4>(0, 3*j);
 
   // Set camera parameters.
     cameras.resize(ncameras);
     for (size_t i = 0; i < cameras.size(); ++i)
-	cameras[i].setProjection(slice<3, 4>(P, 3*i, 0));
+	cameras[i].setProjection(P.block<3, 4>(3*i, 0));
 
   // Set plane parameters.
-    Array<plane_type>	planes(nplanes);
+    std::vector<plane_type>	planes(nplanes);
     for (size_t j = 0; j < planes.size(); ++j)
-	planes[j].initialize(slice<3, 3>(Qt, 3*j, 0));
+	planes[j].initialize(Q.block<3, 3>(0, 3*j));
 
 #ifdef _DEBUG
     cerr << "--- Camera parameters linearly estimated..." << endl;
@@ -540,10 +534,10 @@ CameraCalibrator<T>::planeCalib(Iter begin, Iter end, Array<Cam>& cameras,
   \return		(カメラ数)個の正規化変換
 */
 template <class T>
-template <class Iter> Array<typename CameraCalibrator<T>::normalize_type>
+template <class Iter> std::vector<typename CameraCalibrator<T>::normalize_type>
 CameraCalibrator<T>::computeCameraNormalizations(Iter begin, Iter end)
 {
-    Array<normalize_type>	norms(begin != end ? begin->size() : 0);
+    std::vector<normalize_type>	norms(begin != end ? begin->size() : 0);
 
     for (auto iter = begin; iter != end; ++iter)	// 各参照平面について
 	for (size_t i = 0; i < iter->size(); ++i)	// 各カメラについて
@@ -569,10 +563,10 @@ CameraCalibrator<T>::computeCameraNormalizations(Iter begin, Iter end)
   \return		(参照点数)個の正規化変換
 */
 template <class T>
-template <class Iter> Array<typename CameraCalibrator<T>::normalize_type>
+template <class Iter> std::vector<typename CameraCalibrator<T>::normalize_type>
 CameraCalibrator<T>::computePlaneNormalizations(Iter begin, Iter end)
 {
-    Array<normalize_type>	norms(std::distance(begin, end));
+    std::vector<normalize_type>	norms(std::distance(begin, end));
 
     size_t	j = 0;
     for (auto iter = begin; iter != end; ++iter)	// 各参照平面について
@@ -628,12 +622,12 @@ CameraCalibrator<T>::computeHomographies(Iter begin, Iter end)
 	for (size_t i = 0; i < ncameras; ++i)
 	{
 	    Projectivity22<T>	H((*iter)[i].begin(), (*iter)[i].end(), true);
-	    slice<3, 3>(W, 3*i, 3*j) = H;
+	    W.block<3, 3>(3*i, 3*j) = H;
 #ifdef _DEBUG
 	    cerr << "--- H" << i << j << " (RMS-err: "
 		 << H.rmsError((*iter)[i].begin(), (*iter)[i].end())
 		 << ") ---\n"
-		 << slice<3, 3>(W, 3*i, 3*j);
+		 << W.block<3, 3>(3*i, 3*j);
 #endif
 	}
 	++j;
@@ -696,7 +690,7 @@ CameraCalibrator<T>::VolumeCost<Iter, Cam>::derivative(const Cam& camera) const
     {
 	typename Cam::matrix_type	JJ;
 	camera(iter->first, &JJ);
-	J(n, 2, 0, J.ncol()) = JJ;
+	J.block(n, 0, 2, J.ncol()) = JJ;
 	n += 2;
     }
 
@@ -802,14 +796,14 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::PlaneCost(Iter begin, Iter end,
 template <class T>
 template <class Iter, class Cam> typename CameraCalibrator<T>::vector_type
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::operator ()(
-    const Array<Cam>& cameras, const plane_type& plane, int j) const
+    const std::vector<Cam>& cameras, const plane_type& plane, int j) const
 {
     const auto&	data = corresListArray(j);
     vector_type	val(2 * _npoints[j]);
     for (size_t k = 0, i = 0; i < ncameras(); ++i)
 	for (auto iter = data[i].begin(); iter != data[i].end(); ++iter)
 	{
-	    val(k, 2) = cameras[i](plane(iter->first)) - iter->second;
+	    val.segment<2>(k) = cameras[i](plane(iter->first)) - iter->second;
 	    k += 2;
 	}
 
@@ -830,21 +824,21 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::operator ()(
 */
 template <class T> template <class Iter, class Cam> BlockDiagonalMatrix<T>
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeA(
-    const Array<Cam>& cameras, const plane_type& plane, int j) const
+    const std::vector<Cam>& cameras, const plane_type& plane, int j) const
 {
     const auto&		data = corresListArray(j);
     derivative_type	J(ncameras());
     for (size_t i = 0; i < ncameras(); ++i)
     {
-	J[i].resize(2 * data[i].size(), _adims[i]);
+	J[i].setZero(2 * data[i].size(), _adims[i]);
 	size_t	k = 0;
 	for (auto iter = data[i].begin(); iter != data[i].end(); ++iter)
 	{
 	    typename Cam::matrix_type	JJ;
 
 	    cameras[i](plane(iter->first), &JJ);
-	    J[i](k, 2, 0, _adims[i])
-		= JJ(0, 2, 6 + _adims[0] - _adims[i], _adims[i]);
+	    J[i].block(k, 0, 2, _adims[i])
+		= JJ.block(0, 6 + _adims[0] - _adims[i], 2, _adims[i]);
 	    k += 2;
 	}
     }
@@ -863,7 +857,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeA(
 template <class T>
 template <class Iter, class Cam> typename CameraCalibrator<T>::matrix_type
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeB(
-    const Array<Cam>& cameras, const plane_type& plane, int j) const
+    const std::vector<Cam>& cameras, const plane_type& plane, int j) const
 {
     const auto&	data = corresListArray(j);
     matrix_type	K(2 * _npoints[j], 6);
@@ -872,8 +866,8 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeB(
 	{
 	    typename Cam::matrix_type	J;
 	    cameras[i](plane(iter->first), &J);
-	    slice<2, 6>(K, k, 0) = -slice<2, 3>(J, 0, 0)
-				 * plane.derivative(iter->first);
+	    K.template block<2, 6>(k, 0) = -J.template block<2, 3>(0, 0)
+					 * plane.derivative(iter->first);
 	    k += 2;
 	}
 
@@ -887,7 +881,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::derivativeB(
 */
 template <class T> template <class Iter, class Cam> void
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::updateA(
-    Array<Cam>& cameras, const vector_type& dcameras) const
+    std::vector<Cam>& cameras, const vector_type& dcameras) const
 {
     size_t	d = 0;
     cameras[0].updateIntrinsic(dcameras(d, _adims[0]));
@@ -939,7 +933,7 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::corresListArray(int j) const
 template <class T>
 template <class Iter, class Cam> typename CameraCalibrator<T>::element_type
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::reprojectionError(
-    const Array<Cam>& cameras, const Array<plane_type>& planes) const
+    const std::vector<Cam>& cameras, const std::vector<plane_type>& planes) const
 {
     element_type	sumerr = 0.0;
     size_t		npoints = 0;
@@ -962,35 +956,34 @@ CameraCalibrator<T>::PlaneCost<Iter, Cam>::reprojectionError(
 template <class T>
 template <class Iter, class Cam> typename CameraCalibrator<T>::matrix_type
 CameraCalibrator<T>::PlaneCost<Iter, Cam>::standardDeviations(
-    const Array<Cam>& cameras, const matrix_type& covariance) const
+    const std::vector<Cam>& cameras, const matrix_type& covariance) const
 {
-    std::cerr << "covariance: " << covariance.nrow() << 'x' << covariance.ncol()
+    std::cerr << "covariance: " << covariance.rows() << 'x' << covariance.cols()
 	      << std::endl;
 
     matrix_type	stddevs(_adims.size(), 6 + _adims[0]);
-    for (size_t i = 0, m = 0; i < stddevs.nrow(); ++i)
+    for (size_t i = 0, m = 0; i < stddevs.rows(); ++i)
     {
 	size_t	npoints = 0;
 	for (auto iter = _begin; iter != _end; ++iter)
 	    npoints += (*iter)[i].size();
 
-	auto	deviations = stddevs[i];
+	auto	deviations = stddevs.row(i);
 	for (size_t n = 6 + _adims[0] - _adims[i]; n < stddevs.ncol(); ++n)
 	{
-	    deviations[n] = sqrt(covariance[m][m] / npoints);
+	    deviations(n) = sqrt(covariance(m, m) / npoints);
 	    ++m;
 	}
 
 	if (stddevs.ncol() > 9)	// aspectとskewがパラメータに含まれているか？
 	{ // aspectとskewは内部パラメータ行列の(1, 1), (1, 2)成分そのものとして
 	  // 実装されているので，焦点距離で割らねばならない．
-	    deviations[9]  /= cameras[i].k();
-	    deviations[10] /= cameras[i].k();
+	    deviations(9)  /= cameras[i].k();
+	    deviations(10) /= cameras[i].k();
 	}
     }
 
     return stddevs;
 }
 
-}
-#endif	//! __CAMERACALIBRATOR_H
+}	// namespace aist_camera_calibration
