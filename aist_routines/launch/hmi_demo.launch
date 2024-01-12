@@ -1,12 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="rviz_config"	default="hmi_demo"/>
-
   <!-- Start kitting servers -->
   <include file="$(dirname)/kitting.launch">
     <arg name="sim"		value="false"/>
-    <arg name="rviz_config"	value="$(arg rviz_config)"/>
+    <arg name="rviz_config"	value="$(dirname)/hmi_demo.rviz"/>
   </include>
 
   <!-- Start hmi_demo server -->
