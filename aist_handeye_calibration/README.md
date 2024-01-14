@@ -81,15 +81,15 @@ You can terminate the client by hitting **q** and **return**.
 ## Parameters for configuring calibration
 
 The calibration process can be customized by adjusting the parameters listed below. They are stored in `aist_handeye_calibration/config/<camera_name>.yaml` where `<camera_name>` is the name of the camera to be calibrated.
-- **camera_type** -- If the camera continuously streams the depth and intensity/color images, this value should be *DepthCamera*. Otherwise, a special camera type should be specified according to the API for triggering image frames. Currently, only *PhoXiCamera* is supported.
 - **camera_name** -- Name of the camera, e.g. *a_bot_inside_camera*
 - **robot_name** -- Name of the robot used for calibration, e.g. *a_bot*. In the **eye_on_hand** configurations, the name of the robot on which the camera is mounted should be given. In the **eye_on_base** configurations, name of the robot to which the marker attached should be specified.
 - **eye_on_hand** -- *true* for the **eye_on_hand** configurations while *false* for **eye_on_base** configurations.
 - **robot_base_frame** -- ID of the frame with respect to which the cartesian robot poses are specified, e.g. *workspace_center*.
 - **robot_effector_frame** -- ID of the frame attached to the end-effector of the robot,e.g. *a_bot_ee_link*. When calibrating a camera, robot motions are given as poses of this frame with respect to the *robot_base_frame*.
 - **camera_frame** -- ID of the frame associated with the depth and intensity/color images, e.g. *a_bot_inside_camera_color_optical_frame*. This value must be identical to that specified when launching tha camera. In addition, depth images must be aligned to intensity/color images so that they have a common projection center.
-- **marker_id** -- ID of the marker
-- **marker_size** -- Side length of the square marker (in meters). Margins are not included.
+- **marker_map_dir** -- Directory containing configuration files of marker maps
+- **marker_map** -- Name of marker map
+- **marker_size** -- Side length of the square marker (in meters). Margins are not included (valid only when **marker_map** is not specified).
 - **planarity_tolerance** -- Thresholding value for filtering out outliers when fitting a plane to the 3D points within a detected marker region in the depth image (in meters).
 - **initpose** -- Initial robot pose when checking calibration results. The pose is given by a 6-dimensional array with x/y/z coordinates (in meters) and roll/pitch/yaw angles (in degrees) with respect to the *robot_base_frame*.
 - **keyposes** -- An array of robot poses where marker images are captured when calibrating the camera. Each pose is given by a 6-dimensional array with x/y/z coordinates (in meters) and roll/pitch/yaw angles (in degrees) with respect to the *robot_base_frame*.

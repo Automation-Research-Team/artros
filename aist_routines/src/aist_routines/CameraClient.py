@@ -41,9 +41,8 @@ from std_srvs.srv               import Trigger, SetBool
 #  class CameraClient                                                #
 ######################################################################
 class CameraClient(object):
-    def __init__(self, name, camera_type):
+    def __init__(self, name):
         self._name = name
-        self._type = camera_type
 
     @staticmethod
     def create(name, type_name):
@@ -57,10 +56,6 @@ class CameraClient(object):
     def name(self):
         return self._name
 
-    @property
-    def type(self):
-        return self._type
-
     def is_continuous_shot(self):
         return True
 
@@ -71,16 +66,16 @@ class CameraClient(object):
         return True
 
 ######################################################################
-#  class MonocularCamera                                             #
+#  class AreaCamera                                                  #
 ######################################################################
-class MonocularCamera(CameraClient):
+class AreaCamera(CameraClient):
     def __init__(self, name='IIDCCamera'):
-        super(MonocularCamera, self).__init__(name, 'area')
+        super(AreaCamera, self).__init__(name)
         self._dyn_reconf = DynReconfClient(name, timeout=None)
 
     @staticmethod
     def base(name):
-        return CameraClient(name, 'area')
+        return CameraClient(name)
 
     def is_continuous_shot(self):
         return self._dyn_reconf.get_configuration()['continuous_shot']
@@ -93,11 +88,11 @@ class MonocularCamera(CameraClient):
 ######################################################################
 class DepthCamera(CameraClient):
     def __init__(self, name):
-        super(DepthCamera, self).__init__(name, 'depth')
+        super(DepthCamera, self).__init__(name)
 
     @staticmethod
     def base(name):
-        return CameraClient(name, 'depth')
+        return CameraClient(name)
 
 ######################################################################
 #  class RealSenseCamera                                             #

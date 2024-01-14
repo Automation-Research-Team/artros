@@ -246,39 +246,17 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
 
     _correspondences_set.correspondences_set.resize(_camera_names.size());
 
-  // Restore marker map if specified.
-    if (const auto marker_map_name = nh.param<std::string>("marker_map", "");
-	marker_map_name != "")
-    {
-	const auto	mMapFile = nh.param("marker_map_dir",
-					    ros::package::getPath(
-						"aist_aruco_ros")
-					    + "/config")
-				 + '/' + marker_map_name + ".yaml";
-	_marker_map.readFromFile(mMapFile);
-
-	NODELET_INFO_STREAM("(MultiDetector) Let's find marker map["
-			    << marker_map_name << ']');
-    }
-    else if (const auto marker_id = nh.param<int>("marker_id", -1);
-	     marker_id >= 0)
-    {
-	const auto	half_size = nh.param("marker_size", 0.05f) / 2;
-	marker_info_t	mInfo(marker_id);
-	mInfo.push_back({-half_size,  half_size, 0});
-	mInfo.push_back({ half_size,  half_size, 0});
-	mInfo.push_back({ half_size, -half_size, 0});
-	mInfo.push_back({-half_size, -half_size, 0});
-	_marker_map.push_back(mInfo);
-	_marker_map.mInfoType = marker_map_t::METERS;
-
-	NODELET_INFO_STREAM("(MultiDetector) Let's find a marker with ID["
-			    << marker_id << ']');
-    }
-    else
-    {
-	throw std::runtime_error("Neither marker map nor marker ID specified!");
-    }
+  // Load marker map.
+    std::string	marker_map_name;
+    if (!nh.getParam("marker_map", marker_map_name))
+	throw std::runtime_error("Marker map not specified!");
+    const auto	mMapFile = nh.param("marker_map_dir",
+				    ros::package::getPath("aist_aruco_ros")
+				    + "/config")
+			 + '/' + marker_map_name + ".yaml";
+    _marker_map.readFromFile(mMapFile);
+    NODELET_INFO_STREAM("(MultiDetector) Let's find marker map["
+			<< marker_map_name << ']');
 
   // Set minimum marker size and setup ddynamic_reconfigure service for it.
     _ddr.registerVariable<double>("min_marker_size",

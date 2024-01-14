@@ -6,8 +6,6 @@
   <arg name="image_topics"	default="image_raw"/>
   <arg name="marker_map_dir"	default="$(dirname)/../config"/>
   <arg name="marker_map"	default="calib_board-6x4"/>
-  <arg name="marker_id"		default="-1"/>
-  <arg name="marker_size"	default="0.070"/>    <!-- in meters -->
   <arg name="marker_frame"	default="marker_frame"/>
   <arg name="reference_frame"	default=""/>
   <arg name="manager"		default=""/>
@@ -28,8 +26,6 @@
       <arg name="image_topics"		value="$(arg image_topics)"/>
       <arg name="marker_map_dir"	value="$(arg marker_map_dir)"/>
       <arg name="marker_map"		value="$(arg marker_map)"/>
-      <arg name="marker_id"		value="$(arg marker_id)"/>
-      <arg name="marker_size"		value="$(arg marker_size)"/>
       <arg name="marker_frame"		value="$(arg marker_frame)"/>
       <arg name="reference_frame"	value="$(arg reference_frame)"/>
       <arg name="manager"		value="$(arg manager)"/>
@@ -52,8 +48,6 @@
       <!-- Other parameters -->
       <param name="marker_map_dir"	value="$(arg marker_map_dir)"/>
       <param name="marker_map"		value="$(arg marker_map)"/>
-      <param name="marker_id"		value="$(arg marker_id)"/>
-      <param name="marker_size"		value="$(arg marker_size)"/>
       <param name="marker_frame"	value="$(arg marker_frame)"/>
       <param name="reference_frame"	value="$(arg reference_frame)"/>
     </node>

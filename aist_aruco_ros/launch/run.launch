@@ -1,9 +1,7 @@
 <launch>
 
   <arg name="marker_map_dir"		default="$(dirname)/../config"/>
-  <arg name="marker_map"		default=""/>
-  <arg name="marker_id"			default="26"/>
-  <arg name="marker_size"		default="0.070"/>    <!-- in meters -->
+  <arg name="marker_map"		default="marker-26-70"/>
   <arg name="marker_frame"		default="marker_frame"/>
   <arg name="image_is_rectified"	default="false"/>
   <arg name="planarity_tolerance"	default="0.001"/>
@@ -32,8 +30,6 @@
     <param name="image_is_rectified"	value="false"/>
     <param name="marker_map_dir"	value="$(arg marker_map_dir)"/>
     <param name="marker_map"		value="$(arg marker_map)"/>
-    <param name="marker_id"		value="$(arg marker_id)"/>
-    <param name="marker_size"		value="$(arg marker_size)"/>
     <param name="marker_frame"		value="$(arg marker_frame)"/>
     <param name="image_is_rectified"	value="$(arg image_is_rectified)"/>
     <param name="planarity_tolerance"	value="$(arg planarity_tolerance)"/>
