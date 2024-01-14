@@ -88,19 +88,27 @@
   </xacro:robotiq_epick>
 
   <!-- Add PhoXi 3D scanner -->
-  <xacro:include filename="$(find
-			   aist_phoxi_camera)/urdf/phoxi_m_camera.urdf.xacro"/>
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/a_phoxi_m_camera.yaml"/>
+  <xacro:include filename="$(find aist_phoxi_camera
+			   )/urdf/phoxi_m_camera.urdf.xacro"/>
   <xacro:phoxi_m_camera name="d_phoxi_m_camera" parent="workspace_center">
-    <origin xyz="-0.0149511700982 -0.483543436025 0.633792706454"
-	    rpy="0.0 1.043 1.5708"/>
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
   </xacro:phoxi_m_camera>
 
   <!-- Add RealSense camera -->
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/d_bot_camera.yaml"
+			  propname="camera_origin"/>
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/_sr305.urdf.xacro"/>
   <xacro:sensor_sr305 name="d_bot_camera" parent="d_bot_gripper_base_link"
-		      use_nominal_extrinsics="true">
-    <origin xyz="0.030 0.000 0.043" rpy="0 ${0.0*pi/180.0} 0" />
+		     use_nominal_extrinsics="true">
+    <origin xyz="${camera_origin[0]} ${camera_origin[1]} ${camera_origin[2]}"
+    	    rpy="${camera_origin[3]} ${camera_origin[4]} ${camera_origin[5]}"/>
   </xacro:sensor_sr305>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->

@@ -347,8 +347,8 @@ class HMIRoutines(KittingRoutines):
         if marker_type == 'finger':
             workspace_center = PointStamped()
             workspace_center.header.stamp    = header.stamp
-            workspace_center.header.frame_id = 'workspace_center'
-            # workspace_center.header.frame_id = 'ground'
+            # workspace_center.header.frame_id = 'workspace_center'
+            workspace_center.header.frame_id = 'ground'
             workspace_center.point           = Point(0, 0, 0)
             t = (self.listener.transformPoint(header.frame_id,
                                               workspace_center).point.z

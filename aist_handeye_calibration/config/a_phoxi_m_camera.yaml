@@ -1,4 +1,3 @@
-camera_type: PhoXiCamera
 camera_name: a_phoxi_m_camera
 robot_name: b_bot
 eye_on_hand: false
@@ -6,7 +5,7 @@ robot_base_frame: workspace_center
 robot_effector_frame: b_bot_flange
 robot_effector_tip_frame: b_bot_gripper_tip_link
 camera_parent_frame: workspace_center
-marker_map: marker-26-70
+marker_map: markermap-26
 enclosed_marker: false
 detection_mode: 0
 planarity_tolerance: 0.001

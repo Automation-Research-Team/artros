@@ -198,9 +198,9 @@ Detector3D::Detector3D(ros::NodeHandle& nh)
      _useSimilarity(false),
      _planarityTolerance(0.001)
 {
-  // Restore marker map if specified.
-    if (const auto marker_map_name = nh.param<std::string>("marker_map", "");
-	marker_map_name != "")
+  // Load marker map.
+    if (std::string marker_map_name;
+	nh.getParam("marker_map", marker_map_name))
     {
 	const auto	mMapFile = nh.param("marker_map_dir",
 					    ros::package::getPath(
@@ -210,22 +210,7 @@ Detector3D::Detector3D(ros::NodeHandle& nh)
 	_marker_map.readFromFile(mMapFile);
 	_marker_size = cv::norm(_marker_map[0].points[0] -
 				_marker_map[0].points[1]);
-
 	ROS_INFO_STREAM("Find a marker map[" << marker_map_name << ']');
-    }
-    else if (const auto marker_id = nh.param<int>("marker_id", 0);
-	     marker_id > 0)
-    {
-	const auto	half_size = _marker_size/2;
-	marker_info_t	mInfo(marker_id);
-	mInfo.push_back({-half_size,  half_size, 0});
-	mInfo.push_back({ half_size,  half_size, 0});
-	mInfo.push_back({ half_size, -half_size, 0});
-	mInfo.push_back({-half_size, -half_size, 0});
-	_marker_map.push_back(mInfo);
-	_marker_map.mInfoType = marker_map_t::METERS;
-
-	ROS_INFO_STREAM("Find a marker with ID[" << marker_id << ']');
     }
 
   // Set minimum marker size and setup ddynamic_reconfigure service for it.

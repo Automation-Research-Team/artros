@@ -1,4 +1,3 @@
-camera_type: DepthCamera
 camera_name: realsense
 robot_name: arm
 eye_on_hand: true

@@ -1,16 +1,8 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="calibration">
-  <!-- Add AR markers -->
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="f_bot_calibration">
+
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/ar_markers.urdf.xacro"/>
-
-  <xacro:ar_marker_70_5 prefix="b_bot_"
-  			parent="b_bot_gripper_base_link"
-  			marker_id="26"
-			thickness="0.005">
-    <origin xyz="0.063 0.0 0.0215" rpy="0 0 0"/>
-  </xacro:ar_marker_70_5>
-
   <xacro:ar_marker_150_5 prefix="workspace_"
 			 parent="workspace_center"
   			 marker_id="17_26_32_256"
