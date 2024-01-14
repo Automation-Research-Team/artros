@@ -5,7 +5,7 @@ robot_base_frame: workspace_center
 robot_effector_frame: g_bot_flange
 robot_effector_tip_frame: g_bot_gripper_tip_link
 camera_parent_frame: workspace_center
-marker_map: marker-26-70
+marker_map: markermap-26
 enclosed_marker: false
 planarity_tolerance: 0.003
 initpose: [0.00, -0.40, 0.30, 90, 90, 0]
