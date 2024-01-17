@@ -424,12 +424,6 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
-    - Class: toyota2_visualization/TexturedMesh
-      Enabled: true
-      Image Topic: /camera/image_raw
-      Mesh Topic: /mesh_generator/mesh
-      Name: TexturedMesh
-      Value: true
     - Class: rviz/Image
       Enabled: true
       Image Topic: /camera/image_raw
@@ -441,6 +435,12 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
+      Value: true
+    - Class: aist_visualization/TexturedMesh
+      Enabled: true
+      Image Topic: /camera/image_raw
+      Mesh Topic: /mesh_generator/mesh
+      Name: TexturedMesh
       Value: true
   Enabled: true
   Global Options:
@@ -470,7 +470,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.2785494327545166
+      Distance: 3.596863269805908
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -486,9 +486,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1947964429855347
+      Pitch: 0.8597961068153381
       Target Frame: <Fixed Frame>
-      Yaw: 5.063582420349121
+      Yaw: 4.57858943939209
     Saved: ~
 Window Geometry:
   Displays:
@@ -508,5 +508,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1200
-  X: 2894
-  Y: 128
+  X: 2640
+  Y: 91
