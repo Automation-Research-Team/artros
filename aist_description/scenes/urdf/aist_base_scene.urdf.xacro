@@ -65,7 +65,8 @@
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/a_bot_calibration.yaml"
       transmission_hw_interface="hardware_interface/PositionJointInterface"
-      safety_limits="true"/>
+      safety_limits="true"
+      safety_pos_margin="1.5"/>
 
   <xacro:ur_robot_gazebo
       prefix="b_bot_"
@@ -78,7 +79,8 @@
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/b_bot_calibration.yaml"
       transmission_hw_interface="hardware_interface/PositionJointInterface"
-      safety_limits="true"/>
+      safety_limits="true"
+      safety_pos_margin="1.5"/>
 
   <joint name="ground_a_bot_joint" type="fixed">
     <parent link="ground"/>
