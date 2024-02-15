@@ -20,10 +20,10 @@
               <color>0.007843 0.007843 0.007843 1</color>
             </ambient>
             <diffuse>
-              <color>0.08 0.08 0.08 1</color>
+              <color>0.792156862745098 0.819607843137255 0.933333333333333 1</color>
             </diffuse>
             <specular>
-              <color>0.08 0.08 0.08 1</color>
+              <color>0.792156862745098 0.819607843137255 0.933333333333333 1</color>
             </specular>
             <shininess>
               <float>0.312500</float>
