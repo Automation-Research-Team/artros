@@ -23,7 +23,6 @@
   <depend>eigen</depend>
   <depend>aist_utility</depend>
   <depend>ddynamic_reconfigure</depend>
-  <depend>orocos_kdl</depend>
   <depend>kdl_parser</depend>
 
   <build_export_depend>hardware_interface</build_export_depend>
