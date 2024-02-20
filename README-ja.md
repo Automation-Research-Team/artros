@@ -5,9 +5,9 @@ artros: アーム，カメラ等を制御するROSプラットフォーム
 
 ## インストール手順
 ### ROS環境の準備
-最初に，Ubuntu-18.04上に`ros-melodic-desktop-full`をインストールする．次に，python関係のツールをインストールする．
+最初に，Ubuntu-20.04上に`ros-noetic-desktop-full`をインストールする．次に，python関係のツールをインストールする．
 ```bash
-$ sudo apt-get install python-katkin-tools python-rosdep python-dev python-numpy python-pip python-setuptools python-scipy
+$ sudo apt-get install python3-katkin-tools python3-rosdep python3-dev python3-numpy python3-pip python3-setuptools python3-scipy
 ```
 そして，rosdepを初期化する．
 ```bash
@@ -19,7 +19,7 @@ $ rosdep update
 最初に，`artros`を入手する．
 ```bash
 $ cd catkin_ws/src
-$ git clone https://gitlab.com/art-aist-private/artros
+$ git clone git@github.com:Automation-Research-Team/artros
 ```
 次に，`artros`が依存しているサブモジュールを取り込む．
 ```bash
@@ -30,12 +30,6 @@ $ git submodule update --init
 ```bash
 $ rosdep install -i --from-paths .
 ```
-
-### Photoneoのカメラドライバをビルドするための準備(必須)
-[aist_phoxi_camera/README.md](aist_phoxi_camera/README.md)の`Installation`に従って，Photoneoのカメラドライバパッケージ`aist_phoxi_camera`をビルドする準備をする．
-
-### Photoneo LocalizationSDKを使用した3D CAD matchingパッケージをビルドするための準備(必須)
-[aist_localization/README.md](aist_localization/README.md)の`Installation`に従って，Photoneoのカメラドライバパッケージ`aist_localization`をビルドする準備をする．
 
 ###	全パッケージのビルド
 ワークスペース全体をビルドする．
