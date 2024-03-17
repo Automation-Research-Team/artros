@@ -1,9 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
 
+  <arg name="sim"	default="false"/>
+
   <!-- Start kitting servers -->
   <include file="$(dirname)/kitting.launch">
-    <arg name="sim"		value="false"/>
+    <arg name="sim"		value="$(arg sim)"/>
     <arg name="rviz_config"	value="$(dirname)/hmi_demo.rviz"/>
   </include>
 
@@ -12,8 +14,8 @@
   	pkg="aist_routines" type="hmi_server.py" output="screen"/>
 
   <!-- Start live camera -->
-  <node name="live_camera"
-  	pkg="usb_cam" type="usb_cam_node" output="screen">
+  <node unless="$(arg sim)"
+	name="live_camera" pkg="usb_cam" type="usb_cam_node" output="screen">
       <rosparam file="$(dirname)/../config/live_camera.yaml"/>
   </node>
 

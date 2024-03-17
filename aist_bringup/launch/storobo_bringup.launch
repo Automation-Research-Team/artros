@@ -53,9 +53,9 @@
   <include file="$(find torobo_gui)/launch/torobo_state_viewer.launch"/>
 
   <!-- launch torobo collision detector -->
-  <include file="$(find torobo_collision_detector
-		 )/launch/torobo_collision_detector_nodelet.launch">
-    <arg name="manager"	value="$(arg manager)"/>
-  </include>
+  <!-- <include file="$(find torobo_collision_detector -->
+  <!-- 		 )/launch/torobo_collision_detector_nodelet.launch"> -->
+  <!--   <arg name="manager"	value="$(arg manager)"/> -->
+  <!-- </include> -->
 
 </launch>
