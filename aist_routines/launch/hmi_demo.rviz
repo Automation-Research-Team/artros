@@ -7,6 +7,7 @@ Panels:
         - /MotionPlanning1/Scene Robot1
         - /TF1/Frames1
         - /DepthCloud1/Auto Size1
+        - /WrenchStamped1
       Splitter Ratio: 0.6159420013427734
     Tree Height: 480
   - Class: rviz/Selection
@@ -1921,8 +1922,6 @@ Visualization Manager:
           Value: false
         a_bot_gripper_tip_link:
           Value: true
-        a_bot_inside_camera_aligned_depth_to_color_frame:
-          Value: false
         a_bot_inside_camera_color_frame:
           Value: false
         a_bot_inside_camera_color_optical_frame:
@@ -1943,8 +1942,6 @@ Visualization Manager:
           Value: false
         a_bot_inside_camera_right_ir_optical_frame:
           Value: false
-        a_bot_outside_camera_aligned_depth_to_color_frame:
-          Value: true
         a_bot_outside_camera_color_frame:
           Value: false
         a_bot_outside_camera_color_optical_frame:
@@ -2330,8 +2327,6 @@ Visualization Manager:
                                           {}
                                         a_bot_inside_camera_connector_link:
                                           a_bot_inside_camera_link:
-                                            a_bot_inside_camera_aligned_depth_to_color_frame:
-                                              {}
                                             a_bot_inside_camera_depth_frame:
                                               a_bot_inside_camera_color_frame:
                                                 a_bot_inside_camera_color_optical_frame:
@@ -2346,8 +2341,6 @@ Visualization Manager:
                                                   {}
                                         a_bot_outside_camera_connector_link:
                                           a_bot_outside_camera_link:
-                                            a_bot_outside_camera_aligned_depth_to_color_frame:
-                                              {}
                                             a_bot_outside_camera_depth_frame:
                                               a_bot_outside_camera_color_frame:
                                                 a_bot_outside_camera_color_optical_frame:
@@ -2699,6 +2692,21 @@ Visualization Manager:
       Mesh Topic: /mesh_generator/mesh
       Name: VirtualScreen
       Value: true
+    - Alpha: 1
+      Arrow Width: 0.5
+      Class: rviz/WrenchStamped
+      Enabled: true
+      Force Arrow Scale: 0.20000000298023224
+      Force Color: 204; 51; 51
+      Hide Small Values: true
+      History Length: 1
+      Name: WrenchStamped
+      Queue Size: 10
+      Topic: /b_bot_ftsensor/wrench
+      Torque Arrow Scale: 0.5
+      Torque Color: 204; 204; 51
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -2727,7 +2735,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.9349327087402344
+      Distance: 6.433051109313965
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2743,9 +2751,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5647949576377869
+      Pitch: 0.06979493051767349
       Target Frame: <Fixed Frame>
-      Yaw: 0.25610148906707764
+      Yaw: 6.239286422729492
     Saved: ~
 Window Geometry:
   Displays:

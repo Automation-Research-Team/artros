@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim"			default="false"/>
+  <arg name="scene"			default=""/>
+  <arg name="joint_state_frequency"	default="50"/>
+  <arg name="robot_state_frequency"	default="50"/>
+
+  <!-- Setup "aist" configuration -->
+  <arg name="config"		value="b_bot"/>
+  <arg name="gazebo_init_args"	value="-J b_bot_shoulder_pan_joint 1.5708
+  				       -J b_bot_shoulder_lift_joint -2.1
+  				       -J b_bot_elbow_joint 1.4
+  				       -J b_bot_wrist_1_joint -0.85
+  				       -J b_bot_wrist_2_joint -1.5708
+  				       -J b_bot_wrist_3_joint 0.0"/>
+  <arg name="prefixes"		value="b_bot_"/>
+  <arg name="devices"		value="ur5"/>
+  <arg name="controllers"	value="ur"/>
+  <arg name="drivers"		value="ur"/>
+  <arg name="driver_args"	value="163.220.51.111,
+				       50005, 50006, 50007, 50008, 0;
+  				       urcap, 163.220.51.110" />
+
+  <!-- Bringup robots -->
+  <include file="$(dirname)/include/connect_robots.launch">
+    <arg name="robot_description_file"
+	 value="$(find aist_description
+		)/scenes/urdf/$(arg config)_base_scene.urdf.xacro
+		scene:=$(arg scene)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="joint_state_frequency"	value="$(arg joint_state_frequency)"/>
+    <arg name="gazebo_init_args"	value="$(arg gazebo_init_args)"/>
+    <arg name="prefixes"		value="$(arg prefixes)"/>
+    <arg name="devices"			value="$(arg devices)"/>
+    <arg name="controllers"		value="$(arg controllers)"/>
+    <arg name="drivers"			value="$(arg drivers)"/>
+    <arg name="driver_args"		value="$(arg driver_args)"/>
+  </include>
+
+  <!-- Start MoveIt! -->
+  <include file="$(dirname)/include/move_group.launch">
+    <arg name="robot_state_frequency"	value="$(arg robot_state_frequency)"/>
+    <arg name="moveit_config"		value="$(find aist_moveit_config)"/>
+    <arg name="vis"			value="$(arg sim)"/>
+  </include>
+
+  <!-- Launch other hardware drivers -->
+  <group unless="$(arg sim)">
+
+    <!-- Drivers for the force sensors -->
+    <include ns="b_bot_ftsensor"
+    	     file="$(find aist_robotiq)/launch/ft300.launch">
+      <arg name="calib_file"		value="b_bot_ftsensor"/>
+      <arg name="frame_id"		value="b_bot_ftsensor_wrench_link"/>
+      <arg name="hostname"		value="b_bot"/>
+    </include>
+
+    <!-- Launch suction controller -->
+    <include file="$(find aist_fastening_tools
+		   )/launch/suction_tool_controllers.launch">
+      <arg name="driver_ns"	value="b_bot/ur_hardware_interface"/>
+      <arg name="tool_names"	value="screw_tool_m3 screw_tool_m4
+				       b_bot_gripper base_fixture"/>
+    </include>
+
+    <!-- Launch precision gripper -->
+    <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->
+    <!--   <arg name="prefix"		value="a_bot_precision_"/> -->
+    <!--   <arg name="serial_port"		value="/dev/ttyUSB0"/> -->
+    <!--   <arg name="publish_rate"		value="50"/> -->
+    <!-- </include> -->
+
+  </group>
+
+</launch>

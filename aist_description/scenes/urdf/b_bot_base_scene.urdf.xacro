@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
+
+  <xacro:arg name="scene" default=""/>
+
+  <xacro:property name="b_bot_x"	value="0"/>
+  <xacro:property name="b_bot_y"	value="0.4875"/>
+  <xacro:property name="b_bot_theta"	value="${pi}"/>
+  <xacro:property name="bots_z"		value="0.770"/>
+  <xacro:property name="screen_z"	value="${bots_z + 0.0347}"/>
+
+  <!-- ground and workspace -->
+  <link name="ground"/>
+
+  <xacro:property name="table_w"	value="0.900"/>
+  <xacro:property name="table_l"	value="1.800"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_"
+	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       parent="ground">
+    <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
+  </xacro:table>
+  <link name="workspace_center"/>
+  <joint name="ground_to_workspace" type="fixed">
+    <parent link="ground"/>
+    <child  link="workspace_center"/>
+    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- cage -->
+  <xacro:property name="cage_w"		value="1.200"/>
+  <xacro:property name="cage_l"		value="1.580"/>
+  <xacro:property name="cage_h"		value="1.420"/>
+  <xacro:property name="cage_t"		value="0.040"/>
+  <xacro:property name="tool_bar_h"	value="0.270"/>
+  <xacro:property name="camera_bar_h"	value="1.300"/>
+  <xacro:property name="cage_z"		value="0.164"/>
+  <xacro:property name="cage_offset"	value="0.020"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/cage.urdf.xacro"/>
+  <xacro:cage prefix="cage_"
+	      width="${cage_w}" length="${cage_l}" height="${cage_h}"
+	      thickness="${cage_t}"
+	      workspace_height="${bots_z - cage_z}"
+	      tool_bar_height="${tool_bar_h}"
+	      camera_bar_height="${camera_bar_h}"
+	      parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset} ${-cage_l/2} ${cage_z}"
+	    rpy="0 0 0" />
+  </xacro:cage>
+
+  <!-- robot arms -->
+  <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
+  <xacro:ur_robot_gazebo
+      prefix="b_bot_"
+      joint_limits_parameters_file="$(find ur_description
+				    )/config/ur5/joint_limits.yaml"
+      physical_parameters_file="$(find ur_description
+				)/config/ur5/physical_parameters.yaml"
+      visual_parameters_file="$(find ur_description
+			      )/config/ur5/visual_parameters.yaml"
+      kinematics_parameters_file="$(find aist_bringup
+				  )/config/b_bot_calibration.yaml"
+      transmission_hw_interface="hardware_interface/PositionJointInterface"
+      safety_limits="true"
+      safety_pos_margin="0.3"/>
+
+  <joint name="ground_b_bot_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="b_bot_base_link"/>
+    <origin xyz="${b_bot_x} ${b_bot_y} ${bots_z}" rpy="0 0 ${b_bot_theta}"/>
+  </joint>
+
+  <!-- Spawn and attach force sensor -->
+  <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
+  <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  </xacro:ft300>
+
+  <!-- Spawn and attach gripper -->
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
+  <xacro:single_suction_gripper prefix="b_bot_gripper_"
+  				parent="b_bot_ftsensor_flange_link">
+    <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->
+    <origin xyz="0 0 0" rpy="0 ${0.7*pi/180} ${-0.1*pi/180}"/>
+  </xacro:single_suction_gripper>
+
+  <!-- Add PhoXi 3D scanner -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/a_phoxi_m_camera.yaml"/>
+  <xacro:include filename="$(find aist_phoxi_camera
+			   )/urdf/phoxi_m_camera.urdf.xacro"/>
+  <xacro:phoxi_m_camera name="a_phoxi_m_camera" parent="workspace_center">
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
+  </xacro:phoxi_m_camera>
+
+  <!-- live camera -->
+  <xacro:load_calibration filename="$(find aist_camera_calibration
+				    )/calib/live_camera.yaml"/>
+  <link name="live_camera_optical_frame"/>
+  <joint name="workspace_live_camera_joint" type="fixed">
+    <parent link="workspace_center"/>
+    <child  link="live_camera_optical_frame"/>
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
+  </joint>
+
+  <!-- virtual screen -->
+  <link name="virtual_screen"/>
+  <joint name="virtual_screen_joint" type="fixed">
+    <parent link="ground"/>
+    <child  link="virtual_screen"/>
+    <origin xyz="0 0 ${screen_z}" rpy="0 0 0"/>
+  </joint>
+
+  <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
+  <link name="world"/>
+  <joint name="world_ground_joint" type="fixed">
+    <parent link="world"/>
+    <child  link="ground"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Include indivisual scene file -->
+  <xacro:if value="${'$(arg scene)' != ''}">
+    <xacro:include filename="$(find aist_description)/scenes/urdf/$(arg
+			     scene).urdf.xacro"/>
+  </xacro:if>
+
+</robot>
