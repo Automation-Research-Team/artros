@@ -1,0 +1,36 @@
+robots:
+  b_bot:
+    default_gripper: b_bot_gripper
+
+grippers:
+  b_bot_gripper:
+    type:          SuctionGripper
+    controller_ns: b_bot_gripper_controller
+#  precision_tool:
+#    type: PrecisionGripper
+#    controller_ns: precision_tool_controller
+  screw_tool_m3:
+    type:          SuctionGripper
+    controller_ns: screw_tool_m3_controller
+  screw_tool_m4:
+    type:          SuctionGripper
+    controller_ns: screw_tool_m4_controller
+  base_fixture:
+    type:          SuctionGripper
+    controller_ns: base_fixture_controller
+
+cameras:
+  a_phoxi_m_camera:     PhoXiCamera
+
+tools:
+  precision_tool:
+    holder_link:   precision_tool_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  screw_tool_m3:
+    holder_link:   screw_tool_m3_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  screw_tool_m4:
+    holder_link:   screw_tool_m4_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+
+moveit_eef_step: 0.002
