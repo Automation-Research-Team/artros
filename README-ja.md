@@ -41,7 +41,7 @@ $ catkin build
 
 ##	UR5の使用法
 ### 準備
-ロボットコントローラのIP addressが10.66.171.52でない場合は，artros/aist_bringup/launch/aist_bringup.launch内の変数driver_argsの該当部分を正しいものに書き換える．
+ロボットコントローラのIP addressが10.66.171.52でない場合は，`artros/aist_bringup/launch/aist_bringup.launch1`内の変数driver_argsの該当部分を正しいものに書き換える．
 
 ### ロボットの起動
 以下の手順でロボットを立ち上げる． 
