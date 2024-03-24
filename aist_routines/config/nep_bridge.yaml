@@ -2,23 +2,23 @@ nep_ip: 163.220.51.108
 rate:   10.0
 ros_to_nep:
   - from: /joint_states
-    to:   /joint_states
+    to:   Kitting/joint_states
   - from: /urdf_publisher/transforms
-    to:   transforms
+    to:   Kitting/transforms
   - from: /mesh_generator/mesh
-    to:   screen_mesh
+    to:   Kitting/screen_mesh
   - from: /live_camera/image_raw
-    to:   camera_web/image
+    to:   Kitting/image
   - from: /help
-    to:   VR/RequestHelp
+    to:   Kitting/request_help
 
 nep_to_ros:
-  - from: VR/Pointing
+  - from: Kitting/pointing
     to:   /pointing
     type: finger_pointing_msgs/pointing
 
 services:
   - name:     /urdf_publisher/get_links
-    request:  get_links
-    response: links
+    request:  Kitting/get_links
+    response: Kitting/links
     
