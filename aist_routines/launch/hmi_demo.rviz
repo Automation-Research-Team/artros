@@ -7,7 +7,6 @@ Panels:
         - /MotionPlanning1/Scene Robot1
         - /TF1/Frames1
         - /DepthCloud1/Auto Size1
-        - /WrenchStamped1
       Splitter Ratio: 0.6159420013427734
     Tree Height: 480
   - Class: rviz/Selection

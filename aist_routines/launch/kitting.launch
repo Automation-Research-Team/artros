@@ -26,7 +26,7 @@
        name="moveit_config"	value="$(find aist_moveit_config)"/>
   <include file="$(find aist_bringup)/launch/include/rviz.launch">
     <arg name="moveit_config"	value="$(arg moveit_config)"/>
-    <!-- <arg name="rviz_config"	value="$(arg rviz_config)"/> -->
+    <arg name="rviz_config"	value="$(arg rviz_config)"/>
   </include>
 
 </launch>
