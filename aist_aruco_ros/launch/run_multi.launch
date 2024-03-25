@@ -33,7 +33,7 @@
     </include>
   </group>
 
-  <group if="$(eval camera_no == len(camera_names.split(',')))">
+  <group if="$(eval camera_no == len(camera_names.split()))">
     <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
     <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 

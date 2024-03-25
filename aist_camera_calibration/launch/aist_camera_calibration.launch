@@ -3,7 +3,7 @@
 
   <arg name="camera_name"	default="live_camera"/>
   <arg name="image_topic"	default="image_raw"/>
-  <arg name="manager"		default="camera_manager"/>
+  <arg name="manager"		default=""/>
 
   <!-- Start live camera -->
   <node name="$(arg camera_name)"
@@ -23,9 +23,8 @@
   <!-- Start rviz -->
   <include file="$(find aist_bringup)/launch/include/rviz.launch">
     <arg name="moveit_config"	value="$(find aist_moveit_config)"/>
-    <arg name="rviz_config"
-  	 value="$(find aist_camera_calibration
-  		)/launch/include/aist_camera_calibration.rviz"/>
+    <arg name="rviz_config"	value="$(dirname
+				       )/include/aist_camera_calibration.rviz"/>
   </include>
 
 </launch>

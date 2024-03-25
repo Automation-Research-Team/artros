@@ -1,11 +1,12 @@
 <?xml version="1.0" ?>
 <launch>
 
+  <arg name="camera_name"	default="live_camera"/>
   <arg name="planar_reference"	default="false"/>
   <arg if="$(arg planar_reference)"
        name="config"		default="plane"/>
   <arg unless="$(arg planar_reference)"
-       name="config"		default="aist"/>
+       name="config"		default="aist_camera_calibration"/>
   <arg name="ns"		default="/"/>
 
   <arg if="$(arg planar_reference)"
@@ -15,8 +16,8 @@
 
   <node ns="$(arg ns)" name="$(arg calibration_client)"
 	pkg="aist_camera_calibration" type="$(arg calibration_client).py"
-	output="screen">
-    <rosparam file="$(dirname)/../config/$(arg config).yaml"/>
+	clear_params="true" output="screen">
+    <rosparam file="$(dirname)/../config/$(arg camera_name).yaml"/>
     <rosparam unless="$(arg planar_reference)"
 	      file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
   </node>

@@ -4,8 +4,8 @@
   <arg name="detector_name"	default="aruco_multi_detector"/>
   <arg name="camera_names"	default="live_camera"/>
   <arg name="image_topics"	default="image_raw"/>
-  <arg name="config_file"	default="$(find aist_aruco_ros
-					 )/config/live_camera.yaml"/>
+  <arg name="config_file"	default="$(find aist_routines
+					 )/config/aist_camera_calibration_config.yaml"/>
   <arg name="manager"		default=""/>
   <arg name="camera_no"		default="0"/>
 
@@ -28,7 +28,7 @@
     </include>
   </group>
 
-  <group if="$(eval camera_no == len(camera_names.split(',')))">
+  <group if="$(eval camera_no == len(camera_names.split()))">
     <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
     <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
@@ -36,7 +36,7 @@
 	 value="$(eval ','.join(camera_names.split()))"/>
     <node name="$(arg detector_name)" pkg="nodelet" type="nodelet"
   	  args="$(arg command) aist_aruco_ros/aruco_multi_detector
-		$(arg manager)">
+		$(arg manager)" clear_params="true">
       <rosparam param="camera_names"
 		subst_value="true">[$(arg camera_name_list)]</rosparam>
       <rosparam file="$(arg config_file)" subst_value="true"/>

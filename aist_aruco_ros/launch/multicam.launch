@@ -1,15 +1,15 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_name0"	default="usb_camera"/>
+  <arg name="camera_name0"	default="live_camera"/>
   <arg name="image_topic0"	default="image_raw"/>
   <arg name="camera_name1"	default="realsense"/>
   <arg name="image_topic1"	default="color/image_raw"/>
 
   <arg name="detector_name"	default="aruco_multi_detector"/>
-  <arg name="camera_names"	default="$(arg camera_name0),
+  <arg name="camera_names"	default="$(arg camera_name0)
 					 $(arg camera_name1)"/>
-  <arg name="image_topics"	default="$(arg image_topic0),
+  <arg name="image_topics"	default="$(arg image_topic0)
 					 $(arg image_topic1)"/>
   <arg name="marker_map_dir"	default="$(dirname)/../config"/>
   <arg name="marker_map"	default="calib_board-6x4"/>

@@ -1,0 +1,40 @@
+robots:
+  a_bot:
+    default_gripper: a_bot_gripper
+  b_bot:
+    default_gripper: b_bot_gripper
+
+grippers:
+  a_bot_gripper:
+    type:          RobotiqGripper
+    controller_ns: a_bot_gripper_controller
+    max_effort:    5.0
+    velocity:      0.1
+#  precision_tool:
+#    type: PrecisionGripper
+#    controller_ns: precision_tool_controller
+  screw_tool_m3:
+    type:          SuctionGripper
+    controller_ns: screw_tool_m3_controller
+  screw_tool_m4:
+    type:          SuctionGripper
+    controller_ns: screw_tool_m4_controller
+  b_bot_gripper:
+    type:          SuctionGripper
+    controller_ns: b_bot_gripper_controller
+  base_fixture:
+    type:          SuctionGripper
+    controller_ns: base_fixture_controller
+
+tools:
+  precision_tool:
+    holder_link:   precision_tool_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  screw_tool_m3:
+    holder_link:   screw_tool_m3_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  screw_tool_m4:
+    holder_link:   screw_tool_m4_holder
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+
+moveit_eef_step: 0.002
