@@ -254,8 +254,16 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
 				    ros::package::getPath("aist_aruco_ros")
 				    + "/config")
 			 + '/' + marker_map_name + ".yaml";
-    _marker_map.readFromFile(mMapFile);
-    NODELET_INFO_STREAM("(MultiDetector) Let's find marker map["
+    try
+    {
+	_marker_map.readFromFile(mMapFile);
+    }
+    catch (const std::exception& err)
+    {
+	throw std::runtime_error("Failed to read marker map["
+				 + mMapFile + ']');
+    }
+    NODELET_INFO_STREAM("(MultiDetector) Loaded marker map["
 			<< marker_map_name << ']');
 
   // Set minimum marker size and setup ddynamic_reconfigure service for it.
@@ -489,8 +497,15 @@ class MultiDetectorNodelet : public nodelet::Nodelet
 void
 MultiDetectorNodelet::onInit()
 {
-    NODELET_INFO("aist_aruco_ros::MultiDetectorNodelet::onInit()");
-    _node.reset(new MultiDetector(getPrivateNodeHandle(), getName()));
+    NODELET_INFO_STREAM("aist_aruco_ros::MultiDetectorNodelet::onInit()");
+    try
+    {
+	_node.reset(new MultiDetector(getPrivateNodeHandle(), getName()));
+    }
+    catch (const std::exception& err)
+    {
+	NODELET_ERROR_STREAM("(MultiDetector) " << err.what());
+    }
 }
 
 }	// namespace aist_aruco_ros

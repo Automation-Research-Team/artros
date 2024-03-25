@@ -4,8 +4,8 @@
   <arg name="detector_name"	default="aruco_multi_detector"/>
   <arg name="camera_names"	default="live_camera"/>
   <arg name="image_topics"	default="image_raw"/>
-  <arg name="config_file"	default="$(find aist_routines
-					 )/config/aist_camera_calibration_config.yaml"/>
+  <arg name="config_file"	default="$(find aist_camera_calibration
+					 )/config/$(arg camera_names).yaml"/>
   <arg name="manager"		default=""/>
   <arg name="camera_no"		default="0"/>
 

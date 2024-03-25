@@ -207,10 +207,20 @@ Detector3D::Detector3D(ros::NodeHandle& nh)
 						"aist_aruco_ros")
 					    + "/config")
 				 + '/' + marker_map_name + ".yaml";
-	_marker_map.readFromFile(mMapFile);
+	try
+	{
+	    _marker_map.readFromFile(mMapFile);
+	}
+	catch (const std::exception& err)
+	{
+	    throw std::runtime_error("Failed to read marker map["
+				     + mMapFile + ']');
+	}
+	
 	_marker_size = cv::norm(_marker_map[0].points[0] -
 				_marker_map[0].points[1]);
-	ROS_INFO_STREAM("Find a marker map[" << marker_map_name << ']');
+	ROS_INFO_STREAM("(Detector3D) Loaded a marker map["
+			<< marker_map_name << ']');
     }
 
   // Set minimum marker size and setup ddynamic_reconfigure service for it.
@@ -219,7 +229,7 @@ Detector3D::Detector3D(ros::NodeHandle& nh)
 				  boost::bind(&Detector3D::set_min_marker_size,
 					      this, _1),
 				  "Minimum marker size", 0.0, 1.0);
-    ROS_INFO_STREAM("Minimum marker size: "
+    ROS_INFO_STREAM("(Detector3D) Minimum marker size: "
 		    << _marker_detector.getParameters().minSize);
 
   // Set a parameter for specifying whether the marker is enclosed or not.
@@ -228,7 +238,7 @@ Detector3D::Detector3D(ros::NodeHandle& nh)
 				boost::bind(&Detector3D::set_enclosed_marker,
 					    this, _1),
 				"Detect enclosed marker", false, true);
-    ROS_INFO_STREAM("Detect enclosed marker: "
+    ROS_INFO_STREAM("(Detector3D) Detect enclosed marker: "
 		    << std::boolalpha
 		    << _marker_detector.getParameters().enclosedMarker);
 
@@ -245,7 +255,8 @@ Detector3D::Detector3D(ros::NodeHandle& nh)
 					       this, _1),
 				   "Marker detection mode",
 				   map_detectionMode);
-    ROS_INFO_STREAM("Detection mode: " << _marker_detector.getDetectionMode());
+    ROS_INFO_STREAM("(Detector3D) Detection mode: "
+		    << _marker_detector.getDetectionMode());
 
   // Set dictionary and setup ddynamic_reconfigure service for it.
     const auto	dict = nh.param<std::string>("dictionary", "ARUCO");
@@ -270,7 +281,7 @@ Detector3D::Detector3D(ros::NodeHandle& nh)
     _ddr.registerEnumVariable<std::string>(
 	"dictionary", dict, boost::bind(&Detector3D::set_dictionary, this, _1),
 	"Dictionary", map_dict);
-    ROS_INFO_STREAM("Dictionary: " << dict);
+    ROS_INFO_STREAM("(Detector3D) Dictionary: " << dict);
 
   // Set usage of rigid transformation and setup its dynamic reconfigure service.
     _ddr.registerVariable<bool>(
@@ -339,7 +350,7 @@ Detector3D::detect_marker_from_cloud_cb(const cloud_cp& cloud_msg,
 {
     if (cloud_msg->is_dense)
     {
-	ROS_ERROR_STREAM("Ordered point cloud required! Cloud with size["
+	ROS_ERROR_STREAM("(Detector3D) Ordered point cloud required! Cloud with size["
 			 << cloud_msg->width << 'x' << cloud_msg->height
 			 << "] supplied.");
 	return;
@@ -503,9 +514,9 @@ Detector3D::publish_transform(ITER begin, ITER end,
 	    _pose_pub.publish(poseMsg);
 	}
     }
-    catch (const std::exception& e)
+    catch (const std::exception& err)
     {
-	ROS_WARN_STREAM(e.what());
+	ROS_WARN_STREAM("(Detector3D) " << err.what());
     }
 }
 
@@ -566,9 +577,9 @@ Detector3D::get_marker_corners(const aruco::Marker& marker,
 	    corners.push_back(plane.cross_point(view_vector(corner.x,
 							    corner.y)));
     }
-    catch (const std::exception& e)
+    catch (const std::exception& err)
     {
-	ROS_WARN_STREAM(e.what());
+	ROS_WARN_STREAM("(Detector3D) " << err.what());
     }
 
     return corners;
@@ -648,7 +659,14 @@ void
 Detector3DNodelet::onInit()
 {
     NODELET_INFO("aist_aruco_ros::Detector3DNodelet::onInit()");
-    _node.reset(new Detector3D(getPrivateNodeHandle()));
+    try
+    {
+	_node.reset(new Detector3D(getPrivateNodeHandle()));
+    }
+    catch (const std::exception& err)
+    {
+	NODELET_ERROR_STREAM("(Detector3D) " << err.what());
+    }
 }
 
 }	// namespace aist_aruco_ros
