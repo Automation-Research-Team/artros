@@ -240,7 +240,7 @@ class HMIRoutines(KittingRoutines):
         @param part_id:    ID for specifying part
         @return:           False if picking task should be aborted
         """
-        message = 'Picking_failed!_Please_sepcify_sweep_direction.'
+        message = 'Picking_failed!_Please_specify_sweep_direction.'
         while True:
             response = self._request_help(robot_name, pose, part_id, message)
 
