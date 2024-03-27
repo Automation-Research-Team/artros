@@ -572,9 +572,9 @@ Calibrator::save_calibration(const std::string& camera_name,
 	3, intrinsic.P);
     emitter << YAML::Key << "camera_pose" << YAML::Value
 	    << aist_utility::toTransform(pose, intrinsic.header.frame_id);
-    YAML::operator <<(emitter << YAML::Key << "correspondences_sets"
-			      << YAML::Value,
-		      _correspondences_sets);
+    // YAML::operator <<(emitter << YAML::Key << "correspondences_sets"
+    // 			      << YAML::Value,
+    // 		      _correspondences_sets);
 
   // Check existence of calibration directory and create if not present.
     namespace fs = std::filesystem;
@@ -586,6 +586,7 @@ Calibrator::save_calibration(const std::string& camera_name,
 	throw std::runtime_error('\"' + calib_dir.string()
 				 + "\" exists but not a directory");
 
+  // Create a file to which calibration results saved.
     const auto		calib_file = calib_dir
 				   / fs::path(camera_name + ".yaml");
     std::ofstream	out(calib_file);
@@ -595,9 +596,21 @@ Calibrator::save_calibration(const std::string& camera_name,
 
   // Save calitration results.
     out << emitter.c_str() << std::endl;
-
+    out.close();
+    
     NODELET_INFO_STREAM('(' << getName() << ") SaveCalibration: saved in "
 			    << calib_file.string());
+
+  // Create a file to which original correspondence data saved.
+    using aist_camera_calibration::operator <<;
+
+    const auto		corres_file = calib_dir
+				    / fs::path(camera_name + ".corres");
+    out.open(corres_file);
+    if (!out)
+	throw std::runtime_error("cannot open " + corres_file.string()
+				 + ": " + strerror(errno));
+    out << _correspondences_sets;
 }
 
 /************************************************************************

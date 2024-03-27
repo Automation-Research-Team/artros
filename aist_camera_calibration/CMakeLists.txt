@@ -70,6 +70,7 @@ catkin_package(
 ###########
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  src
 )
 
 add_library(camera_calibrator
@@ -84,6 +85,21 @@ add_dependencies(camera_calibrator
 )
 
 target_link_libraries(camera_calibrator
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+  ${YAML-CPP_LIBRARIES}
+)
+
+add_executable(test_calibrator
+  src/test_calibrator/main.cpp
+  src/CameraCalibrator.cpp
+)
+
+add_dependencies(test_calibrator
+  ${PROJECT_NAME}_generate_messages_cpp
+)
+
+target_link_libraries(test_calibrator
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
   ${YAML-CPP_LIBRARIES}
