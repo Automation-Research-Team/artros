@@ -95,6 +95,24 @@ operator <<(std::ostream& out, const std::vector<T>& v)
     return out;
 }
 
+template <class ARRAY> void
+put(YAML::Emitter& emitter, size_t rows, const ARRAY& v)
+{
+    emitter << YAML::BeginMap
+	    << YAML::Key   << "rows"
+	    << YAML::Value << rows
+	    << YAML::Key   << "cols"
+	    << YAML::Value << v.size()/rows
+	    << YAML::Key   << "data"
+	    << YAML::Value
+	    << YAML::Flow
+	    << YAML::BeginSeq;
+    for (const auto& val : v)
+	emitter << val;
+    emitter << YAML::EndSeq
+	    << YAML::EndMap;
+}
+
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
@@ -384,7 +402,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	    auto	camera = cameras.begin();
 	    for (const auto& correses : correses_set)
 	    	calibrator.volumeCalib(correses.cbegin(), correses.cend(),
-	    			       *camera++, true);
+	    			       *camera++, false);
 	}
 
 	res.camera_names.clear();
@@ -526,121 +544,40 @@ Calibrator::save_calibration(const std::string& camera_name,
 			     const camera_info_t& intrinsic,
 			     const pose_t& pose) const
 {
-    YAML::Emitter	emitter;
-    emitter << YAML::BeginMap;
+    using aist_utility::operator <<;
 
+    const auto	tval = time(nullptr);
+    const auto	tstr = ctime(&tval);
+    tstr[strlen(tstr)-1] = '\0';
+
+    YAML::Emitter	emitter;
+    emitter << YAML::BeginMap
+	    << YAML::Key   << "calibration_date"
+	    << YAML::Value << tstr;
     emitter << YAML::Key   << "image_width"
 	    << YAML::Value << intrinsic.width
 	    << YAML::Key   << "image_height"
 	    << YAML::Value << intrinsic.height
 	    << YAML::Key   << "camera_name"
 	    << YAML::Value << camera_name;
-
-    emitter << YAML::Key   << "camera_matrix"
-	    << YAML::Value
-	    << YAML::BeginMap
-	    << YAML::Key   << "rows"
-	    << YAML::Value << 3
-	    << YAML::Key   << "cols"
-	    << YAML::Value << 3
-	    << YAML::Key   << "data"
-	    << YAML::Value
-	    << YAML::Flow
-	    << YAML::BeginSeq;
-    for (const auto& val : intrinsic.K)
-	emitter << val;
-    emitter << YAML::EndSeq
-	    << YAML::EndMap;
-
+    put(emitter << YAML::Key << "camera_matrix" << YAML::Value,
+	3, intrinsic.K);
     emitter << YAML::Key   << "distortion_model"
 	    << YAML::Value << intrinsic.distortion_model;
-    emitter << YAML::Key   << "distortion_coefficients"
-	    << YAML::Value
-	    << YAML::BeginMap
-	    << YAML::Key   << "rows"
-	    << YAML::Value << 1
-	    << YAML::Key   << "cols"
-	    << YAML::Value << intrinsic.D.size()
-	    << YAML::Key   << "data"
-	    << YAML::Value
-	    << YAML::Flow
-	    << YAML::BeginSeq;
-    for (const auto& val : intrinsic.D)
-	emitter << val;
-    emitter << YAML::EndSeq
-	    << YAML::EndMap;
-
-    emitter << YAML::Key   << "rectification_matrix"
-	    << YAML::Value
-	    << YAML::BeginMap
-	    << YAML::Key   << "rows"
-	    << YAML::Value << 3
-	    << YAML::Key   << "cols"
-	    << YAML::Value << 3
-	    << YAML::Key   << "data"
-	    << YAML::Value
-	    << YAML::Flow
-	    << YAML::BeginSeq;
-    for (const auto& val : intrinsic.R)
-	emitter << val;
-    emitter << YAML::EndSeq
-	    << YAML::EndMap;
-
-    emitter << YAML::Key   << "projection_matrix"
-	    << YAML::Value
-	    << YAML::BeginMap
-	    << YAML::Key   << "rows"
-	    << YAML::Value << 3
-	    << YAML::Key   << "cols"
-	    << YAML::Value << 4
-	    << YAML::Key   << "data"
-	    << YAML::Value
-	    << YAML::Flow
-	    << YAML::BeginSeq;
-    for (const auto& val : intrinsic.P)
-	emitter << val;
-    emitter << YAML::EndSeq
-	    << YAML::EndMap;
-
-    emitter << YAML::Key   << "camera_pose"
-	    << YAML::Value
-	    << YAML::BeginMap
-	    << YAML::Key   << "parent"
-	    << YAML::Value << pose.header.frame_id
-	    << YAML::Key   << "child"
-	    << YAML::Value << intrinsic.header.frame_id
-	    << YAML::Key   << "transform"
-	    << YAML::Value
-	    << YAML::Flow
-	    << YAML::BeginMap
-	    << YAML::Key   << "x"
-	    << YAML::Value << pose.pose.position.x
-	    << YAML::Key   << "y"
-	    << YAML::Value << pose.pose.position.y
-	    << YAML::Key   << "z"
-	    << YAML::Value << pose.pose.position.z
-	    << YAML::Key   << "qx"
-	    << YAML::Value << pose.pose.orientation.x
-	    << YAML::Key   << "qy"
-	    << YAML::Value << pose.pose.orientation.y
-	    << YAML::Key   << "qz"
-	    << YAML::Value << pose.pose.orientation.z
-	    << YAML::Key   << "qw"
-	    << YAML::Value << pose.pose.orientation.w
-	    << YAML::EndMap
-	    << YAML::EndMap;
-
-    const auto	tval = time(nullptr);
-    const auto	tstr = ctime(&tval);
-    tstr[strlen(tstr)-1] = '\0';
-    emitter << YAML::Key   << "calibration_date"
-	    << YAML::Value << tstr;
-
-    emitter << YAML::EndMap;
-
-    namespace fs = std::filesystem;
+    put(emitter << YAML::Key << "distortion_coefficients" << YAML::Value,
+	1, intrinsic.D);
+    put(emitter << YAML::Key << "rectification_matrix" << YAML::Value,
+	3, intrinsic.R);
+    put(emitter << YAML::Key << "projection_matrix" << YAML::Value,
+	3, intrinsic.P);
+    emitter << YAML::Key << "camera_pose" << YAML::Value
+	    << aist_utility::toTransform(pose, intrinsic.header.frame_id);
+    YAML::operator <<(emitter << YAML::Key << "correspondences_sets"
+			      << YAML::Value,
+		      _correspondences_sets);
 
   // Check existence of calibration directory and create if not present.
+    namespace fs = std::filesystem;
     const fs::path	calib_dir(std::string(getenv("HOME"))
 				  + "/.ros/camera_info");
     if (!fs::exists(calib_dir))
