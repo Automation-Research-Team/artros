@@ -65,6 +65,7 @@ namespace aist_camera_calibration
 /************************************************************************
 *  static functions							*
 ************************************************************************/
+  /*
 template <class T> std::ostream&
 operator <<(std::ostream& out, const TU::Point2<T>& p)
 {
@@ -76,20 +77,18 @@ operator <<(std::ostream& out, const TU::Point3<T>& p)
 {
     return out << p[0] << ' ' << p[1] << ' ' << p[2];
 }
-
+  */
 template <class S, class T> std::ostream&
 operator <<(std::ostream& out, const std::pair<S, T>& p)
 {
-    return out << '(' << p.first << " : " << p.second << ')';
+    return out << p.first << ' ' << p.second;
 }
 
 template <class T> std::ostream&
 operator <<(std::ostream& out, const std::vector<T>& v)
 {
-    out << '[';
     for (const auto& item : v)
 	out << ' ' << item;
-    out << ']';
     if (!std::is_arithmetic_v<T>)
     	out << std::endl;
     return out;
@@ -402,7 +401,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	    auto	camera = cameras.begin();
 	    for (const auto& correses : correses_set)
 	    	calibrator.volumeCalib(correses.cbegin(), correses.cend(),
-	    			       *camera++, false);
+	    			       *camera++, true);
 	}
 
 	res.camera_names.clear();
@@ -597,20 +596,27 @@ Calibrator::save_calibration(const std::string& camera_name,
   // Save calitration results.
     out << emitter.c_str() << std::endl;
     out.close();
-    
+
     NODELET_INFO_STREAM('(' << getName() << ") SaveCalibration: saved in "
 			    << calib_file.string());
 
   // Create a file to which original correspondence data saved.
-    using aist_camera_calibration::operator <<;
-
     const auto		corres_file = calib_dir
 				    / fs::path(camera_name + ".corres");
     out.open(corres_file);
     if (!out)
 	throw std::runtime_error("cannot open " + corres_file.string()
 				 + ": " + strerror(errno));
-    out << _correspondences_sets;
+
+  // Save correnpondences.
+    using	aist_camera_calibration::operator <<;
+    const auto& first_correspondences_set = _correspondences_sets.front()
+					   .correspondences_set;
+    if (const auto& correspondences = first_correspondences_set.front();
+	correspondences.reference_frame == correspondences.header.frame_id)
+	out << convert_correspondences_sets();
+    else
+	out << rearrange_correspondences_sets();
 }
 
 /************************************************************************

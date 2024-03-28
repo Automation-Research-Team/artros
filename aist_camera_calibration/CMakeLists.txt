@@ -90,16 +90,37 @@ target_link_libraries(camera_calibrator
   ${YAML-CPP_LIBRARIES}
 )
 
-add_executable(test_calibrator
-  src/test_calibrator/main.cpp
+add_executable(planeCalib
+  src/test_calibrator/planeCalib.cpp
   src/CameraCalibrator.cpp
 )
 
-add_dependencies(test_calibrator
+add_dependencies(planeCalib
   ${PROJECT_NAME}_generate_messages_cpp
 )
 
-target_link_libraries(test_calibrator
+target_link_libraries(planeCalib
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+  ${YAML-CPP_LIBRARIES}
+)
+
+target_link_libraries(planeCalib
+  ${catkin_LIBRARIES}
+  ${roscpp_LIBRARIES}
+  ${YAML-CPP_LIBRARIES}
+)
+
+add_executable(volumeCalib
+  src/test_calibrator/volumeCalib.cpp
+  src/CameraCalibrator.cpp
+)
+
+add_dependencies(volumeCalib
+  ${PROJECT_NAME}_generate_messages_cpp
+)
+
+target_link_libraries(volumeCalib
   ${catkin_LIBRARIES}
   ${roscpp_LIBRARIES}
   ${YAML-CPP_LIBRARIES}

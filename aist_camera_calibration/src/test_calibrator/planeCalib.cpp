@@ -1,5 +1,5 @@
 /*
- *  $Id$  
+ *  $Id$
  */
 /*!
   \mainpage	planeCalib - 既知の平面パターンを1台もしくはそれ以上のカメラに提示することによってカメラの内部・外部パラメータを推定するプロブラム
@@ -168,7 +168,7 @@ typedef std::list<Corres>		CorresList;
 typedef Array<CorresList>		CorresListArray;
 //! 全参照平面の#CorresListArrayを収めたリスト
 typedef std::list<CorresListArray>	CorresListArrayList;
-    
+
 /************************************************************************
 *  static functions							*
 ************************************************************************/
@@ -178,7 +178,7 @@ operator >>(std::istream& in, Corres& corres)
 {
     return in >> corres.first >> corres.second;
 }
-    
+
 //! 出力ストリームに参照点とその投影像の対を書き出す(ASCII)．
 inline static std::ostream&
 operator <<(std::ostream& out, const Corres& corres)
@@ -209,7 +209,7 @@ template <class T> inline static std::ostream&
 operator <<(std::ostream& out, const std::list<T>& list)
 {
     using namespace	std;
-    
+
     copy(list.begin(), list.end(), ostream_iterator<T>(out));
     return out << endl;
 }
@@ -219,7 +219,7 @@ static void
 usage(const char* s)
 {
     using namespace	std;
-    
+
     cerr << "\nCalibrate one or more cameras with multiple planes.\n"
 	 << endl;
     cerr << " Usage: " << s << " [-o <planeFile>] [options] < <markerFile>\n"
@@ -260,7 +260,7 @@ printEstimatedCameras(std::ostream& out, const Array<Cam>& cameras,
 	    const auto	theta = rotation_axis(camera.Rt());
 
 	    out << camera.Pc();
-	    
+
 	    out << "--- camera " << i << " ---\n"
 		<< "Position:        "
 		<< camera.t()[0] << "(" << devs[0] << ") "
@@ -299,7 +299,7 @@ printEstimatedPlanes(std::ostream& out, const Array<ReferencePlane<T> >& planes)
 {
     for (size_t j = 0; j < planes.size(); ++j)
 	out << "--- plane " << j << " ---\n" << planes[j] << std::endl;
-    
+
     return out;
 }
 
@@ -318,7 +318,7 @@ main(int argc, char* argv[])
     using camera_type		      = Camera<Intrinsic<element_type> >;
     using camera_with_distortion_type = Camera<IntrinsicWithDistortion<
 						   Intrinsic<element_type> > >;
-    
+
     void		usage(const char*);
     bool		refine = false, estimateDistortion = false,
 			commonCenter = false;
@@ -342,16 +342,17 @@ main(int argc, char* argv[])
 	  case 'o':
 	    planeFile = optarg;
 	    break;
-	    
+
 	  case 'h':
 	    TU::usage(argv[0]);
 	    return 1;
 	}
-    
+
   // Read the input PAIR file.
     CorresListArrayList	data;
     cin >> data;
-    
+    cerr << data;
+
   // Do main job.
     try
     {
@@ -367,7 +368,7 @@ main(int argc, char* argv[])
 
 	    printEstimatedCameras(cerr, cameras, calib.standardDeviations());
 	    printEstimatedPlanes(cerr, planes);
-	    
+
 	    cerr << "--- Reprojection error ---\n  "
 		 << calib.reprojectionError() << '\n'
 		 << endl;
@@ -379,7 +380,7 @@ main(int argc, char* argv[])
 	else
 	{
 	    Array<camera_type>	cameras;
-	    
+
 	    planes = calib.planeCalib(data.begin(), data.end(), cameras,
 				      commonCenter, refine);
 
@@ -409,7 +410,6 @@ main(int argc, char* argv[])
 	cerr << err.what() << endl;
 	return 1;
     }
-    
+
     return 0;
 }
-
