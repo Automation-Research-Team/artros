@@ -11,13 +11,13 @@
 
     <link name="${prefix}ar_marker">
       <visual name="${prefix}ar_marker_visual">
-	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi}"/>
+	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi/2}"/>
         <geometry>
           <box size="${size + 2*margin} ${size + 2*margin} ${thickness}" />
         </geometry>
       </visual>
       <collision name="${prefix}ar_marker_collision">
-	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi}"/>
+	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi/2}"/>
         <geometry>
           <box size="${size + 2*margin} ${size + 2*margin} ${thickness}" />
         </geometry>
