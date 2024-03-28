@@ -385,8 +385,6 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	    correspondences.reference_frame == correspondences.header.frame_id)
 	{
 	    const auto	correses_sets = convert_correspondences_sets();
-	    std::cerr << correses_sets;
-
 	    const auto	planes = calibrator.planeCalib(correses_sets.cbegin(),
 	    					       correses_sets.cend(),
 	    					       cameras, false, true);
@@ -394,7 +392,6 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 	else
 	{
 	    const auto	correses_set = rearrange_correspondences_sets();
-	    std::cerr << correses_set;
 
 	    cameras.resize(correses_set.size());
 
@@ -571,9 +568,6 @@ Calibrator::save_calibration(const std::string& camera_name,
 	3, intrinsic.P);
     emitter << YAML::Key << "camera_pose" << YAML::Value
 	    << aist_utility::toTransform(pose, intrinsic.header.frame_id);
-    // YAML::operator <<(emitter << YAML::Key << "correspondences_sets"
-    // 			      << YAML::Value,
-    // 		      _correspondences_sets);
 
   // Check existence of calibration directory and create if not present.
     namespace fs = std::filesystem;
