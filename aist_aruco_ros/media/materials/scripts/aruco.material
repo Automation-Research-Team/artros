@@ -181,6 +181,20 @@ material Aruco/aruco-100_101_102_103-72x72-4
   }
 }
 
+material Aruco/aruco-100_101_102_103-150x150-5
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+	texture aruco-100_101_102_103-150x150-5.png
+      }
+    }
+  }
+}
+
 material Aruco/aruco-1_18-28x62-3
 {
   technique
