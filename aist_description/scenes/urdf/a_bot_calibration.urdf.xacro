@@ -1,14 +1,14 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="mocap_calibration">
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot_calibration">
   <!-- Add AR markers -->
   <xacro:include filename="$(find aist_aruco_ros)/urdf/ar_marker.urdf.xacro"/>
 
-  <xacro:ar_marker prefix="c_bot_"
-  		   parent="c_bot_gripper_base_link"
+  <xacro:ar_marker prefix="workspace_"
+		   parent="workspace_center"
 		   marker_id="17_26_32_256"
 		   width="0.150" height="0.150" margin="0.005"
-  		   thickness="0.005">
-    <origin xyz="0.18 0.0 0.0215" rpy="0 0 ${pi/2}"/>
+		   thickness="0.001">
+    <origin xyz="0.0 0.0 0.0005" rpy="0 0 0"/>
   </xacro:ar_marker>
 
 </robot>

@@ -2,16 +2,16 @@ camera_name: d_phoxi_m_camera
 robot_name: d_bot
 eye_on_hand: false
 robot_base_frame: workspace_center
-robot_effector_frame: d_bot_flange
+robot_effector_frame: d_bot_gripper_base_link
 robot_effector_tip_frame: d_bot_gripper_tip_link
 camera_parent_frame: workspace_center
 marker_map: aruco-26-70x70-5
 planarity_tolerance: 0.001
-initpose: [0.10,  0.10, 0.35, -180, 90, -90]
+initpose: [0.10,  0.10, 0.35, 0, 90, -90]
 keyposes:
-  - [ 0.15, -0.08, 0.16, -150, 25, -90]
-  - [ 0.00, -0.08, 0.16, -150, 25, -90]
-  - [-0.15, -0.08, 0.16, -150, 25, -90]
+  - [ 0.15, -0.08, 0.16, 30, 25, -90]
+  - [ 0.00, -0.08, 0.16, 30, 25, -90]
+  - [-0.15, -0.08, 0.16, 30, 25, -90]
 
 # - [-0.15, -0.17, 0.25, -150, 25, -90]
 # - [ 0.00, -0.17, 0.25, -150, 25, -90]
@@ -21,6 +21,6 @@ keyposes:
 # - [ 0.00, 0.40, 0.15, -150, 25, -90]
 # - [-0.15, 0.40, 0.15, -150, 25, -90]
 
-  - [-0.15, 0.17, 0.16, -150, 25, -90]
-  - [ 0.00, 0.12, 0.16, -150, 25, -90]
-  - [ 0.15, 0.17, 0.16, -150, 25, -90]
+  - [-0.15, 0.17, 0.16, 30, 25, -90]
+  - [ 0.00, 0.12, 0.16, 30, 25, -90]
+  - [ 0.15, 0.17, 0.16, 30, 25, -90]

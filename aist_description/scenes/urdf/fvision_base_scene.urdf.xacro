@@ -91,7 +91,7 @@
   <xacro:include filename="$(find aist_description
 			   )/scenes/urdf/load_calibration.urdf.xacro"/>
   <xacro:load_calibration filename="$(find aist_handeye_calibration
-				    )/calib/a_phoxi_m_camera.yaml"/>
+				    )/calib/d_phoxi_m_camera.yaml"/>
   <xacro:include filename="$(find aist_phoxi_camera
 			   )/urdf/phoxi_m_camera.urdf.xacro"/>
   <xacro:phoxi_m_camera name="d_phoxi_m_camera" parent="workspace_center">

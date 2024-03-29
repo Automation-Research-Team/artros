@@ -3,28 +3,23 @@
 
   <xacro:arg name="scene" default=""/>
 
-  <!-- Calibration help: If the robot is not moving far enough to the calibration point, increase these distances -->
-  <xacro:property name="a_bot_x" value="0"/>
-  <xacro:property name="a_bot_y" value="-0.4875"/>
-  <!-- <xacro:property name="a_bot_theta" value="${pi}"/> -->
+  <xacro:property name="a_bot_x"	value="0"/>
+  <xacro:property name="a_bot_y"	value="-0.4875"/>
+  <xacro:property name="bots_z"		value="0.770"/>
+  <xacro:property name="screen_z"	value="${bots_z + 0.0347}"/>
 
-  <xacro:property name="bots_z" value="0.77"/>
-
-  <!-- This is the main file defining our robot arrangement and physical environment. -->
-
-  <!-- Main workspace -->
-  <!-- The surface is 0.01 m below the robot bases and the "workspace_center" frame. -->
+  <!-- ground and workspace -->
   <link name="ground"/>
 
-  <xacro:include filename="$(find aist_description)/objects/urdf/aist_box.urdf.xacro"/>
-  <xacro:property name="table_w" value="0.9"/>
-  <xacro:property name="table_l" value="1.8"/>
-  <xacro:property name="table_h" value="0.01"/>
-  <xacro:aist_box name="workbox"
-		  width="${table_w}" length="${table_l}" height="${table_h}"
-		  parent="ground">
-    <origin xyz="${-table_w/2} ${-table_l/2} ${bots_z - table_h}" rpy="0 0 0"/>
-  </xacro:aist_box>
+  <xacro:property name="table_w"	value="0.900"/>
+  <xacro:property name="table_l"	value="1.800"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_"
+	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       parent="ground">
+    <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
+  </xacro:table>
   <link name="workspace_center"/>
   <joint name="ground_to_workspace" type="fixed">
     <parent link="ground"/>
@@ -32,8 +27,29 @@
     <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
   </joint>
 
+  <!-- cage -->
+  <xacro:property name="cage_w"		value="1.200"/>
+  <xacro:property name="cage_l"		value="1.580"/>
+  <xacro:property name="cage_h"		value="1.420"/>
+  <xacro:property name="cage_t"		value="0.040"/>
+  <xacro:property name="tool_bar_h"	value="0.270"/>
+  <xacro:property name="camera_bar_h"	value="1.300"/>
+  <xacro:property name="cage_z"		value="0.164"/>
+  <xacro:property name="cage_offset"	value="0.020"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/cage.urdf.xacro"/>
+  <xacro:cage prefix="cage_"
+	      width="${cage_w}" length="${cage_l}" height="${cage_h}"
+	      thickness="${cage_t}"
+	      workspace_height="${bots_z - cage_z}"
+	      tool_bar_height="${tool_bar_h}"
+	      camera_bar_height="${camera_bar_h}"
+	      parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset} ${-cage_l/2} ${cage_z}"
+	    rpy="0 0 0" />
+  </xacro:cage>
+
   <!-- robot arms -->
-  <!-- <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro"/> -->
   <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
   <xacro:ur_robot_gazebo
       prefix="a_bot_"
@@ -45,7 +61,9 @@
 			      )/config/ur5/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/a_bot_calibration.yaml"
-      transmission_hw_interface="hardware_interface/PositionJointInterface"/>
+      transmission_hw_interface="hardware_interface/PositionJointInterface"
+      safety_limits="true"
+      safety_pos_margin="0.3"/>
 
   <joint name="ground_a_bot_joint" type="fixed">
     <parent link="ground"/>

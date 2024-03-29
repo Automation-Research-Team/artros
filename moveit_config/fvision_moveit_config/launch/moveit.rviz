@@ -4,12 +4,11 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1/Planning Request1
         - /TF1/Frames1
         - /Realsense1/Auto Size1
         - /PhoXi1/Auto Size1
-      Splitter Ratio: 0.773950457572937
-    Tree Height: 800
+      Splitter Ratio: 0.4144241213798523
+    Tree Height: 583
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -54,8 +53,6 @@ Visualization Manager:
       MoveIt_Planning_Time: 5
       MoveIt_Use_Cartesian_Path: false
       MoveIt_Use_Constraint_Aware_IK: true
-      MoveIt_Warehouse_Host: 127.0.0.1
-      MoveIt_Warehouse_Port: 33829
       MoveIt_Workspace:
         Center:
           X: 0
@@ -75,6 +72,11 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          d_bot_ar_marker:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           d_bot_base:
             Alpha: 1
             Show Axes: false
@@ -301,6 +303,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          workspace_ar_marker:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           workspace_center:
             Alpha: 1
             Show Axes: false
@@ -313,11 +320,12 @@ Visualization Manager:
         Robot Alpha: 0.5
         Robot Color: 150; 50; 150
         Show Robot Collision: false
-        Show Robot Visual: true
+        Show Robot Visual: false
         Show Trail: false
         State Display Time: 0.05 s
         Trail Step Size: 1
         Trajectory Topic: move_group/display_planned_path
+        Use Sim Time: false
       Planning Metrics:
         Payload: 1
         Show Joint Torques: false
@@ -332,7 +340,7 @@ Visualization Manager:
         Interactive Marker Size: 0.20000000298023224
         Joint Violation Color: 255; 0; 255
         Planning Group: d_bot
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -354,6 +362,11 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          d_bot_ar_marker:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           d_bot_base:
             Alpha: 1
             Show Axes: false
@@ -580,6 +593,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          workspace_ar_marker:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           workspace_center:
             Alpha: 1
             Show Axes: false
@@ -588,7 +606,7 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-        Robot Alpha: 0.5
+        Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
@@ -600,6 +618,8 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        d_bot_ar_marker:
+          Value: true
         d_bot_base:
           Value: false
         d_bot_base_link:
@@ -698,12 +718,17 @@ Visualization Manager:
           Value: true
         ground:
           Value: false
+        marker_frame:
+          Value: true
         workbox:
           Value: false
+        workspace_ar_marker:
+          Value: true
         workspace_center:
           Value: true
         world:
           Value: false
+      Marker Alpha: 1
       Marker Scale: 0.30000001192092896
       Name: TF
       Show Arrows: false
@@ -728,12 +753,15 @@ Visualization Manager:
                                   d_bot_left_coupling_base_link:
                                     d_bot_left_coupling_flange_link:
                                       d_bot_gripper_base_link:
+                                        d_bot_ar_marker:
+                                          {}
                                         d_bot_camera_connector_link:
                                           d_bot_camera_link:
                                             d_bot_camera_depth_frame:
                                               d_bot_camera_color_frame:
                                                 d_bot_camera_color_optical_frame:
-                                                  {}
+                                                  marker_frame:
+                                                    {}
                                               d_bot_camera_depth_optical_frame:
                                                 {}
                                               d_bot_camera_left_ir_frame:
@@ -776,6 +804,8 @@ Visualization Manager:
                 d_phoxi_m_camera_reference:
                   d_phoxi_m_camera_sensor:
                     {}
+              workspace_ar_marker:
+                {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -787,6 +817,7 @@ Visualization Manager:
       Hide Small Values: true
       History Length: 1
       Name: WrenchStamped
+      Queue Size: 10
       Topic: /c_bot_ftsensor/wrench
       Torque Arrow Scale: 1
       Torque Color: 204; 204; 51
@@ -794,11 +825,11 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /d_bot_camera/color/image_raw
+      Image Topic: /aruco_detector_3d/result
       Max Value: 1
       Median window: 5
       Min Value: 0
-      Name: Realsense-RGB
+      Name: aruco_result
       Normalize Range: true
       Queue Size: 2
       Transport Hint: raw
@@ -899,6 +930,7 @@ Visualization Manager:
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
       Focal Point:
         X: -0.016042351722717285
         Y: -0.03129205107688904
@@ -908,15 +940,14 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8158972263336182
+      Pitch: 0.9908972382545471
       Target Frame: world
-      Value: XYOrbit (rviz)
-      Yaw: 5.3498430252075195
+      Yaw: 5.104843616485596
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1687
+  Height: 1142
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -925,11 +956,11 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000003a3000005fbfc0200000007fc0000006e000003c80000030301000039fa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000003a300fffffffb000000100044006900730070006c0061007900730100000000000002ad000001f700fffffffb0000001a005200650061006c00730065006e00730065002d0052004700420100000442000002270000002600fffffffb0000000800480065006c00700000000342000000bb000000d400fffffffb0000000a0056006900650077007300000003b0000000b00000013200fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000002600000026000004ff000005fb00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
-  Realsense-RGB:
-    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000100000000000001f800000420fc0200000007fc0000003b0000029d000001840100001afa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ca00fffffffb000000100044006900730070006c0061007900730100000000000002ad0000015600fffffffb000000180061007200750063006f005f0072006500730075006c007401000002de0000017d0000001600fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a0056006900650077007300000003b0000000b0000000a000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff00000016000000160000053b0000042000000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
-  Width: 2222
-  X: 1195
-  Y: 188
+  Width: 1849
+  X: 237
+  Y: 287
+  aruco_result:
+    collapsed: false
