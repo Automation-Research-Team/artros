@@ -1,0 +1,9 @@
+child: d_bot_camera_connector_link
+origin:
+- 0.026
+- 0.0
+- 0.0595
+- 0.0
+- 0.0
+- 0.0
+parent: d_bot_gripper_base_link

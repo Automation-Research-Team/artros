@@ -5,7 +5,7 @@
   <arg name="camera_names"	default="live_camera"/>
   <arg name="image_topics"	default="image_raw"/>
   <arg name="marker_map_dir"	default="$(dirname)/../config"/>
-  <arg name="marker_map"	default="calib_board-6x4"/>
+  <arg name="marker_map"	default="aruco-6x4-246x162-6"/>
   <arg name="marker_frame"	default="marker_frame"/>
   <arg name="reference_frame"	default=""/>
   <arg name="manager"		default=""/>

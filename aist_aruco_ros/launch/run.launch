@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="marker_map_dir"		default="$(dirname)/../config"/>
-  <arg name="marker_map"		default="marker_map-26"/>
+  <arg name="marker_map"		default="aruco-26-70x70-5"/>
   <arg name="marker_frame"		default="marker_frame"/>
   <arg name="image_is_rectified"	default="false"/>
   <arg name="planarity_tolerance"	default="0.001"/>

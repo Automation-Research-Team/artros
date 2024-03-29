@@ -13,7 +13,7 @@ material MyOrange
   }
 }
 
-material Aruco/marker-17-70-5
+material Aruco/aruco-17-70x70-5
 {
   technique
   {
@@ -21,13 +21,13 @@ material Aruco/marker-17-70-5
     {
       texture_unit
       {
-	texture aruco-17-70-5.png
+	texture aruco-17-70x70-5.png
       }
     }
   }
 }
 
-material Aruco/marker-17-80-10
+material Aruco/aruco-17-80x80-10
 {
   technique
   {
@@ -35,13 +35,13 @@ material Aruco/marker-17-80-10
     {
       texture_unit
       {
-	texture aruco-17-80-10.png
+	texture aruco-17-80x80-10.png
       }
     }
   }
 }
 
-material Aruco/marker-26-70-5
+material Aruco/aruco-26-70x70-5
 {
   technique
   {
@@ -49,13 +49,13 @@ material Aruco/marker-26-70-5
     {
       texture_unit
       {
-	texture aruco-26-70-5.png
+	texture aruco-26-70x70-5.png
       }
     }
   }
 }
 
-material Aruco/marker-26-80-10
+material Aruco/aruco-26-80x80-10
 {
   technique
   {
@@ -63,13 +63,13 @@ material Aruco/marker-26-80-10
     {
       texture_unit
       {
-	texture aruco-26-80-10.png
+	texture aruco-26-80x80-10.png
       }
     }
   }
 }
 
-material Aruco/marker-26-186-10
+material Aruco/aruco-32-70x70-5
 {
   technique
   {
@@ -77,13 +77,13 @@ material Aruco/marker-26-186-10
     {
       texture_unit
       {
-	texture aruco-26-186-10.png
+	texture aruco-32-70x70-5.png
       }
     }
   }
 }
 
-material Aruco/marker-32-70-5
+material Aruco/aruco-32-80x80-10
 {
   technique
   {
@@ -91,13 +91,13 @@ material Aruco/marker-32-70-5
     {
       texture_unit
       {
-	texture aruco-32-70-5.png
+	texture aruco-32-80x80-10.png
       }
     }
   }
 }
 
-material Aruco/marker-32-80-10
+material Aruco/aruco-32-160x160-10
 {
   technique
   {
@@ -105,13 +105,13 @@ material Aruco/marker-32-80-10
     {
       texture_unit
       {
-	texture aruco-32-80-10.png
+	texture aruco-32-160x160-10.png
       }
     }
   }
 }
 
-material Aruco/marker-32-160-10
+material Aruco/aruco-256-70x70-5
 {
   technique
   {
@@ -119,13 +119,13 @@ material Aruco/marker-32-160-10
     {
       texture_unit
       {
-	texture aruco-32-160-10.png
+	texture aruco-256-70x70-5.png
       }
     }
   }
 }
 
-material Aruco/marker-256-70-5
+material Aruco/aruco-256-80x80-10
 {
   technique
   {
@@ -133,13 +133,13 @@ material Aruco/marker-256-70-5
     {
       texture_unit
       {
-	texture aruco-256-70-5.png
+	texture aruco-256-80x80-10.png
       }
     }
   }
 }
 
-material Aruco/marker-256-80-10
+material Aruco/aruco-17_26_32_256-150x150-5
 {
   technique
   {
@@ -147,13 +147,13 @@ material Aruco/marker-256-80-10
     {
       texture_unit
       {
-	texture aruco-256-80-10.png
+	texture aruco-17_26_32_256-150x150-5.png
       }
     }
   }
 }
 
-material Aruco/marker-17_26_32_256-150-5
+material Aruco/aruco-17_26_32_256-72x72-4
 {
   technique
   {
@@ -161,13 +161,13 @@ material Aruco/marker-17_26_32_256-150-5
     {
       texture_unit
       {
-	texture aruco-17_26_32_256-150-5.png
+	texture aruco-17_26_32_256-72x72-4.png
       }
     }
   }
 }
 
-material Aruco/marker-17_26_32_256-76-4
+material Aruco/aruco-100_101_102_103-72x72-4
 {
   technique
   {
@@ -175,13 +175,13 @@ material Aruco/marker-17_26_32_256-76-4
     {
       texture_unit
       {
-	texture aruco-17_26_32_256-76-4.png
+	texture aruco-100_101_102_103-72x72-4.png
       }
     }
   }
 }
 
-material Aruco/marker-1_18-28-3
+material Aruco/aruco-1_18-28x62-3
 {
   technique
   {
@@ -189,7 +189,21 @@ material Aruco/marker-1_18-28-3
     {
       texture_unit
       {
-	texture aruco-1_18-28-3.png
+	texture aruco-1_18-28x62-3.png
+      }
+    }
+  }
+}
+
+material Aruco/aruco-6x4-246x162-6
+{
+  technique
+  {
+    pass
+    {
+      texture_unit
+      {
+	texture aruco-6x4-246x162-6.png
       }
     }
   }

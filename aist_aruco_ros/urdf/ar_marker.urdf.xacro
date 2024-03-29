@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<robot name="ar_marker" xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:macro name="ar_marker"
+	       params="prefix parent marker_id width height margin thickness *origin">
+    <xacro:property name="marker_name"
+		    value="aruco-${marker_id}-${int(1000*width)}x${int(1000*height)}-${int(1000*margin)}"/>
+
+    <joint name="${prefix}ar_marker_joint" type="fixed">
+      <parent link="${parent}" />
+      <child  link="${prefix}ar_marker" />
+      <xacro:insert_block name="origin" />
+    </joint>
+
+    <link name="${prefix}ar_marker">
+      <visual name="${prefix}ar_marker_visual">
+	<!-- Needs 90 degrees rotation for correctly mapping texture -->
+	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi/2}"/>
+        <geometry>
+	  <!-- Swap width and height for compensating 90 degrees rotation -->
+          <box size="${height + 2*margin} ${width + 2*margin} ${thickness}" />
+        </geometry>
+	<!-- <material name="${prefix}ar_marker"> -->
+	<!--   <texture filename="package://aist_aruco_ros/media/materials/textures/${marker_name}.png"/> -->
+	<!-- </material> -->
+      </visual>
+      <collision name="${prefix}ar_marker_collision">
+	<origin xyz="0 0 ${-thickness/2}" rpy="0 0 ${pi/2}"/>
+        <geometry>
+          <box size="${height + 2*margin} ${width + 2*margin} ${thickness}" />
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- For Gazebo, material of AR marker is defined in
+         aist_description/media/material. You also need to export
+         gazebo_media_path in package.xml. -->
+    <gazebo reference="${prefix}ar_marker">
+      <material>Aruco/${marker_name}</material>
+    </gazebo>
+  </xacro:macro>
+
+</robot>

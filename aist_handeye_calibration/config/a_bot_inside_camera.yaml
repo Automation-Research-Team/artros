@@ -5,7 +5,7 @@ robot_base_frame: workspace_center
 robot_effector_frame: a_bot_flange
 robot_effector_tip_frame: a_bot_gripper_tip_link
 camera_parent_frame: a_bot_gripper_base_link
-marker_map: marker_map-17_26_32_256
+marker_map: aruco-17_26_32_256-150x150-5
 enclosed_marker: true
 detection_mode: 1
 planarity_tolerance: 0.003

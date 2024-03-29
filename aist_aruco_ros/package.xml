@@ -11,6 +11,7 @@
 
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
 
   <depend>roscpp</depend>
   <depend>roslib</depend>
@@ -30,6 +31,7 @@
   <depend>aruco</depend>
 
   <export>
+    <gazebo_ros gazebo_media_path="${prefix}" />
     <nodelet plugin="${prefix}/nodelet_description.xml"/>
   </export>
 </package>
