@@ -51,7 +51,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <yaml-cpp/yaml.h>
 
-#include <aist_aruco_ros/PointCorrespondenceArrayArray.h>
+#include <aist_aruco_msgs/PointCorrespondenceArrayArray.h>
 #include <aist_camera_calibration/TakeSampleAction.h>
 #include <aist_camera_calibration/GetSampleList.h>
 #include <aist_camera_calibration/ComputeCalibration.h>
@@ -123,10 +123,10 @@ class Calibrator
 
   private:
     using element_t		= double;
-    using correses_msg_t	= aist_aruco_ros::PointCorrespondenceArray;
-    using correses_set_msg_t	= aist_aruco_ros
+    using correses_msg_t	= aist_aruco_msgs::PointCorrespondenceArray;
+    using correses_set_msg_t	= aist_aruco_msgs
 				      ::PointCorrespondenceArrayArray;
-    using correses_set_msg_cp	= aist_aruco_ros
+    using correses_set_msg_cp	= aist_aruco_msgs
 				      ::PointCorrespondenceArrayArrayConstPtr;
     using action_server_t	= actionlib::SimpleActionServer<
 				      TakeSampleAction>;
@@ -148,7 +148,7 @@ class Calibrator
     struct to_corres
     {
 	std::pair<SRC_PNT, DST_PNT>
-	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
+	operator ()(const aist_aruco_msgs::PointCorrespondence& corres) const
 	{
 	    SRC_PNT	p;
 	    p[0] = corres.source_point.x;
@@ -164,7 +164,7 @@ class Calibrator
     struct to_corres<point3_t, DST_PNT>
     {
 	std::pair<point3_t, DST_PNT>
-	operator ()(const aist_aruco_ros::PointCorrespondence& corres) const
+	operator ()(const aist_aruco_msgs::PointCorrespondence& corres) const
 	{
 	    point3_t	p;
 	    p[0] = corres.source_point.x;

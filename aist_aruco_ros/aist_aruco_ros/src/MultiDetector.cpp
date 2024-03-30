@@ -22,7 +22,7 @@
 
 #include <aist_utility/opencv.h>
 #include <aist_utility/sensor_msgs.h>
-#include <aist_aruco_ros/PointCorrespondenceArrayArray.h>
+#include <aist_aruco_msgs/PointCorrespondenceArrayArray.h>
 #include <aruco/aruco.h>
 
 namespace aist_aruco_ros
@@ -99,7 +99,7 @@ class MultiDetector
 			 const IMAGE_MSGS&... image_msgs)		;
     template <size_t N>
     void	image_cb()						;
-    aist_aruco_ros::PointCorrespondenceArray
+    aist_aruco_msgs::PointCorrespondenceArray
     detect_marker(const image_cp& image_msg,
 		  const image_transport::Publisher& result_pub,
 		  const image_transport::Publisher& debug_pub,
@@ -131,7 +131,7 @@ class MultiDetector
 
     mdetector_t						_marker_detector;
     marker_map_t					_marker_map;
-    aist_aruco_ros::PointCorrespondenceArrayArray	_correspondences_set;
+    aist_aruco_msgs::PointCorrespondenceArrayArray	_correspondences_set;
 };
 
 MultiDetector::MultiDetector(ros::NodeHandle& nh,
@@ -143,7 +143,7 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
      _image_subs(),
      _result_pubs(),
      _debug_pubs(),
-     _corres_pub(nh.advertise<PointCorrespondenceArrayArray>(
+     _corres_pub(nh.advertise<aist_aruco_msgs::PointCorrespondenceArrayArray>(
 		     "point_correspondences_set", 100)),
      _sync(),
      _tf2_buffer(),
@@ -387,7 +387,7 @@ MultiDetector::image_cb()
     _corres_pub.publish(_correspondences_set);
 }
 
-aist_aruco_ros::PointCorrespondenceArray
+aist_aruco_msgs::PointCorrespondenceArray
 MultiDetector::detect_marker(const image_cp& image_msg,
 			     const image_transport::Publisher& result_pub,
 			     const image_transport::Publisher& debug_pub,
@@ -427,7 +427,7 @@ MultiDetector::detect_marker(const image_cp& image_msg,
     publish_image(image_msg->header, image, result_pub);
 
   // Create point correspondences for this image.
-    PointCorrespondenceArray	correspondences;
+    aist_aruco_msgs::PointCorrespondenceArray	correspondences;
     correspondences.header	    = image_msg->header;
     correspondences.height	    = image_msg->height;
     correspondences.width	    = image_msg->width;
@@ -435,7 +435,7 @@ MultiDetector::detect_marker(const image_cp& image_msg,
     correspondences.reference_frame = _reference_frame;
     for (const auto& pair : pairs)
     {
-	PointCorrespondence	correspondence;
+	aist_aruco_msgs::PointCorrespondence	correspondence;
 	correspondence.source_point.x = pair.first.x;
 	correspondence.source_point.y = pair.first.y;
 	correspondence.source_point.z = pair.first.z;

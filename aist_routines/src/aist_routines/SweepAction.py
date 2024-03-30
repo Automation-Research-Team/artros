@@ -37,7 +37,7 @@ import rospy, threading, copy, numpy as np
 from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from geometry_msgs.msg  import Transform, Vector3, Quaternion
-from aist_routines.msg  import (SweepAction, SweepGoal,
+from aist_msgs.msg      import (SweepAction, SweepGoal,
                                 SweepResult, SweepFeedback)
 from tf                 import transformations as tfs
 

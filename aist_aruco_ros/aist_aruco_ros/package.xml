@@ -9,12 +9,12 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
   <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <depend>roscpp</depend>
   <depend>roslib</depend>
+  <depend>aruco</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
@@ -28,7 +28,7 @@
   <depend>nodelet</depend>
 
   <depend>aist_utility</depend>
-  <depend>aruco</depend>
+  <depend>aist_aruco_msgs</depend>
 
   <export>
     <gazebo_ros gazebo_media_path="${prefix}" />

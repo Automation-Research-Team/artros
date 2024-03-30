@@ -15,10 +15,9 @@ ros_to_nep:
 nep_to_ros:
   - from: Kitting/pointing
     to:   /pointing
-    type: finger_pointing_msgs/pointing
+    type: aist_msgs/Pointing
 
 services:
   - name:     /urdf_publisher/get_links
     request:  Kitting/get_links
     response: Kitting/links
-    

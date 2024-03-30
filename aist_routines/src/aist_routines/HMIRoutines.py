@@ -42,10 +42,10 @@ from geometry_msgs.msg             import (PoseStamped, PointStamped,
                                            Point, Quaternion, Vector3)
 from aist_routines.KittingRoutines import KittingRoutines
 from aist_routines.SweepAction     import Sweep
-from aist_routines.msg             import SweepResult
-from finger_pointing_msgs.msg      import (RequestHelpAction, RequestHelpGoal,
+from aist_msgs.msg                 import SweepResult
+from aist_msgs.msg                 import (RequestHelpAction, RequestHelpGoal,
                                            RequestHelpResult,
-                                           request_help, pointing)
+                                           RequestHelp, Pointing)
 from actionlib                     import SimpleActionClient
 from visualization_msgs.msg        import Marker
 from std_msgs.msg                  import ColorRGBA
@@ -218,7 +218,7 @@ class HMIRoutines(KittingRoutines):
 
         # Send request and receive response.
         response = self._request_help(robot_name, pose, part_id, message)
-        if response.pointing_state == pointing.SWEEP_RES:
+        if response.pointing_state == Pointing.SWEEP_RES:
             self._publish_marker('finger', response.header,
                                  response.finger_pos, response.finger_dir)
             sweep_dir = self._compute_sweep_dir(pose, response)
@@ -244,7 +244,7 @@ class HMIRoutines(KittingRoutines):
         while True:
             response = self._request_help(robot_name, pose, part_id, message)
 
-            if response.pointing_state == pointing.SWEEP_RES:
+            if response.pointing_state == Pointing.SWEEP_RES:
                 rospy.loginfo('(hmi_demo) Sweep direction given.')
                 self._publish_marker('finger', response.header,
                                      response.finger_pos, response.finger_dir)
@@ -262,7 +262,7 @@ class HMIRoutines(KittingRoutines):
                     rospy.logwarn('(hmi_demo) Preempted while sweeping!')
                     break
                 message = 'Planning_for_sweep_failed!_Please_specify_another_sweep_direction'
-            elif response.pointing_state == pointing.RECAPTURE_RES:
+            elif response.pointing_state == Pointing.RECAPTURE_RES:
                 rospy.loginfo('(hmi_demo) Recapture required.')
                 break
             else:
@@ -289,11 +289,11 @@ class HMIRoutines(KittingRoutines):
         @param message:    message to be displayed to the operator of VR side
         @return:           response with finger direction from VR side
         """
-        req = request_help()
+        req = RequestHelp()
         req.robot_name = robot_name
         req.item_id    = part_id
         req.pose       = self.listener.transformPose(self._ground_frame, pose)
-        req.request    = request_help.SWEEP_DIR_REQ
+        req.request    = RequestHelp.SWEEP_DIR_REQ
         req.message    = message
         self._request_help_clnt.send_goal(
             RequestHelpGoal(req), feedback_cb=self._request_help_feedback_cb)

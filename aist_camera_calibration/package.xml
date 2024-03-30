@@ -24,7 +24,7 @@
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
   <depend>aist_utility</depend>
-  <depend>aist_aruco_ros</depend>
+  <depend>aist_aruco_msgs</depend>
   <depend>pluginlib</depend>
   <depend>nodelet</depend>
 

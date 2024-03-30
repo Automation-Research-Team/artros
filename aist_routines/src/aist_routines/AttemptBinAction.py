@@ -37,7 +37,7 @@ import rospy
 from geometry_msgs.msg import (PoseStamped, QuaternionStamped,
                                Transform, Vector3, Quaternion)
 from actionlib         import SimpleActionServer, SimpleActionClient
-from aist_routines.msg import (PickOrPlaceResult, PickOrPlaceFeedback,
+from aist_msgs.msg     import (PickOrPlaceResult, PickOrPlaceFeedback,
                                AttemptBinAction, AttemptBinGoal)
 
 ######################################################################

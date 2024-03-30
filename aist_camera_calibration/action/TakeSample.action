@@ -1,7 +1,7 @@
 # Goal
 ---
 # Result
-aist_aruco_ros/PointCorrespondenceArray[] correspondences_set
-string                                    message
+aist_aruco_msgs/PointCorrespondenceArray[] correspondences_set
+string                                     message
 ---
 # Feedback

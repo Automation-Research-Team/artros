@@ -36,7 +36,7 @@
 import rospy, threading
 from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
-from aist_routines.msg  import (PickOrPlaceAction, PickOrPlaceGoal,
+from aist_msgs.msg      import (PickOrPlaceAction, PickOrPlaceGoal,
                                 PickOrPlaceResult, PickOrPlaceFeedback)
 
 ######################################################################

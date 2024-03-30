@@ -1,3 +1,3 @@
 ---
-aist_aruco_ros/PointCorrespondenceArrayArray[] correspondences_sets
-string                                         message
+aist_aruco_msgs/PointCorrespondenceArrayArray[] correspondences_sets
+string                                          message

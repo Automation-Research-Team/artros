@@ -28,7 +28,7 @@ find_package(catkin REQUIRED
     actionlib
     actionlib_msgs
     aist_utility
-    aist_aruco_ros
+    aist_aruco_msgs
 )
 
 add_service_files(
@@ -49,7 +49,7 @@ generate_messages(
     geometry_msgs
     sensor_msgs
     actionlib_msgs
-    aist_aruco_ros
+    aist_aruco_msgs
 )
 
 catkin_package(
@@ -58,7 +58,7 @@ catkin_package(
     std_msgs
     geometry_msgs
     actionlib_msgs
-    aist_aruco_ros
+    aist_aruco_msgs
     pluginlib
     nodelet
 )

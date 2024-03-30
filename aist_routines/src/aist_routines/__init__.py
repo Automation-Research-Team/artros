@@ -38,24 +38,24 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                            import degrees, sqrt
-from tf                              import (TransformListener,
-                                             transformations as tfs)
-from std_msgs.msg                    import Header
-from geometry_msgs.msg               import (PoseStamped, Pose, Point,
-                                             Quaternion, PoseArray,
-                                             Vector3, Vector3Stamped)
-from moveit_msgs.msg                 import (RobotTrajectory,
-                                             PositionIKRequest,
-                                             MoveItErrorCodes)
-from moveit_msgs.srv                 import GetPositionIK
-from trajectory_msgs.msg             import (JointTrajectoryPoint,
-                                             JointTrajectory)
-from aist_routines.GripperClient     import GripperClient, VoidGripper
-from aist_routines.CameraClient      import CameraClient
-from aist_routines.MarkerPublisher   import MarkerPublisher
-from aist_routines.PickOrPlaceAction import PickOrPlace
-from aist_utility.compat             import *
+from math                          import degrees, sqrt
+from tf                            import (TransformListener,
+                                           transformations as tfs)
+from std_msgs.msg                  import Header
+from geometry_msgs.msg             import (PoseStamped, Pose, Point,
+                                           Quaternion, PoseArray,
+                                           Vector3, Vector3Stamped)
+from moveit_msgs.msg               import (RobotTrajectory,
+                                           PositionIKRequest,
+                                           MoveItErrorCodes)
+from moveit_msgs.srv               import GetPositionIK
+from trajectory_msgs.msg           import (JointTrajectoryPoint,
+                                           JointTrajectory)
+from aist_routines.GripperClient   import GripperClient, VoidGripper
+from aist_routines.CameraClient    import CameraClient
+from aist_routines.MarkerPublisher import MarkerPublisher
+from aist_msgs.PickOrPlaceAction   import PickOrPlace
+from aist_utility.compat           import *
 
 ######################################################################
 #  global functions                                                  #

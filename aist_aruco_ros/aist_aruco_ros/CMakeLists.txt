@@ -13,7 +13,7 @@ set(CMAKE_CXX_BUILD_TYPE	Release)
 
 find_package(catkin REQUIRED
   COMPONENTS
-    message_generation
+    aruco
     ddynamic_reconfigure
     std_msgs
     geometry_msgs
@@ -23,7 +23,7 @@ find_package(catkin REQUIRED
     tf2_ros
     tf2_geometry_msgs
     aist_utility
-    aruco
+    aist_aruco_msgs
 )
 
 find_package(OpenCV REQUIRED)
@@ -34,19 +34,6 @@ find_package(OpenCV REQUIRED)
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-)
-
-add_message_files(
-  FILES
-    PointCorrespondence.msg
-    PointCorrespondenceArray.msg
-    PointCorrespondenceArrayArray.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-    std_msgs
-    geometry_msgs
 )
 
 catkin_package(
