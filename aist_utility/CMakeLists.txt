@@ -31,9 +31,9 @@ find_package(
     geometry_msgs
     tf
     ddynamic_reconfigure
-    message_generation
     pcl_ros
     pcl_conversions
+    aist_msgs
 )
 
 catkin_python_setup()
@@ -48,16 +48,6 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
   src
-)
-
-add_message_files(
-  FILES
-    Float32Stamped.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-    std_msgs
 )
 
 catkin_package(

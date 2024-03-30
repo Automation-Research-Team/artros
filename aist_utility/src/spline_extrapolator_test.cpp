@@ -4,7 +4,7 @@
  */
 #include <ros/ros.h>
 #include <geometry_msgs/Vector3Stamped.h>
-#include <aist_utility/Float32Stamped.h>
+#include <aist_msgs/Float32Stamped.h>
 #include <aist_utility/spline_extrapolator.h>
 
 namespace aist_utility
@@ -23,7 +23,7 @@ class SplineExtrapolatorTest
     void	run()							;
 
   private:
-    void	flt_cb(const Float32StampedConstPtr& flt)		;
+    void	flt_cb(const aist_msgs::Float32StampedConstPtr& flt)	;
 
   private:
     ros::NodeHandle			_nh;
@@ -67,7 +67,7 @@ SplineExtrapolatorTest::run()
 }
 
 void
-SplineExtrapolatorTest::flt_cb(const Float32StampedConstPtr& flt)
+SplineExtrapolatorTest::flt_cb(const aist_msgs::Float32StampedConstPtr& flt)
 {
     const auto	now = ros::Time::now();
 

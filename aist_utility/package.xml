@@ -9,9 +9,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
-  
+
   <depend>roscpp</depend>
   <depend>rospy</depend>
   <depend>image_transport</depend>
@@ -21,5 +20,6 @@
   <depend>ddynamic_reconfigure</depend>
   <depend>pcl_ros</depend>
   <depend>pcl_conversions</depend>
+  <depend>aist_msgs</depend>
 
 </package>
