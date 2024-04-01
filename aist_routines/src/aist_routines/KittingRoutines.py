@@ -35,12 +35,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy, numpy as np
-from math                       import pi, radians, degrees, cos, sin, sqrt
-from geometry_msgs.msg          import Quaternion
-from aist_routines.ur           import URRoutines
-from aist_msgs.AttemptBinAction import AttemptBin
-from aist_utility.compat        import *
-from tf                         import transformations as tfs
+from math                           import pi, radians, degrees, cos, sin, sqrt
+from geometry_msgs.msg              import Quaternion
+from aist_routines.ur               import URRoutines
+from aist_routines.AttemptBinAction import AttemptBin
+from aist_utility.compat            import *
+from tf                             import transformations as tfs
 
 ######################################################################
 #  class KittingRoutines                                             #
