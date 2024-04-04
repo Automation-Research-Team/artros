@@ -54,9 +54,9 @@ class HMIServer(object):
 
         self._seq              = 0
         self._no_req           = RequestHelp(robot_name='unknown_robot_name',
-                                              item_id='unknown_part_ID',
-                                              request=RequestHelp.NO_REQ,
-                                              message='no_requests')
+                                             item_id='unknown_part_ID',
+                                             request=RequestHelp.NO_REQ,
+                                             message='no_requests')
         self._curr_req         = self._no_req
         self._request_help_pub = rospy.Publisher('/help', RequestHelp,
                                                  queue_size=10)
