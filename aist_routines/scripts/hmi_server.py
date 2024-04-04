@@ -36,13 +36,12 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from finger_pointing_msgs.msg import (RequestHelpAction, RequestHelpGoal,
-                                      RequestHelpResult, RequestHelpFeedback,
-                                      request_help, pointing)
-from actionlib                import SimpleActionServer
-from geometry_msgs.msg        import (QuaternionStamped, PoseStamped,
-                                      PointStamped, Vector3Stamped,
-                                      Point, Quaternion, Vector3)
+from aist_msgs.msg     import (RequestHelpAction, RequestHelpGoal,
+                               RequestHelpResult, RequestHelpFeedback,
+                               RequestHelp, Pointing)
+from actionlib         import SimpleActionServer
+from geometry_msgs.msg import (QuaternionStamped, PoseStamped, PointStamped,
+                               Vector3Stamped, Point, Quaternion, Vector3)
 
 ######################################################################
 #  class HMIServer                                                   #
@@ -54,14 +53,14 @@ class HMIServer(object):
         super(HMIServer, self).__init__()
 
         self._seq              = 0
-        self._no_req           = request_help(robot_name='unknown_robot_name',
+        self._no_req           = RequestHelp(robot_name='unknown_robot_name',
                                               item_id='unknown_part_ID',
-                                              request=request_help.NO_REQ,
+                                              request=RequestHelp.NO_REQ,
                                               message='no_requests')
         self._curr_req         = self._no_req
-        self._request_help_pub = rospy.Publisher('/help', request_help,
+        self._request_help_pub = rospy.Publisher('/help', RequestHelp,
                                                  queue_size=10)
-        self._pointing_sub     = rospy.Subscriber('/pointing', pointing,
+        self._pointing_sub     = rospy.Subscriber('/pointing', Pointing,
                                                   self._pointing_cb)
         self._request_help_srv = SimpleActionServer('~request_help',
                                                     RequestHelpAction,
@@ -91,7 +90,7 @@ class HMIServer(object):
         """
         pointing_msg.header.stamp = rospy.Time.now()
         if self._request_help_srv.is_active():
-            if pointing_msg.pointing_state == pointing.NO_RES:
+            if pointing_msg.pointing_state == Pointing.NO_RES:
                 self._request_help_srv.publish_feedback(
                     RequestHelpFeedback(pointing_msg))
             else:
@@ -121,8 +120,8 @@ class HMIServer(object):
         Set state of the goal to PREEMPTED and revert _curr_req to _no_req
         upon a cancel request from the action client.
         """
-        pointing_msg = pointing()
-        pointing_msg.pointing_state = pointing.NO_RES
+        pointing_msg = Pointing()
+        pointing_msg.pointing_state = Pointing.NO_RES
         self._request_help_srv.set_preempted(RequestHelpResult(pointing_msg))
         self._curr_req = self._no_req           # Revert to _no_req
         rospy.loginfo('(hmi_server) PREEMPTED current goal')
