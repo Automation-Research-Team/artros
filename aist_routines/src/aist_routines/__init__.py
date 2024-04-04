@@ -182,6 +182,7 @@ class AISTBaseRoutines(object):
         print('  frame:       move arm to the pose specified by frame')
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
+        print('  jvalues:     get current joint values')
         print('=== Gripper commands ===')
         print('  gripper:     assign gripper to current robot')
         print('  pregrasp:    pregrasp with the current gripper')
@@ -284,6 +285,8 @@ class AISTBaseRoutines(object):
             speed = float(raw_input("  speed value? "))
         elif key == 'stop':
             self.stop(robot_name)
+        elif key == 'jvalues':
+            print(self.get_current_joint_values(robot_name))
 
         # Gripper stuffs
         elif key == 'gripper':

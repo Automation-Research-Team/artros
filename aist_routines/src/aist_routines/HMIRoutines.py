@@ -59,7 +59,7 @@ class HMIRoutines(KittingRoutines):
 
     MarkerProps = collections.namedtuple('MarkerProps', 'id, scale, color')
     _marker_props = {
-        'finger' : MarkerProps(0, (0.006, 0.014, 0.015), (0.0, 1.0, 1.0, 1.0)),
+        'finger' : MarkerProps(0, (0.008, 0.008, 0.008), (1.0, 0.0, 0.0, 1.0)),
         'sweep'  : MarkerProps(1, (0.006, 0.014, 0.015), (1.0, 1.0, 0.0, 1.0))
         # 'finger' : MarkerProps(0, (0.006, 0.030, 0.015), (0.0, 1.0, 1.0, 1.0)),
         # 'sweep'  : MarkerProps(1, (0.006, 0.030, 0.015), (1.0, 1.0, 0.0, 1.0))
@@ -93,9 +93,9 @@ class HMIRoutines(KittingRoutines):
     def interactive(self, key, robot_name, axis, speed):
         if key == 'w':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self._clear_fail_poses()
+            self._attempt_bin._clear_fail_poses()
             self.sweep_bin(bin_id)
-            self.go_to_named_pose(self._current_robot_name, 'home')
+            self.go_to_named_pose(robot_name, 'home')
         elif key == 'r':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.request_help_bin(bin_id)
@@ -151,18 +151,14 @@ class HMIRoutines(KittingRoutines):
         part_props = self._part_props[part_id]
         robot_name = part_props['robot_name']
 
-        # If using a different robot from the former, move it back to home.
-        if self._current_robot_name is not None and \
-           self._current_robot_name != robot_name:
-            self.go_to_named_pose(self._current_robot_name, 'back')
-        self._current_robot_name = robot_name
-
         # Move to 0.15m above the bin if the camera is mounted on the robot.
-        if self._is_eye_on_hand(robot_name, part_props['camera_name']):
-            self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
+        # if self._is_eye_on_hand(robot_name, part_props['camera_name']):
+        #     self.go_to_frame(robot_name, bin_props['name'], (0, 0, 0.15))
 
         # Search for graspabilities.
-        graspabilities = self.search_bin(bin_id, 0.0)
+        self.set_hmi_graspability_params(bin_id)
+        graspabilities = self.search_bin(bin_id)
+        self.restore_original_graspability_params(bin_id)
 
         # Attempt to sweep the item along y-axis.
         pose = PoseStamped(graspabilities.poses.header,
@@ -219,8 +215,6 @@ class HMIRoutines(KittingRoutines):
         # Send request and receive response.
         response = self._request_help(robot_name, pose, part_id, message)
         if response.pointing_state == Pointing.SWEEP_RES:
-            self._publish_marker('finger', response.header,
-                                 response.finger_pos, response.finger_dir)
             sweep_dir = self._compute_sweep_dir(pose, response)
             self._publish_marker('sweep', pose.header, pose.pose.position,
                                  Vector3(*sweep_dir))
@@ -246,8 +240,6 @@ class HMIRoutines(KittingRoutines):
 
             if response.pointing_state == Pointing.SWEEP_RES:
                 rospy.loginfo('(hmi_demo) Sweep direction given.')
-                self._publish_marker('finger', response.header,
-                                     response.finger_pos, response.finger_dir)
                 sweep_dir = self._compute_sweep_dir(pose, response)
                 self._publish_marker('sweep', pose.header, pose.pose.position,
                                      Vector3(*sweep_dir))
@@ -301,26 +293,15 @@ class HMIRoutines(KittingRoutines):
         return self._request_help_clnt.get_result().response
 
     def _request_help_feedback_cb(self, feedback):
-        response = feedback.response
-        self._publish_marker('finger', response.header,
-                             response.finger_pos, response.finger_dir)
+        self._publish_marker('finger', feedback.response.header,
+                             feedback.response.point)
 
     def _compute_sweep_dir(self, pose, response):
-        fpos = self.listener.transformPoint(
-                   pose.header.frame_id,
-                   PointStamped(response.header, response.finger_pos)).point
-        fdir = self.listener.transformVector3(pose.header.frame_id,
-                                              Vector3Stamped(
-                                                  response.header,
-                                                  response.finger_dir)).vector
         ppos = pose.pose.position
-        fnrm = np.cross((fdir.x, fdir.y, fdir.z),
-                        (ppos.x - fpos.x, ppos.y - fpos.y, ppos.z - fpos.z))
-        gnrm = self.listener.transformVector3(pose.header.frame_id,
-                                              Vector3Stamped(
-                                                  response.header,
-                                                  Vector3(0, 0, 1))).vector
-        sdir = np.cross(fnrm, (gnrm.x, gnrm.y, gnrm.z))
+        fpos = self.listener.transformPoint(pose.header.frame_id,
+                                            PointStamped(response.header,
+                                                         response.point)).point
+        sdir = (fpos.x - ppos.x, fpos.y - ppos.y, 0)
         return tuple(sdir / np.linalg.norm(sdir))
 
     # Marker stuffs
@@ -333,43 +314,34 @@ class HMIRoutines(KittingRoutines):
         marker.ns     = 'pointing'
         self._marker_pub.publish(marker)
 
-    def _publish_marker(self, marker_type, header, pos, dir, lifetime=15):
+    def _publish_marker(self, marker_type, header, pos, dir=None, lifetime=15):
         """
         Publish arrow marker with specified start point and direction.
 
-        @type  pos: geometry_msgs.msg.Point
-        @param pos: start point of the arrow marker
-        @type  dir: geometry_msgs.msg.Vector3
-        @param dir: direction of the arrow marker
+        @type  point: geometry_msgs.msg.PointStamped
+        @param pos:   start point of the arrow marker
+        @type  dir:   geometry_msgs.msg.Vector3
+        @param dir:   direction of the arrow marker
         """
         marker_prop = HMIRoutines._marker_props[marker_type]
-
-        if marker_type == 'finger':
-            workspace_center = PointStamped()
-            workspace_center.header.stamp    = header.stamp
-            # workspace_center.header.frame_id = 'workspace_center'
-            workspace_center.header.frame_id = 'ground'
-            workspace_center.point           = Point(0, 0, 0)
-            t = (self.listener.transformPoint(header.frame_id,
-                                              workspace_center).point.z
-                 - pos.z) / dir.z
-            if t < 0.0:
-                return
-        else:
-            t = 0.03
 
         marker              = Marker()
         marker.header       = header
         marker.header.stamp = rospy.Time.now()
         marker.ns           = 'pointing'
         marker.id           = marker_prop.id
-        marker.type         = Marker.ARROW
+        marker.type         = Marker.SPHERE if dir is None else Marker.ARROW
         marker.action       = Marker.ADD
         marker.scale        = Vector3(*marker_prop.scale)
         marker.color        = ColorRGBA(*marker_prop.color)
         marker.lifetime     = rospy.Duration(lifetime)
-        marker.points.append(pos)
-        marker.points.append(Point(pos.x + t*dir.x,
-                                   pos.y + t*dir.y,
-                                   pos.z + t*dir.z))
+        if dir is None:
+            marker.pose.position = pos
+            marker.pose.orientation = Quaternion(0, 0, 0, 1)
+        else:
+            t = 0.03
+            marker.points.append(pos)
+            marker.points.append(Point(pos.x + t*dir.x,
+                                       pos.y + t*dir.y,
+                                       pos.z + t*dir.z))
         self._marker_pub.publish(marker)

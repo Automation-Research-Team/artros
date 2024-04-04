@@ -97,14 +97,11 @@ class HMIServer(object):
                 self._request_help_srv.set_succeeded(RequestHelpResult(
                                                         pointing_msg))
                 self._curr_req = self._no_req   # Revert to _no_req
-                rospy.loginfo('(hmi_server) SUCCEEDED current goal[%s: pos=(%f %f %f), dir=(%f, %f, %f)]'
+                rospy.loginfo('(hmi_server) SUCCEEDED current goal[%s: pos=(%f %f %f)]'
                               % (self._Pointing[pointing_msg.pointing_state],
-                                 pointing_msg.finger_pos.x,
-                                 pointing_msg.finger_pos.y,
-                                 pointing_msg.finger_pos.z,
-                                 pointing_msg.finger_dir.x,
-                                 pointing_msg.finger_dir.y,
-                                 pointing_msg.finger_dir.z))
+                                 pointing_msg.point.x,
+                                 pointing_msg.point.y,
+                                 pointing_msg.point.z))
 
     def _goal_cb(self):
         """
