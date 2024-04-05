@@ -175,10 +175,10 @@ class HMIRoutines(KittingRoutines):
                                    target_pose.pose.orientation.y,
                                    target_pose.pose.orientation.z,
                                    target_pose.pose.orientation.w))
-        xdir = np.cross(sweep_dir, R[0:3, 2])   # sweep_dir ^ surface_normal
-        R[0:3, 0] = xdir/np.linalg.norm(xdir)
-        R[0:3, 1] = sweep_dir/np.linalg.norm(sweep_dir)
-        R[0:3, 2] = np.cross(R[0:3, 0], R[0:3, 1])
+        nz = R[0:3, 2]
+        ny = sweep_dir - nz * np.dot(nz, sweep_dir)
+        R[0:3, 1] = ny/np.linalg.norm(ny)
+        R[0:3, 0] = np.cross(R[0:3, 1], nz)
         target_pose.pose.orientation = Quaternion(
                                            *tfs.quaternion_from_matrix(R))
         params = self._sweep_params[part_id]
@@ -301,7 +301,7 @@ class HMIRoutines(KittingRoutines):
         fpos = self.listener.transformPoint(pose.header.frame_id,
                                             PointStamped(response.header,
                                                          response.point)).point
-        sdir = (fpos.x - ppos.x, fpos.y - ppos.y, 0)
+        sdir = (fpos.x - ppos.x, fpos.y - ppos.y, fpos.z - ppos.z)
         return tuple(sdir / np.linalg.norm(sdir))
 
     # Marker stuffs
