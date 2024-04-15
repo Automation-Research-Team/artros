@@ -234,7 +234,7 @@ class HMIRoutines(KittingRoutines):
         @param part_id:    ID for specifying part
         @return:           False if picking task should be aborted
         """
-        message = 'Picking_failed!_Please_specify_sweep_direction.'
+        message = 'Picking_failed!'
         while True:
             response = self._request_help(robot_name, pose, part_id, message)
 
@@ -253,7 +253,7 @@ class HMIRoutines(KittingRoutines):
                 elif result == SweepResult.PREEMPTED:
                     rospy.logwarn('(hmi_demo) Preempted while sweeping!')
                     break
-                message = 'Planning_for_sweep_failed!_Please_specify_another_sweep_direction'
+                message = 'Planning_for_sweep_failed!'
             elif response.pointing_state == Pointing.RECAPTURE_RES:
                 rospy.loginfo('(hmi_demo) Recapture required.')
                 break
