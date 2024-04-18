@@ -48,13 +48,14 @@ from tf                             import transformations as tfs
 class KittingRoutines(URRoutines):
     """Implements kitting routines for aist robot system."""
 
-    def __init__(self, do_error_recovery=None, cancel_error_recovery=None):
+    def __init__(self, do_error_recovery=None, cancel_error_recovery=None,
+                 fix_wrist_angle=False):
         super(KittingRoutines, self).__init__()
 
         self._bin_props   = rospy.get_param('~bin_props')
         self._part_props  = rospy.get_param('~part_props')
         self._attempt_bin = AttemptBin(self, do_error_recovery,
-                                       cancel_error_recovery)
+                                       cancel_error_recovery, fix_wrist_angle)
 
     @property
     def current_robot_name(self):

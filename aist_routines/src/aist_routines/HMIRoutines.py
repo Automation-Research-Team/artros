@@ -67,7 +67,8 @@ class HMIRoutines(KittingRoutines):
 
     def __init__(self, server='hmi_server'):
         super(HMIRoutines, self).__init__(self.request_help_and_sweep,
-                                          self.cancel_request_help_and_sweep)
+                                          self.cancel_request_help_and_sweep,
+                                          False)
 
         self._ground_frame             = rospy.get_param('~ground_frame',
                                                          'ground')

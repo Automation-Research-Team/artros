@@ -722,7 +722,7 @@
 
     This file models the base kinematic chain of a UR robot, which then gets
     parameterised by various configuration files to convert it into a UR3(e),
-    UR5(e), UR10(e), UR16e or UR20.
+    UR5(e), UR10(e), UR16e, UR20 or UR30.
 
     NOTE: the default kinematic parameters (ie: link lengths, frame locations,
     offets, etc) do not correspond to any particular robot. They are defaults
@@ -999,7 +999,7 @@
         <origin rpy="0 0 -1.372428740606553e-05" xyz="0 0 0.0892795739838422" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="a_bot_shoulder_lift_joint" type="revolute">
@@ -1008,7 +1008,7 @@
         <origin rpy="1.570642973887296 0 1.159216330228952e-05" xyz="0.0001298333079647873 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="a_bot_elbow_joint" type="revolute">
@@ -1017,7 +1017,7 @@
         <origin rpy="3.141544575566677 3.141258056989769 -3.141547941357519" xyz="-0.4249927407255726 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-3.141592653589793" upper="3.141592653589793" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-1.6415926535897931" soft_upper_limit="1.6415926535897931" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-2.991592653589793" soft_upper_limit="2.991592653589793" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="a_bot_wrist_1_joint" type="revolute">
@@ -1026,7 +1026,7 @@
         <origin rpy="3.131098971659387 3.138979604311949 3.141566100969229" xyz="-0.3919582400771999 0.001161330843866965 0.1106654674396762" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="a_bot_wrist_2_joint" type="revolute">
@@ -1035,7 +1035,7 @@
         <origin rpy="1.570125949318306 0 1.99895973980563e-05" xyz="-0.0002553647085556869 -0.09473296389451868 6.350685479905706e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="a_bot_wrist_3_joint" type="revolute">
@@ -1044,7 +1044,7 @@
         <origin rpy="1.571145759762365 3.141592653589793 -3.141518379713017" xyz="0.0002769113618036503 0.08232662392091306 2.876763766918989e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <!-- ROS-Industrial 'base' frame: base_link to UR 'Base' Coordinates transform -->
@@ -1118,7 +1118,7 @@
 
     This file models the base kinematic chain of a UR robot, which then gets
     parameterised by various configuration files to convert it into a UR3(e),
-    UR5(e), UR10(e), UR16e or UR20.
+    UR5(e), UR10(e), UR16e, UR20 or UR30.
 
     NOTE: the default kinematic parameters (ie: link lengths, frame locations,
     offets, etc) do not correspond to any particular robot. They are defaults
@@ -1395,7 +1395,7 @@
         <origin rpy="0 0 -3.84310363891486e-05" xyz="0 0 0.08930249127205304" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="b_bot_shoulder_lift_joint" type="revolute">
@@ -1404,7 +1404,7 @@
         <origin rpy="1.570672010212541 0 -1.780951514773129e-05" xyz="0.0002107684237541585 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="b_bot_elbow_joint" type="revolute">
@@ -1413,7 +1413,7 @@
         <origin rpy="3.140570057931126 3.1411819229226 -3.141490411428018" xyz="-0.4250579069933035 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-3.141592653589793" upper="3.141592653589793" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-1.6415926535897931" soft_upper_limit="1.6415926535897931" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-2.991592653589793" soft_upper_limit="2.991592653589793" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="b_bot_wrist_1_joint" type="revolute">
@@ -1422,7 +1422,7 @@
         <origin rpy="0.001805834030692282 0.001152183699033996 -1.809064648861627e-05" xyz="-0.3921267877371463 -0.0002003326875048412 0.1109362578929376" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="b_bot_wrist_2_joint" type="revolute">
@@ -1431,7 +1431,7 @@
         <origin rpy="1.569912360458026 0 0.0001143050112676717" xyz="-0.000381384831384591 -0.09479573044857525 8.379625642165081e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <joint name="b_bot_wrist_3_joint" type="revolute">
@@ -1440,7 +1440,7 @@
         <origin rpy="1.571178983493138 3.141592653589793 -3.141552268542566" xyz="0.0003716291223639085 0.08245499418900931 3.155195736993613e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
-        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-4.783185307179586" soft_upper_limit="4.783185307179586" />
+        <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
         <dynamics damping="0" friction="0" />
     </joint>
     <!-- ROS-Industrial 'base' frame: base_link to UR 'Base' Coordinates transform -->
@@ -1519,7 +1519,7 @@
                 <mesh filename="package://aist_robotiq/meshes/visual/ft300.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="Black">
-                <color rgba="0.2 0.2 0.2 1" />
+                <color rgba="0.1 0.1 0.1 1" />
             </material>
         </visual>
         <collision>
@@ -1562,7 +1562,7 @@
                 <mesh filename="package://aist_robotiq/meshes/visual/ft300.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="Black">
-                <color rgba="0.2 0.2 0.2 1" />
+                <color rgba="0.1 0.1 0.1 1" />
             </material>
         </visual>
         <collision>
@@ -2058,7 +2058,7 @@
     <joint name="a_phoxi_m_camera_link_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="a_phoxi_m_camera_link" />
-        <origin rpy="-0.06465094892887115 1.0423347602737518 3.015361040075505" xyz="0.5136934405264134 -0.036640940205745876 0.6228856442369739" />
+        <origin rpy="-0.0626579561970891 1.0383878192954172 3.059776671030358" xyz="0.5141294525807852 -0.0391428293642771 0.6227194772673923" />
     </joint>
     <joint name="a_phoxi_m_camera_reference_joint" type="fixed">
         <parent link="a_phoxi_m_camera_link" />
@@ -2072,7 +2072,7 @@
             <geometry>
                 <mesh filename="package://aist_phoxi_camera/meshes/visual/PhoXi_M.f.STL" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="">
+            <material name="Gazebo/Black">
                 <color rgba="0.8 0.8 0.8 1" />
             </material>
         </visual>
@@ -2171,7 +2171,7 @@
     <!-- camera mount to origin: 4mm; cameras to origin: 3.721 mm. = 7.721 mm offset? -->
     <!-- I forgot which conventions exist for "camera_joint" and "camera_link_joint" so I hesitate to delete one. -->
     <joint name="a_bot_inside_camera_joint" type="fixed">
-        <origin rpy="0.02303437721634514      0.40347560400972565      0.010798159061973579" xyz="0.014368349250599823      0.0035415297809514353      0.06397546955943786" />
+        <origin rpy="0.025912000078364868      0.4021372934071272      0.01607525693523146" xyz="0.010324554587117304      0.0018335412329232095      0.06467303743182957" />
         <parent link="a_bot_gripper_base_link" />
         <child link="a_bot_inside_camera_connector_link" />
     </joint>
@@ -2307,7 +2307,7 @@
     <!-- camera mount to origin: 4mm; cameras to origin: 3.721 mm. = 7.721 mm offset? -->
     <!-- I forgot which conventions exist for "camera_joint" and "camera_link_joint" so I hesitate to delete one. -->
     <joint name="a_bot_outside_camera_joint" type="fixed">
-        <origin rpy="0.017373333209516714      -0.2189346019095829      0.034978097124935485" xyz="0.03167812734753831      -0.007813867044282037      0.08129884906700884" />
+        <origin rpy="0.016977853905271578      -0.21989995636200013      0.03446978804301341" xyz="0.03590302041834074      -0.008099774421321322      0.07959004727089102" />
         <parent link="a_bot_gripper_base_link" />
         <child link="a_bot_outside_camera_connector_link" />
     </joint>
@@ -2441,7 +2441,7 @@
     <joint name="workspace_live_camera_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="live_camera_optical_frame" />
-        <origin rpy="-2.6956831173735374 0.04101229395800053 1.5544348139645294" xyz="0.405235138268645 -0.0356851775630231 0.7399153983016764" />
+        <origin rpy="-2.70626389040216 0.06825373432442536 1.5972576864936887" xyz="0.4076098270054865 -0.041827815223630944 0.7417406575198592" />
     </joint>
     <!-- virtual screen -->
     <link name="virtual_screen" />
