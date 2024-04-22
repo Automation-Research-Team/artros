@@ -207,9 +207,6 @@ class HMIRoutines(KittingRoutines):
         robot_name = part_props['robot_name']
         message    = '[Request_testing]_Please_specify_sweep_direction.'
 
-        # Go to recapture pose
-        self.go_to_named_pose(robot_name, 'recapture')
-
         # Search for graspabilities.
         graspabilities = self.search_bin(bin_id)
         pose           = PoseStamped(graspabilities.poses.header,

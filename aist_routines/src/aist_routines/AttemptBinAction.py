@@ -135,6 +135,7 @@ class AttemptBin(SimpleActionClient):
             if self._is_close_to_fail_poses(pose):
                 continue
 
+            # Perform picking.
             pick_result = routines.pick(robot_name, pose, part_id)
             if not self._server.is_active():
                 return False, None
@@ -173,6 +174,7 @@ class AttemptBin(SimpleActionClient):
                 routines.restore_original_graspability_params(bin_id)
                 return False, None
             else:
+                routines.go_to_named_pose(robot_name, 'recapture')
                 routines.set_hmi_graspability_params(bin_id)
                 return True, None
         else:
