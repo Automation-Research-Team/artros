@@ -234,7 +234,7 @@ class HMIRoutines(KittingRoutines):
         @param part_id:    ID for specifying part
         @return:           False if picking task should be aborted
         """
-        self.go_to_named_pose(robot_name, 'recapture')
+        self.go_to_named_pose(robot_name, 'sweep_ready')
 
         message  = 'Picking_failed!'
         response = self._request_help(robot_name, pose, part_id, message)
