@@ -47,14 +47,12 @@ from aist_msgs.msg     import (PickOrPlaceResult, PickOrPlaceFeedback,
 ######################################################################
 class AttemptBin(SimpleActionClient):
     def __init__(self, routines,
-                 do_error_recovery=None, cancel_error_recovery=None,
-                 fix_wrist_angle=False):
+                 do_error_recovery=None, cancel_error_recovery=None):
         SimpleActionClient.__init__(self, "attempt_bin", AttemptBinAction)
 
         self._routines              = routines
         self._do_error_recovery     = do_error_recovery
         self._cancel_error_recovery = cancel_error_recovery
-        self._fix_wrist_angle       = fix_wrist_angle
         self._current_robot_name    = None
         self._fail_poses            = []
         self._server                = SimpleActionServer("attempt_bin",
@@ -137,8 +135,6 @@ class AttemptBin(SimpleActionClient):
             if self._is_close_to_fail_poses(pose):
                 continue
 
-            if self._fix_wrist_angle:
-                self._clip_wrist_angle(robot_name)
             pick_result = routines.pick(robot_name, pose, part_id)
             if not self._server.is_active():
                 return False, None
@@ -190,15 +186,6 @@ class AttemptBin(SimpleActionClient):
         rospy.logwarn('(AttemptBin) CANCELLED')
 
     # Utilities
-    def _clip_wrist_angle(self, robot_name):
-        joint_values = self._routines.get_current_joint_values(robot_name)
-        if joint_values[5] > radians(180):
-            joint_values[5] -= radians(360)
-            self._routines.go_to_joint_value_target(robot_name, joint_values)
-        elif joint_values[5] < -radians(180):
-            joint_values[5] += radians(360)
-            self._routines.go_to_joint_value_target(robot_name, joint_values)
-
     def _clear_fail_poses(self):
         self._fail_poses = []
 
