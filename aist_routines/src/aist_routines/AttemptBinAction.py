@@ -174,7 +174,6 @@ class AttemptBin(SimpleActionClient):
                 routines.restore_original_graspability_params(bin_id)
                 return False, None
             else:
-                routines.go_to_named_pose(robot_name, 'recapture')
                 routines.set_hmi_graspability_params(bin_id)
                 return True, None
         else:

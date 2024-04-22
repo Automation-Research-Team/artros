@@ -234,32 +234,29 @@ class HMIRoutines(KittingRoutines):
         @param part_id:    ID for specifying part
         @return:           False if picking task should be aborted
         """
-        message = 'Picking_failed!'
-        while True:
-            response = self._request_help(robot_name, pose, part_id, message)
+        self.go_to_named_pose(robot_name, 'recapture')
 
-            if response.pointing_state == Pointing.SWEEP_RES:
-                rospy.loginfo('(hmi_demo) Sweep direction given.')
-                sweep_dir = self._compute_sweep_dir(pose, response)
-                self._publish_marker('sweep', pose.header, pose.pose.position,
-                                     Vector3(*sweep_dir))
+        message  = 'Picking_failed!'
+        response = self._request_help(robot_name, pose, part_id, message)
 
-                result = self._sweep(robot_name, pose, sweep_dir, part_id)
+        if response.pointing_state == Pointing.SWEEP_RES:
+            rospy.loginfo('(hmi_demo) Sweep direction given.')
+            sweep_dir = self._compute_sweep_dir(pose, response)
+            self._publish_marker('sweep', pose.header, pose.pose.position,
+                                 Vector3(*sweep_dir))
 
-                if result == SweepResult.SUCCESS:
-                    break
-                elif result == SweepResult.DEPARTURE_FAILURE:
-                    return False
-                elif result == SweepResult.PREEMPTED:
-                    rospy.logwarn('(hmi_demo) Preempted while sweeping!')
-                    break
+            result = self._sweep(robot_name, pose, sweep_dir, part_id)
+
+            if result == SweepResult.DEPARTURE_FAILURE:
+                return False
+            elif result == SweepResult.PREEMPTED:
+                rospy.logwarn('(hmi_demo) Preempted while sweeping!')
+            elif result != SweepResult.SUCCESS:
                 message = 'Planning_for_sweep_failed!'
-            elif response.pointing_state == Pointing.RECAPTURE_RES:
-                rospy.loginfo('(hmi_demo) Recapture required.')
-                break
-            else:
-                rospy.logwarn('(hmi_demo) Preempted while requesting help!')
-                break
+        elif response.pointing_state == Pointing.RECAPTURE_RES:
+            rospy.loginfo('(hmi_demo) Recapture required.')
+        else:
+            rospy.logwarn('(hmi_demo) Preempted while requesting help!')
         return True
 
     def cancel_request_help_and_sweep(self):
