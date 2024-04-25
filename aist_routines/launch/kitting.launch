@@ -4,14 +4,14 @@
   <arg name="sim"		default="false"/>
   <arg name="config"		default="aist"/>
   <arg name="rviz_config"	default="$(dirname)/kitting.rviz"/>
-  
+
   <!-- Start cameras -->
   <include file="$(dirname)/aist_cameras.launch">
     <arg name="sim"		value="$(arg sim)"/>
   </include>
 
   <!-- Start graspability server -->
-  <arg name="camera_name"	value="a_phoxi_m_camera"/>
+  <arg name="camera_name"	value="a_motioncam"/>
   <include file="$(find aist_graspability)/launch/run.launch">
     <arg name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
     <arg name="image_topic"		value="$(arg camera_name)/texture"/>

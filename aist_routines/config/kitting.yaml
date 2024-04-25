@@ -28,77 +28,77 @@ part_props:
   04_37D-GEARMOTOR-50-70:
     name: Geared motor
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_1_partition_3
   05_MBRFA30-2-P6:
     name: Pully for round belt
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_1
   06_MBT4-400:
     name: Polyurethane round belt
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_1_partition_3
   07_SBARB6200ZZ_30:
     name: Bearing with housing
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_1_partition_2
   08_KZAF1075NA4WA55GA20AA0:
     name: Drive shaft
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_1
   09_EDCS10:
     name: End cap for shaft
     robot_name: a_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_4
   10_CLBPS10_17_4:
     name: Bearing spacers for inner ring
     robot_name: a_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_7
   11_MBRAC60-2-10:
     name: Pully for round belts clamping
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_1_partition_1
   12_CLBUS6-9-9.5:
     name: Bearing spacer for inner ring
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_3
   13_MBGA30-2:
     name: Idler for round belt
     robot_name: b_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_1_partition_5
   14_BGPSL6-9-L30-F8:
     name: Bearing shaft screw
     robot_name: a_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_2
   15_SLBNR6:
     name: M6 hex nut
     robot_name: a_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_5
   16_SPWF6:
     name: M6 flat washer
     robot_name: a_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: tray_2_partition_8
   17_SCB4-10:
     name: M4 head cap screw
     robot_name: a_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: skrewholder_1
   18_SCB3-10:
     name: M3 head cap screw
     robot_name: a_bot
-    camera_name: a_phoxi_m_camera
+    camera_name: a_motioncam
     destination: skrewholder_2
 
 picking_parameters:

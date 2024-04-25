@@ -96,7 +96,7 @@ class KittingRoutines(URRoutines):
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'm':
-            self.create_mask_image('a_phoxi_m_camera', len(self._bin_props))
+            self.create_mask_image('a_motioncam', len(self._bin_props))
         elif key == 's':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.search_bin(bin_id)
