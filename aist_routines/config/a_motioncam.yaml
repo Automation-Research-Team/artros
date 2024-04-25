@@ -4,7 +4,7 @@ color_camera_frame: a_motioncam_color_camera_frame
 hardware_trigger: false
 calibration_volume_only: true
 interreflections_filtering: false
-send_point_cloud: false
+send_point_cloud: true
 send_normal_map: true
 send_depth_map: true
 send_confidence_map: false
@@ -31,7 +31,7 @@ surface_smoothness: 2
 normals_estimation_radius: 0
 iso: 100
 color_resolution: 1
-white_balance: "Internal LED (5000 - 5500K)"
+white_balance: "Daylight (5000 - 6500K)"
 maximum_fps: 20
 camera_exposure: 10.24
 scanner_exposure: 10.24
