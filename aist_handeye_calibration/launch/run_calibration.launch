@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="config"		default="aist"/>
-  <arg name="camera_name"	default="a_phoxi_m_camera"/>
+  <arg name="camera_name"	default="a_motioncam"/>
   <arg name="ns"		default="/"/>
 
   <node ns="$(arg ns)" name="run_calibration"
