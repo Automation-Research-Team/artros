@@ -603,7 +603,7 @@
     <joint name="cage_upper_right_bar" type="fixed">
         <parent link="cage_front_left_pillar" />
         <child link="cage_upper_right_bar" />
-        <origin rpy="0 0 0" xyz="1.16 0.04 1.3" />
+        <origin rpy="0 0 0" xyz="1.16 0.04 1.325" />
     </joint>
     <!-- This creates a box with the origin in the bottom corner, fixed to the world link. -->
     <link name="cage_workspace_bar">
@@ -2055,22 +2055,33 @@
     <!-- 		  parent="ground" transparent="true"> -->
     <!--   <origin xyz="0.41 -0.20 ${bots_z}" rpy="0 0 0"/> -->
     <!-- </xacro:aist_box> -->
-    <joint name="a_phoxi_m_camera_link_joint" type="fixed">
+    <!-- Add PhoXi 3D scanner -->
+    <!-- <xacro:include filename="$(find aist_description -->
+    <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
+    <!-- <xacro:load_calibration filename="$(find aist_handeye_calibration -->
+    <!-- 				    )/calib/a_phoxi_m_camera.yaml"/> -->
+    <!-- <xacro:include filename="$(find aist_phoxi_camera -->
+    <!-- 			   )/urdf/phoxi_m_camera.urdf.xacro"/> -->
+    <!-- <xacro:phoxi_m_camera name="a_phoxi_m_camera" parent="workspace_center"> -->
+    <!--   <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}" -->
+    <!--   	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/> -->
+    <!-- </xacro:phoxi_m_camera> -->
+    <joint name="a_motioncam_link_joint" type="fixed">
         <parent link="workspace_center" />
-        <child link="a_phoxi_m_camera_link" />
-        <origin rpy="-0.0626579561970891 1.0383878192954172 3.059776671030358" xyz="0.5141294525807852 -0.0391428293642771 0.6227194772673923" />
+        <child link="a_motioncam_link" />
+        <origin rpy="0.03174526251084231 1.041717094258447 -3.1268222045220364" xyz="0.5231407296015458 -0.10503553573534424 0.6365724301868348" />
     </joint>
-    <joint name="a_phoxi_m_camera_reference_joint" type="fixed">
-        <parent link="a_phoxi_m_camera_link" />
-        <child link="a_phoxi_m_camera_reference" />
-        <origin rpy="0 0 0.20507618710933373" xyz="0.002164826095 -0.176277236938477 0.0299" />
+    <joint name="a_motioncam_reference_joint" type="fixed">
+        <parent link="a_motioncam_link" />
+        <child link="a_motioncam_reference" />
+        <origin rpy="0 0 0" xyz="0.03 -0.175 0.035" />
     </joint>
-    <link name="a_phoxi_m_camera_link">
+    <link name="a_motioncam_link">
         <visual>
             <!-- <origin xyz="0 0 0" rpy="0 1.5707 0" /> -->
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_phoxi_camera/meshes/visual/PhoXi_M.f.STL" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_phoxi_camera/meshes/visual/MotionCam3D_M.f.STL" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="Gazebo/Black">
                 <color rgba="0.8 0.8 0.8 1" />
@@ -2080,7 +2091,7 @@
             <!-- <origin xyz="0 0 0" rpy="0 1.5707 0" /> -->
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_phoxi_camera/meshes/collision/PhoXi_M.c.STL" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_phoxi_camera/meshes/collision/MotionCam3D_M.c.STL" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
         <inertial>
@@ -2089,36 +2100,36 @@
             <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
-    <link name="a_phoxi_m_camera_reference" />
-    <link name="a_phoxi_m_camera_sensor" />
-    <joint name="a_phoxi_m_camera_sensor_joint" type="fixed">
-        <parent link="a_phoxi_m_camera_reference" />
-        <child link="a_phoxi_m_camera_sensor" />
+    <link name="a_motioncam_reference" />
+    <link name="a_motioncam_sensor" />
+    <joint name="a_motioncam_sensor_joint" type="fixed">
+        <parent link="a_motioncam_reference" />
+        <child link="a_motioncam_sensor" />
         <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
     </joint>
-    <gazebo reference="a_phoxi_m_camera_reference">
-        <sensor name="a_phoxi_m_camera" type="depth">
+    <gazebo reference="a_motioncam_reference">
+        <sensor name="a_motioncam" type="depth">
             <always_on>true</always_on>
             <visualize>true</visualize>
             <camera>
                 <image>
-                    <width>2064</width>
-                    <height>1544</height>
+                    <width>1120</width>
+                    <height>800</height>
                     <format>L8</format>
                 </image>
-                <horizontal_fov>0.9077</horizontal_fov>
+                <horizontal_fov>0.918</horizontal_fov>
                 <depth_camera />
                 <clip>
                     <near>0.1</near>
                     <far>100</far>
                 </clip>
             </camera>
-            <plugin filename="libgazebo_ros_openni_kinect.so" name="a_phoxi_m_camera_controller">
+            <plugin filename="libgazebo_ros_openni_kinect.so" name="a_motioncam_controller">
                 <baseline>0.35</baseline>
                 <alwaysOn>true</alwaysOn>
-                <updateRate>2.5</updateRate>
-                <cameraName>a_phoxi_m_camera</cameraName>
-                <frameName>a_phoxi_m_camera_sensor</frameName>
+                <updateRate>20.0</updateRate>
+                <cameraName>a_motioncam</cameraName>
+                <frameName>a_motioncam_sensor</frameName>
                 <imageTopicName>texture</imageTopicName>
                 <depthImageTopicName>depth_map</depthImageTopicName>
                 <pointCloudTopicName>pointcloud</pointCloudTopicName>
