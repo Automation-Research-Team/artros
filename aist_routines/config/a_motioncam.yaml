@@ -9,11 +9,11 @@ send_confidence_map: false
 send_event_map: false
 send_texture: true
 send_color_camera_image: true
-operation_mode: 1
+operation_mode: 2
 laser_power: 4095
 led_power: 4095
 camera_texture_source: 5
-trigger_mode: 1
+trigger_mode: 0
 normals_estimation_radius: 1
 white_balance: "Daylight (5000 - 6500K)"
 maximum_fps: 20
