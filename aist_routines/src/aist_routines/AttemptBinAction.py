@@ -106,7 +106,7 @@ class AttemptBin(SimpleActionClient):
             print(e)
             self._server.set_aborted()
             rospy.logerr('(AttemptBin) Unknown bin_id[%s]', bin_id)
-            return False, None
+            return False, None  # (no parts remained, no graspabilities)
 
         # If using a different robot from the former, move it back to home.
         if self.current_robot_name is not None and \
@@ -123,7 +123,7 @@ class AttemptBin(SimpleActionClient):
             poses = routines.search_bin(bin_id).poses
 
         if not self._server.is_active():
-            return False, None
+            return False, None  # (no parts remained, no graspabilities)
 
         # Attempt to pick the item.
         nattempts = 0
@@ -149,18 +149,24 @@ class AttemptBin(SimpleActionClient):
                     PickOrPlaceFeedback.APPROACHING)
                 poses        = routines.search_bin(bin_id).poses
                 place_result = routines.pick_or_place_wait_for_result()
+
+                # Check if canceled
                 if not self._server.is_active():
-                    return False, None
+                    return False, None  # (no parts remained, no graspabilities)
                 return place_result == PickOrPlaceResult.SUCCESS, poses
+
             elif pick_result in (PickOrPlaceResult.MOVE_FAILURE,
                                  PickOrPlaceResult.APPROACH_FAILURE):
                 self._fail_poses.append(pose)
+
             elif pick_result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self._server.set_aborted()
                 rospy.logerr('(AttemptBin) Failed to depart from pick/place pose')
                 return False, None
+
             elif pick_result == PickOrPlaceResult.GRASP_FAILURE:
-                if self._do_error_recovery:
+                if self._do_error_recovery and \
+                   routines.using_hmi_graspability_params:
                     if not self._do_error_recovery(robot_name, pose, part_id):
                         self._server.set_aborted()
                     routines.restore_original_graspability_params(bin_id)
@@ -169,11 +175,14 @@ class AttemptBin(SimpleActionClient):
                     self._fail_poses.append(pose)
                     nattempts += 1
 
+        # Here, no graspability poses remained or max_attempts attained.
         if self._do_error_recovery:
             if routines.using_hmi_graspability_params:
+                print('*** OK2')
                 routines.restore_original_graspability_params(bin_id)
                 return False, None
             else:
+                print('*** OK3')
                 routines.set_hmi_graspability_params(bin_id)
                 return True, None
         else:

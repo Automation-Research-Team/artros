@@ -127,6 +127,7 @@ class HMIRoutines(KittingRoutines):
         rospy.loginfo('(hmi_demo) Set graspability paramters for HMI demo.')
 
     def restore_original_graspability_params(self, bin_id):
+        print('*** restore_original_graspability_params')
         bin_props = self._bin_props[bin_id]
         part_id   = bin_props['part_id']
         if not self.using_hmi_graspability_params:
