@@ -80,12 +80,12 @@ class AttemptBin(SimpleActionClient):
         self._server.__del__()
 
     def _execute_cb(self, goal):
-        remained     = True
+        try_next     = True
         poses        = None
         place_offset = 0.020
         self._clear_fail_poses()
-        while remained:
-            remained, poses = self._attempt_bin(goal.bin_id, poses,
+        while try_next:
+            try_next, poses = self._attempt_bin(goal.bin_id, poses,
                                                 place_offset, goal.max_attempts)
             if not self._server.is_active():
                 return
@@ -96,7 +96,7 @@ class AttemptBin(SimpleActionClient):
         rospy.loginfo('(AttemptBin) SUCCEEDED')
 
     def _attempt_bin(self, bin_id, poses, place_offset, max_attempts):
-        routines   = self._routines
+        routines = self._routines
         try:
             bin_props  = routines._bin_props[bin_id]
             part_id    = bin_props['part_id']
@@ -141,18 +141,19 @@ class AttemptBin(SimpleActionClient):
                 return False, None
 
             if pick_result == PickOrPlaceResult.SUCCESS:
+                # Begin placing and wait until reaching approach pose.
                 routines.place_at_frame(robot_name, part_props['destination'],
                                         part_id,
                                         offset=(0.0, place_offset, 0.0),
                                         wait=False)
                 routines.pick_or_place_wait_for_stage(
                     PickOrPlaceFeedback.APPROACHING)
-                poses        = routines.search_bin(bin_id).poses
-                place_result = routines.pick_or_place_wait_for_result()
 
-                # Check if canceled
-                if not self._server.is_active():
-                    return False, None  # (no parts remained, no graspabilities)
+                # Search graspabilities for the next try.
+                poses = routines.search_bin(bin_id).poses
+
+                # Wait until placing finished.
+                place_result = routines.pick_or_place_wait_for_result()
                 return place_result == PickOrPlaceResult.SUCCESS, poses
 
             elif pick_result in (PickOrPlaceResult.MOVE_FAILURE,
