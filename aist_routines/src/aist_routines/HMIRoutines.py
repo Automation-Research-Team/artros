@@ -133,7 +133,8 @@ class HMIRoutines(KittingRoutines):
         if not self.using_hmi_graspability_params:
             rospy.logwarn('(hmi_demo) Already using original graspability paramters.')
             return
-        self._graspability_params[part_id] = self._graspability_params_back
+        self._graspability_params[part_id] \
+            = copy.deepcopy(self._graspability_params_back)
         self._graspability_params_back = None
         rospy.loginfo('(hmi_demo) Restore original graspability paramters.')
 

@@ -140,7 +140,12 @@ class AttemptBin(SimpleActionClient):
             if not self._server.is_active():
                 return False, None
 
+            # 1. Pick succeeded
             if pick_result == PickOrPlaceResult.SUCCESS:
+                if self._do_error_recovery and \
+                   routines.using_hmi_graspability_params:
+                    routines.restore_original_graspability_params(bin_id)
+
                 # Begin placing and wait until reaching approach pose.
                 routines.place_at_frame(robot_name, part_props['destination'],
                                         part_id,
@@ -156,20 +161,22 @@ class AttemptBin(SimpleActionClient):
                 place_result = routines.pick_or_place_wait_for_result()
                 return place_result == PickOrPlaceResult.SUCCESS, poses
 
+            # 2. Pick failed due to error in moving to approach/pick pose
             elif pick_result in (PickOrPlaceResult.MOVE_FAILURE,
                                  PickOrPlaceResult.APPROACH_FAILURE):
                 self._fail_poses.append(pose)
 
+            # 3. Pick failed due to error in departing from pick pose
             elif pick_result == PickOrPlaceResult.DEPARTURE_FAILURE:
                 self._server.set_aborted()
                 rospy.logerr('(AttemptBin) Failed to depart from pick/place pose')
                 return False, None
 
+            # 4. Pick failed due to error in grasping
             elif pick_result == PickOrPlaceResult.GRASP_FAILURE:
                 if self._do_error_recovery and \
-                   routines.using_hmi_graspability_params:
-                    if not self._do_error_recovery(robot_name, pose, part_id):
-                        self._server.set_aborted()
+                   routines.using_hmi_graspability_params and \
+                   self._do_error_recovery(robot_name, pose, part_id):
                     routines.restore_original_graspability_params(bin_id)
                     return True, None
                 else:
@@ -193,6 +200,8 @@ class AttemptBin(SimpleActionClient):
         self._routines.pick_or_place_cancel_goal()
         if self._cancel_error_recovery:
             self._cancel_error_recovery()
+            self._routines.restore_original_graspability_params(
+                self._server.current_goal.get_goal().bin_id)
         self._server.set_preempted()
         rospy.logwarn('(AttemptBin) CANCELLED')
 

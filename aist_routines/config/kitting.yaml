@@ -238,7 +238,7 @@ graspability_parameters:
   05_MBRFA30-2-P6:
     ns: 2
     nz: 0.6
-    object_size: 10
+    object_size: 8
     min_distance: 30
     contact_radius: 10
     open_width: 45
