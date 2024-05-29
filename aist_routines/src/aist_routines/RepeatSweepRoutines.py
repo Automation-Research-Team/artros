@@ -41,8 +41,8 @@ from geometry_msgs.msg             import (PoseStamped, PointStamped,
                                            Vector3Stamped,
                                            Point, Quaternion, Vector3)
 from aist_routines             import AISTBaseRoutines
-from aist_routines.SweepAction import Sweep
-from aist_msgs.msg                 import SweepResult
+from aist_routines.RepeatSweepAction import RepeatSweep
+from aist_msgs.msg                   import SweepResult
 from aist_msgs.msg                 import (RepeatSweepAction, RepeatSweepGoal,
                                            RepeatSweepResult,
                                            RepeatSweep, Pointing)
@@ -53,33 +53,22 @@ from aist_utility.compat           import *
 ######################################################################
 #  class RepeatSweepRoutines                                         #
 ######################################################################
-class RepeatSweepRoutines(AISTBaseRoutines):
+class RepeatSweepRoutines(KittingRoutines):
     """Implements RepeatSweep routines for aist robot system."""
 
-    MarkerProps = collections.namedtuple('MarkerProps', 'id, scale, color')
-    _marker_props = {
-        'finger' : MarkerProps(0, (0.008, 0.008, 0.008), (1.0, 0.0, 0.0, 1.0)),
-        'sweep'  : MarkerProps(1, (0.006, 0.014, 0.015), (1.0, 1.0, 0.0, 1.0))
-        }
-
     def __init__(self, server='hmi_server'):
-        super(RepeatSweepRoutines, self).__init__(self.request_help_and_sweep,
-                                          self.cancel_request_help_and_sweep)
+        super(RepeatSweepRoutines, self).__init__()
 
-        self._ground_frame             = rospy.get_param('~ground_frame',
-                                                         'ground')
-        self._sweep_params             = rospy.get_param('~sweep_parameters')
-        self._sweep_clnt               = Sweep(self)
-        self._marker_pub               = rospy.Publisher('pointing_marker',
-                                                         Marker, queue_size=10)
-        self._request_help_clnt.wait_for_server()
+        self._ground_frame      = rospy.get_param('~ground_frame', 'ground')
+        self._sweep_params      = rospy.get_param('~sweep_parameters')
+        self._repeat_sweep_clnt = RepeatSweep(self)
 
     # Interactive stuffs
     def print_help_messages(self):
         super(RepeatSweepRoutines, self).print_help_messages()
         print('=== RepeatSweep commands ===')
         print('  w: sWeep')
-        print('  r: Request help')
+        print('  r: Repeat sweep')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'w':
@@ -89,15 +78,15 @@ class RepeatSweepRoutines(AISTBaseRoutines):
             self.go_to_named_pose(robot_name, 'home')
         elif key == 'r':
             bin_id = 'bin_' + raw_input('  bin id? ')
-            self.request_help_bin(bin_id)
+            self.repeat_sweep_bin(bin_id)
         else:
-            return super(RepeatSweepRoutines, self).interactive(key, robot_name, axis,
-                                                        speed)
+            return super(RepeatSweepRoutines,
+                         self).interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
 
     # Graspability stuffs
     def search_bin(self, bin_id, min_height=0.004, max_slant=pi/4):
-        return super(RepeatSweepRoutines, self).search_bin(
+        return super(HMIRoutines, self).search_bin(
                    bin_id, min_height,
                    0 if self.using_hmi_graspability_params else max_slant)
 
@@ -109,13 +98,13 @@ class RepeatSweepRoutines(AISTBaseRoutines):
         bin_props = self._bin_props[bin_id]
         part_id   = bin_props['part_id']
         if self.using_hmi_graspability_params:
-            rospy.logwarn('(hmi_demo) Already using graspability paramters for RepeatSweep demo.')
+            rospy.logwarn('(hmi_demo) Already using graspability paramters for HMI demo.')
             return
         self._graspability_params_back \
             = copy.deepcopy(self._graspability_params[part_id])
         self._graspability_params[part_id] \
             = copy.deepcopy(self._hmi_graspability_params[part_id])
-        rospy.loginfo('(hmi_demo) Set graspability paramters for RepeatSweep demo.')
+        rospy.loginfo('(hmi_demo) Set graspability paramters for HMI demo.')
 
     def restore_original_graspability_params(self, bin_id):
         print('*** restore_original_graspability_params')
@@ -130,7 +119,7 @@ class RepeatSweepRoutines(AISTBaseRoutines):
         rospy.loginfo('(hmi_demo) Restore original graspability paramters.')
 
     # Sweep stuffs
-    def sweep_bin(self, bin_id):
+    def repeat_sweep_bin(self, bin_id):
         """
         Search graspability points from the specified bin and sweep the one
         with the highest score.
@@ -184,108 +173,6 @@ class RepeatSweepRoutines(AISTBaseRoutines):
                                           params['speed_slow'],
                                           wait)
 
-    # Request help stuffs
-    def request_help_bin(self, bin_id):
-        """
-        Search graspability points from the specified bin and request
-        finger direction for computing direction to sweep the one with the
-        highest score. Computed sweep direction is then visualized.
-
-        @type  bin_id: str
-        @param bin_id: ID specifying the bin
-        """
-        bin_props  = self._bin_props[bin_id]
-        part_id    = bin_props['part_id']
-        part_props = self._part_props[part_id]
-        robot_name = part_props['robot_name']
-        message    = '[Request_testing]_Please_specify_sweep_direction.'
-
-        # Search for graspabilities.
-        graspabilities = self.search_bin(bin_id)
-        pose           = PoseStamped(graspabilities.poses.header,
-                                     graspabilities.poses.poses[0])
-
-        # Send request and receive response.
-        response = self._request_help(robot_name, pose, part_id, message)
-        if response.pointing_state == Pointing.SWEEP_RES:
-            sweep_dir = self._compute_sweep_dir(pose, response)
-            self._publish_marker('sweep', pose.header, pose.pose.position,
-                                 Vector3(*sweep_dir))
-        print('*** response=%s' % str(response))
-
-    def request_help_and_sweep(self, robot_name, pose, part_id):
-        """
-        Request finger direction for the specified graspability point
-        and perform sweeping the point in the direction computed from
-        the received response.
-
-        @type  robot_name: str
-        @param robot_name: name of the robot
-        @type  pose:       geometry_msgs.msg.PoseStamped
-        @param pose:       pose of the graspability point to be sweeped
-        @type  part_id:    str
-        @param part_id:    ID for specifying part
-        @return:           False if picking task should be aborted
-        """
-        self.go_to_named_pose(robot_name, 'sweep_ready')
-
-        message  = 'Picking_failed!'
-        response = self._request_help(robot_name, pose, part_id, message)
-
-        if response.pointing_state == Pointing.SWEEP_RES:
-            rospy.loginfo('(hmi_demo) Sweep direction given.')
-            sweep_dir = self._compute_sweep_dir(pose, response)
-            self._publish_marker('sweep', pose.header, pose.pose.position,
-                                 Vector3(*sweep_dir))
-
-            result = self._sweep(robot_name, pose, sweep_dir, part_id)
-
-            if result == SweepResult.DEPARTURE_FAILURE:
-                return False
-            elif result == SweepResult.PREEMPTED:
-                rospy.logwarn('(hmi_demo) Preempted while sweeping!')
-            elif result != SweepResult.SUCCESS:
-                message = 'Planning_for_sweep_failed!'
-        elif response.pointing_state == Pointing.RECAPTURE_RES:
-            rospy.loginfo('(hmi_demo) Recapture required.')
-        else:
-            rospy.logwarn('(hmi_demo) Preempted while requesting help!')
-        return True
-
-    def cancel_request_help_and_sweep(self):
-        self._request_help_clnt.cancel_goal()
-        self._sweep_clnt.cancel_goal()
-
-    def _request_help(self, robot_name, pose, part_id, message):
-        """
-        Request finger direction for the specified graspability point
-        and receive response.
-
-        @type  robot_name: str
-        @param robot_name: name of the robot
-        @type  pose:       geometry_msgs.msg.PoseStamped
-        @param pose:       pose of the graspability point to be sweeped
-        @type  part_id:    str
-        @param part_id:    ID for specifying part
-        @type  message:    str
-        @param message:    message to be displayed to the operator of VR side
-        @return:           response with finger direction from VR side
-        """
-        req = RepeatSweep()
-        req.robot_name = robot_name
-        req.item_id    = part_id
-        req.pose       = self.listener.transformPose(self._ground_frame, pose)
-        req.request    = RepeatSweep.SWEEP_DIR_REQ
-        req.message    = message
-        self._request_help_clnt.send_goal(
-            RepeatSweepGoal(req), feedback_cb=self._request_help_feedback_cb)
-        self._request_help_clnt.wait_for_result()
-        return self._request_help_clnt.get_result().response
-
-    def _request_help_feedback_cb(self, feedback):
-        self._publish_marker('finger', feedback.response.header,
-                             feedback.response.point)
-
     def _compute_sweep_dir(self, pose, response):
         ppos = pose.pose.position
         fpos = self.listener.transformPoint(pose.header.frame_id,
@@ -293,45 +180,3 @@ class RepeatSweepRoutines(AISTBaseRoutines):
                                                          response.point)).point
         sdir = (fpos.x - ppos.x, fpos.y - ppos.y, fpos.z - ppos.z)
         return tuple(sdir / np.linalg.norm(sdir))
-
-    # Marker stuffs
-    def _delete_markers(self):
-        """
-        Delete all markers published by _marker_pub.
-        """
-        marker        = Marker()
-        marker.action = Marker.DELETEALL
-        marker.ns     = 'pointing'
-        self._marker_pub.publish(marker)
-
-    def _publish_marker(self, marker_type, header, pos, dir=None, lifetime=15):
-        """
-        Publish arrow marker with specified start point and direction.
-
-        @type  point: geometry_msgs.msg.PointStamped
-        @param pos:   start point of the arrow marker
-        @type  dir:   geometry_msgs.msg.Vector3
-        @param dir:   direction of the arrow marker
-        """
-        marker_prop = RepeatSweepRoutines._marker_props[marker_type]
-
-        marker              = Marker()
-        marker.header       = header
-        marker.header.stamp = rospy.Time.now()
-        marker.ns           = 'pointing'
-        marker.id           = marker_prop.id
-        marker.type         = Marker.SPHERE if dir is None else Marker.ARROW
-        marker.action       = Marker.ADD
-        marker.scale        = Vector3(*marker_prop.scale)
-        marker.color        = ColorRGBA(*marker_prop.color)
-        marker.lifetime     = rospy.Duration(lifetime)
-        if dir is None:
-            marker.pose.position = pos
-            marker.pose.orientation = Quaternion(0, 0, 0, 1)
-        else:
-            t = 0.03
-            marker.points.append(pos)
-            marker.points.append(Point(pos.x + t*dir.x,
-                                       pos.y + t*dir.y,
-                                       pos.z + t*dir.z))
-        self._marker_pub.publish(marker)

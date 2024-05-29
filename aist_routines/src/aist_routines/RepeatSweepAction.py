@@ -35,11 +35,9 @@
 #
 import rospy, copy, numpy as np
 from actionlib                 import SimpleActionServer, SimpleActionClient
-from actionlib_msgs.msg        import GoalStatus
-from geometry_msgs.msg         import Transform, Vector3, Quaternion
 from aist_routines.SweepAction import Sweep
 from aist_msgs.msg             import (RepeatSweepAction, RepeatSweepGoal,
-                                       RepeatSweepResult, RepeatSweepFeedback,
+                                       RepeatSweepResult,
                                        UpsetResult, SweepResult)
 from tf                        import transformations as tfs
 
@@ -51,7 +49,8 @@ class RepeatSweep(SimpleActionClient):
         SimpleActionClient.__init__(self, 'repeat_sweep', RepeatSweepAction)
 
         self._sweep_clnt = Sweep(routines)
-        self._server     = SimpleActionServer("repeat_sweep", RepeatSweepAction,
+        self._server     = SimpleActionServer("repeat_sweep",
+                                              RepeatSweepAction,
                                               self._execute_cb, False)
         self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
@@ -60,7 +59,7 @@ class RepeatSweep(SimpleActionClient):
     # Client stuffs
     def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
-                  angle_range, done_cb=None, active_cb=None):
+                  direction_range):
         SimpleActionClient.send_goal(self,
                                      RepeatSweepGoal(robot_name, pose,
                                                      sweep_length,
@@ -68,24 +67,13 @@ class RepeatSweep(SimpleActionClient):
                                                      approach_offset,
                                                      departure_offset,
                                                      speed_fast, speed_slow,
-                                                     anrgle_range),
-                                     done_cb, active_cb, self._feedback_cb)
-
-    def _feedback_cb(self, feedback):
-        success = raw_input('  *** sweep success?')
-        self._upset_results += UpsetResult(feedback.direction, success)
-        self._current_stage = feedback.stage
-        if self._current_stage == self._target_stage:
-            with self._condition:
-                self._condition.notifyAll()
+                                                     direction_range))
 
     # Server stuffs
     def _execute_cb(self, goal):
         rospy.loginfo('*** Do sweeping ***')
-        routines = self._routines
-        feedback = RepeatSweepFeedback()
-        result   = RepeatSweepResult(SweepResult.Success, [])
 
+        result    = RepeatSweepResult(SweepResult.Success, [])
         direction = goal.direction_range[0]
         while direction < goal.direction_range[1]:
             if not self._server.is_active():
@@ -109,71 +97,16 @@ class RepeatSweep(SimpleActionClient):
                 self._server.set_aborted(result, 'Failed to execute sweep')
                 return
 
+            upset_success = raw_input('  *** successfully upset?')
+            result.upset_results += UpsetResult(direction, upset_success)
 
             direction += goal.direction_range[2]
 
-        # Go to approach pose.
-        rospy.loginfo("--- Go to approach pose. ---")
-        feedback.stage = RepeatSweepFeedback.MOVING
-        self._server.publish_feedback(feedback)
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, goal.approach_offset,
-                                              goal.speed_fast)
-        if not self._server.is_active():
-            return
-        if not success:
-            result.result = RepeatSweepResult.MOVE_FAILURE
-            self._server.set_aborted(result, "Failed to go to approach pose")
-            return
-
-        # Approach sweep pose.
-        feedback.stage = RepeatSweepFeedback.APPROACHING
-        self._server.publish_feedback(feedback)
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, goal.sweep_offset,
-                                              goal.speed_slow)
-        if not self._server.is_active():
-            return
-        if not success:
-            result.result = RepeatSweepResult.APPROACH_FAILURE
-            self._server.set_aborted(result, "Failed to approach target")
-            return
-
-        # RepeatSweep.
-        rospy.loginfo("--- RepeatSweep. ---")
-        feedback.stage = RepeatSweepFeedback.SWEEPING
-        self._server.publish_feedback(feedback)
-        offset = list(goal.sweep_offset)
-        offset[1] += goal.sweep_length
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, offset,
-                                              goal.speed_fast)
-        if not self._server.is_active():
-            return
-        if not success:
-            result.result = RepeatSweepResult.SWEEP_FAILURE
-            self._server.set_aborted(result, "Failed to sweep")
-            return
-
-        # Go back to departure(pick) or approach(place) pose.
-        rospy.loginfo("--- Go back to departure pose. ---")
-        feedback.stage = RepeatSweepFeedback.DEPARTING
-        self._server.publish_feedback(feedback)
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, goal.departure_offset,
-                                              goal.speed_fast)
-        if not self._server.is_active():
-            return
-        if not success:
-            result.result = RepeatSweepResult.DEPARTURE_FAILURE
-            self._server.set_aborted(result, "Failed to depart from target")
-            return
-
-        result.result = RepeatSweepResult.SUCCESS
         self._server.set_succeeded(result, "Succeeded")
 
     def _preempt_cb(self):
         goal = self._server.current_goal.get_goal()
         self._routines.stop(goal.robot_name)
-        self._server.set_preempted(RepeatSweepResult(RepeatSweepResult.PREEMPTED))
+        self._server.set_preempted(RepeatSweepResult(SweepResult.PREEMPTED,
+                                                     []))
         rospy.logwarn('--- RepeatSweep cancelled. ---')
