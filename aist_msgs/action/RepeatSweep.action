@@ -1,0 +1,17 @@
+# Goal
+string                    robot_name
+geometry_msgs/PoseStamped pose
+float64                   sweep_length
+float64[]                 sweep_offset
+float64[]                 approach_offset
+float64[]                 departure_offset
+float64                   speed_fast
+float64                   speed_slow
+float64[]                 direction_range
+---
+# Result
+int32                     result
+aist_msgs/UpsetResult[]   upset_results
+---
+# Feedback
+float64                   direction
