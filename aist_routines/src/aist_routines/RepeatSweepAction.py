@@ -34,12 +34,14 @@
 # Author: Toshio Ueshiba
 #
 import rospy, copy, numpy as np
+from geometry_msgs.msg         import Quaternion
+from tf                        import transformations as tfs
 from actionlib                 import SimpleActionServer, SimpleActionClient
 from aist_routines.SweepAction import Sweep
 from aist_msgs.msg             import (RepeatSweepAction, RepeatSweepGoal,
                                        RepeatSweepResult,
                                        UpsetResult, SweepResult)
-from tf                        import transformations as tfs
+from aist_utility.compat       import *
 
 ######################################################################
 #  class RepeatSweep                                                 #
@@ -48,18 +50,22 @@ class RepeatSweep(SimpleActionClient):
     def __init__(self, routines):
         SimpleActionClient.__init__(self, 'repeat_sweep', RepeatSweepAction)
 
-        self._sweep_clnt = Sweep(routines)
-        self._server     = SimpleActionServer("repeat_sweep",
-                                              RepeatSweepAction,
-                                              self._execute_cb, False)
+        self._current_robot_name = None
+        self._sweep  = Sweep(routines)
+        self._server = SimpleActionServer("repeat_sweep", RepeatSweepAction,
+                                          self._execute_cb, False)
         self._server.register_preempt_callback(self._preempt_cb)
         self._server.start()
         self.wait_for_server()
 
+    @property
+    def current_robot_name(self):
+        return self._current_robot_name
+
     # Client stuffs
     def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
-                  direction_range):
+                  direction_range, done_cb=None, active_cb=None):
         SimpleActionClient.send_goal(self,
                                      RepeatSweepGoal(robot_name, pose,
                                                      sweep_length,
@@ -67,38 +73,51 @@ class RepeatSweep(SimpleActionClient):
                                                      approach_offset,
                                                      departure_offset,
                                                      speed_fast, speed_slow,
-                                                     direction_range))
+                                                     direction_range),
+                                     done_cb, active_cb)
 
     # Server stuffs
     def _execute_cb(self, goal):
-        rospy.loginfo('*** Do sweeping ***')
+        rospy.loginfo('*** Repeat sweeping ***')
 
-        result    = RepeatSweepResult(SweepResult.Success, [])
+        # If using a different robot from the former, move it back to home.
+        if self.current_robot_name is not None and \
+           self.current_robot_name != goal.robot_name:
+            routines.go_to_named_pose(self.current_robot_name, 'back')
+        self._current_robot_name = goal.robot_name
+
+        result    = RepeatSweepResult(SweepResult.SUCCESS, [])
         direction = goal.direction_range[0]
         while direction < goal.direction_range[1]:
             if not self._server.is_active():
                 return
 
             pose = copy.deepcopy(goal.pose)
-            pose.pose.orientation = tfs.quaternion_mutiply(
-                                        pose.pose.orientation,
-                                        tfs.quaternion_about_axis(
-                                            np.radians(direction), (0, 0, 1)))
-            sweep_result = self._sweep_clnt.send_goal(goal.robot_name, pose,
-                                                      goal.sweep_length,
-                                                      goal.sweep_offset,
-                                                      goal.approach_offset,
-                                                      goal.departure_offset,
-                                                      goal.speed_fast,
-                                                      goal.speed.slow, True)
-            if result != SweepResult.SUCCESS:
+            pose.pose.orientation = Quaternion(
+                                        *tfs.quaternion_multiply(
+                                            (pose.pose.orientation.x,
+                                             pose.pose.orientation.y,
+                                             pose.pose.orientation.z,
+                                             pose.pose.orientation.w),
+                                            tfs.quaternion_about_axis(
+                                                np.radians(direction),
+                                                (0, 0, 1))))
+            sweep_result = self._sweep.send_goal(goal.robot_name, pose,
+                                                 goal.sweep_length,
+                                                 goal.sweep_offset,
+                                                 goal.approach_offset,
+                                                 goal.departure_offset,
+                                                 goal.speed_fast,
+                                                 goal.speed_slow, True)
+            if sweep_result != SweepResult.SUCCESS:
                 result.result = sweep_result
                 result.upset_results = []
                 self._server.set_aborted(result, 'Failed to execute sweep')
                 return
 
-            upset_success = raw_input('  *** successfully upset?')
-            result.upset_results += UpsetResult(direction, upset_success)
+            #upset_success = (raw_input('  *** successfully upset?') == 'y')
+            upset_success = True
+            result.upset_results.append(UpsetResult(direction, upset_success))
 
             direction += goal.direction_range[2]
 

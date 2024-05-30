@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <!-- Start repeat_sweep client -->
+  <node name="repeat_sweep"	pkg="aist_routines" type="repeat_sweep.py"
+	clear_params="true" output="screen">
+    <rosparam file="$(dirname)/../config/aist_config.yaml"/>
+    <rosparam file="$(dirname)/../config/kitting.yaml"/>
+  </node>
+
+</launch>
