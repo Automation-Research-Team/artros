@@ -15,7 +15,7 @@
     <param name="num_worker_threads"	value="$(arg manager_threads)"/>
   </node>
 
-  <!-- Launch camera multiplexer and Realsense cameras -->
+  Launch camera multiplexer and Realsense cameras
   <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
     <arg name="camera_names"		value="$(arg camera_names)"/>
     <arg name="active_camera_name"	value="$(arg active_camera_name)"/>

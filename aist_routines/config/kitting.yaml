@@ -229,7 +229,7 @@ repeat_sweep_parameters:
   approach_offset: [0.0, -0.020, 0.15]
   sweep_offset: [0.0, -0.020, -0.005]
   departure_offset: [0.0, 0.0, 0.15]
-  speed_fast: 0.02
+  speed_fast: 1.0
   speed_slow: 0.02
   direction_range: [-60.0, 61.0, 15.0]
 
