@@ -40,7 +40,7 @@
  */
 #pragma once
 
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.h>
 
 namespace aist_utility
 {
@@ -55,10 +55,10 @@ class SplineExtrapolator
   public:
     explicit	SplineExtrapolator(const value_type& x=zero(value_type()))
 		{
-		    reset(ros::Time::now(), x);
+		    reset(rclcpp::Time::now(), x);
 		}
 
-    void	reset(const ros::Time& t, const value_type& x)
+    void	reset(const rclcpp::Time& t, const value_type& x)
 		{
 		    _a[0] = x;
 		    std::fill(_a.begin() + 1, _a.end(), zero(value_type()));
@@ -66,7 +66,7 @@ class SplineExtrapolator
 		    _xp = x;
 		}
 
-    const ros::Time&
+    const rclcpp::Time&
 		tp() const
 		{
 		    return _tp;
@@ -78,7 +78,7 @@ class SplineExtrapolator
 		    return _xp;
 		}
 	    
-    void	update(const ros::Time& t, const value_type& x)
+    void	update(const rclcpp::Time& t, const value_type& x)
 		{
 		    update(std::integral_constant<size_t, N>(),
 			   (t - _tp).toSec(), x - _xp);
@@ -86,19 +86,19 @@ class SplineExtrapolator
 		    _xp = x;
 		}
 
-    value_type	pos(const ros::Time& t) const
+    value_type	pos(const rclcpp::Time& t) const
 		{
 		    return pos(std::integral_constant<size_t, 0>(),
 			       (t - _tp).toSec());
 		}
 
-    value_type	vel(const ros::Time& t) const
+    value_type	vel(const rclcpp::Time& t) const
 		{
 		    return vel(std::integral_constant<size_t, 1>(),
 			       (t - _tp).toSec());
 		}
 
-    value_type	acc(const ros::Time& t) const
+    value_type	acc(const rclcpp::Time& t) const
 		{
 		    return acc(std::integral_constant<size_t, 2>(),
 			       (t - _tp).toSec());
@@ -176,7 +176,7 @@ class SplineExtrapolator
 
   private:
     std::array<value_type, N+1>	_a;
-    ros::Time			_tp;
+    rclcpp::Time		_tp;
     value_type			_xp;
 };
 

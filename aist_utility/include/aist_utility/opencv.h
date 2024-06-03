@@ -38,11 +38,9 @@
  *  \author	Toshio Ueshiba
  *  \brief	Utilities
  */
-#ifndef AIST_UTILITY_OPENCV_H
-#define AIST_UTILITY_OPENCV_H
+#pragma once
 
 #include <opencv2/core/core.hpp>
-#include <tf/tf.h>
 
 namespace cv
 {
@@ -111,12 +109,6 @@ rodrigues(const cv::Matx<T, 3, 1>& r)
     R(2, 1) += s * r(0);
 
     return R;
-}
-
-template <class T=double> inline cv::Point3_<T>
-pointTFToCV(const tf::Point& p)
-{
-    return {T(p.x()), T(p.y()), T(p.z())};
 }
 
 namespace opencv
@@ -426,5 +418,3 @@ operator <<(std::ostream& out, const Similarity<T, D>& similarity)
 
 }	// namespace opencv
 }	// namespace aist_utility
-
-#endif	// !AIST_UTILITY_OPENCV_H

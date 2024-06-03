@@ -1,47 +1,45 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(aist_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-    message_generation
-    cmake_modules
+find_package(rosidl_default_generators REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
+find_package(moveit_msgs REQUIRED)
+
+set(
+  msg_files
+    msg/DisplayItem.msg
+    msg/Float32Stamped.msg
+    msg/Pointing.msg
+    msg/RequestHelp.msg
+    msg/UpsetResult.msg
+)
+
+set(
+  action_files
+    action/AttemptBin.action
+    action/PickOrPlace.action
+    action/RepeatSweep.action
+    action/RequestHelp.action
+    action/Sweep.action
+)
+
+rosidl_generate_interfaces(
+  ${PROJECT_NAME}
+    ${msg_files}
+    ${action_files}
+  DEPENDENCIES
     std_srvs
     std_msgs
     geometry_msgs
     sensor_msgs
     visualization_msgs
-    actionlib_msgs
+    action_msgs
     moveit_msgs
 )
 
-# Declare the message files to be built
-add_message_files(DIRECTORY msg)
-
-#add_service_files(DIRECTORY srv)
-
-# Generate actions in the 'action' folder
-add_action_files(DIRECTORY action)
-#add_action_files(DIRECTORY action/vision)
-#add_action_files(DIRECTORY action/behavior)
-
-# # Generate added messages and services with any dependencies listed here
-
-# Actually generate the language-specific message and service files
-generate_messages(DEPENDENCIES
-  std_srvs
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-  visualization_msgs
-  actionlib_msgs
-  moveit_msgs
-)
-
-catkin_package(CATKIN_DEPENDS
-  message_runtime
-  std_msgs
-  sensor_msgs
-  geometry_msgs
-  visualization_msgs
-  actionlib_msgs
-  moveit_msgs
-)
+ament_export_dependencies(rosidl_default_runtime)

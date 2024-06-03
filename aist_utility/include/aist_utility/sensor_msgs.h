@@ -38,16 +38,15 @@
  *  \author	Toshio Ueshiba
  *  \brief	Utilities
  */
-#ifndef AIST_UTILITY_SENSOR_MSGS_H
-#define AIST_UTILITY_SENSOR_MSGS_H
+#pragma once
 
 #include <array>
 #include <algorithm>
-#include <sensor_msgs/Image.h>
-#include <sensor_msgs/image_encodings.h>
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/point_cloud2_iterator.h>
+#include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/image_encodings.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
 #include <aist_utility/geometry_msgs.h>
@@ -64,20 +63,19 @@ inline float	intensity(const std::array<uint8_t, 3>& rgb)
 		}
 
 //! Set color value
-template <class T>
-inline void	set_color(const sensor_msgs::PointCloud2Iterator<uint8_t>& p,
-			  const T& rgb)
-		{
-		    p[0] = rgb.b;
-		    p[1] = rgb.g;
-		    p[2] = rgb.r;
-		}
-template <>
-inline void	set_color(const sensor_msgs::PointCloud2Iterator<uint8_t>& p,
-			  const uint8_t& grey)
-		{
-		    p[0] = p[1] = p[2] = grey;
-		}
+template <class T> inline void
+set_color(const sensor_msgs::PointCloud2Iterator<uint8_t>& p, const T& rgb)
+{
+    p[0] = rgb.b;
+    p[1] = rgb.g;
+    p[2] = rgb.r;
+}
+template <> inline void
+set_color(const sensor_msgs::PointCloud2Iterator<uint8_t>& p,
+	  const uint8_t& grey)
+{
+    p[0] = p[1] = p[2] = grey;
+}
 
 //! Get depth value in meters.
 template <class T>
@@ -93,24 +91,24 @@ inline float	milimeters(uint16_t depth)	{ return depth; }
 
 //! Get pointer to the leftmost pixel of v-th scanline of the image.
 template <class T> inline T*
-ptr(sensor_msgs::Image& image, int v)
+ptr(sensor_msgs::msg::Image& image, int v)
 {
     return reinterpret_cast<T*>(image.data.data() + v*image.step);
 }
 
 //! Get const pointer to the leftmost pixel of v-th scanline of the image.
 template <class T> inline const T*
-ptr(const sensor_msgs::Image& image, int v)
+ptr(const sensor_msgs::msg::Image& image, int v)
 {
     return reinterpret_cast<const T*>(image.data.data() + v*image.step);
 }
 
-inline sensor_msgs::Image
-create_empty_image(const ros::Time& stamp, const std::string& frame,
+inline sensor_msgs::msg::Image
+create_empty_image(const rclcpp::Time& stamp, const std::string& frame,
 		   const std::string& encoding
 					=sensor_msgs::image_encodings::RGB8)
 {
-    using namespace	sensor_msgs;
+    using namespace	sensor_msgs::msg;
 
     Image	image;
     image.header.stamp	  = stamp;
@@ -127,13 +125,13 @@ create_empty_image(const ros::Time& stamp, const std::string& frame,
 
 //! Convert depth image to sequence of 3D points.
 template <class T, class ITER, class UNIT> ITER
-depth_to_points(const sensor_msgs::CameraInfo& camera_info,
-		const sensor_msgs::Image& depth, ITER out, UNIT unit)
+depth_to_points(const sensor_msgs::msg::CameraInfo& camera_info,
+		const sensor_msgs::msg::Image& depth, ITER out, UNIT unit)
 {
     cv::Mat_<float>	K(3, 3);
-    std::copy_n(std::begin(camera_info.K), 9, K.begin());
+    std::copy_n(std::begin(camera_info.k), 9, K.begin());
     cv::Mat_<float>	D(1, 4);
-    std::copy_n(std::begin(camera_info.D), 4, D.begin());
+    std::copy_n(std::begin(camera_info.d), 4, D.begin());
 
     cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
     for (uint32_t u = 0; u < depth.width; ++u)
@@ -159,7 +157,7 @@ depth_to_points(const sensor_msgs::CameraInfo& camera_info,
 
 //! Extract 3D points from pointcloud.
 template <class T=float, class ITER, class UNIT> ITER
-pointcloud_to_points(const sensor_msgs::PointCloud2& cloud,
+pointcloud_to_points(const sensor_msgs::msg::PointCloud2& cloud,
 		     ITER out, UNIT unit)
 {
     sensor_msgs::PointCloud2ConstIterator<T>	xyz(cloud, "x");
@@ -176,7 +174,7 @@ pointcloud_to_points(const sensor_msgs::PointCloud2& cloud,
 
 //! Extract RGB from pointcloud.
 template <class ITER> ITER
-pointcloud_to_rgb(const sensor_msgs::PointCloud2& cloud, ITER out)
+pointcloud_to_rgb(const sensor_msgs::msg::PointCloud2& cloud, ITER out)
 {
     sensor_msgs::PointCloud2ConstIterator<uint8_t>	bgr(cloud, "rgb");
 
@@ -190,13 +188,13 @@ pointcloud_to_rgb(const sensor_msgs::PointCloud2& cloud, ITER out)
     return out;
 }
 
-template <class IN> sensor_msgs::PointCloud2
+template <class IN> sensor_msgs::msg::PointCloud2
 create_pointcloud(IN in, IN ie,
-		  const ros::Time& stamp, const std::string& frame)
+		  const rclcpp::Time& stamp, const std::string& frame)
 {
     using namespace	sensor_msgs;
 
-    PointCloud2	cloud;
+    msg::PointCloud2	cloud;
     cloud.is_bigendian	  = false;
     cloud.is_dense	  = true;
     cloud.header.stamp	  = stamp;
@@ -206,9 +204,9 @@ create_pointcloud(IN in, IN ie,
 
     PointCloud2Modifier	modifier(cloud);
     modifier.setPointCloud2Fields(3,
-				  "x", 1, PointField::FLOAT32,
-				  "y", 1, PointField::FLOAT32,
-				  "z", 1, PointField::FLOAT32);
+				  "x", 1, msg::PointField::FLOAT32,
+				  "y", 1, msg::PointField::FLOAT32,
+				  "z", 1, msg::PointField::FLOAT32);
     modifier.resize(cloud.width);
     cloud.row_step = cloud.width * cloud.point_step;
 
@@ -226,13 +224,13 @@ create_pointcloud(IN in, IN ie,
     return cloud;
 }
 
-template <class T> sensor_msgs::PointCloud2
-create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
-		  const sensor_msgs::Image& depth, bool with_rgb=false)
+template <class T> sensor_msgs::msg::PointCloud2
+create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
+		  const sensor_msgs::msg::Image& depth, bool with_rgb=false)
 {
     using namespace	sensor_msgs;
 
-    PointCloud2	cloud;
+    msg::PointCloud2	cloud;
     cloud.header	= depth.header;
     cloud.height	= depth.height;
     cloud.width		= depth.width;
@@ -242,20 +240,20 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     PointCloud2Modifier	modifier(cloud);
     if (with_rgb)
 	modifier.setPointCloud2Fields(4,
-				      "x",   1, PointField::FLOAT32,
-				      "y",   1, PointField::FLOAT32,
-				      "z",   1, PointField::FLOAT32,
-				      "rgb", 1, PointField::FLOAT32);
+				      "x",   1, msg::PointField::FLOAT32,
+				      "y",   1, msg::PointField::FLOAT32,
+				      "z",   1, msg::PointField::FLOAT32,
+				      "rgb", 1, msg::PointField::FLOAT32);
     else
 	modifier.setPointCloud2Fields(3,
-				      "x", 1, PointField::FLOAT32,
-				      "y", 1, PointField::FLOAT32,
-				      "z", 1, PointField::FLOAT32);
+				      "x", 1, msg::PointField::FLOAT32,
+				      "y", 1, msg::PointField::FLOAT32,
+				      "z", 1, msg::PointField::FLOAT32);
 
     cv::Mat_<float>	K(3, 3);
-    std::copy_n(std::begin(camera_info.K), 9, K.begin());
+    std::copy_n(std::begin(camera_info.k), 9, K.begin());
     cv::Mat_<float>	D(1, 4);
-    std::copy_n(std::begin(camera_info.D), 4, D.begin());
+    std::copy_n(std::begin(camera_info.d), 4, D.begin());
 
     cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
     for (uint32_t u = 0; u < depth.width; ++u)
@@ -295,14 +293,14 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     return cloud;
 }
 
-template <class T> sensor_msgs::PointCloud2
-create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
-		  const sensor_msgs::Image& depth,
-		  const sensor_msgs::Image& normal)
+template <class T> sensor_msgs::msg::PointCloud2
+create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
+		  const sensor_msgs::msg::Image& depth,
+		  const sensor_msgs::msg::Image& normal)
 {
     using namespace	sensor_msgs;
 
-    PointCloud2	cloud;
+    msg::PointCloud2	cloud;
     cloud.header	= depth.header;
     cloud.height	= depth.height;
     cloud.width		= depth.width;
@@ -311,17 +309,17 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
 
     PointCloud2Modifier	modifier(cloud);
     modifier.setPointCloud2Fields(6,
-				  "x",	      1, PointField::FLOAT32,
-				  "y",	      1, PointField::FLOAT32,
-				  "z",	      1, PointField::FLOAT32,
-				  "normal_x", 1, PointField::FLOAT32,
-				  "normal_y", 1, PointField::FLOAT32,
-				  "normal_z", 1, PointField::FLOAT32);
+				  "x",	      1, msg::PointField::FLOAT32,
+				  "y",	      1, msg::PointField::FLOAT32,
+				  "z",	      1, msg::PointField::FLOAT32,
+				  "normal_x", 1, msg::PointField::FLOAT32,
+				  "normal_y", 1, msg::PointField::FLOAT32,
+				  "normal_z", 1, msg::PointField::FLOAT32);
 
     cv::Mat_<float>	K(3, 3);
-    std::copy_n(std::begin(camera_info.K), 9, K.begin());
+    std::copy_n(std::begin(camera_info.k), 9, K.begin());
     cv::Mat_<float>	D(1, 4);
-    std::copy_n(std::begin(camera_info.D), 4, D.begin());
+    std::copy_n(std::begin(camera_info.d), 4, D.begin());
 
     cv::Mat_<cv::Point2f>	uv(depth.width, 1), xy(depth.width, 1);
     for (uint32_t u = 0; u < depth.width; ++u)
@@ -367,12 +365,12 @@ create_pointcloud(const sensor_msgs::CameraInfo& camera_info,
     return cloud;
 }
 
-inline sensor_msgs::PointCloud2
-create_empty_pointcloud(const ros::Time& stamp, const std::string& frame)
+inline sensor_msgs::msg::PointCloud2
+create_empty_pointcloud(const rclcpp::Time& stamp, const std::string& frame)
 {
     using namespace	sensor_msgs;
 
-    PointCloud2	cloud;
+    msg::PointCloud2	cloud;
     cloud.header.stamp	  = stamp;
     cloud.header.frame_id = frame;
     cloud.height	  = 1;
@@ -382,16 +380,16 @@ create_empty_pointcloud(const ros::Time& stamp, const std::string& frame)
 
     PointCloud2Modifier	modifier(cloud);
     modifier.setPointCloud2Fields(3,
-				  "x", 1, PointField::FLOAT32,
-				  "y", 1, PointField::FLOAT32,
-				  "z", 1, PointField::FLOAT32);
+				  "x", 1, msg::PointField::FLOAT32,
+				  "y", 1, msg::PointField::FLOAT32,
+				  "z", 1, msg::PointField::FLOAT32);
 
     return cloud;
 }
 
-template <class T> sensor_msgs::PointCloud2&
-add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
-		      const sensor_msgs::Image& image)
+template <class T> sensor_msgs::msg::PointCloud2&
+add_rgb_to_pointcloud(sensor_msgs::msg::PointCloud2& cloud,
+		      const sensor_msgs::msg::Image& image)
 {
     using namespace	sensor_msgs;
 
@@ -414,8 +412,8 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud,
     return cloud;
 }
 
-template <class T> sensor_msgs::PointCloud2&
-add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud, const T& color)
+template <class T> sensor_msgs::msg::PointCloud2&
+add_rgb_to_pointcloud(sensor_msgs::msg::PointCloud2& cloud, const T& color)
 {
     using namespace	sensor_msgs;
 
@@ -432,9 +430,9 @@ add_rgb_to_pointcloud(sensor_msgs::PointCloud2& cloud, const T& color)
     return cloud;
 }
 
-template <class T> sensor_msgs::PointCloud2&
-add_3field_to_pointcloud(sensor_msgs::PointCloud2& cloud,
-			 const sensor_msgs::Image& image,
+template <class T> sensor_msgs::msg::PointCloud2&
+add_3field_to_pointcloud(sensor_msgs::msg::PointCloud2& cloud,
+			 const sensor_msgs::msg::Image& image,
 			 const std::string& field_name)
 {
     using namespace	sensor_msgs;
@@ -463,7 +461,8 @@ add_3field_to_pointcloud(sensor_msgs::PointCloud2& cloud,
  *  Emit sensor messages in YAML format
  */
 inline YAML::Emitter&
-operator <<(YAML::Emitter& emitter, const sensor_msgs::RegionOfInterest& roi)
+operator <<(YAML::Emitter& emitter,
+	    const sensor_msgs::msg::RegionOfInterest& roi)
 {
     return emitter << YAML::BeginMap
 		   << YAML::Key   << "x_offset" << YAML::Value << roi.x_offset
@@ -475,7 +474,8 @@ operator <<(YAML::Emitter& emitter, const sensor_msgs::RegionOfInterest& roi)
 }
 
 inline YAML::Emitter&
-operator <<(YAML::Emitter& emitter, const sensor_msgs::CameraInfo& camera_info)
+operator <<(YAML::Emitter& emitter,
+	    const sensor_msgs::msg::CameraInfo& camera_info)
 {
     emitter << YAML::BeginMap
 	    << YAML::Key   << "header" << YAML::Value << camera_info.header
@@ -485,22 +485,22 @@ operator <<(YAML::Emitter& emitter, const sensor_msgs::CameraInfo& camera_info)
 	    << YAML::Value << camera_info.distortion_model;
 
     emitter << YAML::Key << "D" << YAML::Value << YAML::BeginSeq;
-    for (const auto& d : camera_info.D)
+    for (const auto& d : camera_info.d)
 	emitter << d;
     emitter << YAML::EndSeq;
 
     emitter << YAML::Key << "K" << YAML::Value << YAML::BeginSeq;
-    for (const auto& k : camera_info.K)
+    for (const auto& k : camera_info.k)
 	emitter << k;
     emitter << YAML::EndSeq;
 
     emitter << YAML::Key << "R" << YAML::Value << YAML::BeginSeq;
-    for (const auto& r : camera_info.R)
+    for (const auto& r : camera_info.r)
 	emitter << r;
     emitter << YAML::EndSeq;
 
     emitter << YAML::Key << "P" << YAML::Value << YAML::BeginSeq;
-    for (const auto& p : camera_info.P)
+    for (const auto& p : camera_info.p)
 	emitter << p;
     emitter << YAML::EndSeq;
 
@@ -513,4 +513,4 @@ operator <<(YAML::Emitter& emitter, const sensor_msgs::CameraInfo& camera_info)
 		   << YAML::EndMap;
 }
 }	// namespace aist_utility
-#endif	// !AIST_UTILITY_SENSOR_MSGS_H
+

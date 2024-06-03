@@ -2,10 +2,10 @@
  *  \file	pose_head_tracker.cpp
  *  \brief	ROS tracker of aist_utility::PoseHeadAction type
  */
-#include <ros/ros.h>
-#include <aist_msgs/Float32Stamped.h>
-#include <aist_utility/butterworth_lpf.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
+#include <rclcpp/rclcpp.hpp>
+#include <aist_msgs/msg/Float32Stamped.hpp>
+#include <aist_utility/butterworth_lpf.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 namespace aist_utility
 {
@@ -44,14 +44,14 @@ ButterworthLPFTest::ButterworthLPFTest()
      _x(0.0)
 {
     _ddr.registerVariable<int>("lowpass_filter_half_order", _lpf.half_order(),
-			       boost::bind(&ButterworthLPFTest::initialize,
-					   this, _1, _lpf.cutoff() * _rate),
-			       "Half order of low pass filter", 1, 5);
+			       std::bind(&ButterworthLPFTest::initialize,
+					 this, _1, _lpf.cutoff() * _rate),
+			       "Half order of low pass filter", {1, 5});
     _ddr.registerVariable<double>("lowpass_filter_cutoff_frequency",
 				  _lpf.cutoff() * _rate,
-				  boost::bind(&ButterworthLPFTest::initialize,
-					      this, _lpf.half_order(), _1),
-				  "Cutoff frequency", 0.5, 0.5*_rate);
+				  std::bind(&ButterworthLPFTest::initialize,
+					    this, _lpf.half_order(), _1),
+				  "Cutoff frequency", {0.5, 0.5*_rate});
     _ddr.publishServicesTopics();
 }
 
@@ -66,11 +66,11 @@ ButterworthLPFTest::initialize(int half_order, double cutoff_frequency)
 }
 
 void
-ButterworthLPFTest::flt_cb(const aist_msgs::Float32StampedConstPtr& in) const
+ButterworthLPFTest::flt_cb(const aist_msgs::msg::Float32StampedConstPtr& in) const
 {
     _x = in->data;
 
-    aist_msgs::Float32Stamped	out;
+    aist_msgs::msg::Float32Stamped	out;
     out.header = in->header;
     out.data   = _lpf.filter(in->data);
     _pub.publish(out);

@@ -41,7 +41,7 @@
 #pragma once
 
 #include <tf2/transform_datatypes.h>
-#include <tf2/Transform.h>
+#include <tf2/LinearMath/Transform.h>
 
 namespace aist_utility
 {
@@ -74,7 +74,7 @@ operator <<(std::ostream& out, const tf2::Transform& transform)
 template <class T> inline std::ostream&
 operator <<(std::ostream& out, const tf2::Stamped<T>& stamped)
 {
-    return out << static_cast<const tf::T&>(stamped)
+    return out << static_cast<const T&>(stamped)
 	       << '@' << stamped.frame_id_;
 }
 

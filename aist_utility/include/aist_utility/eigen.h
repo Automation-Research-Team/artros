@@ -38,8 +38,7 @@
  *  \author	Toshio Ueshiba
  *  \brief	Utilities
  */
-#ifndef AIST_UTILITY_EIGEN_H
-#define AIST_UTILITY_EIGEN_H
+#pragma once
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -315,4 +314,4 @@ operator <<(std::ostream& out, const Similarity<T, D>& similarity)
 
 }	// namespace eigen
 }	// namespace aist_utility
-#endif	// !AIST_UTILITY_EIGEN_H
+
