@@ -37,9 +37,10 @@ import rospy, copy, numpy as np
 from geometry_msgs.msg         import Quaternion
 from tf                        import transformations as tfs
 from actionlib                 import SimpleActionServer, SimpleActionClient
+from std_srvs.srv              import Trigger, TriggerResponse
 from aist_routines.SweepAction import Sweep
 from aist_msgs.msg             import (RepeatSweepAction, RepeatSweepGoal,
-                                       RepeatSweepResult,
+                                       RepeatSweepResult, RepeatSweepFeedback,
                                        UpsetResult, SweepResult)
 from aist_utility.compat       import *
 
@@ -50,6 +51,7 @@ class RepeatSweep(SimpleActionClient):
     def __init__(self, routines):
         SimpleActionClient.__init__(self, 'repeat_sweep', RepeatSweepAction)
 
+        self._routines = routines
         self._current_robot_name = None
         self._sweep  = Sweep(routines)
         self._server = SimpleActionServer("repeat_sweep", RepeatSweepAction,
@@ -58,9 +60,19 @@ class RepeatSweep(SimpleActionClient):
         self._server.start()
         self.wait_for_server()
 
+        self._query_success_srv = rospy.Service('query_success', Trigger,
+                                                  self._query_success_cb)
+        self._query_success     = rospy.ServiceProxy('query_success', Trigger)
+
     @property
     def current_robot_name(self):
         return self._current_robot_name
+
+    def _query_success_cb(self, req):
+        rospy.logwarn('### upset success? ')
+        res = TriggerResponse()
+        res.success = (raw_input() == 'y')
+        return res
 
     # Client stuffs
     def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
@@ -115,8 +127,8 @@ class RepeatSweep(SimpleActionClient):
                 self._server.set_aborted(result, 'Failed to execute sweep')
                 return
 
-            #upset_success = (raw_input('  *** successfully upset?') == 'y')
-            upset_success = True
+            upset_success = self._query_success().success
+            rospy.logwarn('### upset success=' + str(upset_success))
             result.upset_results.append(UpsetResult(direction, upset_success))
 
             direction += goal.direction_range[2]
