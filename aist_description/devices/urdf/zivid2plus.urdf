@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description)/devices/urdf/zivid2plus.urdf.xacro" />
+
+  <link name ="world"/>
+
+  <xacro:zivid2plus prefix="" parent="world">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:zivid2plus>
+</robot>
