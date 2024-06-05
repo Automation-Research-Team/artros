@@ -38,9 +38,9 @@
  *  \author	Toshio Ueshiba
  *  \brief	Save/Restore sensor_msgs::Image to/from TIFF file
  */
-#include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/image_encodings.hpp>
 #include <tiffio.h>
-#include <aist_utility/tiff.h>
+#include <aist_utility/tiff.hpp>
 
 namespace aist_utility
 {

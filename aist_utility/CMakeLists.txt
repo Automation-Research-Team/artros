@@ -1,16 +1,15 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_utility)
 
-## Compile as C++17, supported in ROS melodic and newer
-enable_language(CXX)
-
-set(CMAKE_CXX_STANDARD		17)
-set(CMAKE_CXX_STANDARD_REQUIRED	ON)
-set(CMAKE_CXX_EXTENSIONS	OFF)
-set(CMAKE_CXX_FLAGS		"-Wall -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE	"")
-set(CMAKE_CXX_FLAGS_DEBUG	"-g")
-set(CMAKE_CXX_BUILD_TYPE	Release)
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
 find_package(PkgConfig)
 pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
@@ -20,183 +19,170 @@ find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PCL REQUIRED 1.8 REQUIRED COMPONENTS common io)
 
-find_package(
-  catkin REQUIRED
-  COMPONENTS
-    roscpp
-    roslib
-    rospy
-    image_transport
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(common_interfaces REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(perception_pcl REQUIRED)
+find_package(aist_msgs REQUIRED)
+find_package(ddynamic_reconfigure2 REQUIRED)
+
+########################################
+#  shared library: libaist_utility.so  #
+########################################
+add_library(
+  ${PROJECT_NAME}
+    src/tiff.cpp
+    src/ply.cpp
+    src/oply/OrderedPly.cpp
+    src/rply/rply.c
+)
+
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_compile_definitions(
+  ${PROJECT_NAME} PRIVATE
+    COMPOSITION_BUILDING_DLL
+)
+
+ament_target_dependencies(
+  ${PROJECT_NAME}
+    rclcpp_components
     sensor_msgs
-    geometry_msgs
-    tf
-    ddynamic_reconfigure
-    pcl_ros
-    pcl_conversions
     aist_msgs
 )
 
-catkin_python_setup()
-
-###########
-## Build ##
-###########
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-  ${LIBTIFF_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
-  src
+target_link_libraries(
+  ${PROJECT_NAME}
+    ${LIBTIFF_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    ${YAML-CPP_LIBRARIES}
 )
 
-catkin_package(
-  CATKIN_DEPENDS
-    roscpp
-    rospy
-    sensor_msgs
-    geometry_msgs
-    message_runtime
-  INCLUDE_DIRS
-    include
-    ${OpenCV_INCLUDE_DIRS}
-  LIBRARIES
-    ${PROJECT_NAME}
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+
+#############
+#  rotconv  #
+#############
+add_executable(
+  rotconv
+    src/rotconv.cpp
 )
 
-link_directories(
-  ${LIBTIFF_LIBRARY_DIRS}
-  ${OpenCV_LIBRARY_DIRS}
-  ${EIGEN3_LIBRARY_DIRS}
-)
-
-#
-#  libaist_utility
-#
+##########################
+#  butterworth_lpf_test  #
+##########################
 add_library(
-  ${PROJECT_NAME}
-  src/tiff.cpp
-  src/ply.cpp
-  src/oply/OrderedPly.cpp
-  src/rply/rply.c
+  butterworth_lpf_test SHARED
+    src/butterworth_lpf_test.cpp
 )
 
-add_dependencies(
-  ${PROJECT_NAME}
-  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+target_include_directories(
+  butterworth_lpf_test PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+
+ament_target_dependencies(
+  butterworth_lpf_test
+    rclcpp_components
+    sensor_msgs
+    aist_msgs
+    ddynamic_reconfigure2
 )
 
 target_link_libraries(
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${LIBTIFF_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-  ${YAML-CPP_LIBRARIES}
+  butterworth_lpf_test
+    COMPOSITION_BUILDING_DLL
 )
 
-#
-#  rotconv
-#
-add_executable(rotconv
-  src/rotconv.cpp
+rclcpp_components_register_node(
+  butterworth_lpf_test
+    PLUGIN "${PROJECT_NAME}::ButterworthLPFTest"
+    EXECUTABLE butterworth_lpf_test_node
 )
 
-target_link_libraries(rotconv
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
+###########################
+#  joint_state_extractor  #
+###########################
+add_library(
+  joint_state_extractor SHARED
+    src/joint_state_extractor.cpp
 )
 
-#
-#  butterworth_lpf_test
-#
-add_executable(butterworth_lpf_test
-  src/butterworth_lpf_test.cpp
+target_include_directories(
+  joint_state_extractor PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(butterworth_lpf_test
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-)
-
-add_dependencies(butterworth_lpf_test
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${catkin_EXPORTED_TARGETS}
-)
-
-#
-#  joint_state_extractor
-#
-add_executable(
+ament_target_dependencies(
   joint_state_extractor
-  src/joint_state_extractor.cpp
+    rclcpp_components
+    sensor_msgs
+    aist_msgs
+    ddynamic_reconfigure2
 )
 
 target_link_libraries(
   joint_state_extractor
-  ${catkin_LIBRARIES}
+    COMPOSITION_BUILDING_DLL
 )
 
-add_dependencies(
+rclcpp_components_register_node(
   joint_state_extractor
-  ${catkin_EXPORTED_TARGETS}
+    PLUGIN "${PROJECT_NAME}::JointStateExtractor"
+    EXECUTABLE joint_state_extractor_node
 )
 
-#
+##############################
+#  spline_extrapolator_test  #
+##############################
+#add_executable(
 #  spline_extrapolator_test
-#
-add_executable(
-  spline_extrapolator_test
-  src/spline_extrapolator_test.cpp
-)
+#  src/spline_extrapolator_test.cpp
+#)
 
-target_link_libraries(
-  spline_extrapolator_test
-  ${catkin_LIBRARIES}
-)
-
-add_dependencies(
-  spline_extrapolator_test
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${catkin_EXPORTED_TARGETS}
-)
-
-#
+#################
+#  capture_pcd  #
+#################
+#add_executable(
 #  capture_pcd
-#
-add_executable(
-  capture_pcd
-  src/capture_pcd.cpp
-)
+#    src/capture_pcd.cpp
+#)
 
-target_link_libraries(
-  capture_pcd
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
-
-add_dependencies(
-  capture_pcd
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${catkin_EXPORTED_TARGETS}
-  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
+#target_link_libraries(
+#  capture_pcd
+#    ${OpenCV_LIBRARIES}
+#)
 
 #############
 ## Install ##
 #############
 install(
-  TARGETS
-    rotconv joint_state_extractor capture_pcd
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  DIRECTORY include/
+  DESTINATION include
 )
 
 install(
-  DIRECTORY   include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  TARGETS  ${PROJECT_NAME} butterworth_lpf_test joint_state_extractor
+  EXPORT   export_${PROJECT_NAME}
+  LIBRARY  DESTINATION lib
+  ARCHIVE  DESTINATION lib
+  RUNTIME  DESTINATION bin
+  INCLUDES DESTINATION include
 )
+
+# Ament exports
+ament_export_libraries(${PROJECT_NAME})
+
+ament_package()

@@ -40,9 +40,9 @@
  */
 #include <array>
 #include <boost/iterator/iterator_adaptor.hpp>
-#include <sensor_msgs/image_encodings.h>
-#include <aist_utility/ply.h>
-#include <aist_utility/sensor_msgs.h>
+#include <sensor_msgs/image_encodings.hpp>
+#include <aist_utility/ply.hpp>
+#include <aist_utility/sensor_msgs.hpp>
 #include "oply/OrderedPly.h"
 
 namespace aist_utility

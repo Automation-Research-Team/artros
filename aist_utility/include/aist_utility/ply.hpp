@@ -30,22 +30,23 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-//
-// Author: Toshio Ueshiba
-//
 /*!
- *  \file	tiff.h
+ *  \file	ply.h
  *  \author	Toshio Ueshiba
- *  \brief	Save/Restore sensor_msgs::Image to/from TIFF file
+ *  \brief	Save depth and color images to Ordered PLY file
  */
-#pragma once
+#pragma onve
 
-#include <sensor_msgs/msg/Image.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/image.hpp>
 #include <string>
 
 namespace aist_utility
 {
-void				saveTiff(const sensor_msgs::msg::Image& image,
-					 const std::string& file)	;
-sensor_msgs::msg::ImagePtr	loadTiff(const std::string& file)	;
+void	savePly(const sensor_msgs::msg::CameraInfo& camera_info,
+		const sensor_msgs::msg::Image& image,
+		const sensor_msgs::msg::Image& depth,
+		const sensor_msgs::msg::Image& normal,
+		const std::string& file)				;
 }	// namespace aist_utility
+

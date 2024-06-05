@@ -2,38 +2,39 @@
  *  \file	joint_state_extractor.cpp
  *  \brief	Utility tool for extracting states of specified joints
  */
-#include <ros/ros.h>
-#include <sensor_msgs/JointState.h>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/joint_state.hpp>
 
 namespace aist_utility
 {
-class JointStateExtractor
+class JointStateExtractor : rclcpp::Node
 {
   private:
-    using joint_state_t	 = sensor_msgs::JointState;
-    using joint_state_cp = sensor_msgs::JointStateConstPtr;
+    using joint_state_t	 = sensor_msgs::msg::JointState;
+    using joint_state_cp = sensor_msgs::msg::JointStateConstPtr;
 
   public:
-			JointStateExtractor()				;
-
-    static void		run()						;
+		JointStateExtractor(const rclcpp::NodeOptions& options)	;
 
   private:
-    void		joint_state_cb(const joint_state_cp& joint_state);
+    std::string fullname()	const	{ return get_fully_qualified_name(); }
+    void	joint_state_cb(const joint_state_cp& joint_state)	;
 
   private:
-    ros::NodeHandle	_nh;
-    ros::Subscriber	_joint_state_sub;
-    ros::Publisher	_joint_state_pub;
-    joint_state_t	_joint_state;
+    const rclcpp::Subscription<joint_state_t>::SharedPtr _joint_state_sub;
+    const rclcpp::Publisher<joint_state_t>::SharedPtr	 _joint_state_pub;
+    joint_state_t					 _joint_state;
 };
 
-JointStateExtractor::JointStateExtractor()
-    :_nh("~"),
-     _joint_state_sub(_nh.subscribe("/joint_states", 1,
-				    &JointStateExtractor::joint_state_cb,
-				    this)),
-     _joint_state_pub(_nh.advertise<joint_state_t>("joint_states", 1)),
+JointStateExtractor::JointStateExtractor(const std::string& node_name,
+					 const rclcpp::NodeOptions& options)
+    :rclcpp::Node(node_name, options),
+     _joint_state_sub(create_subscription<joint_state_t>(
+			  "/joint_states", 1,
+			  std::bind(&JointStateExtractor::joint_state_cb,
+				    this, std::placeholders::_1))),
+     _joint_state_pub(create_publisher<joint_state_t>(
+			  fullname() + "joint_states", 1)),
      _joint_state()
 {
 
@@ -45,13 +46,7 @@ JointStateExtractor::JointStateExtractor()
     _joint_state.velocity.resize(njoints);
     _joint_state.effort  .resize(njoints);
 
-    ROS_INFO_STREAM("(JointStateExtractor) started");
-}
-
-void
-JointStateExtractor::run()
-{
-    ros::spin();
+    RCLCPP_INFO_STREAM(get_logger(), "(JointStateExtractor) started");
 }
 
 void
@@ -78,20 +73,6 @@ JointStateExtractor::joint_state_cb(const joint_state_cp& joint_state)
 
 }	// namespace aist_utility
 
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, "joint_state_extractor");
+#include <rclcpp_components/register_node_macro.hpp>
 
-    try
-    {
-	aist_utility::JointStateExtractor	extractor;
-	extractor.run();
-    }
-    catch (const std::exception& err)
-    {
-	std::cerr << err.what() << std::endl;
-    }
-
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_utility::JointStateExtractor)

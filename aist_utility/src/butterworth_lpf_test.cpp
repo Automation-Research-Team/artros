@@ -1,9 +1,9 @@
 /*
- *  \file	pose_head_tracker.cpp
- *  \brief	ROS tracker of aist_utility::PoseHeadAction type
+ *  \file	butterworth_lpf_test.cpp
+ *  \brief	Test program for aist_utility::ButterworthLPF<T>
  */
 #include <rclcpp/rclcpp.hpp>
-#include <aist_msgs/msg/Float32Stamped.hpp>
+#include <aist_msgs/msg/float32_stamped.hpp>
 #include <aist_utility/butterworth_lpf.hpp>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
@@ -12,36 +12,44 @@ namespace aist_utility
 /************************************************************************
 *  class ButterworthLPFTest						*
 ************************************************************************/
-class ButterworthLPFTest
+class ButterworthLPFTest : rclcpp::Node
 {
   public:
     using value_type	= float;
 
+  private:
+    using flt_t		= aist_msgs::msg::Float32Stamped;
+    using flt_p		= flt_t::UniquePtr;
+    using timer_p	= rclcpp::TimerBase::SharedPtr;
+
   public:
-		ButterworthLPFTest()					;
+		ButterworthLPFTest(const rclcpp::NodeOptions& options)	;
 
   private:
+    std::string	fullname()	const	{ return get_fully_qualified_name(); }
     void	initialize(int half_order, double cutoff_frequency)	;
-    void	flt_cb(const aist_msgs::Float32StampedConstPtr& flt)
-								const	;
+    void	flt_cb(flt_p in)				const	;
 
   private:
-    ros::NodeHandle				_nh;
-    double					_rate;
-    ros::Subscriber				_sub;
-    const ros::Publisher			_pub;
-    ddynamic_reconfigure::DDynamicReconfigure	_ddr;
-    aist_utility::ButterworthLPF<value_type>	_lpf;
-    mutable value_type				_x;
+    double						_rate;
+    const rclcpp::Subscription<flt_t>::SharedPtr	_sub;
+    const rclcpp::Publisher<flt_t>::SharedPtr		_pub;
+    ddynamic_reconfigure2::DDynamicReconfigure		_ddr;
+    aist_utility::ButterworthLPF<value_type>		_lpf;
+    mutable value_type					_x;
 };
 
-ButterworthLPFTest::ButterworthLPFTest()
-    :_nh("~"),
-     _rate(_nh.param<double>("rate", 1000.0)),
-     _sub(_nh.subscribe("/in", 1, &ButterworthLPFTest::flt_cb, this)),
-     _pub(_nh.advertise<aist_msgs::Float32Stamped>("out", 1)),
+ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("recover_cloud", options),
+     _rate(declare_read_only_parameter<double>("rate", 10.0)),
+     _sub(create_subscription<flt_t>("/in", 1,
+				     std::bind(&ButterworthLPFTest::flt_cb,
+					       this, std::placeholders::_1))),
+     _pub(create_publisher<flt_t>(fullname() + "/out", 1)),
      _lpf(2, 50.0/_rate),
-     _x(0.0)
+     _x(0.0),
+     _timer(create_wall_timer(std::chrono::duration<double>(1.0 / _rate),
+			      std::bind(&Camera::tick, this)))
 {
     _ddr.registerVariable<int>("lowpass_filter_half_order", _lpf.half_order(),
 			       std::bind(&ButterworthLPFTest::initialize,
@@ -52,7 +60,6 @@ ButterworthLPFTest::ButterworthLPFTest()
 				  std::bind(&ButterworthLPFTest::initialize,
 					    this, _lpf.half_order(), _1),
 				  "Cutoff frequency", {0.5, 0.5*_rate});
-    _ddr.publishServicesTopics();
 }
 
 void
@@ -66,28 +73,18 @@ ButterworthLPFTest::initialize(int half_order, double cutoff_frequency)
 }
 
 void
-ButterworthLPFTest::flt_cb(const aist_msgs::msg::Float32StampedConstPtr& in) const
+ButterworthLPFTest::flt_cb(flt_p in) const
 {
     _x = in->data;
 
-    aist_msgs::msg::Float32Stamped	out;
-    out.header = in->header;
-    out.data   = _lpf.filter(in->data);
+    flt_p	out(new flt_t);
+    out->header = in->header;
+    out->data   = _lpf.filter(in->data);
     _pub.publish(out);
 }
 
 }	// namepsace aist_utility
 
-/************************************************************************
-*  main function							*
-************************************************************************/
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, "butterworth_lpf_test");
+#include <rclcpp_components/register_node_macro.hpp>
 
-    const aist_utility::ButterworthLPFTest	butterworth_lpf_test;
-    ros::spin();
-
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_utility::ButterworthLPFTest)
