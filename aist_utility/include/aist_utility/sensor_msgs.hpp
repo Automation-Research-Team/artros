@@ -189,27 +189,27 @@ pointcloud_to_rgb(const sensor_msgs::msg::PointCloud2& cloud, ITER out)
     return out;
 }
 
-template <class IN> sensor_msgs::msg::PointCloud2
+template <class IN> sensor_msgs::msg::PointCloud2::UniquePtr
 create_pointcloud(IN in, IN ie,
 		  const rclcpp::Time& stamp, const std::string& frame)
 {
     using namespace	sensor_msgs;
 
-    msg::PointCloud2	cloud;
-    cloud.is_bigendian	  = false;
-    cloud.is_dense	  = true;
-    cloud.header.stamp	  = stamp;
-    cloud.header.frame_id = frame;
-    cloud.height	  = 1;
-    cloud.width		  = std::distance(in, ie);
+    auto	cloud = std::make_unique<msg::PointCloud2>();
+    cloud->is_bigendian	   = false;
+    cloud->is_dense	   = true;
+    cloud->header.stamp	   = stamp;
+    cloud->header.frame_id = frame;
+    cloud->height	   = 1;
+    cloud->width	   = std::distance(in, ie);
 
-    PointCloud2Modifier	modifier(cloud);
+    PointCloud2Modifier	modifier(*cloud);
     modifier.setPointCloud2Fields(3,
 				  "x", 1, msg::PointField::FLOAT32,
 				  "y", 1, msg::PointField::FLOAT32,
 				  "z", 1, msg::PointField::FLOAT32);
-    modifier.resize(cloud.width);
-    cloud.row_step = cloud.width * cloud.point_step;
+    modifier.resize(cloud->width);
+    cloud->row_step = cloud->width * cloud->point_step;
 
     PointCloud2Iterator<float>	out(cloud, "x");
     for (; in != ie; ++in, ++out)
@@ -225,20 +225,20 @@ create_pointcloud(IN in, IN ie,
     return cloud;
 }
 
-template <class T> sensor_msgs::msg::PointCloud2
+template <class T> sensor_msgs::msg::PointCloud2::UniquePtr
 create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
 		  const sensor_msgs::msg::Image& depth, bool with_rgb=false)
 {
     using namespace	sensor_msgs;
 
-    msg::PointCloud2	cloud;
-    cloud.header	= depth.header;
-    cloud.height	= depth.height;
-    cloud.width		= depth.width;
-    cloud.is_bigendian	= false;
-    cloud.is_dense	= false;
+    auto	cloud = std::make_unique<msg::PointCloud2>();
+    cloud->header	= depth.header;
+    cloud->height	= depth.height;
+    cloud->width	= depth.width;
+    cloud->is_bigendian	= false;
+    cloud->is_dense	= false;
 
-    PointCloud2Modifier	modifier(cloud);
+    PointCloud2Modifier	modifier(*cloud);
     if (with_rgb)
 	modifier.setPointCloud2Fields(4,
 				      "x",   1, msg::PointField::FLOAT32,
@@ -262,8 +262,8 @@ create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
 
     for (uint32_t v = 0; v < depth.height; ++v)
     {
-	PointCloud2Iterator<float>	xyz(cloud, "x");
-	xyz += v * cloud.width;
+	PointCloud2Iterator<float>	xyz(*cloud, "x");
+	xyz += v * cloud->width;
 
 	for (uint32_t u = 0; u < depth.width; ++u)
 	    uv(u).y = v;
@@ -294,21 +294,21 @@ create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
     return cloud;
 }
 
-template <class T> sensor_msgs::msg::PointCloud2
+template <class T> sensor_msgs::msg::PointCloud2::UniquePtr
 create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
 		  const sensor_msgs::msg::Image& depth,
 		  const sensor_msgs::msg::Image& normal)
 {
     using namespace	sensor_msgs;
 
-    msg::PointCloud2	cloud;
-    cloud.header	= depth.header;
-    cloud.height	= depth.height;
-    cloud.width		= depth.width;
-    cloud.is_bigendian	= false;
-    cloud.is_dense	= false;
+    auto	cloud = std::make_unique<msg::PointCloud2>();
+    cloud->header	= depth.header;
+    cloud->height	= depth.height;
+    cloud->width	= depth.width;
+    cloud->is_bigendian	= false;
+    cloud->is_dense	= false;
 
-    PointCloud2Modifier	modifier(cloud);
+    PointCloud2Modifier	modifier(*cloud);
     modifier.setPointCloud2Fields(6,
 				  "x",	      1, msg::PointField::FLOAT32,
 				  "y",	      1, msg::PointField::FLOAT32,
@@ -328,8 +328,8 @@ create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
 
     for (uint32_t v = 0; v < depth.height; ++v)
     {
-	PointCloud2Iterator<float>	xyzn(cloud, "x");
-	xyzn += v * cloud.width;
+	PointCloud2Iterator<float>	xyzn(*cloud, "x");
+	xyzn += v * cloud->width;
 
 	for (uint32_t u = 0; u < depth.width; ++u)
 	    uv(u).y = v;
@@ -366,20 +366,20 @@ create_pointcloud(const sensor_msgs::msg::CameraInfo& camera_info,
     return cloud;
 }
 
-inline sensor_msgs::msg::PointCloud2
+inline sensor_msgs::msg::PointCloud2::UniquePtr
 create_empty_pointcloud(const rclcpp::Time& stamp, const std::string& frame)
 {
     using namespace	sensor_msgs;
 
-    msg::PointCloud2	cloud;
-    cloud.header.stamp	  = stamp;
-    cloud.header.frame_id = frame;
-    cloud.height	  = 1;
-    cloud.width		  = 0;
-    cloud.is_bigendian	  = false;
-    cloud.is_dense	  = true;
+    auto	cloud = std::make_unique<msg::PointCloud2>();
+    cloud->header.stamp	   = stamp;
+    cloud->header.frame_id = frame;
+    cloud->height	   = 1;
+    cloud->width	   = 0;
+    cloud->is_bigendian	   = false;
+    cloud->is_dense	   = true;
 
-    PointCloud2Modifier	modifier(cloud);
+    PointCloud2Modifier	modifier(*cloud);
     modifier.setPointCloud2Fields(3,
 				  "x", 1, msg::PointField::FLOAT32,
 				  "y", 1, msg::PointField::FLOAT32,

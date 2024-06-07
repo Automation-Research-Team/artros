@@ -214,7 +214,7 @@ install(
 install(
   TARGETS
     ${PROJECT_NAME}
-    butterworth_lpf_test joint_state_extractor
+    rotconv butterworth_lpf_test joint_state_extractor
     spline_extrapolator_test capture_pcd
   EXPORT   export_${PROJECT_NAME}
   LIBRARY  DESTINATION lib

@@ -27,11 +27,11 @@ class SplineExtrapolatorTest : public rclcpp::Node
   public:
 		SplineExtrapolatorTest(const rclcpp::NodeOptions& options);
 
-    void	tick()							;
+    void	tick()					;
 
   private:
-    std::string fullname()	const	{ return get_fully_qualified_name(); }
-    void	flt_cb(flt_p flt)					;
+    std::string node_name()			const	{ return get_name(); }
+    void	flt_cb(flt_p flt)			;
 
   private:
     ddynamic_reconfigure2::DDynamicReconfigure		_ddr;
@@ -50,7 +50,7 @@ SplineExtrapolatorTest::SplineExtrapolatorTest(
      _sub(create_subscription<flt_t>(
 	      "/in", 1, std::bind(&SplineExtrapolatorTest::flt_cb, this,
 				  std::placeholders::_1))),
-     _pub(create_publisher<vector3_t>(fullname() + "out", 1)),
+     _pub(create_publisher<vector3_t>(node_name() + "out", 1)),
      _extrapolator2(get_clock()->now()),
      _extrapolator3(get_clock()->now()),
      _extrapolator4(get_clock()->now()),

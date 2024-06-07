@@ -18,7 +18,7 @@ class JointStateExtractor : public rclcpp::Node
 		JointStateExtractor(const rclcpp::NodeOptions& options)	;
 
   private:
-    std::string fullname()	const	{ return get_fully_qualified_name(); }
+    std::string node_name()			const	{ return get_name(); }
     void	joint_state_cb(const joint_state_cp& joint_state)	;
 
   private:
@@ -36,7 +36,7 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
 			  std::bind(&JointStateExtractor::joint_state_cb,
 				    this, std::placeholders::_1))),
      _joint_state_pub(create_publisher<joint_state_t>(
-			  fullname() + "joint_states", 1)),
+			  node_name() + "joint_states", 1)),
      _joint_state()
 {
 

@@ -25,7 +25,7 @@ class ButterworthLPFTest : public rclcpp::Node
 		ButterworthLPFTest(const rclcpp::NodeOptions& options)	;
 
   private:
-    std::string	fullname()	const	{ return get_fully_qualified_name(); }
+    std::string	node_name()			const	{ return get_name(); }
     void	initialize(int half_order, double cutoff_frequency)	;
     void	flt_cb(flt_p in)				const	;
 
@@ -45,7 +45,7 @@ ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
      _sub(create_subscription<flt_t>("/in", 1,
 				     std::bind(&ButterworthLPFTest::flt_cb,
 					       this, std::placeholders::_1))),
-     _pub(create_publisher<flt_t>(fullname() + "/out", 1)),
+     _pub(create_publisher<flt_t>(node_name() + "/out", 1)),
      _lpf(2, 50.0/_rate),
      _x(0.0)
 {

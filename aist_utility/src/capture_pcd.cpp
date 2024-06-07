@@ -51,12 +51,11 @@ class PCDCapturer : public rclcpp::Node
 		PCDCapturer(const rclcpp::NodeOptions& options)		;
 
   private:
-    std::string	fullname()	const	{ return get_fully_qualified_name(); }
+    std::string	node_name()			const	{ return get_name(); }
     void	camera_cb(const image_cp& color, const image_cp& depth,
 			  const camera_info_cp& camera_info)		;
     bool	save_cloud_cb(const trigger_req_p, trigger_res_p res)	;
-    static
-    std::string	open_dir()						;
+    std::string	open_dir()					const	;
 
   private:
     ddynamic_reconfigure2::DDynamicReconfigure	_ddr;
@@ -73,30 +72,32 @@ class PCDCapturer : public rclcpp::Node
     const std::string				_cloud_frame;
     const bool					_save_as_binary;
     size_t					_file_num;
+    cloud_t					_cloud;
 };
 
 PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
     :rclcpp::Node("pcd_capturer", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
      _it(rclcpp::Node::SharedPtr(this)),
-     _color_sub(this, "/color", 1),
-     _depth_sub(this, "/depth", 1),
+     _color_sub(this, "/color", "image_transport"),
+     _depth_sub(this, "/depth", "image_transport"),
      _camera_info_sub(),
      _sync(_color_sub, _depth_sub, _camera_info_sub, 1),
-     _cloud_pub(create_publisher<cloud_t>(fullname() + "/pointcloud", 1)),
+     _cloud_pub(create_publisher<cloud_t>(node_name() + "/pointcloud", 1)),
      _save_cloud(create_service<trigger_t>(
-		     fullname() + "/save_cloud",
+		     node_name() + "/save_cloud",
 		     std::bind(&PCDCapturer::save_cloud_cb, this,
 			       std::placeholders::_1, std::placeholders::_2))),
-     _buffer(),
+     _buffer(get_clock()),
      _listener(_buffer),
      _cloud_frame(_ddr.declare_read_only_parameter<std::string>("cloud_frame",
 								"base_link")),
      _save_as_binary(_ddr.declare_read_only_parameter<bool>("save_as_binary",
 							    false)),
-     _file_num(0)
+     _file_num(0),
+     _cloud()
 {
-    _camera_info_sub.subscribe(this, "/camera_info", 1);
+    _camera_info_sub.subscribe(this, "/camera_info");
     
   // Register callback for subscribing synched color, depth and camera_info.
     _sync.registerCallback(&PCDCapturer::camera_cb, this);
@@ -111,11 +112,11 @@ PCDCapturer::camera_cb(const image_cp& color, const image_cp& depth,
     cloud_p	cloud;
     
     if (depth->encoding == image_encodings::TYPE_16UC1)
-	cloud.reset(aist_utility::create_pointcloud<uint16_t>(*camera_info,
-							      *depth, true));
+	cloud = aist_utility::create_pointcloud<uint16_t>(*camera_info,
+							  *depth, true);
     else if (depth->encoding == image_encodings::TYPE_32FC1)
-	cloud.reset(aist_utility::create_pointcloud<float>(*camera_info,
-							   *depth, true));
+	cloud = aist_utility::create_pointcloud<float>(*camera_info,
+						       *depth, true);
     else
     {
 	RCLCPP_ERROR_STREAM(get_logger(),
@@ -134,6 +135,7 @@ PCDCapturer::camera_cb(const image_cp& color, const image_cp& depth,
 	return;
     }
 
+    _cloud = *cloud;
     _cloud_pub->publish(std::move(cloud));
 }
 
@@ -148,7 +150,7 @@ PCDCapturer::save_cloud_cb(const trigger_req_p, trigger_res_p res)
 
   // Transform PCL cloud to _cloud_frame.
     if (!pcl_ros::transformPointCloud(_cloud_frame, *pcl_cloud, *pcl_cloud,
-				      _listener))
+				      _buffer))
     {
 	RCLCPP_ERROR_STREAM(get_logger(),
 			    "(capture_pcd) Failed to transform cloud from "
@@ -180,14 +182,14 @@ PCDCapturer::save_cloud_cb(const trigger_req_p, trigger_res_p res)
 }
 
 std::string
-PCDCapturer::open_dir()
+PCDCapturer::open_dir() const
 {
     const auto	home = getenv("HOME");
     if (!home)
 	throw std::runtime_error("Environment variable[HOME] is not set.");
 
     const auto	dir_name = home + std::string("/.ros")
-				+ getNamespace();
+				+ get_namespace();
     struct stat	buf;
     if (stat(dir_name.c_str(), &buf) && mkdir(dir_name.c_str(), S_IRWXU))
 	throw std::runtime_error("Cannot create " + dir_name + ": "
