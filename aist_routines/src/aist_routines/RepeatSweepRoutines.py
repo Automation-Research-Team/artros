@@ -34,7 +34,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, numpy as np
+import rospy, numpy as np, csv
 from std_msgs.msg                    import Header
 from geometry_msgs.msg               import PoseStamped
 from aist_routines.KittingRoutines   import KittingRoutines
@@ -61,13 +61,16 @@ class RepeatSweepRoutines(KittingRoutines):
     def print_help_messages(self):
         super(RepeatSweepRoutines, self).print_help_messages()
         print('=== RepeatSweep commands ===')
-        print('  r: Repeat sweep')
+        print('  R: Repeat sweep')
+        print('  C: Cancel repeat sweep')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 'r':
+        if key == 'R':
             bin_id   = 'bin_' + raw_input('  bin id? ')
             x_offset = float(raw_input('  x_offset? '))
             self.repeat_sweep_bin(bin_id, x_offset)
+        elif key == 'C':
+            self._repeat_sweep.cancel_goal()
         else:
             return super(RepeatSweepRoutines,
                          self).interactive(key, robot_name, axis, speed)
@@ -101,3 +104,10 @@ class RepeatSweepRoutines(KittingRoutines):
                                                   params['speed_slow'],
                                                   params['direction_range'],
                                                   self._done_cb)
+
+    def _done_cb(self, state, result):
+        super(RepeatSweepRoutines, self)._done_cb(state, result)
+        with open('repeat_sweep.csv', 'w') as f:
+            writer = csv.writer(f)
+            for upset_result in result.upset_results:
+                writer.writerow([upset_result.direction, upset_result.success])
