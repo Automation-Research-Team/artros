@@ -4,10 +4,15 @@
   <xacro:macro name="zivid2plus"
 	       params="prefix parent *origin">
 
+    <xacro:property name="baseline_half_length"		value="0.05702"/>
+    <xacro:property name="optical_center_height"	value="0.0295"/>
+    <xacro:property name="vergence_half_angle"		value="2.5"/>
+
+
     <!-- A link representing the gripper and a joint attaching it to parnet -->
     <link name="${prefix}base_link">
       <visual>
-        <origin xyz="0 0 0.0295" rpy="${-pi/2} 0 0"/>
+        <origin xyz="0 0 ${optical_center_height}" rpy="${-pi/2} 0 0"/>
 	<geometry>
           <mesh filename="package://aist_description/devices/meshes/zivid2plus.stl" scale="0.001 0.001 0.001"/>
 	</geometry>
@@ -17,8 +22,7 @@
       </visual>
       <collision>
       <!-- avoid collision -->
-        <!-- <origin xyz="0.188 -0.035 -0.035" rpy="0 0 ${pi/2}"/> -->
-	<origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 ${optical_center_height}" rpy="${-pi/2} 0 0"/>
 	<geometry>
 	  <mesh
 	      filename="package://aist_description/devices/meshes/collision/zivid2plus-coarse.stl" scale="0.001 0.001 0.001"/>
@@ -42,14 +46,16 @@
     <joint name="${prefix}sensor_joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child  link="${prefix}sensor"/>
-      <origin xyz="0.05702 0 0.0295" rpy="${-pi/2} 0 ${2.5*pi/180.0}"/>
+      <origin xyz="${baseline_half_length} 0 ${optical_center_height}"
+	      rpy="${-pi/2} 0 ${vergence_half_angle*pi/180.0}"/>
     </joint>
 
     <link name="${prefix}projector"/>
     <joint name="${prefix}projector_joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child  link="${prefix}projector"/>
-      <origin xyz="-0.05702 0 0.0295" rpy="${-pi/2} 0 ${-2.5*pi/180.0}"/>
+      <origin xyz="${-baseline_half_length} 0 ${optical_center_height}"
+	      rpy="${-pi/2} 0 ${-vergence_half_angle*pi/180.0}"/>
     </joint>
 
   </xacro:macro>

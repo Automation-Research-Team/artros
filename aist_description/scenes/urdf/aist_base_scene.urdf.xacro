@@ -94,10 +94,17 @@
     <origin xyz="${b_bot_x} ${b_bot_y} ${bots_z}" rpy="0 0 ${b_bot_theta}"/>
   </joint>
 
+  <!-- Spawn and attach zivid camera -->
+  <xacro:include filename="$(find aist_description)/devices/urdf/zivid_coupling.urdf.xacro"/>
+  <xacro:zivid_coupling prefix="a_bot_zivid_coupling_" parent="a_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0" />
+  </xacro:zivid_coupling>
+
   <!-- Spawn and attach force sensor -->
   <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  <xacro:ft300 prefix="a_bot_ftsensor_"
+	       parent="a_bot_zivid_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ft300>
   <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_flange">
     <origin xyz="0 0 0" rpy="${pi} 0 0"/>
@@ -112,11 +119,11 @@
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
-  <xacro:robotiq_85_gripper prefix="a_bot_gripper_"
+			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
+  <xacro:robotiq_140_gripper prefix="a_bot_gripper_"
 			    parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_85_gripper>
+  </xacro:robotiq_140_gripper>
 
   <xacro:include filename="$(find aist_description
 			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
