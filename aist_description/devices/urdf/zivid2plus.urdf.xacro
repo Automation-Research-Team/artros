@@ -2,17 +2,20 @@
 <robot name="zivid2plus"
        xmlns:xacro="http://wiki.ros.org/xacro">
   <xacro:macro name="zivid2plus"
-	       params="prefix parent *origin">
+	       params="name parent *origin">
 
-    <xacro:property name="baseline_half_length"		value="0.05702"/>
-    <xacro:property name="optical_center_height"	value="0.0295"/>
-    <xacro:property name="vergence_half_angle"		value="2.5"/>
-
-
-    <!-- A link representing the gripper and a joint attaching it to parnet -->
-    <link name="${prefix}base_link">
+    <xacro:property name="baseline_half_length"	 value="0.05702"/>
+    <xacro:property name="optical_center_height" value="0.0295"/>
+    <xacro:property name="vergence_half_angle"	 value="2.5"/>
+    <xacro:property name="image_width"		 value="2448"/>
+    <xacro:property name="image_height"		 value="2048"/>
+    <xacro:property name="horizontal_fov"	 value="0.9222"/>
+    <xacro:property name="update_rate"		 value="10"/>
+    
+    <!-- A link representing the camera body -->
+    <link name="${name}_base_link">
       <visual>
-        <origin xyz="0 0 ${optical_center_height}" rpy="${-pi/2} 0 0"/>
+        <origin xyz="0 0 ${optical_center_height}" rpy="${-pi/2} 0 ${-pi/2}"/>
 	<geometry>
           <mesh filename="package://aist_description/devices/meshes/zivid2plus.stl" scale="0.001 0.001 0.001"/>
 	</geometry>
@@ -34,29 +37,82 @@
 		   iyz="0.0" izz ="0.2"/>
       </inertial>
     </link>
-    <joint name="${prefix}base_joint" type="fixed">
+    <joint name="${name}_base_joint" type="fixed">
       <parent link="${parent}"/>
-      <child  link="${prefix}base_link"/>
+      <child  link="${name}_base_link"/>
       <xacro:insert_block name="origin"/>
     </joint>
 
-    <!-- A link representing the tip of the pad and a joint attaching
-	 it to the gripper -->
-    <link name="${prefix}sensor"/>
-    <joint name="${prefix}sensor_joint" type="fixed">
-      <parent link="${prefix}base_link"/>
-      <child  link="${prefix}sensor"/>
-      <origin xyz="${baseline_half_length} 0 ${optical_center_height}"
-	      rpy="${-pi/2} 0 ${vergence_half_angle*pi/180.0}"/>
+    <!-- A link representing the sensor in the mechanical frame -->
+    <link name="${name}_reference"/>
+    <joint name="${name}_reference_joint" type="fixed">
+      <parent link="${name}_base_link"/>
+      <child  link="${name}_reference"/>
+      <origin xyz="0 ${baseline_half_length} ${optical_center_height}"
+	      rpy="0 0 ${-vergence_half_angle*pi/180.0}"/>
     </joint>
 
-    <link name="${prefix}projector"/>
-    <joint name="${prefix}projector_joint" type="fixed">
-      <parent link="${prefix}base_link"/>
-      <child  link="${prefix}projector"/>
-      <origin xyz="${-baseline_half_length} 0 ${optical_center_height}"
-	      rpy="${-pi/2} 0 ${-vergence_half_angle*pi/180.0}"/>
+    <!-- A link representing the sensor in the optical frame -->
+    <link name="${name}_sensor"/>
+    <joint name="${name}_sensor_joint" type="fixed">
+      <parent link="${name}_reference"/>
+      <child  link="${name}_sensor"/>
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
     </joint>
+
+    <!-- A link representing the projector in the mechanical frame -->
+    <link name="${name}_projector"/>
+    <joint name="${name}_projector_joint" type="fixed">
+      <parent link="${name}_base_link"/>
+      <child  link="${name}_projector"/>
+      <origin xyz="0 ${-baseline_half_length} ${optical_center_height}"
+	      rpy="0 0 ${vergence_half_angle*pi/180.0}"/>
+    </joint>
+
+    <gazebo reference="${name}_reference">
+      <sensor name="${name}" type="depth">
+	<always_on>true</always_on>
+	<visualize>true</visualize>
+	<camera>
+          <image>
+            <width>${image_width}</width>
+            <height>${image_height}</height>
+            <format>L8</format>
+          </image>
+          <horizontal_fov>${horizontal_fov}</horizontal_fov>
+          <depth_camera>
+          </depth_camera>
+          <clip>
+            <near>0.1</near>
+            <far>100</far>
+          </clip>
+	</camera>
+	<plugin name="${name}_controller"
+		filename="libgazebo_ros_openni_kinect.so">
+          <baseline>${2.0*baseline_half_length}</baseline>
+          <alwaysOn>true</alwaysOn>
+          <updateRate>${update_rate}</updateRate>
+          <cameraName>${name}</cameraName>
+          <frameName>${name}_sensor</frameName>
+          <imageTopicName>texture</imageTopicName>
+          <depthImageTopicName>depth_map</depthImageTopicName>
+          <pointCloudTopicName>pointcloud</pointCloudTopicName>
+          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+          <depthImageCameraInfoTopicName>camera_info</depthImageCameraInfoTopicName>
+          <pointCloudCutoff>0.4</pointCloudCutoff>
+          <!-- <hackBaseline>0.35</hackBaseline> -->
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+          <CxPrime>0.0</CxPrime>
+          <Cx>0.0</Cx>
+          <Cy>0.0</Cy>
+          <focalLength>0.0</focalLength>
+	</plugin>
+      </sensor>
+    </gazebo>
 
   </xacro:macro>
 </robot>
