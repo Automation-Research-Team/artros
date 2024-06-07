@@ -45,7 +45,8 @@
 
 namespace aist_utility
 {
-void				saveTiff(const sensor_msgs::msg::Image& image,
-					 const std::string& file)	;
-sensor_msgs::msg::ImagePtr	loadTiff(const std::string& file)	;
+void	saveTiff(const sensor_msgs::msg::Image& image,
+		 const std::string& file)				;
+sensor_msgs::msg::Image::SharedPtr
+	loadTiff(const std::string& file)				;
 }	// namespace aist_utility

@@ -12,7 +12,7 @@ namespace aist_utility
 /************************************************************************
 *  class ButterworthLPFTest						*
 ************************************************************************/
-class ButterworthLPFTest : rclcpp::Node
+class ButterworthLPFTest : public rclcpp::Node
 {
   public:
     using value_type	= float;
@@ -20,7 +20,6 @@ class ButterworthLPFTest : rclcpp::Node
   private:
     using flt_t		= aist_msgs::msg::Float32Stamped;
     using flt_p		= flt_t::UniquePtr;
-    using timer_p	= rclcpp::TimerBase::SharedPtr;
 
   public:
 		ButterworthLPFTest(const rclcpp::NodeOptions& options)	;
@@ -31,26 +30,27 @@ class ButterworthLPFTest : rclcpp::Node
     void	flt_cb(flt_p in)				const	;
 
   private:
+    ddynamic_reconfigure2::DDynamicReconfigure		_ddr;
     double						_rate;
     const rclcpp::Subscription<flt_t>::SharedPtr	_sub;
     const rclcpp::Publisher<flt_t>::SharedPtr		_pub;
-    ddynamic_reconfigure2::DDynamicReconfigure		_ddr;
     aist_utility::ButterworthLPF<value_type>		_lpf;
     mutable value_type					_x;
 };
 
 ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
-    :rclcpp::Node("recover_cloud", options),
-     _rate(declare_read_only_parameter<double>("rate", 10.0)),
+    :rclcpp::Node("butterworth_lpf_test", options),
+     _ddr(rclcpp::Node::SharedPtr(this)),
+     _rate(_ddr.declare_read_only_parameter<double>("rate", 10.0)),
      _sub(create_subscription<flt_t>("/in", 1,
 				     std::bind(&ButterworthLPFTest::flt_cb,
 					       this, std::placeholders::_1))),
      _pub(create_publisher<flt_t>(fullname() + "/out", 1)),
      _lpf(2, 50.0/_rate),
-     _x(0.0),
-     _timer(create_wall_timer(std::chrono::duration<double>(1.0 / _rate),
-			      std::bind(&Camera::tick, this)))
+     _x(0.0)
 {
+    using namespace	std::placeholders;
+    
     _ddr.registerVariable<int>("lowpass_filter_half_order", _lpf.half_order(),
 			       std::bind(&ButterworthLPFTest::initialize,
 					 this, _1, _lpf.cutoff() * _rate),
@@ -80,7 +80,7 @@ ButterworthLPFTest::flt_cb(flt_p in) const
     flt_p	out(new flt_t);
     out->header = in->header;
     out->data   = _lpf.filter(in->data);
-    _pub.publish(out);
+    _pub->publish(std::move(out));
 }
 
 }	// namepsace aist_utility

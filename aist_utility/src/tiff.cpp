@@ -48,7 +48,7 @@ namespace aist_utility
 *  global functions to save/load TIFF images				*
 ************************************************************************/
 void
-saveTiff(const sensor_msgs::Image& image, const std::string& file)
+saveTiff(const sensor_msgs::msg::Image& image, const std::string& file)
 {
     using	namespace sensor_msgs;
 
@@ -87,7 +87,7 @@ saveTiff(const sensor_msgs::Image& image, const std::string& file)
     TIFFClose(tiff);
 }
 
-sensor_msgs::ImagePtr
+sensor_msgs::msg::Image::SharedPtr
 loadTiff(const std::string& file)
 {
     using	namespace sensor_msgs;
@@ -108,7 +108,7 @@ loadTiff(const std::string& file)
 	throw std::runtime_error("loadTiff(): cannot get necessary fields");
     }
 
-    sensor_msgs::ImagePtr	image(new sensor_msgs::Image());
+    sensor_msgs::msg::Image::SharedPtr	image(new sensor_msgs::msg::Image());
     image->width  = width;
     image->height = height;
 

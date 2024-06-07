@@ -48,7 +48,7 @@
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <geometry_msgs/msg/pose_array.hpp>
 #include <tf2/convert.h>
-#include <aist_utility/tf2.h>
+#include <aist_utility/tf2.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace aist_utility

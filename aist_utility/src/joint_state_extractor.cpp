@@ -4,14 +4,15 @@
  */
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/joint_state.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 namespace aist_utility
 {
-class JointStateExtractor : rclcpp::Node
+class JointStateExtractor : public rclcpp::Node
 {
   private:
     using joint_state_t	 = sensor_msgs::msg::JointState;
-    using joint_state_cp = sensor_msgs::msg::JointStateConstPtr;
+    using joint_state_cp = sensor_msgs::msg::JointState::ConstSharedPtr;
 
   public:
 		JointStateExtractor(const rclcpp::NodeOptions& options)	;
@@ -21,14 +22,15 @@ class JointStateExtractor : rclcpp::Node
     void	joint_state_cb(const joint_state_cp& joint_state)	;
 
   private:
+    ddynamic_reconfigure2::DDynamicReconfigure		 _ddr;
     const rclcpp::Subscription<joint_state_t>::SharedPtr _joint_state_sub;
     const rclcpp::Publisher<joint_state_t>::SharedPtr	 _joint_state_pub;
     joint_state_t					 _joint_state;
 };
 
-JointStateExtractor::JointStateExtractor(const std::string& node_name,
-					 const rclcpp::NodeOptions& options)
-    :rclcpp::Node(node_name, options),
+JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("joint_state_extractor", options),
+     _ddr(rclcpp::Node::SharedPtr(this)),
      _joint_state_sub(create_subscription<joint_state_t>(
 			  "/joint_states", 1,
 			  std::bind(&JointStateExtractor::joint_state_cb,
@@ -38,8 +40,8 @@ JointStateExtractor::JointStateExtractor(const std::string& node_name,
      _joint_state()
 {
 
-    if (!_nh.getParam("joint_names", _joint_state.name))
-	throw std::runtime_error("no joint names specified");
+    _joint_state.name = _ddr.declare_read_only_parameter<
+			    std::vector<std::string> >("joint_names", {});
 
     const auto	njoints = _joint_state.name.size();
     _joint_state.position.resize(njoints);
@@ -68,7 +70,7 @@ JointStateExtractor::joint_state_cb(const joint_state_cp& joint_state)
     }
 
     _joint_state.header = joint_state->header;
-    _joint_state_pub.publish(_joint_state);
+    _joint_state_pub->publish(_joint_state);
 }
 
 }	// namespace aist_utility

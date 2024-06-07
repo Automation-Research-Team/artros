@@ -2,74 +2,81 @@
  *  \file	spline_extrapolator_test.cpp
  *  \brief	ROS tracker of aist_utility::PoseHeadAction type
  */
-#include <ros/ros.h>
-#include <geometry_msgs/Vector3Stamped.h>
-#include <aist_msgs/Float32Stamped.h>
-#include <aist_utility/spline_extrapolator.h>
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/vector3_stamped.hpp>
+#include <aist_msgs/msg/float32_stamped.hpp>
+#include <aist_utility/spline_extrapolator.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 namespace aist_utility
 {
 /************************************************************************
 *  class SplineExtrapolatorTest						*
 ************************************************************************/
-class SplineExtrapolatorTest
+class SplineExtrapolatorTest : public rclcpp::Node
 {
   public:
     using value_type	= float;
 
+  private:
+    using flt_t		= aist_msgs::msg::Float32Stamped;
+    using flt_p		= flt_t::UniquePtr;
+    using vector3_t	= geometry_msgs::msg::Vector3Stamped;
+    using vector3_p	= vector3_t::UniquePtr;
+    
   public:
-		SplineExtrapolatorTest()				;
+		SplineExtrapolatorTest(const rclcpp::NodeOptions& options);
 
-    void	run()							;
-
-  private:
-    void	flt_cb(const aist_msgs::Float32StampedConstPtr& flt)	;
+    void	tick()							;
 
   private:
-    ros::NodeHandle			_nh;
-    ros::Subscriber			_sub;
-    const ros::Publisher		_pub;
-    SplineExtrapolator<value_type, 2>	_extrapolator2;
-    SplineExtrapolator<value_type, 3>	_extrapolator3;
-    SplineExtrapolator<value_type, 4>	_extrapolator4;
+    std::string fullname()	const	{ return get_fully_qualified_name(); }
+    void	flt_cb(flt_p flt)					;
+
+  private:
+    ddynamic_reconfigure2::DDynamicReconfigure		_ddr;
+    const rclcpp::Subscription<flt_t>::SharedPtr	_sub;
+    const rclcpp::Publisher<vector3_t>::SharedPtr	_pub;
+    SplineExtrapolator<value_type, 2>			_extrapolator2;
+    SplineExtrapolator<value_type, 3>			_extrapolator3;
+    SplineExtrapolator<value_type, 4>			_extrapolator4;
+    rclcpp::TimerBase::SharedPtr			_timer;
 };
 
-SplineExtrapolatorTest::SplineExtrapolatorTest()
-    :_nh("~"),
-     _sub(_nh.subscribe("/in", 1, &SplineExtrapolatorTest::flt_cb, this)),
-     _pub(_nh.advertise<geometry_msgs::Vector3Stamped>("out", 1))
+SplineExtrapolatorTest::SplineExtrapolatorTest(
+    const rclcpp::NodeOptions& options)
+    :rclcpp::Node("spline_extrapolator_test", options),
+     _ddr(rclcpp::Node::SharedPtr(this)),
+     _sub(create_subscription<flt_t>(
+	      "/in", 1, std::bind(&SplineExtrapolatorTest::flt_cb, this,
+				  std::placeholders::_1))),
+     _pub(create_publisher<vector3_t>(fullname() + "out", 1)),
+     _extrapolator2(get_clock()->now()),
+     _extrapolator3(get_clock()->now()),
+     _extrapolator4(get_clock()->now()),
+     _timer(create_wall_timer(std::chrono::duration<double>(
+				  1.0/_ddr.declare_read_only_parameter<double>(
+					   "rate", 100.0)),
+			      std::bind(&SplineExtrapolatorTest::tick, this)))
 {
 }
 
 void
-SplineExtrapolatorTest::run()
+SplineExtrapolatorTest::tick()
 {
-    ros::Rate		rate(_nh.param<double>("rate", 100.0));
-    ros::AsyncSpinner	spinner(8);
-    spinner.start();
-
-    while (ros::ok())
-    {
-	geometry_msgs::Vector3Stamped	vec;
-	vec.header.stamp = ros::Time::now();
-      //vec.vector.x	 = _extrapolator2.pos(vec.header.stamp);
-	vec.vector.x	 = _extrapolator2.xp();
-	vec.vector.y	 = _extrapolator3.pos(vec.header.stamp);
-	vec.vector.z	 = _extrapolator4.pos(vec.header.stamp);
-	_pub.publish(vec);
-
-	rate.sleep();
-    }
-
-    spinner.stop();
-    ros::waitForShutdown();
-
+    vector3_p	vec(new vector3_t);
+    vec->header.stamp	= get_clock()->now();
+  //vec->vector.x	= _extrapolator2.pos(vec->header.stamp);
+    vec->vector.x	= _extrapolator2.xp();
+    vec->vector.y	= _extrapolator3.pos(vec->header.stamp);
+    vec->vector.z	= _extrapolator4.pos(vec->header.stamp);
+    _pub->publish(std::move(vec));
 }
 
 void
-SplineExtrapolatorTest::flt_cb(const aist_msgs::Float32StampedConstPtr& flt)
+SplineExtrapolatorTest::flt_cb(flt_p flt)
 {
-    const auto	now = ros::Time::now();
+    const auto	now = get_clock()->now();
 
   //_extrapolator.update(flt->header.stamp, flt->x);
     _extrapolator2.update(now, flt->data);
@@ -79,16 +86,6 @@ SplineExtrapolatorTest::flt_cb(const aist_msgs::Float32StampedConstPtr& flt)
 
 }	// namepsace aist_utility
 
-/************************************************************************
-*  main function							*
-************************************************************************/
-int
-main(int argc, char* argv[])
-{
-    ros::init(argc, argv, "spline_extrapolator_test");
+#include <rclcpp_components/register_node_macro.hpp>
 
-    aist_utility::SplineExtrapolatorTest	spline_extrapolator_test;
-    spline_extrapolator_test.run();
-
-    return 0;
-}
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_utility::SplineExtrapolatorTest)

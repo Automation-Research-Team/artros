@@ -35,21 +35,22 @@
 //
 #include <cctype>
 #include <iostream>
-#include <tf/transform_datatypes.h>
-#include <aist_utility/tf.h>
+#include <iomanip>
+#include <vector>
+#include <aist_utility/tf2.hpp>
 
 namespace aist_utility
 {
-constexpr tfScalar	RAD = M_PI/180.0;
-constexpr tfScalar	DEG = 180.0/M_PI;
+constexpr tf2Scalar	RAD = M_PI/180.0;
+constexpr tf2Scalar	DEG = 180.0/M_PI;
 
 static void
-fromQuaternion(const tf::Quaternion& q)
+fromQuaternion(const tf2::Quaternion& q)
 {
-    const tf::Matrix3x3	rot(q);
-    tfScalar		roll, pitch, yaw;
+    const tf2::Matrix3x3	rot(q);
+    tf2Scalar			roll, pitch, yaw;
     rot.getRPY(roll, pitch, yaw);
-    tf::Vector3		rpy(roll, pitch, yaw);
+    tf2::Vector3		rpy(roll, pitch, yaw);
 
     rpy *= DEG;
 
@@ -58,25 +59,25 @@ fromQuaternion(const tf::Quaternion& q)
 }
 
 static void
-fromRPY(const tf::Vector3& rpy_in_degree)
+fromRPY(const tf2::Vector3& rpy_in_degree)
 {
     const auto		rpy = rpy_in_degree * RAD;
-    tf::Quaternion	q;
+    tf2::Quaternion	q;
     q.setRPY(rpy.x(), rpy.y(), rpy.z());
-    const tf::Matrix3x3	rot(q);
+    const tf2::Matrix3x3	rot(q);
 
     std::cerr << "--- quaternion ---\n" << q << std::endl;
     std::cerr << "--- rot ---\n" << rot << std::endl;
 }
 
 static void
-fromRot(const tf::Matrix3x3& rot)
+fromRot(const tf2::Matrix3x3& rot)
 {
-    tfScalar	roll, pitch, yaw;
+    tf2Scalar	roll, pitch, yaw;
     rot.getRPY(roll, pitch, yaw);
 
-    tf::Vector3		rpy(roll, pitch, yaw);
-    tf::Quaternion	q;
+    tf2::Vector3		rpy(roll, pitch, yaw);
+    tf2::Quaternion	q;
     q.setRPY(rpy.x(), rpy.y(), rpy.z());
 
     rpy *= DEG;
@@ -96,7 +97,7 @@ main()
     {
 	using namespace	aist_utility;
 
-	std::vector<tfScalar>	values;
+	std::vector<tf2Scalar>	values;
 	std::cerr << "\n(specify three/four/nine parameters)>> ";
 	for (char c; std::cin.get(c); )
 	    if (c =='\n')
@@ -104,7 +105,7 @@ main()
 	    else
 	    {
 		std::cin.unget();
-		tfScalar	value;
+		tf2Scalar	value;
 		std::cin >> value;
 		values.push_back(value);
 	    }
@@ -112,16 +113,16 @@ main()
 	switch (values.size())
 	{
 	  case 3:
-	    fromRPY(tf::Vector3(values[0], values[1], values[2]));
+	    fromRPY(tf2::Vector3(values[0], values[1], values[2]));
 	    break;
 	  case 4:
-	    fromQuaternion(tf::Quaternion(values[0], values[1],
-					  values[2], values[3]));
+	    fromQuaternion(tf2::Quaternion(values[0], values[1],
+					   values[2], values[3]));
 	    break;
 	  case 9:
-	    fromRot(tf::Matrix3x3(values[0], values[1], values[2],
-				  values[3], values[4], values[5],
-				  values[6], values[7], values[8]));
+	    fromRot(tf2::Matrix3x3(values[0], values[1], values[2],
+				   values[3], values[4], values[5],
+				   values[6], values[7], values[8]));
 	    break;
 	  default:
 	    std::cerr << "Specify three/four/nine values!" << std::endl;

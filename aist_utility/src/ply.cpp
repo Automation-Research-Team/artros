@@ -126,7 +126,7 @@ make_assignment_iterator(ITER iter)
 *  static functions							*
 ************************************************************************/
 template <class T, class ITER> static ITER
-copy_image(const sensor_msgs::Image& image, ITER out)
+copy_image(const sensor_msgs::msg::Image& image, ITER out)
 {
     for (int v = 0; v < image.height; ++v)
 	out = std::copy_n(ptr<T>(image, v), image.width, out);
@@ -138,9 +138,10 @@ copy_image(const sensor_msgs::Image& image, ITER out)
 *  Save depth and color images to Ordered PLY file			*
 ************************************************************************/
 void
-savePly(const sensor_msgs::CameraInfo& camera_info,
-	const sensor_msgs::Image& image,  const sensor_msgs::Image& depth,
-	const sensor_msgs::Image& normal, const std::string& file)
+savePly(const sensor_msgs::msg::CameraInfo& camera_info,
+	const sensor_msgs::msg::Image& image,
+	const sensor_msgs::msg::Image& depth,
+	const sensor_msgs::msg::Image& normal, const std::string& file)
 {
     using	namespace sensor_msgs;
 
@@ -216,8 +217,8 @@ savePly(const sensor_msgs::CameraInfo& camera_info,
     oply.frame_index  = 0;
 
   // Copy camera parameters.
-    std::copy_n(std::begin(camera_info.K), 9, std::begin(oply.cm));
-    std::copy_n(std::begin(camera_info.D), 5, std::begin(oply.dm));
+    std::copy_n(std::begin(camera_info.k), 9, std::begin(oply.cm));
+    std::copy_n(std::begin(camera_info.d), 5, std::begin(oply.dm));
 
   // Other parameters.
     oply.width	    = depth.width;

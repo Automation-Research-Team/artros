@@ -42,6 +42,7 @@
 
 #include <array>
 #include <algorithm>
+#include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
@@ -49,7 +50,7 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/calib3d.hpp>
-#include <aist_utility/geometry_msgs.h>
+#include <aist_utility/geometry_msgs.hpp>
 
 namespace aist_utility
 {

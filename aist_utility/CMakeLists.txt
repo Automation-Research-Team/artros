@@ -17,7 +17,7 @@ pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(PCL REQUIRED 1.8 REQUIRED COMPONENTS common io)
+find_package(PCL REQUIRED 1.8 REQUIRED COMPONENTS common io kdtree surface)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -26,10 +26,19 @@ find_package(common_interfaces REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(perception_pcl REQUIRED)
+find_package(pcl_ros REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(aist_msgs REQUIRED)
 find_package(ddynamic_reconfigure2 REQUIRED)
+
+include_directories(
+  ${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:include>
+)
 
 ########################################
 #  shared library: libaist_utility.so  #
@@ -42,13 +51,6 @@ add_library(
     src/rply/rply.c
 )
 
-target_include_directories(
-  ${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:include>
-)
-
 target_compile_definitions(
   ${PROJECT_NAME} PRIVATE
     COMPOSITION_BUILDING_DLL
@@ -58,6 +60,7 @@ ament_target_dependencies(
   ${PROJECT_NAME}
     rclcpp_components
     sensor_msgs
+    tf2
     aist_msgs
 )
 
@@ -78,6 +81,11 @@ add_executable(
     src/rotconv.cpp
 )
 
+ament_target_dependencies(
+  rotconv
+    tf2
+)
+
 ##########################
 #  butterworth_lpf_test  #
 ##########################
@@ -86,10 +94,9 @@ add_library(
     src/butterworth_lpf_test.cpp
 )
 
-target_include_directories(
-  butterworth_lpf_test PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+target_compile_definitions(
+  butterworth_lpf_test PRIVATE
+    COMPOSITION_BUILDING_DLL
 )
 
 ament_target_dependencies(
@@ -98,11 +105,6 @@ ament_target_dependencies(
     sensor_msgs
     aist_msgs
     ddynamic_reconfigure2
-)
-
-target_link_libraries(
-  butterworth_lpf_test
-    COMPOSITION_BUILDING_DLL
 )
 
 rclcpp_components_register_node(
@@ -119,10 +121,9 @@ add_library(
     src/joint_state_extractor.cpp
 )
 
-target_include_directories(
-  joint_state_extractor PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+target_compile_definitions(
+  joint_state_extractor PRIVATE
+    COMPOSITION_BUILDING_DLL
 )
 
 ament_target_dependencies(
@@ -131,11 +132,6 @@ ament_target_dependencies(
     sensor_msgs
     aist_msgs
     ddynamic_reconfigure2
-)
-
-target_link_libraries(
-  joint_state_extractor
-    COMPOSITION_BUILDING_DLL
 )
 
 rclcpp_components_register_node(
@@ -147,23 +143,65 @@ rclcpp_components_register_node(
 ##############################
 #  spline_extrapolator_test  #
 ##############################
-#add_executable(
-#  spline_extrapolator_test
-#  src/spline_extrapolator_test.cpp
-#)
+add_library(
+  spline_extrapolator_test SHARED
+    src/spline_extrapolator_test.cpp
+)
+
+target_compile_definitions(
+  spline_extrapolator_test PRIVATE
+    COMPOSITION_BUILDING_DLL
+)
+
+ament_target_dependencies(
+  spline_extrapolator_test
+    rclcpp_components
+    sensor_msgs
+    aist_msgs
+    ddynamic_reconfigure2
+)
+
+rclcpp_components_register_node(
+  spline_extrapolator_test
+    PLUGIN "${PROJECT_NAME}::SplineExtrapolatorTest"
+    EXECUTABLE spline_extrapolator_test_node
+)
 
 #################
 #  capture_pcd  #
 #################
-#add_executable(
-#  capture_pcd
-#    src/capture_pcd.cpp
-#)
+add_library(
+  capture_pcd SHARED
+    src/capture_pcd.cpp
+)
 
-#target_link_libraries(
-#  capture_pcd
-#    ${OpenCV_LIBRARIES}
-#)
+target_compile_definitions(
+  capture_pcd PRIVATE
+    COMPOSITION_BUILDING_DLL
+)
+
+ament_target_dependencies(
+  capture_pcd
+    rclcpp_components
+    sensor_msgs
+    image_transport
+    pcl_ros
+    pcl_conversions
+    aist_msgs
+    ddynamic_reconfigure2
+)
+
+target_link_libraries(
+  capture_pcd
+    ${OpenCV_LIBRARIES}
+    ${PCL_LIBRARIES}
+)
+
+rclcpp_components_register_node(
+  capture_pcd
+    PLUGIN "${PROJECT_NAME}::PCDCapturer"
+    EXECUTABLE capture_pcd_node
+)
 
 #############
 ## Install ##
@@ -174,7 +212,10 @@ install(
 )
 
 install(
-  TARGETS  ${PROJECT_NAME} butterworth_lpf_test joint_state_extractor
+  TARGETS
+    ${PROJECT_NAME}
+    butterworth_lpf_test joint_state_extractor
+    spline_extrapolator_test capture_pcd
   EXPORT   export_${PROJECT_NAME}
   LIBRARY  DESTINATION lib
   ARCHIVE  DESTINATION lib

@@ -40,7 +40,7 @@
  */
 #pragma once
 
-#include <rclcpp/rclcpp.h>
+#include <rclcpp/rclcpp.hpp>
 
 namespace aist_utility
 {
@@ -53,9 +53,10 @@ class SplineExtrapolator
     using value_type	= T;		//!< type of signal to be interpolated
 
   public:
-    explicit	SplineExtrapolator(const value_type& x=zero(value_type()))
+    explicit	SplineExtrapolator(const rclcpp::Time& now,
+				   const value_type& x=zero(value_type()))
 		{
-		    reset(rclcpp::Time::now(), x);
+		    reset(now, x);
 		}
 
     void	reset(const rclcpp::Time& t, const value_type& x)
@@ -81,7 +82,7 @@ class SplineExtrapolator
     void	update(const rclcpp::Time& t, const value_type& x)
 		{
 		    update(std::integral_constant<size_t, N>(),
-			   (t - _tp).toSec(), x - _xp);
+			   (t - _tp).seconds(), x - _xp);
 		    _tp = t;
 		    _xp = x;
 		}
@@ -89,19 +90,19 @@ class SplineExtrapolator
     value_type	pos(const rclcpp::Time& t) const
 		{
 		    return pos(std::integral_constant<size_t, 0>(),
-			       (t - _tp).toSec());
+			       (t - _tp).seconds());
 		}
 
     value_type	vel(const rclcpp::Time& t) const
 		{
 		    return vel(std::integral_constant<size_t, 1>(),
-			       (t - _tp).toSec());
+			       (t - _tp).seconds());
 		}
 
     value_type	acc(const rclcpp::Time& t) const
 		{
 		    return acc(std::integral_constant<size_t, 2>(),
-			       (t - _tp).toSec());
+			       (t - _tp).seconds());
 		}
 
   private:
