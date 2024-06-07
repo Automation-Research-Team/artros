@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<robot name="zivid_coupling" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="zivid_coupling" params="prefix parent *origin">
+
+    <xacro:property name="coupling_radius"	value="0.0375"/>
+    <xacro:property name="coupling_length"	value="0.015"/>
+
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="${prefix}base_link">
+      <visual>
+        <origin xyz="${coupling_length/2} 0 0" rpy="0 ${pi/2} 0"/>
+	<geometry>
+	  <cylinder radius="${coupling_radius}" length="${coupling_length}"/>
+	</geometry>
+	<material name="dark">
+	  <color rgba="0.1 0.1 0.1 1"/>
+	</material>
+      </visual>
+      <collision>
+        <origin xyz="${coupling_length/2} 0 0" rpy="0 ${pi/2} 0"/>
+      	<geometry>
+      	  <cylinder radius="${coupling_radius}" length="${coupling_length}"/>
+      	</geometry>
+      </collision>
+      <inertial>
+      	  <mass value="0.3"/>
+      	  <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4"
+      		   iyz="0.0" izz ="0.2"/>
+      </inertial>
+    </link>
+
+    <joint name="${prefix}base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <!-- A link representing the flange -->
+    <link name="${prefix}flange_link"/>
+    <joint name="${prefix}flange_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}flange_link"/>
+      <origin xyz="${coupling_length} 0 0" rpy="0 0 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>

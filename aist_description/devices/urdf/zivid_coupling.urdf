@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description)/devices/urdf/zivid_coupling.urdf.xacro" />
+
+  <link name ="world"/>
+
+  <xacro:zivid_coupling prefix="a_bot_zivid_coupling_" parent="world">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:zivid_coupling>
+</robot>
