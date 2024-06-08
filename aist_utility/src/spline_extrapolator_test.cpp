@@ -50,7 +50,7 @@ SplineExtrapolatorTest::SplineExtrapolatorTest(
      _sub(create_subscription<flt_t>(
 	      "/in", 1, std::bind(&SplineExtrapolatorTest::flt_cb, this,
 				  std::placeholders::_1))),
-     _pub(create_publisher<vector3_t>(node_name() + "out", 1)),
+     _pub(create_publisher<vector3_t>(node_name() + "/out", 1)),
      _extrapolator2(get_clock()->now()),
      _extrapolator3(get_clock()->now()),
      _extrapolator4(get_clock()->now()),
@@ -59,6 +59,7 @@ SplineExtrapolatorTest::SplineExtrapolatorTest(
 					   "rate", 100.0)),
 			      std::bind(&SplineExtrapolatorTest::tick, this)))
 {
+    RCLCPP_INFO_STREAM(get_logger(), "started");
 }
 
 void

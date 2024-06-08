@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
+
   <name>aist_utility</name>
   <version>1.0.0</version>
   <description>The aist_utility package</description>
@@ -8,24 +9,33 @@
   <license>BSD</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <build_depend>rclcpp_components</build_depend>
   <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
 
   <depend>rclpy</depend>
   <depend>image_transport</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
-  <depend>perception_pcl</depend>
+  <depend>pcl_ros</depend>
+  <depend>pcl_conversions</depend>
   <depend>aist_msgs</depend>
   <depend>ddynamic_reconfigure2</depend>
 
+  <test_depend>ament_copyright</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
   </export>
+
 </package>

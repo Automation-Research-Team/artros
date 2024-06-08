@@ -46,11 +46,11 @@ ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
 				     std::bind(&ButterworthLPFTest::flt_cb,
 					       this, std::placeholders::_1))),
      _pub(create_publisher<flt_t>(node_name() + "/out", 1)),
-     _lpf(2, 50.0/_rate),
+     _lpf(2, 2.0/_rate),
      _x(0.0)
 {
     using namespace	std::placeholders;
-    
+
     _ddr.registerVariable<int>("lowpass_filter_half_order", _lpf.half_order(),
 			       std::bind(&ButterworthLPFTest::initialize,
 					 this, _1, _lpf.cutoff() * _rate),
@@ -59,7 +59,9 @@ ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
 				  _lpf.cutoff() * _rate,
 				  std::bind(&ButterworthLPFTest::initialize,
 					    this, _lpf.half_order(), _1),
-				  "Cutoff frequency", {0.5, 0.5*_rate});
+				  "Cutoff frequency", {0.1, 0.5*_rate});
+
+    RCLCPP_INFO_STREAM(get_logger(), "started");
 }
 
 void
@@ -81,6 +83,7 @@ ButterworthLPFTest::flt_cb(flt_p in) const
     out->header = in->header;
     out->data   = _lpf.filter(in->data);
     _pub->publish(std::move(out));
+  //RCLCPP_INFO_STREAM(get_logger(), "published");
 }
 
 }	// namepsace aist_utility

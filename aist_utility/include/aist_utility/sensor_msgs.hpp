@@ -211,7 +211,7 @@ create_pointcloud(IN in, IN ie,
     modifier.resize(cloud->width);
     cloud->row_step = cloud->width * cloud->point_step;
 
-    PointCloud2Iterator<float>	out(cloud, "x");
+    PointCloud2Iterator<float>	out(*cloud, "x");
     for (; in != ie; ++in, ++out)
     {
 	using	std::get;
@@ -514,4 +514,3 @@ operator <<(YAML::Emitter& emitter,
 		   << YAML::EndMap;
 }
 }	// namespace aist_utility
-

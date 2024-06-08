@@ -46,7 +46,7 @@ class PCDCapturer : public rclcpp::Node
     using trigger_res_p	= trigger_t::Response::SharedPtr;
 
     struct rgb_t	{ uint8_t	r, g, b; };
-    
+
   public:
 		PCDCapturer(const rclcpp::NodeOptions& options)		;
 
@@ -79,8 +79,8 @@ PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
     :rclcpp::Node("pcd_capturer", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
      _it(rclcpp::Node::SharedPtr(this)),
-     _color_sub(this, "/color", "image_transport"),
-     _depth_sub(this, "/depth", "image_transport"),
+     _color_sub(this, "/color", "raw"),
+     _depth_sub(this, "/depth", "raw"),
      _camera_info_sub(),
      _sync(_color_sub, _depth_sub, _camera_info_sub, 1),
      _cloud_pub(create_publisher<cloud_t>(node_name() + "/pointcloud", 1)),
@@ -98,9 +98,11 @@ PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
      _cloud()
 {
     _camera_info_sub.subscribe(this, "/camera_info");
-    
+
   // Register callback for subscribing synched color, depth and camera_info.
     _sync.registerCallback(&PCDCapturer::camera_cb, this);
+
+    RCLCPP_INFO_STREAM(get_logger(), "started");
 }
 
 void
@@ -108,9 +110,9 @@ PCDCapturer::camera_cb(const image_cp& color, const image_cp& depth,
 		       const camera_info_cp& camera_info)
 {
     using namespace	sensor_msgs;
-    
+
     cloud_p	cloud;
-    
+
     if (depth->encoding == image_encodings::TYPE_16UC1)
 	cloud = aist_utility::create_pointcloud<uint16_t>(*camera_info,
 							  *depth, true);
@@ -123,7 +125,7 @@ PCDCapturer::camera_cb(const image_cp& color, const image_cp& depth,
 			    "Unknown depth type[" << depth->encoding << ']');
 	return;
     }
-    
+
     if (color->encoding == image_encodings::MONO8)
 	aist_utility::add_rgb_to_pointcloud<uint8_t>(*cloud, *color);
     else if (color->encoding == image_encodings::RGB8)
@@ -143,7 +145,7 @@ bool
 PCDCapturer::save_cloud_cb(const trigger_req_p, trigger_res_p res)
 {
     res->success = false;
-    
+
   // Create PCL cloud from cloud of sensor_msgs::msg::PointCloud2 type.
     pcl_cloud_p	pcl_cloud(new pcl_cloud_t);
     pcl::fromROSMsg(_cloud, *pcl_cloud);
@@ -160,9 +162,9 @@ PCDCapturer::save_cloud_cb(const trigger_req_p, trigger_res_p res)
     }
 
   // Save PCL cloud as a PCD file.
-    const auto	file_path = open_dir() + "/capture_pcd-"
+    const auto	file_path = open_dir() + "capture_pcd-"
 				       + std::to_string(_file_num) + ".pcd";
-    
+
     if (pcl::io::savePCDFile<pcl_point_t>(file_path, *pcl_cloud,
 					  _save_as_binary) < 0)
     {
@@ -171,7 +173,7 @@ PCDCapturer::save_cloud_cb(const trigger_req_p, trigger_res_p res)
 			    << file_path << ']');
 	return true;
     }
-    
+
     ++_file_num;
     res->success = true;
 

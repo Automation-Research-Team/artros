@@ -1,86 +1,35 @@
 Panels:
-  - Class: rviz/Displays
+  - Class: rviz_common/Displays
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /TF1/Frames1
-        - /OriginalDepthCloud1/Auto Size1
-      Splitter Ratio: 0.5759803652763367
-    Tree Height: 790
-  - Class: rviz/Selection
+      Expanded: ~
+      Splitter Ratio: 0.5
+    Tree Height: 418
+  - Class: rviz_common/Selection
     Name: Selection
-  - Class: rviz/Tool Properties
+  - Class: rviz_common/Tool Properties
     Expanded:
-      - /2D Pose Estimate1
-      - /2D Nav Goal1
+      - /2D Goal Pose1
       - /Publish Point1
     Name: Tool Properties
     Splitter Ratio: 0.5886790156364441
-  - Class: rviz/Views
+  - Class: rviz_common/Views
     Expanded:
       - /Current View1
     Name: Views
     Splitter Ratio: 0.5
-  - Class: rviz/Time
+  - Class: rviz_common/Time
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: OriginalColorImage
-  - Class: rviz/Displays
-    Help Height: 138
-    Name: Displays
-    Property Tree Widget:
-      Expanded:
-        - /OriginalDepthCloud1/Auto Size1
-      Splitter Ratio: 0.5
-    Tree Height: 270
-Preferences:
-  PromptSaveOnExit: true
-Toolbars:
-  toolButtonStyle: 2
+    SyncSource: OutPointCloud2
 Visualization Manager:
   Class: ""
   Displays:
-    - Class: rviz/TF
-      Enabled: true
-      Filter (blacklist): ""
-      Filter (whitelist): ""
-      Frame Timeout: 15
-      Frames:
-        All Enabled: false
-        realsense_aligned_depth_to_color_frame:
-          Value: false
-        realsense_color_frame:
-          Value: false
-        realsense_color_optical_frame:
-          Value: true
-        realsense_depth_frame:
-          Value: false
-        realsense_depth_optical_frame:
-          Value: false
-        realsense_link:
-          Value: false
-      Marker Scale: 0.20000000298023224
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
-      Tree:
-        realsense_link:
-          realsense_aligned_depth_to_color_frame:
-            realsense_color_optical_frame:
-              {}
-          realsense_color_frame:
-            {}
-          realsense_depth_frame:
-            realsense_depth_optical_frame:
-              {}
-      Update Interval: 0
-      Value: true
     - Alpha: 0.5
       Cell Size: 1
-      Class: rviz/Grid
+      Class: rviz_default_plugins/Grid
       Color: 160; 160; 164
       Enabled: true
       Line Style:
@@ -96,6 +45,47 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        camera_aligned_depth_to_infra1_frame:
+          Value: false
+        camera_color_frame:
+          Value: false
+        camera_color_optical_frame:
+          Value: true
+        camera_depth_frame:
+          Value: false
+        camera_depth_optical_frame:
+          Value: true
+        camera_infra1_frame:
+          Value: false
+        camera_infra1_optical_frame:
+          Value: false
+        camera_link:
+          Value: true
+      Marker Scale: 0.20000000298023224
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: true
+      Tree:
+        camera_link:
+          camera_aligned_depth_to_infra1_frame:
+            camera_infra1_optical_frame:
+              {}
+          camera_color_frame:
+            camera_color_optical_frame:
+              {}
+          camera_depth_frame:
+            camera_depth_optical_frame:
+              {}
+          camera_infra1_frame:
+            {}
+      Update Interval: 0
+      Value: true
     - Alpha: 1
       Auto Size:
         Auto Size Factor: 1
@@ -107,7 +97,7 @@ Visualization Manager:
         Value: true
       Axis: Z
       Channel Name: intensity
-      Class: rviz/DepthCloud
+      Class: rviz_default_plugins/DepthCloud
       Color: 255; 255; 255
       Color Image Topic: /realsense/color/image_raw
       Color Transformer: RGB8
@@ -118,13 +108,16 @@ Visualization Manager:
       Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
+      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Name: OriginalDepthCloud
+      Min Intensity: 0
+      Name: InDepthCloud
       Occlusion Compensation:
         Occlusion Time-Out: 30
         Value: false
       Position Transformer: XYZ
       Queue Size: 5
+      Reliability Policy: Best effort
       Selectable: true
       Size (Pixels): 3
       Style: Flat Squares
@@ -135,100 +128,126 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 0.6339322924613953
-        Min Value: 0.05999359115958214
+        Max Value: 1.1047476530075073
+        Min Value: 0.22740566730499268
         Value: true
       Axis: Z
       Channel Name: intensity
-      Class: rviz/PointCloud2
+      Class: rviz_default_plugins/PointCloud2
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
+      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Name: ConvertedCloud
+      Min Intensity: 0
+      Name: OutPointCloud2
       Position Transformer: XYZ
-      Queue Size: 10
       Selectable: true
       Size (Pixels): 3
       Size (m): 0.0010000000474974513
       Style: Flat Squares
-      Topic: /capture_pcd/pointcloud
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /capture_pcd/pointcloud
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Class: rviz/Image
+    - Class: rviz_default_plugins/Image
       Enabled: true
-      Image Topic: /realsense/color/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
-      Name: OriginalColorImage
+      Name: OutImage
       Normalize Range: true
-      Queue Size: 2
-      Transport Hint: raw
-      Unreliable: false
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /realsense/color/image_raw
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Default Light: true
-    Fixed Frame: realsense_color_optical_frame
+    Fixed Frame: camera_color_optical_frame
     Frame Rate: 30
   Name: root
   Tools:
-    - Class: rviz/Interact
+    - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
-    - Class: rviz/MoveCamera
-    - Class: rviz/Select
-    - Class: rviz/FocusCamera
-    - Class: rviz/Measure
-    - Class: rviz/SetInitialPose
-      Theta std deviation: 0.2617993950843811
-      Topic: /initialpose
-      X std deviation: 0.5
-      Y std deviation: 0.5
-    - Class: rviz/SetGoal
-      Topic: /move_base_simple/goal
-    - Class: rviz/PublishPoint
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+    - Class: rviz_default_plugins/SetInitialPose
+      Covariance x: 0.25
+      Covariance y: 0.25
+      Covariance yaw: 0.06853891909122467
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /initialpose
+    - Class: rviz_default_plugins/SetGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /goal_pose
+    - Class: rviz_default_plugins/PublishPoint
       Single click: true
-      Topic: /clicked_point
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 0.8679167032241821
+      Class: rviz_default_plugins/Orbit
+      Distance: 1.8722922801971436
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.029589639976620674
-        Y: -0.028850622475147247
-        Z: 0.43900105357170105
+        X: -0.021087689325213432
+        Y: -0.010099455714225769
+        Z: 0.5319567918777466
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: -1.5047963857650757
+      Pitch: -1.3397961854934692
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.430310249328613
+      Yaw: 4.99012565612793
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1714
+  Height: 1067
   Hide Left Dock: false
   Hide Right Dock: true
-  OriginalColorImage:
+  OutImage:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000002af000005aafc0200000012fb0000001200530065006c0065006300740069006f006e00000001e10000009b000000b000fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000006e000003840000018200fffffffb00000024004f0072006900670069006e0061006c0043006f006c006f00720049006d00610067006501000003fe0000021a0000002600fffffffb0000000a0049006d00610067006500000001d7000001190000000000000000fb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000a0049006d0061006700650000000236000000b60000000000000000fb0000000a0049006d00610067006501000001d40000011c0000000000000000fb0000000a0049006d00610067006501000001d30000011d0000000000000000fb0000000a0049006d00610067006501000001bd000001330000000000000000fb000000100044006900730070006c00610079007302000000120000022e000001f700000182fb0000000a0049006d006100670065010000038c0000021f0000000000000000fb0000000a00650064006700650048010000041d000000fa0000000000000000fb000000260045007800740072006100630074006500640043006f006c006f00720049006d00610067006501000004db0000013d00000000000000000000000100000100000002b6fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003a000002b60000013200fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b2000000000000000000000002000004b0000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000008d800000060fc0100000002fb0000000800540069006d00650100000000000008d80000057100fffffffb0000000800540069006d006501000000000000045000000000000000000000061d000005aa00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002a80000038dfc0200000009fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000001df000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb00000010004f007500740049006d0061006700650100000222000001a80000002800ffffff000000010000010f0000038dfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d0000038d000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000005dc0000003efc0100000002fb0000000800540069006d00650100000000000005dc000002fb00fffffffb0000000800540069006d006501000000000000045000000000000000000000032e0000038d00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -237,6 +256,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 2264
-  X: 556
-  Y: 55
+  Width: 1500
+  X: 271
+  Y: 116

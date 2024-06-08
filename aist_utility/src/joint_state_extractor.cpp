@@ -36,7 +36,7 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
 			  std::bind(&JointStateExtractor::joint_state_cb,
 				    this, std::placeholders::_1))),
      _joint_state_pub(create_publisher<joint_state_t>(
-			  node_name() + "joint_states", 1)),
+			  node_name() + "/joint_states", 1)),
      _joint_state()
 {
 
@@ -48,7 +48,7 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
     _joint_state.velocity.resize(njoints);
     _joint_state.effort  .resize(njoints);
 
-    RCLCPP_INFO_STREAM(get_logger(), "(JointStateExtractor) started");
+    RCLCPP_INFO_STREAM(get_logger(), "started");
 }
 
 void

@@ -15,14 +15,11 @@ find_package(PkgConfig)
 pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
 pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 
-find_package(OpenCV REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(PCL REQUIRED 1.8 REQUIRED COMPONENTS common io kdtree surface)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(common_interfaces REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -33,18 +30,27 @@ find_package(pcl_conversions REQUIRED)
 find_package(aist_msgs REQUIRED)
 find_package(ddynamic_reconfigure2 REQUIRED)
 
+find_package(ament_cmake_python REQUIRED)
+find_package(rclpy REQUIRED)
+
+find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED)
+
 include_directories(
-  ${PROJECT_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<INSTALL_INTERFACE:include>
+  ${PCL_INCLUDE_DIRS}
 )
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 ########################################
 #  shared library: libaist_utility.so  #
 ########################################
 add_library(
-  ${PROJECT_NAME}
+  ${PROJECT_NAME} SHARED
     src/tiff.cpp
     src/ply.cpp
     src/oply/OrderedPly.cpp
@@ -61,7 +67,6 @@ ament_target_dependencies(
     rclcpp_components
     sensor_msgs
     tf2
-    aist_msgs
 )
 
 target_link_libraries(
@@ -70,8 +75,6 @@ target_link_libraries(
     ${OpenCV_LIBRARIES}
     ${YAML-CPP_LIBRARIES}
 )
-
-ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 #############
 #  rotconv  #
@@ -84,33 +87,6 @@ add_executable(
 ament_target_dependencies(
   rotconv
     tf2
-)
-
-##########################
-#  butterworth_lpf_test  #
-##########################
-add_library(
-  butterworth_lpf_test SHARED
-    src/butterworth_lpf_test.cpp
-)
-
-target_compile_definitions(
-  butterworth_lpf_test PRIVATE
-    COMPOSITION_BUILDING_DLL
-)
-
-ament_target_dependencies(
-  butterworth_lpf_test
-    rclcpp_components
-    sensor_msgs
-    aist_msgs
-    ddynamic_reconfigure2
-)
-
-rclcpp_components_register_node(
-  butterworth_lpf_test
-    PLUGIN "${PROJECT_NAME}::ButterworthLPFTest"
-    EXECUTABLE butterworth_lpf_test_node
 )
 
 ###########################
@@ -130,7 +106,6 @@ ament_target_dependencies(
   joint_state_extractor
     rclcpp_components
     sensor_msgs
-    aist_msgs
     ddynamic_reconfigure2
 )
 
@@ -138,33 +113,6 @@ rclcpp_components_register_node(
   joint_state_extractor
     PLUGIN "${PROJECT_NAME}::JointStateExtractor"
     EXECUTABLE joint_state_extractor_node
-)
-
-##############################
-#  spline_extrapolator_test  #
-##############################
-add_library(
-  spline_extrapolator_test SHARED
-    src/spline_extrapolator_test.cpp
-)
-
-target_compile_definitions(
-  spline_extrapolator_test PRIVATE
-    COMPOSITION_BUILDING_DLL
-)
-
-ament_target_dependencies(
-  spline_extrapolator_test
-    rclcpp_components
-    sensor_msgs
-    aist_msgs
-    ddynamic_reconfigure2
-)
-
-rclcpp_components_register_node(
-  spline_extrapolator_test
-    PLUGIN "${PROJECT_NAME}::SplineExtrapolatorTest"
-    EXECUTABLE spline_extrapolator_test_node
 )
 
 #################
@@ -184,10 +132,12 @@ ament_target_dependencies(
   capture_pcd
     rclcpp_components
     sensor_msgs
+    std_srvs
     image_transport
     pcl_ros
     pcl_conversions
-    aist_msgs
+    tf2
+    tf2_ros
     ddynamic_reconfigure2
 )
 
@@ -203,6 +153,60 @@ rclcpp_components_register_node(
     EXECUTABLE capture_pcd_node
 )
 
+##########################
+#  butterworth_lpf_test  #
+##########################
+add_library(
+  butterworth_lpf_test SHARED
+    src/butterworth_lpf_test.cpp
+)
+
+target_compile_definitions(
+  butterworth_lpf_test PRIVATE
+    COMPOSITION_BUILDING_DLL
+)
+
+ament_target_dependencies(
+  butterworth_lpf_test
+    rclcpp_components
+    sensor_msgs
+    ddynamic_reconfigure2
+    aist_msgs
+)
+
+rclcpp_components_register_node(
+  butterworth_lpf_test
+    PLUGIN "${PROJECT_NAME}::ButterworthLPFTest"
+    EXECUTABLE butterworth_lpf_test_node
+)
+
+##############################
+#  spline_extrapolator_test  #
+##############################
+add_library(
+  spline_extrapolator_test SHARED
+    src/spline_extrapolator_test.cpp
+)
+
+target_compile_definitions(
+  spline_extrapolator_test PRIVATE
+    COMPOSITION_BUILDING_DLL
+)
+
+ament_target_dependencies(
+  spline_extrapolator_test
+    rclcpp_components
+    sensor_msgs
+    ddynamic_reconfigure2
+    aist_msgs
+)
+
+rclcpp_components_register_node(
+  spline_extrapolator_test
+    PLUGIN "${PROJECT_NAME}::SplineExtrapolatorTest"
+    EXECUTABLE spline_extrapolator_test_node
+)
+
 #############
 ## Install ##
 #############
@@ -213,9 +217,8 @@ install(
 
 install(
   TARGETS
-    ${PROJECT_NAME}
-    rotconv butterworth_lpf_test joint_state_extractor
-    spline_extrapolator_test capture_pcd
+    ${PROJECT_NAME} joint_state_extractor capture_pcd
+    butterworth_lpf_test spline_extrapolator_test
   EXPORT   export_${PROJECT_NAME}
   LIBRARY  DESTINATION lib
   ARCHIVE  DESTINATION lib
@@ -223,7 +226,42 @@ install(
   INCLUDES DESTINATION include
 )
 
-# Ament exports
-ament_export_libraries(${PROJECT_NAME})
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+#########################
+## Install python code ##
+#########################
+ament_python_install_package(${PROJECT_NAME})
+
+install(
+  PROGRAMS scripts/gensig.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+#############
+## Exports ##
+#############
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(aist_msgs pcl_ros pcl_conversions)
+
+##########
+#  test  #
+##########
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
 ament_package()
