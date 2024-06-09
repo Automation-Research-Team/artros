@@ -36,6 +36,8 @@ def launch_setup(context):
                  executable=executable,
                  remappings=[('/in', 'gensig/out')],
                  output=LaunchConfiguration('output')),
+            Node(name='rqt_plot', package='rqt_plot',
+                 executable='rqt_plot', output='screen'),
             Node(name='rqt_reconfigure', package='rqt_reconfigure',
                  executable='rqt_reconfigure', output='screen')]
 
