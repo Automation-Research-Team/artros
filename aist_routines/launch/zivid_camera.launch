@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="camera_name"	default="a_bot_camera"/>
+  <arg name="camera_name"	default="a_bot_zivid"/>
   <arg name="serial_number"	default=""/>
   <arg name="external_manager"	default="false"/>
   <arg name="manager"		default=""/>

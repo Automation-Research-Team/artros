@@ -44,7 +44,7 @@
   <!-- Launch Zivid camera -->
   <include unless="$(arg sim)"
 	   file="$(dirname)/zivid_camera.launch">
-    <arg name="camera_name"		value="a_bot_camera"/>
+    <arg name="camera_name"		value="a_bot_zivid"/>
     <arg name="external_manager"	value="false"/>
     <arg name="manager"			value="$(arg manager)"/>
   </include>
