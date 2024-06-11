@@ -143,7 +143,7 @@ class PhoXiCamera(DepthCamera):
                                                  Trigger, persistent=True)
 
     def is_continuous_shot(self):
-        self._dyn_reconf.get_configuration()['trigger_mode'] == 0
+        return self._dyn_reconf.get_configuration()['trigger_mode'] == 0
 
     def continuous_shot(self, enabled):
         self._dyn_reconf.update_configuration({'trigger_mode' :
@@ -157,4 +157,27 @@ class PhoXiCamera(DepthCamera):
             self._trigger_frame \
                 = rospy.ServiceProxy(self.name + '/trigger_frame',
                                      Trigger, persistent=True)
+            return self._trigger_frame().success
+
+######################################################################
+#  class ZividCamera                                                 #
+######################################################################
+class ZividCamera(DepthCamera):
+    def __init__(self, name='a_bot_camera'):
+        from zivid_camera.srv import Capture, LoadSettingsFromFile
+
+        super(ZividCamera, self).__init__(name)
+        self._dyn_settings = DynReconfClient(name + '/settings', timeout=5.0)
+        self._dyn_acquisition_0 \
+            = DynReconfClient(name + '/settings/acquisition_0', timeout=5.0)
+        self._dyn_acquisition_0.update_configuration({'enabled': True})
+        self._trigger_frame = rospy.ServiceProxy(name + '/capture', Capture,
+                                                 persistent=True)
+
+    def trigger_frame(self):
+        try:
+            return self._trigger_frame().success
+        except rospy.ServiceException:
+            self._trigger_frame = rospy.ServiceProxy(self._name + '/capture',
+                                                     Capture, persistent=True)
             return self._trigger_frame().success
