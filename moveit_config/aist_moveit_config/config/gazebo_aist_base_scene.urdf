@@ -1512,6 +1512,133 @@
         <child link="b_bot_base_link" />
         <origin rpy="0 0 3.141592653589793" xyz="0 0.4875 0.77" />
     </joint>
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="a_bot_zivid_coupling_base_link">
+        <visual>
+            <origin rpy="0 1.5707963267948966 0" xyz="0.0075 0 0" />
+            <geometry>
+                <cylinder length="0.015" radius="0.0375" />
+            </geometry>
+            <material name="dark">
+                <color rgba="0.1 0.1 0.1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 1.5707963267948966 0" xyz="0.0075 0 0" />
+            <geometry>
+                <cylinder length="0.015" radius="0.0375" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.3" />
+            <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <joint name="a_bot_zivid_coupling_base_joint" type="fixed">
+        <parent link="a_bot_flange" />
+        <child link="a_bot_zivid_coupling_base_link" />
+        <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
+    </joint>
+    <!-- A link representing the flange -->
+    <link name="a_bot_zivid_coupling_flange_link" />
+    <joint name="a_bot_zivid_coupling_flange_joint" type="fixed">
+        <parent link="a_bot_zivid_coupling_base_link" />
+        <child link="a_bot_zivid_coupling_flange_link" />
+        <origin rpy="0 0 0" xyz="0.015 0 0" />
+    </joint>
+    <!-- A link representing the camera body -->
+    <link name="a_bot_zivid_base_link">
+        <visual>
+            <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0.0295" />
+            <geometry>
+                <mesh filename="package://aist_description/devices/meshes/zivid2plus.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="dark">
+                <color rgba="0.1 0.1 0.1 1" />
+            </material>
+        </visual>
+        <collision>
+            <!-- avoid collision -->
+            <origin rpy="-1.5707963267948966 0 0" xyz="0 0 0.0295" />
+            <geometry>
+                <mesh filename="package://aist_description/devices/meshes/collision/zivid2plus-coarse.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.3" />
+            <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+        </inertial>
+    </link>
+    <joint name="a_bot_zivid_base_joint" type="fixed">
+        <parent link="a_bot_zivid_coupling_flange_link" />
+        <child link="a_bot_zivid_base_link" />
+        <origin rpy="0.0 0.268 0.0" xyz="0.01 0.0 0.065" />
+    </joint>
+    <!-- A link representing the sensor in the mechanical frame -->
+    <link name="a_bot_zivid_reference" />
+    <joint name="a_bot_zivid_reference_joint" type="fixed">
+        <parent link="a_bot_zivid_base_link" />
+        <child link="a_bot_zivid_reference" />
+        <origin rpy="0 0 -0.04363323129985824" xyz="0 0.05702 0.0295" />
+    </joint>
+    <!-- A link representing the sensor in the optical frame -->
+    <link name="a_bot_zivid_sensor" />
+    <joint name="a_bot_zivid_sensor_joint" type="fixed">
+        <parent link="a_bot_zivid_reference" />
+        <child link="a_bot_zivid_sensor" />
+        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
+    </joint>
+    <!-- A link representing the projector in the mechanical frame -->
+    <link name="a_bot_zivid_projector" />
+    <joint name="a_bot_zivid_projector_joint" type="fixed">
+        <parent link="a_bot_zivid_base_link" />
+        <child link="a_bot_zivid_projector" />
+        <origin rpy="0 0 0.04363323129985824" xyz="0 -0.05702 0.0295" />
+    </joint>
+    <gazebo reference="a_bot_zivid_reference">
+        <sensor name="a_bot_zivid" type="depth">
+            <always_on>true</always_on>
+            <visualize>true</visualize>
+            <camera>
+                <image>
+                    <width>2448</width>
+                    <height>2048</height>
+                    <format>L8</format>
+                </image>
+                <horizontal_fov>0.9222</horizontal_fov>
+                <depth_camera />
+                <clip>
+                    <near>0.1</near>
+                    <far>100</far>
+                </clip>
+            </camera>
+            <plugin filename="libgazebo_ros_openni_kinect.so" name="a_bot_zivid_controller">
+                <baseline>0.11404</baseline>
+                <alwaysOn>true</alwaysOn>
+                <updateRate>10</updateRate>
+                <cameraName>a_bot_zivid</cameraName>
+                <frameName>a_bot_zivid_sensor</frameName>
+                <imageTopicName>texture</imageTopicName>
+                <depthImageTopicName>depth_map</depthImageTopicName>
+                <pointCloudTopicName>pointcloud</pointCloudTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <depthImageCameraInfoTopicName>camera_info</depthImageCameraInfoTopicName>
+                <pointCloudCutoff>0.4</pointCloudCutoff>
+                <!-- <hackBaseline>0.35</hackBaseline> -->
+                <distortionK1>0.0</distortionK1>
+                <distortionK2>0.0</distortionK2>
+                <distortionK3>0.0</distortionK3>
+                <distortionT1>0.0</distortionT1>
+                <distortionT2>0.0</distortionT2>
+                <CxPrime>0.0</CxPrime>
+                <Cx>0.0</Cx>
+                <Cy>0.0</Cy>
+                <focalLength>0.0</focalLength>
+            </plugin>
+        </sensor>
+    </gazebo>
     <link name="a_bot_ftsensor_base_link">
         <visual>
             <origin rpy="3.141592653589793 1.5707963267948966 0" xyz="0.0375 0 0" />
@@ -1539,9 +1666,9 @@
     </gazebo>
     <!-- Add the force sensor in front of the gripper. -->
     <joint name="a_bot_ftsensor_ft300_joint" type="fixed">
-        <parent link="a_bot_flange" />
+        <parent link="a_bot_zivid_coupling_flange_link" />
         <child link="a_bot_ftsensor_base_link" />
-        <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
+        <origin rpy="0 0 0" xyz="0 0 0" />
     </joint>
     <link name="a_bot_ftsensor_flange_link" />
     <joint name="a_bot_ftsensor_flange_joint" type="fixed">
@@ -1648,7 +1775,7 @@
     <joint name="a_bot_gripper_tip_link_joint" type="fixed">
         <parent link="a_bot_gripper_base_link" />
         <child link="a_bot_gripper_tip_link" />
-        <origin rpy="0.0 -1.5707963267948966 0.0" xyz="0.1628 0.0 0.0" />
+        <origin rpy="0.0 -1.5707963267948966 0.0" xyz=".2328 0.0 0.0" />
     </joint>
     <link name="a_bot_gripper_tip_link" />
     <link name="a_bot_gripper_robotiq_arg2f_base_link">
@@ -1685,7 +1812,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_outer_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_knuckle.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.792156862745098          0.819607843137255          0.933333333333333 1" />
@@ -1694,10 +1821,13 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_outer_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_knuckle.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_left_outer_knuckle">
+        <material>Gazebo/White</material>
+    </gazebo>
     <link name="a_bot_gripper_left_outer_finger">
         <inertial>
             <origin rpy="0 0 0" xyz="0.00030115855001899        0.0373907951953854        -0.0208027427000385" />
@@ -1707,7 +1837,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_outer_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_finger.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.1 0.1 0.1 1" />
@@ -1716,10 +1846,13 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_outer_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_finger.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_left_outer_finger">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <link name="a_bot_gripper_left_inner_finger">
         <inertial>
             <origin rpy="0 0 0" xyz="0.000299999999999317        0.0160078233491243        -0.0136945669206257" />
@@ -1729,7 +1862,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_inner_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_finger.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.1 0.1 0.1 1" />
@@ -1738,15 +1871,18 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_inner_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_finger.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_left_inner_finger">
+        <material>Gazebo/White</material>
+    </gazebo>
     <link name="a_bot_gripper_left_inner_finger_pad">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="0.022 0.00635 0.0375" />
+                <box size="0.027 0.065 0.0075" />
             </geometry>
             <material name="">
                 <color rgba="0.9 0.9 0.9 1" />
@@ -1755,7 +1891,7 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="0.022 0.00635 0.0375" />
+                <box size="0.03 0.07 0.0075" />
             </geometry>
             <material name="">
                 <color rgba="0.9 0.0 0.0 1" />
@@ -1767,6 +1903,9 @@
             <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
+    <gazebo reference="a_bot_gripper_left_inner_finger_pad">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <link name="a_bot_gripper_left_inner_knuckle">
         <inertial>
             <origin rpy="0 0 0" xyz="0.000123011831763771        0.0507850843201817        0.00103968640075166" />
@@ -1776,7 +1915,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_inner_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_knuckle.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.1 0.1 0.1 1" />
@@ -1785,10 +1924,13 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_inner_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_knuckle.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_left_inner_knuckle">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <link name="a_bot_gripper_right_outer_knuckle">
         <inertial>
             <origin rpy="0 0 0" xyz="-0.000200000000003065        0.0199435877845359        0.0292245259211331" />
@@ -1798,7 +1940,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_outer_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_knuckle.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.792156862745098          0.819607843137255          0.933333333333333 1" />
@@ -1807,10 +1949,13 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_outer_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_knuckle.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_right_outer_knuckle">
+        <material>Gazebo/White</material>
+    </gazebo>
     <link name="a_bot_gripper_right_outer_finger">
         <inertial>
             <origin rpy="0 0 0" xyz="0.00030115855001899        0.0373907951953854        -0.0208027427000385" />
@@ -1820,7 +1965,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_outer_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_outer_finger.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.1 0.1 0.1 1" />
@@ -1829,10 +1974,13 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_outer_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_outer_finger.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_right_outer_finger">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <link name="a_bot_gripper_right_inner_finger">
         <inertial>
             <origin rpy="0 0 0" xyz="0.000299999999999317        0.0160078233491243        -0.0136945669206257" />
@@ -1842,7 +1990,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_inner_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_finger.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.1 0.1 0.1 1" />
@@ -1851,15 +1999,18 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_inner_finger.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_finger.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_right_inner_finger">
+        <material>Gazebo/White</material>
+    </gazebo>
     <link name="a_bot_gripper_right_inner_finger_pad">
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="0.022 0.00635 0.0375" />
+                <box size="0.027 0.065 0.0075" />
             </geometry>
             <material name="">
                 <color rgba="0.9 0.9 0.9 1" />
@@ -1868,7 +2019,7 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="0.022 0.00635 0.0375" />
+                <box size="0.03 0.07 0.0075" />
             </geometry>
             <material name="">
                 <color rgba="0.9 0.0 0.0 1" />
@@ -1880,6 +2031,9 @@
             <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
+    <gazebo reference="a_bot_gripper_right_inner_finger_pad">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <link name="a_bot_gripper_right_inner_knuckle">
         <inertial>
             <origin rpy="0 0 0" xyz="0.000123011831763771        0.0507850843201817        0.00103968640075166" />
@@ -1889,7 +2043,7 @@
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_85_inner_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_140_inner_knuckle.stl" />
             </geometry>
             <material name="">
                 <color rgba="0.1 0.1 0.1 1" />
@@ -1898,79 +2052,80 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_85_inner_knuckle.dae" scale="0.001 0.001 0.001" />
+                <mesh filename="package://aist_robotiq/meshes/collision/robotiq_arg2f_140_inner_knuckle.stl" />
             </geometry>
         </collision>
     </link>
+    <gazebo reference="a_bot_gripper_right_inner_knuckle">
+        <material>Gazebo/Black</material>
+    </gazebo>
     <joint name="a_bot_gripper_finger_joint" type="revolute">
-        <origin rpy="0 0 3.141592653589793" xyz="0 -0.0306011 0.054904" />
+        <origin rpy="2.2957963267948966 0 0" xyz="0 -0.030601 0.054905" />
         <parent link="a_bot_gripper_robotiq_arg2f_base_link" />
         <child link="a_bot_gripper_left_outer_knuckle" />
-        <axis xyz="1 0 0" />
-        <limit effort="1000" lower="0" upper="0.81" velocity="2.0" />
+        <axis xyz="-1 0 0" />
+        <limit effort="1000" lower="0" upper="0.7" velocity="2.0" />
     </joint>
     <joint name="a_bot_gripper_left_outer_finger_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.0315 -0.0041" />
+        <origin rpy="0 0 0" xyz="0 0.01821998610742 0.0260018192872234" />
         <parent link="a_bot_gripper_left_outer_knuckle" />
         <child link="a_bot_gripper_left_outer_finger" />
         <axis xyz="1 0 0" />
     </joint>
     <joint name="a_bot_gripper_left_inner_knuckle_joint" type="revolute">
-        <!-- <origin xyz="0 ${reflect * -0.0127} 0.06142" rpy="${pi / 2 + .725} 0 ${(reflect - 1) * pi / 2}"/> -->
-        <origin rpy="0 0 3.141592653589793" xyz="0 -0.0127 0.06142" />
+        <origin rpy="2.2957963267948966 0 0.0" xyz="0 -0.0127 0.06142" />
         <parent link="a_bot_gripper_robotiq_arg2f_base_link" />
         <child link="a_bot_gripper_left_inner_knuckle" />
-        <axis xyz="1 0 0" />
+        <axis xyz="-1 0 0" />
         <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
         <mimic joint="a_bot_gripper_finger_joint" multiplier="1" offset="0" />
     </joint>
     <joint name="a_bot_gripper_left_inner_finger_joint" type="revolute">
-        <origin rpy="0 0 0" xyz="0 0.0061 0.0471" />
+        <origin rpy="-0.725 0 0" xyz="0 0.0817554015893473 -0.0282203446692936" />
         <parent link="a_bot_gripper_left_outer_finger" />
         <child link="a_bot_gripper_left_inner_finger" />
-        <axis xyz="1 0 0" />
+        <axis xyz="-1 0 0" />
         <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
         <mimic joint="a_bot_gripper_finger_joint" multiplier="-1" offset="0" />
     </joint>
     <joint name="a_bot_gripper_left_inner_finger_pad_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 -0.0220203446692936 0.03242" />
+        <origin rpy="0 0 0" xyz="0 0.0457554015893473 -0.0272203446692936" />
         <parent link="a_bot_gripper_left_inner_finger" />
         <child link="a_bot_gripper_left_inner_finger_pad" />
         <axis xyz="0 0 1" />
     </joint>
     <joint name="a_bot_gripper_right_outer_knuckle_joint" type="revolute">
-        <origin rpy="0 0 0" xyz="0 0.0306011 0.054904" />
+        <origin rpy="2.2957963267948966 0 3.141592653589793" xyz="0 0.030601 0.054905" />
         <parent link="a_bot_gripper_robotiq_arg2f_base_link" />
         <child link="a_bot_gripper_right_outer_knuckle" />
-        <axis xyz="1 0 0" />
-        <limit effort="1000" lower="-0.81" upper="0.81" velocity="2.0" />
+        <axis xyz="-1 0 0" />
+        <limit effort="1000" lower="-0.725" upper="0.725" velocity="2.0" />
         <mimic joint="a_bot_gripper_finger_joint" multiplier="1" offset="0" />
     </joint>
     <joint name="a_bot_gripper_right_outer_finger_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.0315 -0.0041" />
+        <origin rpy="0 0 0" xyz="0 0.01821998610742 0.0260018192872234" />
         <parent link="a_bot_gripper_right_outer_knuckle" />
         <child link="a_bot_gripper_right_outer_finger" />
         <axis xyz="1 0 0" />
     </joint>
     <joint name="a_bot_gripper_right_inner_knuckle_joint" type="revolute">
-        <!-- <origin xyz="0 ${reflect * -0.0127} 0.06142" rpy="${pi / 2 + .725} 0 ${(reflect - 1) * pi / 2}"/> -->
-        <origin rpy="0 0 0.0" xyz="0 0.0127 0.06142" />
+        <origin rpy="2.2957963267948966 0 -3.141592653589793" xyz="0 0.0127 0.06142" />
         <parent link="a_bot_gripper_robotiq_arg2f_base_link" />
         <child link="a_bot_gripper_right_inner_knuckle" />
-        <axis xyz="1 0 0" />
+        <axis xyz="-1 0 0" />
         <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
         <mimic joint="a_bot_gripper_finger_joint" multiplier="1" offset="0" />
     </joint>
     <joint name="a_bot_gripper_right_inner_finger_joint" type="revolute">
-        <origin rpy="0 0 0" xyz="0 0.0061 0.0471" />
+        <origin rpy="-0.725 0 0" xyz="0 0.0817554015893473 -0.0282203446692936" />
         <parent link="a_bot_gripper_right_outer_finger" />
         <child link="a_bot_gripper_right_inner_finger" />
-        <axis xyz="1 0 0" />
+        <axis xyz="-1 0 0" />
         <limit effort="1000" lower="-0.8757" upper="0.8757" velocity="2.0" />
         <mimic joint="a_bot_gripper_finger_joint" multiplier="-1" offset="0" />
     </joint>
     <joint name="a_bot_gripper_right_inner_finger_pad_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 -0.0220203446692936 0.03242" />
+        <origin rpy="0 0 0" xyz="0 0.0457554015893473 -0.0272203446692936" />
         <parent link="a_bot_gripper_right_inner_finger" />
         <child link="a_bot_gripper_right_inner_finger_pad" />
         <axis xyz="0 0 1" />
@@ -2050,11 +2205,6 @@
         <child link="b_bot_gripper_tip_link" />
         <origin rpy="0 -1.5707963267948966 0" xyz="0.1855 0 0" />
     </joint>
-    <!-- Add virtual wall to avoid collisions-->
-    <!-- <xacro:aist_box name="vwall1" width="0.01" length="0.35" height="0.55" -->
-    <!-- 		  parent="ground" transparent="true"> -->
-    <!--   <origin xyz="0.41 -0.20 ${bots_z}" rpy="0 0 0"/> -->
-    <!-- </xacro:aist_box> -->
     <!-- Add PhoXi 3D scanner -->
     <!-- <xacro:include filename="$(find aist_description -->
     <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
@@ -2069,7 +2219,7 @@
     <joint name="a_motioncam_link_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="a_motioncam_link" />
-        <origin rpy="0.03174526251084231 1.041717094258447 -3.1268222045220364" xyz="0.5231407296015458 -0.10503553573534424 0.6365724301868348" />
+        <origin rpy="0.055276438915859344 1.0603529787148211 -3.09644910582365" xyz="0.5250340162175878 -0.10043474330440638 0.659948826203397" />
     </joint>
     <joint name="a_motioncam_reference_joint" type="fixed">
         <parent link="a_motioncam_link" />
@@ -2149,305 +2299,12 @@
             </plugin>
         </sensor>
     </gazebo>
-    <link name="a_bot_camera_mount">
-        <inertial>
-            <origin rpy="3.141592653589793 0 1.5707963267948966" xyz="0 0 0.0" />
-            <mass value="1.0" />
-            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
-        </inertial>
-        <visual>
-            <origin rpy="3.141592653589793 0 1.5707963267948966" xyz="0 0 0.0" />
-            <geometry>
-                <mesh filename="package://aist_description/devices/meshes/sr305_mount.stl" scale=".001 .001 .001" />
-            </geometry>
-            <material name="white">
-                <color rgba="1 1 1 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="-.01 0.0 .035" />
-            <geometry>
-                <box size=".03 .12 .08" />
-            </geometry>
-        </collision>
-    </link>
-    <joint name="a_bot_camera_mount_joint" type="fixed">
-        <parent link="a_bot_gripper_base_link" />
-        <child link="a_bot_camera_mount" />
-        <origin rpy="0 0 0" xyz="0.035 0.0 0.025" />
-    </joint>
-    <!-- Left sensor (looking from front):  -7.54 mm, 0, -3.721 mm -->
-    <!-- Right sensor (RGB?)(looking from front): 16.492 mm, 0, -3.721 mm -->
-    <!-- 24.033 mm distance between the camera centers, apparently -->
-    <!-- camera mount to origin: 4mm; cameras to origin: 3.721 mm. = 7.721 mm offset? -->
-    <!-- I forgot which conventions exist for "camera_joint" and "camera_link_joint" so I hesitate to delete one. -->
-    <joint name="a_bot_inside_camera_joint" type="fixed">
-        <origin rpy="0.025912000078364868      0.4021372934071272      0.01607525693523146" xyz="0.010324554587117304      0.0018335412329232095      0.06467303743182957" />
-        <parent link="a_bot_gripper_base_link" />
-        <child link="a_bot_inside_camera_connector_link" />
-    </joint>
-    <link name="a_bot_inside_camera_connector_link" />
-    <joint name="a_bot_inside_camera_link_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0 0" />
-        <parent link="a_bot_inside_camera_connector_link" />
-        <child link="a_bot_inside_camera_link" />
-    </joint>
-    <link name="a_bot_inside_camera_link">
-        <visual>
-            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 -0.0 0" />
-            <geometry>
-                <mesh filename="package://realsense2_description/meshes/sr305_without_mount.stl" scale=".001 .001 .001" />
-            </geometry>
-            <material name="sr305_aluminum">
-                <color rgba="0.5 0.5 0.5 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.006 -0.0 0" />
-            <geometry>
-                <box size="0.012 0.14 0.023" />
-            </geometry>
-        </collision>
-        <inertial>
-            <!-- The following are not reliable values, and should not be used for modeling -->
-            <mass value="0.564" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257" />
-        </inertial>
-    </link>
-    <!-- camera depth joints and links -->
-    <joint name="a_bot_inside_camera_depth_joint" type="fixed">
-        <origin rpy="0 0 0" xyz=".003721 0 0" />
-        <parent link="a_bot_inside_camera_link" />
-        <child link="a_bot_inside_camera_depth_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_depth_frame" />
-    <joint name="a_bot_inside_camera_depth_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_inside_camera_depth_frame" />
-        <child link="a_bot_inside_camera_depth_optical_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_depth_optical_frame" />
-    <!-- camera left IR joints and links -->
-    <joint name="a_bot_inside_camera_left_ir_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.0 0" />
-        <parent link="a_bot_inside_camera_depth_frame" />
-        <child link="a_bot_inside_camera_left_ir_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_left_ir_frame" />
-    <joint name="a_bot_inside_camera_left_ir_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_inside_camera_left_ir_frame" />
-        <child link="a_bot_inside_camera_left_ir_optical_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_left_ir_optical_frame" />
-    <!-- camera right IR joints and links -->
-    <joint name="a_bot_inside_camera_right_ir_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.04 0" />
-        <parent link="a_bot_inside_camera_depth_frame" />
-        <child link="a_bot_inside_camera_right_ir_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_right_ir_frame" />
-    <joint name="a_bot_inside_camera_right_ir_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_inside_camera_right_ir_frame" />
-        <child link="a_bot_inside_camera_right_ir_optical_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_right_ir_optical_frame" />
-    <!-- camera color joints and links -->
-    <joint name="a_bot_inside_camera_color_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.015 0" />
-        <parent link="a_bot_inside_camera_depth_frame" />
-        <child link="a_bot_inside_camera_color_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_color_frame" />
-    <joint name="a_bot_inside_camera_color_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_inside_camera_color_frame" />
-        <child link="a_bot_inside_camera_color_optical_frame" />
-    </joint>
-    <link name="a_bot_inside_camera_color_optical_frame" />
-    <!-- Reference should be color_frame because depth is alighed to color -->
-    <gazebo reference="a_bot_inside_camera_color_frame">
-        <sensor name="a_bot_inside_camera" type="depth">
-            <always_on>true</always_on>
-            <visualize>true</visualize>
-            <camera>
-                <!-- Color sensor's FOV(VGA): 68 deg. -->
-                <horizontal_fov>1.1868</horizontal_fov>
-                <image>
-                    <!-- VGA -->
-                    <width>640</width>
-                    <height>480</height>
-                    <format>R8G8B8</format>
-                </image>
-                <depth_camera />
-                <clip>
-                    <near>0.1</near>
-                    <far>100</far>
-                </clip>
-            </camera>
-            <plugin filename="libgazebo_ros_openni_kinect.so" name="a_bot_inside_camera_controller">
-                <baseline>0.048</baseline>
-                <alwaysOn>true</alwaysOn>
-                <updateRate>10.0</updateRate>
-                <cameraName>a_bot_inside_camera</cameraName>
-                <frameName>a_bot_inside_camera_color_optical_frame</frameName>
-                <imageTopicName>color/image_raw</imageTopicName>
-                <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
-                <depthImageTopicName>aligned_depth_to_color/image_raw</depthImageTopicName>
-                <depthImageCameraInfoTopicName>aligned_depth_to_color/camera_info</depthImageCameraInfoTopicName>
-                <pointCloudTopicName>depth/color/points</pointCloudTopicName>
-                <pointCloudCutoff>0.1</pointCloudCutoff>
-                <!-- <hackBaseline>0.07</hackBaseline> -->
-                <distortionK1>0.0</distortionK1>
-                <distortionK2>0.0</distortionK2>
-                <distortionK3>0.0</distortionK3>
-                <distortionT1>0.0</distortionT1>
-                <distortionT2>0.0</distortionT2>
-                <CxPrime>0.0</CxPrime>
-                <Cx>0.0</Cx>
-                <Cy>0.0</Cy>
-                <focalLength>0.0</focalLength>
-            </plugin>
-        </sensor>
-    </gazebo>
-    <!-- Left sensor (looking from front):  -7.54 mm, 0, -3.721 mm -->
-    <!-- Right sensor (RGB?)(looking from front): 16.492 mm, 0, -3.721 mm -->
-    <!-- 24.033 mm distance between the camera centers, apparently -->
-    <!-- camera mount to origin: 4mm; cameras to origin: 3.721 mm. = 7.721 mm offset? -->
-    <!-- I forgot which conventions exist for "camera_joint" and "camera_link_joint" so I hesitate to delete one. -->
-    <joint name="a_bot_outside_camera_joint" type="fixed">
-        <origin rpy="0.016977853905271578      -0.21989995636200013      0.03446978804301341" xyz="0.03590302041834074      -0.008099774421321322      0.07959004727089102" />
-        <parent link="a_bot_gripper_base_link" />
-        <child link="a_bot_outside_camera_connector_link" />
-    </joint>
-    <link name="a_bot_outside_camera_connector_link" />
-    <joint name="a_bot_outside_camera_link_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0 0" />
-        <parent link="a_bot_outside_camera_connector_link" />
-        <child link="a_bot_outside_camera_link" />
-    </joint>
-    <link name="a_bot_outside_camera_link">
-        <visual>
-            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 -0.0 0" />
-            <geometry>
-                <mesh filename="package://realsense2_description/meshes/sr305_without_mount.stl" scale=".001 .001 .001" />
-            </geometry>
-            <material name="sr305_aluminum">
-                <color rgba="0.5 0.5 0.5 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.006 -0.0 0" />
-            <geometry>
-                <box size="0.012 0.14 0.023" />
-            </geometry>
-        </collision>
-        <inertial>
-            <!-- The following are not reliable values, and should not be used for modeling -->
-            <mass value="0.564" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-            <inertia ixx="0.003881243" ixy="0.0" ixz="0.0" iyy="0.000498940" iyz="0.0" izz="0.003879257" />
-        </inertial>
-    </link>
-    <!-- camera depth joints and links -->
-    <joint name="a_bot_outside_camera_depth_joint" type="fixed">
-        <origin rpy="0 0 0" xyz=".003721 0 0" />
-        <parent link="a_bot_outside_camera_link" />
-        <child link="a_bot_outside_camera_depth_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_depth_frame" />
-    <joint name="a_bot_outside_camera_depth_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_outside_camera_depth_frame" />
-        <child link="a_bot_outside_camera_depth_optical_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_depth_optical_frame" />
-    <!-- camera left IR joints and links -->
-    <joint name="a_bot_outside_camera_left_ir_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.0 0" />
-        <parent link="a_bot_outside_camera_depth_frame" />
-        <child link="a_bot_outside_camera_left_ir_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_left_ir_frame" />
-    <joint name="a_bot_outside_camera_left_ir_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_outside_camera_left_ir_frame" />
-        <child link="a_bot_outside_camera_left_ir_optical_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_left_ir_optical_frame" />
-    <!-- camera right IR joints and links -->
-    <joint name="a_bot_outside_camera_right_ir_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.04 0" />
-        <parent link="a_bot_outside_camera_depth_frame" />
-        <child link="a_bot_outside_camera_right_ir_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_right_ir_frame" />
-    <joint name="a_bot_outside_camera_right_ir_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_outside_camera_right_ir_frame" />
-        <child link="a_bot_outside_camera_right_ir_optical_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_right_ir_optical_frame" />
-    <!-- camera color joints and links -->
-    <joint name="a_bot_outside_camera_color_joint" type="fixed">
-        <origin rpy="0 0 0" xyz="0 0.015 0" />
-        <parent link="a_bot_outside_camera_depth_frame" />
-        <child link="a_bot_outside_camera_color_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_color_frame" />
-    <joint name="a_bot_outside_camera_color_optical_joint" type="fixed">
-        <origin rpy="-1.5707963267948966 0 -1.5707963267948966" xyz="0 0 0" />
-        <parent link="a_bot_outside_camera_color_frame" />
-        <child link="a_bot_outside_camera_color_optical_frame" />
-    </joint>
-    <link name="a_bot_outside_camera_color_optical_frame" />
-    <!-- Reference should be color_frame because depth is alighed to color -->
-    <gazebo reference="a_bot_outside_camera_color_frame">
-        <sensor name="a_bot_outside_camera" type="depth">
-            <always_on>true</always_on>
-            <visualize>true</visualize>
-            <camera>
-                <!-- Color sensor's FOV(VGA): 68 deg. -->
-                <horizontal_fov>1.1868</horizontal_fov>
-                <image>
-                    <!-- VGA -->
-                    <width>640</width>
-                    <height>480</height>
-                    <format>R8G8B8</format>
-                </image>
-                <depth_camera />
-                <clip>
-                    <near>0.1</near>
-                    <far>100</far>
-                </clip>
-            </camera>
-            <plugin filename="libgazebo_ros_openni_kinect.so" name="a_bot_outside_camera_controller">
-                <baseline>0.048</baseline>
-                <alwaysOn>true</alwaysOn>
-                <updateRate>10.0</updateRate>
-                <cameraName>a_bot_outside_camera</cameraName>
-                <frameName>a_bot_outside_camera_color_optical_frame</frameName>
-                <imageTopicName>color/image_raw</imageTopicName>
-                <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
-                <depthImageTopicName>aligned_depth_to_color/image_raw</depthImageTopicName>
-                <depthImageCameraInfoTopicName>aligned_depth_to_color/camera_info</depthImageCameraInfoTopicName>
-                <pointCloudTopicName>depth/color/points</pointCloudTopicName>
-                <pointCloudCutoff>0.1</pointCloudCutoff>
-                <!-- <hackBaseline>0.07</hackBaseline> -->
-                <distortionK1>0.0</distortionK1>
-                <distortionK2>0.0</distortionK2>
-                <distortionK3>0.0</distortionK3>
-                <distortionT1>0.0</distortionT1>
-                <distortionT2>0.0</distortionT2>
-                <CxPrime>0.0</CxPrime>
-                <Cx>0.0</Cx>
-                <Cy>0.0</Cy>
-                <focalLength>0.0</focalLength>
-            </plugin>
-        </sensor>
-    </gazebo>
+    <!-- RealSense cameras -->
+    <!-- <xacro:include filename="$(find aist_description -->
+    <!-- 			   )/devices/urdf/wrist_cameras.urdf.xacro" /> -->
+    <!-- <xacro:wrist_cameras prefix="a_bot_" -->
+    <!-- 		       parent="a_bot_gripper_base_link" -->
+    <!-- 		       use_nominal_extrinsics="true"/> -->
     <link name="live_camera_optical_frame" />
     <joint name="workspace_live_camera_joint" type="fixed">
         <parent link="workspace_center" />
@@ -2459,7 +2316,7 @@
     <joint name="virtual_screen_joint" type="fixed">
         <parent link="ground" />
         <child link="virtual_screen" />
-        <origin rpy="0 0 0" xyz="0 0 0.8047" />
+        <origin rpy="0 0 0" xyz="0 0 0.81" />
     </joint>
     <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
     <link name="world" />
