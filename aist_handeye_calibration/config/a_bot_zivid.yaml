@@ -4,7 +4,7 @@ eye_on_hand: true
 robot_base_frame: workspace_center
 robot_effector_frame: a_bot_gripper_base_link
 robot_effector_tip_frame: a_bot_gripper_tip_link
-camera_parent_frame: a_bot_gripper_base_link
+camera_parent_frame: a_bot_zivid_coupling_flange_link
 marker_map: aruco-17_26_32_256-150x150-5
 enclosed_marker: true
 detection_mode: 1
