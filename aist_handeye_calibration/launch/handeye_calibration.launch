@@ -6,19 +6,28 @@
   <arg name="use_dual_quaternion"	default="true"/>
 
   <!-- Set camera topic names -->
-  <arg name="is_phoxi_camera"	value="$(eval 'phoxi' in camera_name or
+  <arg name="is_phoxi"		value="$(eval 'phoxi' in camera_name or
 				       'motioncam' in camera_name)"/>
-  <arg if="$(arg is_phoxi_camera)"
+  <arg name="is_zivid"		value="$(eval 'zivid' in camera_name)"/>
+  <arg name="is_realsense"	value="$(eval not arg('is_phoxi')
+				       and not arg('is_zivid'))"/>
+  <arg if="$(arg is_phoxi)"
        name="camera_info_topic"	value="$(arg camera_name)/camera_info"/>
-  <arg if="$(arg is_phoxi_camera)"
+  <arg if="$(arg is_phoxi)"
        name="image_topic"	value="$(arg camera_name)/texture"/>
-  <arg if="$(arg is_phoxi_camera)"
+  <arg if="$(arg is_phoxi)"
        name="depth_topic"	value="$(arg camera_name)/depth_map"/>
-  <arg unless="$(arg is_phoxi_camera)"
+  <arg if="$(arg is_zivid)"
+       name="camera_info_topic"	value="$(arg camera_name)/depth/camera_info"/>
+  <arg if="$(arg is_zivid)"
+       name="image_topic"	value="$(arg camera_name)/color/image_color"/>
+  <arg if="$(arg is_zivid)"
+       name="depth_topic"	value="$(arg camera_name)/depth/image"/>
+  <arg if="$(arg is_realsense)"
        name="camera_info_topic"	value="$(arg camera_name)/color/camera_info"/>
-  <arg unless="$(arg is_phoxi_camera)"
+  <arg if="$(arg is_realsense)"
        name="image_topic"	value="$(arg camera_name)/color/image_raw"/>
-  <arg unless="$(arg is_phoxi_camera)"
+  <arg if="$(arg is_realsense)"
        name="depth_topic"	value="$(arg camera_name
 				       )/aligned_depth_to_color/image_raw"/>
 

@@ -41,7 +41,7 @@
     </group_state>
     <group_state name="back" group="a_bot">
         <joint name="a_bot_elbow_joint" value="1"/>
-        <joint name="a_bot_shoulder_lift_joint" value="-2.4"/>
+        <joint name="a_bot_shoulder_lift_joint" value="-2.3"/>
         <joint name="a_bot_shoulder_pan_joint" value="1.57"/>
         <joint name="a_bot_wrist_1_joint" value="-0.85"/>
         <joint name="a_bot_wrist_2_joint" value="-1.57"/>
@@ -76,30 +76,6 @@
     <disable_collisions link1="a_bot_base_link_inertia" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_base_link_inertia" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_base_link_inertia" link2="workspace_table_top" reason="Default"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_ftsensor_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_coupling_base_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_left_inner_finger" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_left_inner_finger_pad" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_left_inner_knuckle" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_left_outer_finger" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_left_outer_knuckle" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_right_inner_finger" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_right_inner_finger_pad" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_right_inner_knuckle" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_inside_camera_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_outside_camera_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="a_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="cage_back_left_pillar" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="cage_back_right_pillar" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="cage_lower_back_bar" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="cage_upper_back_bar" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="workspace_table_leg2" reason="Never"/>
-    <disable_collisions link1="a_bot_camera_mount" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_forearm_link" link2="a_bot_shoulder_link" reason="Never"/>
     <disable_collisions link1="a_bot_forearm_link" link2="a_bot_upper_arm_link" reason="Adjacent"/>
     <disable_collisions link1="a_bot_forearm_link" link2="a_bot_wrist_1_link" reason="Adjacent"/>
@@ -124,11 +100,11 @@
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_wrist_3_link" reason="Adjacent"/>
+    <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_zivid_base_link" reason="Adjacent"/>
+    <disable_collisions link1="a_bot_ftsensor_base_link" link2="a_bot_zivid_coupling_base_link" reason="Adjacent"/>
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_ftsensor_base_link" link2="cage_lower_back_bar" reason="Never"/>
@@ -146,11 +122,11 @@
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_inside_camera_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_outside_camera_link" reason="Adjacent"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_coupling_base_link" link2="cage_lower_back_bar" reason="Never"/>
@@ -167,11 +143,11 @@
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger" link2="cage_lower_back_bar" reason="Never"/>
@@ -182,16 +158,15 @@
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_left_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_left_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_right_inner_finger" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_right_inner_finger_pad" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_right_inner_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="cage_lower_back_bar" reason="Never"/>
@@ -199,18 +174,18 @@
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_finger_pad" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_left_outer_finger" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_left_outer_knuckle" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_left_outer_knuckle" reason="Default"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_right_inner_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_right_inner_finger_pad" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_right_inner_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_inner_knuckle" link2="cage_lower_back_bar" reason="Never"/>
@@ -224,11 +199,11 @@
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_finger" link2="cage_lower_back_bar" reason="Never"/>
@@ -241,11 +216,11 @@
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_left_outer_knuckle" link2="cage_lower_back_bar" reason="Never"/>
@@ -257,11 +232,11 @@
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_gripper_right_outer_finger" reason="Adjacent"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger" link2="cage_lower_back_bar" reason="Never"/>
@@ -272,11 +247,11 @@
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="cage_lower_back_bar" reason="Never"/>
@@ -284,13 +259,13 @@
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_finger_pad" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_gripper_right_outer_finger" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_gripper_right_outer_knuckle" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_gripper_right_outer_knuckle" reason="Default"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="cage_lower_back_bar" reason="Never"/>
@@ -299,11 +274,11 @@
     <disable_collisions link1="a_bot_gripper_right_inner_knuckle" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_gripper_right_outer_knuckle" reason="Adjacent"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="cage_lower_back_bar" reason="Never"/>
@@ -311,47 +286,28 @@
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_finger" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_gripper_robotiq_arg2f_base_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_inside_camera_link" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_outside_camera_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="cage_lower_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="cage_upper_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_right_outer_knuckle" link2="workspace_table_leg3" reason="Never"/>
-    <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="a_bot_inside_camera_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="a_bot_outside_camera_link" reason="Adjacent"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="a_bot_wrist_2_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="cage_lower_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="cage_upper_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_gripper_robotiq_arg2f_base_link" link2="workspace_table_leg3" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="a_bot_outside_camera_link" reason="Adjacent"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="a_bot_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="a_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="a_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="cage_back_left_pillar" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="cage_back_right_pillar" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="cage_lower_back_bar" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="cage_upper_back_bar" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="workspace_table_leg2" reason="Never"/>
-    <disable_collisions link1="a_bot_inside_camera_link" link2="workspace_table_leg3" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="a_bot_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="a_bot_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="a_bot_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="cage_back_left_pillar" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="cage_back_right_pillar" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="cage_lower_back_bar" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="cage_upper_back_bar" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="workspace_table_leg2" reason="Never"/>
-    <disable_collisions link1="a_bot_outside_camera_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_shoulder_link" link2="a_bot_upper_arm_link" reason="Adjacent"/>
     <disable_collisions link1="a_bot_shoulder_link" link2="a_bot_wrist_1_link" reason="Never"/>
     <disable_collisions link1="a_bot_shoulder_link" link2="cage_back_left_pillar" reason="Never"/>
@@ -393,27 +349,44 @@
     <disable_collisions link1="a_bot_upper_arm_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="a_bot_wrist_2_link" reason="Adjacent"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="a_bot_wrist_3_link" reason="Never"/>
+    <disable_collisions link1="a_bot_wrist_1_link" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="cage_lower_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="cage_lower_right_bar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="cage_upper_back_bar" reason="Never"/>
-    <disable_collisions link1="a_bot_wrist_1_link" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_1_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_2_link" link2="a_bot_wrist_3_link" reason="Adjacent"/>
+    <disable_collisions link1="a_bot_wrist_2_link" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_wrist_2_link" link2="a_bot_zivid_coupling_base_link" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_2_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_2_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_2_link" link2="cage_lower_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_2_link" link2="cage_upper_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_2_link" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_2_link" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="a_bot_wrist_3_link" link2="a_bot_zivid_base_link" reason="Never"/>
+    <disable_collisions link1="a_bot_wrist_3_link" link2="a_bot_zivid_coupling_base_link" reason="Adjacent"/>
     <disable_collisions link1="a_bot_wrist_3_link" link2="cage_back_left_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_3_link" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_3_link" link2="cage_lower_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_3_link" link2="cage_upper_back_bar" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_3_link" link2="workspace_table_leg2" reason="Never"/>
     <disable_collisions link1="a_bot_wrist_3_link" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_base_link" link2="a_bot_zivid_coupling_base_link" reason="Adjacent"/>
+    <disable_collisions link1="a_bot_zivid_base_link" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_base_link" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_base_link" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_base_link" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_base_link" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_base_link" link2="workspace_table_leg3" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_coupling_base_link" link2="cage_back_left_pillar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_coupling_base_link" link2="cage_back_right_pillar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_coupling_base_link" link2="cage_lower_back_bar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_coupling_base_link" link2="cage_upper_back_bar" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_coupling_base_link" link2="workspace_table_leg2" reason="Never"/>
+    <disable_collisions link1="a_bot_zivid_coupling_base_link" link2="workspace_table_leg3" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_back_right_pillar" reason="Never"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_front_left_pillar" reason="Adjacent"/>
     <disable_collisions link1="cage_back_left_pillar" link2="cage_front_right_pillar" reason="Never"/>
@@ -457,7 +430,6 @@
     <disable_collisions link1="cage_front_left_pillar" link2="cage_upper_front_bar" reason="Adjacent"/>
     <disable_collisions link1="cage_front_left_pillar" link2="cage_upper_left_bar" reason="Adjacent"/>
     <disable_collisions link1="cage_front_left_pillar" link2="cage_upper_right_bar" reason="Adjacent"/>
-    <disable_collisions link1="cage_front_left_pillar" link2="cage_workspace_bar" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="workspace_table_leg0" reason="Adjacent"/>
     <disable_collisions link1="cage_front_left_pillar" link2="workspace_table_leg1" reason="Never"/>
     <disable_collisions link1="cage_front_left_pillar" link2="workspace_table_leg2" reason="Never"/>

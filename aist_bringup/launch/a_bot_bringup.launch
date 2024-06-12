@@ -15,7 +15,7 @@
   				       -J a_bot_wrist_2_joint -1.5708
   				       -J a_bot_wrist_3_joint 0.0"/>
   <arg name="prefixes"		value="a_bot_, a_bot_gripper_"/>
-  <arg name="devices"		value="ur5, robotiq_85"/>
+  <arg name="devices"		value="ur5, robotiq_140"/>
   <arg name="controllers"	value="ur, cmodel"/>
   <arg name="drivers"		value="ur, cmodel"/>
   <arg name="driver_args"	value="163.220.51.110,
@@ -45,22 +45,30 @@
   </include>
 
   <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
-  <arg name="camera_names"		default="a_bot_inside_camera
-						 a_bot_outside_camera"/>
-  <arg name="active_camera_name"	default="a_bot_inside_camera"/>
-  <arg name="manager"			default="camera_manager"/>
-  <arg name="manager_threads"		default="4"/>
+  <!-- <arg name="camera_names"		default="a_bot_inside_camera -->
+  <!-- 						 a_bot_outside_camera"/> -->
+  <!-- <arg name="active_camera_name"	default="a_bot_inside_camera"/> -->
+  <!-- <arg name="manager"			default="camera_manager"/> -->
+  <!-- <arg name="manager_threads"		default="4"/> -->
 
-  <node name="$(arg manager)"
-	pkg ="nodelet" type="nodelet" args="manager" output="screen">
-    <param name="num_worker_threads"	value="$(arg manager_threads)"/>
-  </node>
+  <!-- <node name="$(arg manager)" -->
+  <!-- 	pkg ="nodelet" type="nodelet" args="manager" output="screen"> -->
+  <!--   <param name="num_worker_threads"	value="$(arg manager_threads)"/> -->
+  <!-- </node> -->
 
-  <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
-    <arg name="camera_names"		value="$(arg camera_names)"/>
-    <arg name="active_camera_name"	value="$(arg active_camera_name)"/>
-    <arg name="manager"		value="$(arg manager)"/>
-    <arg name="sim"			value="$(arg sim)"/>
+  <!-- <include file="$(find aist_camera_multiplexer)/launch/realsense.launch"> -->
+  <!--   <arg name="camera_names"		value="$(arg camera_names)"/> -->
+  <!--   <arg name="active_camera_name"	value="$(arg active_camera_name)"/> -->
+  <!--   <arg name="manager"		value="$(arg manager)"/> -->
+  <!--   <arg name="sim"			value="$(arg sim)"/> -->
+  <!-- </include> -->
+
+  <!-- Launch Zivid camera -->
+  <include unless="$(arg sim)"
+	   file="$(dirname)/zivid_camera.launch">
+    <arg name="camera_name"		value="a_bot_zivid"/>
+    <arg name="external_manager"	value="false"/>
+    <arg name="manager"			value="$(arg manager)"/>
   </include>
 
   <!-- Launch calibration publisher and other hardware drivers -->
