@@ -11,7 +11,7 @@
     <xacro:property name="image_height"		 value="2048"/>
     <xacro:property name="horizontal_fov"	 value="0.9222"/>
     <xacro:property name="update_rate"		 value="10"/>
-    
+
     <!-- A link representing the camera body -->
     <link name="${name}_base_link">
       <visual>
@@ -94,11 +94,11 @@
           <updateRate>${update_rate}</updateRate>
           <cameraName>${name}</cameraName>
           <frameName>${name}_sensor</frameName>
-          <imageTopicName>texture</imageTopicName>
-          <depthImageTopicName>depth_map</depthImageTopicName>
-          <pointCloudTopicName>pointcloud</pointCloudTopicName>
-          <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-          <depthImageCameraInfoTopicName>camera_info</depthImageCameraInfoTopicName>
+          <imageTopicName>color/image_color</imageTopicName>
+          <depthImageTopicName>depth/image</depthImageTopicName>
+          <pointCloudTopicName>points/xyzrgba</pointCloudTopicName>
+          <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
+          <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
           <pointCloudCutoff>0.4</pointCloudCutoff>
           <!-- <hackBaseline>0.35</hackBaseline> -->
           <distortionK1>0.0</distortionK1>

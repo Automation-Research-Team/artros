@@ -8,5 +8,4 @@ grippers:
     controller_ns: a_bot_gripper_controller
 
 cameras:
-  a_bot_inside_camera:  CodedLightRealSenseCamera
-  a_bot_outside_camera: CodedLightRealSenseCamera
+  a_bot_zivid: ZividCamera

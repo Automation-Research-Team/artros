@@ -71,10 +71,30 @@
     <origin xyz="${a_bot_x} ${a_bot_y} ${bots_z}" rpy="0 0 0"/>
   </joint>
 
+  <!-- Attach mounter for Zivid2+ camera -->
+  <xacro:include filename="$(find aist_description)/devices/urdf/zivid_coupling.urdf.xacro"/>
+  <xacro:zivid_coupling prefix="a_bot_zivid_coupling_" parent="a_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0" />
+  </xacro:zivid_coupling>
+
+  <!-- Spawn and attach Zivid2+ camera -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/load_calibration.urdf.xacro"/>
+  <xacro:load_calibration filename="$(find aist_handeye_calibration
+				    )/calib/a_bot_zivid.yaml"/>
+  <xacro:include filename="$(find aist_description
+			   )/devices/urdf/zivid2plus.urdf.xacro"/>
+  <xacro:zivid2plus name="a_bot_zivid"
+		    parent="a_bot_zivid_coupling_flange_link">
+    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
+    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
+  </xacro:zivid2plus>
+
   <!-- Spawn and attach force sensor -->
   <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  <xacro:ft300 prefix="a_bot_ftsensor_"
+	       parent="a_bot_zivid_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:ft300>
 
   <!-- Spawn and attach gripper -->
@@ -86,18 +106,11 @@
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
-  <xacro:robotiq_85_gripper prefix="a_bot_gripper_"
+			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
+  <xacro:robotiq_140_gripper prefix="a_bot_gripper_"
 			    parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_85_gripper>
-
-  <!-- Add RealSense camera -->
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/wrist_cameras.urdf.xacro" />
-  <xacro:wrist_cameras prefix="a_bot_"
-		       parent="a_bot_gripper_base_link"
-		       use_nominal_extrinsics="true"/>
+  </xacro:robotiq_140_gripper>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>
