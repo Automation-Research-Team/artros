@@ -31,22 +31,24 @@
   <!--   <arg name="frame"			value="a_phoxi_m_camera_sensor"/> -->
   <!-- </include> -->
 
-  <!-- Launch Motioncam-3D camera -->
-  <include unless="$(arg sim)"
-	   file="$(find aist_phoxi_camera)/launch/run_with_config.launch">
-    <arg name="camera_name"		value="a_motioncam"/>
-    <arg name="config_file"		value="$(dirname
-					       )/../config/a_motioncam.yaml"/>
-    <arg name="external_manager"	value="true"/>
-    <arg name="manager"			value="$(arg manager)"/>
-  </include>
+  <group unless="$(arg sim)">
 
-  <!-- Launch Zivid camera -->
-  <include unless="$(arg sim)"
-	   file="$(dirname)/zivid_camera.launch">
-    <arg name="camera_name"		value="a_bot_zivid"/>
-    <arg name="external_manager"	value="false"/>
-    <arg name="manager"			value="$(arg manager)"/>
-  </include>
+    <!-- Launch Motioncam-3D camera -->
+    <include file="$(find aist_phoxi_camera)/launch/run_with_config.launch">
+      <arg name="camera_name"		value="a_motioncam"/>
+      <arg name="config_file"		value="$(dirname
+					       )/../config/a_motioncam.yaml"/>
+      <arg name="external_manager"	value="true"/>
+      <arg name="manager"		value="$(arg manager)"/>
+    </include>
+
+    <!-- Launch Zivid camera -->
+    <include file="$(dirname)/zivid_camera.launch">
+      <arg name="camera_name"		value="a_bot_zivid"/>
+      <arg name="external_manager"	value="false"/>
+      <arg name="manager"		value="$(arg manager)"/>
+    </include>
+
+  </group>
 
 </launch>

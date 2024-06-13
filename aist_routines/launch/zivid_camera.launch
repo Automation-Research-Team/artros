@@ -12,14 +12,14 @@
   <arg unless="$(eval manager == '')"	name="command"	value="load"/>
 
   <node unless="$(arg external_manager)"
-	ns="$(arg camera_name)"
-	name="$(arg manager)" pkg ="nodelet" type="nodelet"
-	args="manager" output="screen">
+  	ns="$(arg camera_name)"
+  	name="$(arg manager)" pkg ="nodelet" type="nodelet"
+  	args="manager" output="screen">
     <param name="num_worker_threads"	value="$(arg nthreads)"/>
   </node>
 
-  <node ns="$(arg camera_name)" name=""
-	pkg ="nodelet" type="nodelet" output="screen"
+  <node ns="$(arg camera_name)" name="$(arg camera_name)"
+  	pkg ="nodelet" type="nodelet" output="screen"
   	args="$(arg command) zivid_camera/nodelet $(arg manager)">
     <param name="serial_number"	value="$(arg serial_number)"/>
     <param name="frame_id"	value="$(arg camera_name)_sensor"/>
