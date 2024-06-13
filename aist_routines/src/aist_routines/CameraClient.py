@@ -176,8 +176,9 @@ class ZividCamera(DepthCamera):
 
     def trigger_frame(self):
         try:
-            return self._trigger_frame().success
+            self._trigger_frame()
         except rospy.ServiceException:
             self._trigger_frame = rospy.ServiceProxy(self._name + '/capture',
                                                      Capture, persistent=True)
-            return self._trigger_frame().success
+            self._trigger_frame()
+        return True
