@@ -4,7 +4,6 @@ project(aist_msgs)
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
-find_package(std_srvs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -35,7 +34,6 @@ rosidl_generate_interfaces(
     ${msg_files}
     ${action_files}
   DEPENDENCIES
-    std_srvs
     std_msgs
     geometry_msgs
     sensor_msgs

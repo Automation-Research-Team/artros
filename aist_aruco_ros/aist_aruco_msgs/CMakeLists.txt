@@ -1,27 +1,26 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.8)
 project(aist_aruco_msgs)
 
-find_package(catkin REQUIRED COMPONENTS
-    message_generation
-    cmake_modules
-    geometry_msgs
-    std_msgs
+find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(rosidl_default_runtime REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+set(
+  msg_files
+    msg/PointCorrespondence.msg
+    msg/PointCorrespondenceArray.msg
+    msg/PointCorrespondenceArrayArray.msg
 )
 
-# Declare the message files to be built
-add_message_files(DIRECTORY msg)
-
-# # Generate added messages and services with any dependencies listed here
-
-# Actually generate the language-specific message and service files
-generate_messages(
+rosidl_generate_interfaces(
+  ${PROJECT_NAME}
+    ${msg_files}
   DEPENDENCIES
-  std_msgs
-  geometry_msgs
+    std_msgs
+    geometry_msgs
 )
 
-catkin_package(CATKIN_DEPENDS
-  message_runtime
-  std_msgs
-  geometry_msgs
-)
+ament_export_dependencies(rosidl_default_runtime)
+ament_package()
