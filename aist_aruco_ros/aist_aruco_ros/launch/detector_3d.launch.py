@@ -65,11 +65,11 @@ parameter_arguments = [{'name':        'marker_map_dir',
 
 def declare_launch_arguments(args, defaults={}):
     num_to_str = lambda x : str(x) if isinstance(x, (bool, int, float)) else x
-    return [DeclareLaunchArgument(arg['name'],
-                                  default_value=defaults.get(
-                                                  arg['name'],
-                                                  num_to_str(arg['default'])),
-                                  description=arg['description']) \
+    return [DeclareLaunchArgument(
+                arg['name'],
+                default_value=num_to_str(defaults.get(arg['name'],
+                                                      arg['default'])),
+                description=arg['description']) \
             for arg in args]
 
 def set_configurable_parameters(args):
