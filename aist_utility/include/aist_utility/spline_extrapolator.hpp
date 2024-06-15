@@ -72,13 +72,13 @@ class SplineExtrapolator
 		{
 		    return _tp;
 		}
-	    
+
     const value_type&
 		xp() const
 		{
 		    return _xp;
 		}
-	    
+
     void	update(const rclcpp::Time& t, const value_type& x)
 		{
 		    update(std::integral_constant<size_t, N>(),
@@ -148,7 +148,7 @@ class SplineExtrapolator
 		    return _a[N_]
 			 + dt*pos(std::integral_constant<size_t, N_+1>(), dt);
 		}
-    value_type	pos(std::integral_constant<size_t, N>, double dt) const
+    value_type	pos(std::integral_constant<size_t, N>, double) const
 		{
 		    return _a[N];
 		}
@@ -159,7 +159,7 @@ class SplineExtrapolator
 		    return N_*_a[N_]
 			 + dt*vel(std::integral_constant<size_t, N_+1>(), dt);
 		}
-    value_type	vel(std::integral_constant<size_t, N>, double dt) const
+    value_type	vel(std::integral_constant<size_t, N>, double) const
 		{
 		    return N*_a[N];
 		}
@@ -170,7 +170,7 @@ class SplineExtrapolator
 		    return (N_*(N_-1))*_a[N_]
 			 + dt*vel(std::integral_constant<size_t, N_+1>(), dt);
 		}
-    value_type	acc(std::integral_constant<size_t, N>, double dt) const
+    value_type	acc(std::integral_constant<size_t, N>, double) const
 		{
 		    return (N*(N-1))*_a[N];
 		}

@@ -5,8 +5,8 @@
 #include <cstdlib>	// for getenv()
 #include <sys/stat.h>	// for mkdir()
 #include <rclcpp/rclcpp.hpp>
-#include <image_transport/image_transport.h>
-#include <image_transport/subscriber_filter.h>
+#include <image_transport/image_transport.hpp>
+#include <image_transport/subscriber_filter.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <sensor_msgs/msg/point_cloud2.hpp>
@@ -81,7 +81,7 @@ PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
      _it(rclcpp::Node::SharedPtr(this)),
      _color_sub(this, "/color", "raw"),
      _depth_sub(this, "/depth", "raw"),
-     _camera_info_sub(),
+     _camera_info_sub(this, "/camera_info"),
      _sync(_color_sub, _depth_sub, _camera_info_sub, 1),
      _cloud_pub(create_publisher<cloud_t>(node_name() + "/pointcloud", 1)),
      _save_cloud(create_service<trigger_t>(
@@ -97,8 +97,6 @@ PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
      _file_num(0),
      _cloud()
 {
-    _camera_info_sub.subscribe(this, "/camera_info");
-
   // Register callback for subscribing synched color, depth and camera_info.
     _sync.registerCallback(&PCDCapturer::camera_cb, this);
 

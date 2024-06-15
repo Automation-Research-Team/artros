@@ -3,7 +3,8 @@ from launch.actions                    import (DeclareLaunchArgument,
                                                IncludeLaunchDescription,
                                                OpaqueFunction)
 from launch.substitutions              import (LaunchConfiguration,
-                                               PathJoinSubstitution)
+                                               PathJoinSubstitution,
+                                               ThisLaunchFileDir)
 from launch.conditions                 import LaunchConfigurationEquals
 from launch_ros.actions                import Node, LoadComposableNodes
 from launch_ros.substitutions          import FindPackageShare
@@ -63,7 +64,11 @@ def launch_setup(context):
                     PathJoinSubstitution(
                         [FindPackageShare(camera['package']), 'launch',
                          camera['launch_file']])),
-                launch_arguments={'container':
+                launch_arguments={'config_file':
+                                  PathJoinSubstitution(
+                                      [ThisLaunchFileDir(), '..', 'config',
+                                       camera_name + '.yaml']),
+                                  'container':
                                   LaunchConfiguration('container'),
                                   'config_dir':
                                   LaunchConfiguration('config_dir'),

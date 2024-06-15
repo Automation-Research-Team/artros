@@ -1,94 +1,118 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_aruco_ros)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-enable_language(CXX)
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-set(CMAKE_CXX_STANDARD		17)
-set(CMAKE_CXX_STANDARD_REQUIRED	ON)
-set(CMAKE_CXX_EXTENSIONS	OFF)
-set(CMAKE_CXX_FLAGS_RELEASE	"-Wall -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG	"-g")
-set(CMAKE_CXX_BUILD_TYPE	Release)
-
-find_package(catkin REQUIRED
-  COMPONENTS
-    aruco
-    ddynamic_reconfigure
-    std_msgs
-    geometry_msgs
-    visualization_msgs
-    image_transport
-    cv_bridge
-    tf2_ros
-    tf2_geometry_msgs
-    aist_utility
-    aist_aruco_msgs
-)
-
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(common_interfaces REQUIRED)
+find_package(aruco REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(ddynamic_reconfigure2 REQUIRED)
+find_package(aist_utility REQUIRED)
+find_package(aist_aruco_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
 
 ###########
 ## Build ##
 ###########
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
-catkin_package(
-  CATKIN_DEPENDS
-    roscpp
-    message_runtime
+#####################################
+#  component: libaist_aruco_ros.so  #
+#####################################
+add_library(
+  ${PROJECT_NAME} SHARED
+    src/Detector3D.cpp
+    src/MultiDetector.cpp
+)
+
+target_compile_definitions(
+  ${PROJECT_NAME} PRIVATE
+    COMPOSITION_BUILDING_DLL
+)
+
+ament_target_dependencies(
+  ${PROJECT_NAME}
+    rclcpp_components
+    aruco
     geometry_msgs
+    sensor_msgs
     visualization_msgs
-    pluginlib
-    nodelet
+    image_transport
+    cv_bridge
+    tf2_ros
+    tf2_geometry_msgs
+    ddynamic_reconfigure2
+    aist_utility
+    aist_aruco_msgs
 )
 
-add_library(aruco_detector_3d
-  src/Detector3D.cpp
+target_link_libraries(
+  ${PROJECT_NAME}
+    ${OpenCV_LIBRARIES}
 )
 
-add_dependencies(aruco_detector_3d
-  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(aruco_detector_3d
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
-
-add_library(aruco_multi_detector
-  src/MultiDetector.cpp
-)
-
-add_dependencies(aruco_multi_detector
-  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-  ${PROJECT_NAME}_generate_messages_cpp
-)
-
-target_link_libraries(aruco_multi_detector
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${OpenCV_LIBRARIES}
+rclcpp_components_register_nodes(
+  ${PROJECT_NAME}
+    ${PROJECT_NAME}::Detector3D
+    ${PROJECT_NAME}::MultiDetector
 )
 
 #############
 ## Install ##
 #############
 install(
-  TARGETS
-    aruco_detector_3d aruco_multi_detector
-  ARCHIVE
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  TARGETS  ${PROJECT_NAME}
+  ARCHIVE  DESTINATION lib
+  LIBRARY  DESTINATION lib
+  RUNTIME  DESTINATION bin
+  INCLUDES DESTINATION include
 )
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+##########
+#  test  #
+##########
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()

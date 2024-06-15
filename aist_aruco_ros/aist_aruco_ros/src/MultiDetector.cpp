@@ -7,34 +7,35 @@
 #include <cstdint>
 #include <any>
 
-#include <ros/package.h>
-#include <image_transport/image_transport.h>
-#include <image_transport/subscriber_filter.h>
+#include <rclcpp/rclcpp.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
+#include <image_transport/image_transport.hpp>
+#include <image_transport/subscriber_filter.hpp>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+#include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <ddynamic_reconfigure/ddynamic_reconfigure.h>
-#include <sensor_msgs/image_encodings.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 #include <cv_bridge/cv_bridge.h>
-#include <nodelet/nodelet.h>
-#include <pluginlib/class_list_macros.h>
 
-#include <aist_utility/opencv.h>
-#include <aist_utility/sensor_msgs.h>
-#include <aist_aruco_msgs/PointCorrespondenceArrayArray.h>
+#include <aist_utility/opencv.hpp>
+#include <aist_utility/sensor_msgs.hpp>
+#include <aist_aruco_msgs/msg/point_correspondence_array_array.hpp>
 #include <aruco/aruco.h>
 
 namespace aist_aruco_ros
 {
 /************************************************************************
-*  class MultiDetector						*
+*  class MultiDetector							*
 ************************************************************************/
-class MultiDetector
+class MultiDetector : public rclcpp::Node
 {
   private:
-    using image_t	= sensor_msgs::Image;
-    using image_cp	= sensor_msgs::ImageConstPtr;
+    using image_t	= sensor_msgs::msg::Image;
+    using image_cp	= image_t::ConstSharedPtr;
+    using correses_set_t= aist_aruco_msgs::msg::PointCorrespondenceArrayArray;
     using mdetector_t	= aruco::MarkerDetector;
     using mparams_t	= mdetector_t::Params;
     using marker_info_t	= aruco::Marker3DInfo;
@@ -42,7 +43,7 @@ class MultiDetector
     using point2_t	= cv::Point2f;
     using point3_t	= cv::Point3f;
 
-    using ddynamic_reconfigure_t = ddynamic_reconfigure::DDynamicReconfigure;
+    using ddynamic_reconfigure_t = ddynamic_reconfigure2::DDynamicReconfigure;
 
     struct rgb_t		{ uint8_t r, g, b; };
 
@@ -86,10 +87,10 @@ class MultiDetector
     using publisher_t	= image_transport::Publisher;
 
   public:
-		MultiDetector(ros::NodeHandle& nh,
-			      const std::string& nodelet_name)		;
+		MultiDetector(const rclcpp::NodeOptions& options)	;
 
   private:
+    std::string	node_name()			const	{ return get_name(); }
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
@@ -99,19 +100,20 @@ class MultiDetector
 			 const IMAGE_MSGS&... image_msgs)		;
     template <size_t N>
     void	image_cb()						;
-    aist_aruco_msgs::PointCorrespondenceArray
+    aist_aruco_msgs::msg::PointCorrespondenceArray
     detect_marker(const image_cp& image_msg,
 		  const image_transport::Publisher& result_pub,
 		  const image_transport::Publisher& debug_pub,
 		  const std::string& camera_name)			;
-    static void	publish_image(const std_msgs::Header& header,
+    static void	publish_image(const std_msgs::msg::Header& header,
 			      const cv::Mat& image,
 			      const image_transport::Publisher& pub)	;
     const std::string&
 		getName()					const	;
 
   private:
-    const std::string					_nodelet_name;
+    ddynamic_reconfigure_t				_ddr;
+
     const std::vector<std::string>			_camera_names;
 
     image_transport::ImageTransport			_it;
@@ -119,7 +121,7 @@ class MultiDetector
     std::vector<std::unique_ptr<subscriber_t> >		_image_subs;
     std::vector<publisher_t>				_result_pubs;
     std::vector<publisher_t>				_debug_pubs;
-    const ros::Publisher				_corres_pub;
+    const rclcpp::Publisher<correses_set_t>::SharedPtr	_corres_pub;
     std::unique_ptr<SyncBase>				_sync;
 
     tf2_ros::Buffer					_tf2_buffer;
@@ -127,37 +129,39 @@ class MultiDetector
     const std::string					_reference_frame;
     const std::string					_marker_frame;
 
-    ddynamic_reconfigure_t				_ddr;
-
     mdetector_t						_marker_detector;
     marker_map_t					_marker_map;
-    aist_aruco_msgs::PointCorrespondenceArrayArray	_correspondences_set;
+    correses_set_t					_correspondences_set;
 };
 
-MultiDetector::MultiDetector(ros::NodeHandle& nh,
-			     const std::string& nodelet_name)
-    :_nodelet_name(nodelet_name),
-     _camera_names(nh.param<std::vector<std::string> >("camera_names", {})),
-     _it(nh),
+MultiDetector::MultiDetector(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("multi_detector", options),
+     _ddr(rclcpp::Node::SharedPtr(this)),
+     _camera_names(_ddr.declare_read_only_parameter<std::vector<std::string> >(
+		       "camera_names", {})),
+     _it(rclcpp::Node::SharedPtr(this)),
      _image_sub(),
      _image_subs(),
      _result_pubs(),
      _debug_pubs(),
-     _corres_pub(nh.advertise<aist_aruco_msgs::PointCorrespondenceArrayArray>(
-		     "point_correspondences_set", 100)),
+     _corres_pub(create_publisher<correses_set_t>("point_correspondences_set",
+						  1)),
      _sync(),
-     _tf2_buffer(),
+     _tf2_buffer(get_clock()),
      _tf2_listener(_tf2_buffer),
-     _reference_frame(nh.param<std::string>("reference_frame", "")),
-     _marker_frame(nh.param<std::string>("marker_frame", "marker_frame")),
-     _ddr(nh),
+     _reference_frame(_ddr.declare_read_only_parameter<std::string>(
+			  "reference_frame", "")),
+     _marker_frame(_ddr.declare_read_only_parameter<std::string>(
+		       "marker_frame", "marker_frame")),
      _marker_detector(),
      _marker_map(),
      _correspondences_set()
 {
+    using namespace	std::placeholders;
+
     if (_camera_names.empty())
     {
-	NODELET_ERROR_STREAM("(MultiDetector) No camera names specified!");
+	RCLCPP_ERROR_STREAM(get_logger(), "No camera names specified!");
 	return;
     }
 
@@ -165,17 +169,22 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
     {
 	if (_camera_names.size() >= 2)
 	    _image_subs.emplace_back(std::make_unique<subscriber_t>(
-					 _it, camera_name + "/image", 1));
-	_result_pubs.emplace_back(_it.advertise(camera_name + "/result",1));
-	_debug_pubs .emplace_back(_it.advertise(camera_name + "/debug", 1));
-	NODELET_INFO_STREAM("(MultiDetector) Subscribe camera["
-			    << camera_name << ']');
+					 this,
+					 node_name() + '/' + camera_name
+						     + "/image", "raw"));
+	_result_pubs.emplace_back(_it.advertise(node_name() + '/'
+						+ camera_name + "/result",1));
+	_debug_pubs .emplace_back(_it.advertise(node_name() + camera_name
+						+ "/debug", 1));
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "Subscribe camera[" << camera_name << ']');
     }
 
     switch (_camera_names.size())
     {
       case 1:
-	_image_sub = _it.subscribe(_camera_names[0] + "/image", 1,
+	_image_sub = _it.subscribe(node_name() + '/' + _camera_names[0]
+					       + "/image", 1,
 				   &MultiDetector::image_cb<0>, this);
 	break;
       case 2:
@@ -238,100 +247,89 @@ MultiDetector::MultiDetector(ros::NodeHandle& nh,
 	break;
 
       default:
-	NODELET_ERROR_STREAM("(MultiDetector) Specified "
-			     << _camera_names.size()
-			     << " cameras but supported only up to eight!");
+	RCLCPP_ERROR_STREAM(get_logger(), "Specified "
+			    << _camera_names.size()
+			    << " cameras but supported only up to eight!");
 	return;
     }
 
     _correspondences_set.correspondences_set.resize(_camera_names.size());
 
   // Load marker map.
-    std::string	marker_map_name;
-    if (!nh.getParam("marker_map", marker_map_name))
-	throw std::runtime_error("Marker map not specified!");
-    const auto	mMapFile = nh.param("marker_map_dir",
-				    ros::package::getPath("aist_aruco_ros")
-				    + "/config")
-			 + '/' + marker_map_name + ".yaml";
+    const auto marker_map_name = _ddr.declare_read_only_parameter<std::string>(
+				     "marker_map", "");
+    if (marker_map_name == "")
+    {
+	RCLCPP_ERROR_STREAM(get_logger(), "Marker map not specified!");
+	throw;
+    }
+
+    const auto mMapFile = _ddr.declare_read_only_parameter(
+			      "marker_map_dir",
+			      ament_index_cpp::get_package_share_directory(
+				  "aist_aruco_ros")
+			      + "/config")
+			+ '/' + marker_map_name + ".yaml";
     try
     {
 	_marker_map.readFromFile(mMapFile);
+
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "Loaded marker map[" << mMapFile << ']');
     }
     catch (const std::exception& err)
     {
-	throw std::runtime_error("Failed to read marker map["
-				 + mMapFile + ']');
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "Failed to read marker map[" << mMapFile << ']');
+	throw;
     }
-    NODELET_INFO_STREAM("(MultiDetector) Loaded marker map["
-			<< marker_map_name << ']');
 
   // Set minimum marker size and setup ddynamic_reconfigure service for it.
     _ddr.registerVariable<double>("min_marker_size",
 				  _marker_detector.getParameters().minSize,
-				  boost::bind(
+				  std::bind(
 				      &MultiDetector::set_min_marker_size,
 				      this, _1),
-				  "Minimum marker size", 0.0, 1.0);
-    NODELET_INFO_STREAM("(MultiDetector) Minimum marker size: "
-			<< _marker_detector.getParameters().minSize);
+				  "Minimum marker size", {0.0, 1.0});
 
   // Set a parameter for specifying whether the marker is enclosed or not.
     _ddr.registerVariable<bool>("enclosed_marker",
 				_marker_detector.getParameters().enclosedMarker,
-				boost::bind(
+				std::bind(
 				    &MultiDetector::set_enclosed_marker,
 				    this, _1),
-				"Detect enclosed marker", false, true);
-    NODELET_INFO_STREAM("(MultiDetector) Detect enclosed marker: "
-			<< std::boolalpha
-			<< _marker_detector.getParameters().enclosedMarker);
+				"Detect enclosed marker");
 
   // Set detection mode and setup ddynamic_reconfigure service for it.
-    std::map<std::string, int>	map_detectionMode =
-    				{
-				    {"NORMAL",	   aruco::DM_NORMAL},
-				    {"FAST",	   aruco::DM_FAST},
-				    {"VIDEO_FAST", aruco::DM_VIDEO_FAST},
-				};
     _ddr.registerEnumVariable<int>("detection_mode",
 				   _marker_detector.getDetectionMode(),
-				   boost::bind(
+				   std::bind(
 				       &MultiDetector::set_detection_mode,
 				       this, _1),
 				   "Marker detection mode",
-				   map_detectionMode);
-    NODELET_INFO_STREAM("(MultiDetector) Detection mode: "
-			<< _marker_detector.getDetectionMode());
+				   {{"NORMAL",	   aruco::DM_NORMAL},
+				    {"FAST",	   aruco::DM_FAST},
+				    {"VIDEO_FAST", aruco::DM_VIDEO_FAST}});
 
   // Set dictionary and setup ddynamic_reconfigure service for it.
-    const auto	dict = nh.param<std::string>("dictionary", "ARUCO");
+    const std::string	dict = "ARUCO";
     set_dictionary(dict);
-
-    std::map<std::string, std::string>
-	map_dict =
-	{
-	    {"ARUCO",		 "ARUCO"},
-	    {"ARUCO_MIP_25h7",	 "ARUCO_MIP_25h7"},
-	    {"ARUCO_MIP_16h3",	 "ARUCO_MIP_16h3"},
-	    {"ARTAG",		 "ARTAG"},
-	    {"ARTOOLKITPLUS",	 "ARTOOLKITPLUS"},
-	    {"ARTOOLKITPLUSBCH", "ARTOOLKITPLUSBCH"},
-	    {"TAG16h5",		 "TAG16h5"},
-	    {"TAG25h7",		 "TAG25h7"},
-	    {"TAG25h9",		 "TAG25h9"},
-	    {"TAG36h11",	 "TAG36h11"},
-	    {"TAG36h10",	 "TAG36h10"},
-	    {"CUSTOM",		 "CUSTOM"},
-	};
     _ddr.registerEnumVariable<std::string>(
 	"dictionary", dict,
-	boost::bind(&MultiDetector::set_dictionary, this, _1),
-	"Dictionary", map_dict);
-    NODELET_INFO_STREAM("(MultiDetector) Dictionary: " << dict);
-
-  // Pulish ddynamic_reconfigure service.
-    _ddr.publishServicesTopicsAndUpdateConfigData();
+	std::bind(&MultiDetector::set_dictionary, this, _1),
+	"Dictionary",
+	{{"ARUCO",		"ARUCO"},
+	 {"ARUCO_MIP_25h7",	"ARUCO_MIP_25h7"},
+	 {"ARUCO_MIP_16h3",	"ARUCO_MIP_16h3"},
+	 {"ARTAG",		"ARTAG"},
+	 {"ARTOOLKITPLUS",	"ARTOOLKITPLUS"},
+	 {"ARTOOLKITPLUSBCH",	"ARTOOLKITPLUSBCH"},
+	 {"TAG16h5",		"TAG16h5"},
+	 {"TAG25h7",		"TAG25h7"},
+	 {"TAG25h9",		"TAG25h9"},
+	 {"TAG36h11",		"TAG36h11"},
+	 {"TAG36h10",		"TAG36h10"},
+	 {"CUSTOM",		"CUSTOM"}});
 }
 
 void
@@ -339,12 +337,17 @@ MultiDetector::set_min_marker_size(double size)
 {
     _marker_detector.setDetectionMode(_marker_detector.getDetectionMode(),
 				      size);
+
+    RCLCPP_INFO_STREAM(get_logger(), "Set min_marker_size[" << size << ']');
 }
 
 void
 MultiDetector::set_enclosed_marker(bool enable)
 {
     _marker_detector.getParameters().detectEnclosedMarkers(enable);
+
+    RCLCPP_INFO_STREAM(get_logger(), "Set enclosed_marker["
+		       << std::boolalpha << enable << ']');
 }
 
 void
@@ -352,6 +355,8 @@ MultiDetector::set_detection_mode(int mode)
 {
     _marker_detector.setDetectionMode(aruco::DetectionMode(mode),
 				      _marker_detector.getParameters().minSize);
+
+    RCLCPP_INFO_STREAM(get_logger(), "Set detection_mode[" << mode << ']');
 }
 
 void
@@ -359,6 +364,8 @@ MultiDetector::set_dictionary(const std::string& dict)
 {
     _marker_detector.setDictionary(dict);
     _marker_map.setDictionary(dict);
+
+    RCLCPP_INFO_STREAM(get_logger(), "Set dictionary[" << dict << ']');
 }
 
 template <size_t N, class... IMAGE_MSGS> void
@@ -373,7 +380,7 @@ MultiDetector::image_cb(const image_cp& image_msg,
     }
     catch (const std::runtime_error& err)
     {
-	NODELET_ERROR_STREAM("(MultiDetector) Failed to detect marker for "
+	RCLCPP_ERROR_STREAM(get_logger(), "Failed to detect marker for "
 			     << N << "-th camera: " << err.what());
 	return;
     }
@@ -384,10 +391,10 @@ MultiDetector::image_cb(const image_cp& image_msg,
 template <size_t N> void
 MultiDetector::image_cb()
 {
-    _corres_pub.publish(_correspondences_set);
+    _corres_pub->publish(_correspondences_set);
 }
 
-aist_aruco_msgs::PointCorrespondenceArray
+aist_aruco_msgs::msg::PointCorrespondenceArray
 MultiDetector::detect_marker(const image_cp& image_msg,
 			     const image_transport::Publisher& result_pub,
 			     const image_transport::Publisher& debug_pub,
@@ -427,7 +434,7 @@ MultiDetector::detect_marker(const image_cp& image_msg,
     publish_image(image_msg->header, image, result_pub);
 
   // Create point correspondences for this image.
-    aist_aruco_msgs::PointCorrespondenceArray	correspondences;
+    aist_aruco_msgs::msg::PointCorrespondenceArray	correspondences;
     correspondences.header	    = image_msg->header;
     correspondences.height	    = image_msg->height;
     correspondences.width	    = image_msg->width;
@@ -435,7 +442,7 @@ MultiDetector::detect_marker(const image_cp& image_msg,
     correspondences.reference_frame = _reference_frame;
     for (const auto& pair : pairs)
     {
-	aist_aruco_msgs::PointCorrespondence	correspondence;
+	aist_aruco_msgs::msg::PointCorrespondence	correspondence;
 	correspondence.source_point.x = pair.first.x;
 	correspondence.source_point.y = pair.first.y;
 	correspondence.source_point.z = pair.first.z;
@@ -453,7 +460,7 @@ MultiDetector::detect_marker(const image_cp& image_msg,
 	const auto Trm = _tf2_buffer.lookupTransform(_reference_frame,
 						     _marker_frame,
 						     image_msg->header.stamp,
-						     ros::Duration(1.0));
+						     tf2::durationFromSec(1.0));
 	for (auto&& correspondence : correspondences.correspondences)
 	    tf2::doTransform(correspondence.source_point,
 			     correspondence.source_point, Trm);
@@ -463,7 +470,7 @@ MultiDetector::detect_marker(const image_cp& image_msg,
 }
 
 void
-MultiDetector::publish_image(const std_msgs::Header& header,
+MultiDetector::publish_image(const std_msgs::msg::Header& header,
 			     const cv::Mat& image,
 			     const image_transport::Publisher& pub)
 {
@@ -473,42 +480,8 @@ MultiDetector::publish_image(const std_msgs::Header& header,
 	pub.publish(cv_bridge::CvImage(header, image_encodings::RGB8, image)
 		    .toImageMsg());
 }
-
-const std::string&
-MultiDetector::getName() const
-{
-    return _nodelet_name;
-}
-
-/************************************************************************
-*  class MultiDetectorNodelet						*
-************************************************************************/
-class MultiDetectorNodelet : public nodelet::Nodelet
-{
-  public:
-			MultiDetectorNodelet()				{}
-
-    virtual void	onInit()					;
-
-  private:
-    boost::shared_ptr<MultiDetector>	_node;
-};
-
-void
-MultiDetectorNodelet::onInit()
-{
-    NODELET_INFO_STREAM("aist_aruco_ros::MultiDetectorNodelet::onInit()");
-    try
-    {
-	_node.reset(new MultiDetector(getPrivateNodeHandle(), getName()));
-    }
-    catch (const std::exception& err)
-    {
-	NODELET_ERROR_STREAM("(MultiDetector) " << err.what());
-    }
-}
-
 }	// namespace aist_aruco_ros
 
-PLUGINLIB_EXPORT_CLASS(aist_aruco_ros::MultiDetectorNodelet,
-		       nodelet::Nodelet);
+#include <rclcpp_components/register_node_macro.hpp>
+
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_aruco_ros::MultiDetector)
