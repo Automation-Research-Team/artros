@@ -35,11 +35,10 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, copy
+import rospy, copy, numpy as np
 import moveit_msgs.msg
 from geometry_msgs.msg   import PoseStamped, Pose, Point, Quaternion
 from tf                  import transformations as tfs
-from math                import degrees
 from aist_routines       import AISTBaseRoutines
 from aist_utility.compat import *
 
@@ -48,10 +47,10 @@ from aist_utility.compat import *
 ######################################################################
 class ToolCalibrationRoutines(AISTBaseRoutines):
     refposes = {
-        'a_bot': [0.00, 0.00, 0.15, 0, 90,  90],
-        'b_bot': [0.00, 0.00, 0.15, 0, 90, -90],
-        'c_bot': [0.00, 0.00, 0.15, 0, 90,  90],
-        'd_bot': [0.00, 0.00, 0.15, 0, 90,   0],
+        'a_bot': [0.00, 0.00, 0.015, 0, 0, 90],
+        'b_bot': [0.00, 0.00, 0.015, 0, 0, 90],
+        'c_bot': [0.00, 0.00, 0.015, 0, 0, 90],
+        'd_bot': [0.00, 0.00, 0.015, 0, 0, 90],
     }
 
     def __init__(self):
@@ -79,8 +78,12 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
         axis  = 'Pitch'
 
         while not rospy.is_shutdown():
+            self.print_help_messages()
+            print('')
+
             prompt = '{:>5}:[p={:.3f},y={:.3f}]>> ' \
-                   .format(axis, degrees(self._rpy[1]), degrees(self._rpy[2]))
+                   .format(axis,
+                           np.degrees(self._rpy[1]), np.degrees(self._rpy[2]))
             key = raw_input(prompt)
             _, axis, _ = self.interactive(key, self._robot_name, axis,
                                           self._speed)
@@ -93,11 +96,13 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
     def print_help_messages(self):
         super(ToolCalibrationRoutines, self).print_help_messages()
         print('=== Tool calibration commands ===')
-        print('  o: Move to reference pose')
-        print('  r: Perform rolling motion')
-        print('  p: Perform pitching motion')
-        print('  y: Perform yawing motion')
-        print('  t: Display tip link')
+        print('  o:  Move to reference pose')
+        print('  r:  Perform rolling motion')
+        print('  p:  Perform pitching motion')
+        print('  y:  Perform yawing motion')
+        print('  pp: Change pitching angle')
+        print('  yy: Change yawing angle')
+        print('  t:  Display tip link')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'o':
@@ -114,6 +119,10 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
             self.yawing_motion()
         elif key == 'd':
             self.print_tip_link()
+        elif key == 'pp':
+            self._rpy[1] = np.radians(float(raw_input('  pitching angle? ')))
+        elif key == 'yy':
+            self._rpy[2] = np.radians(float(raw_input('  yawing angle? ')))
         else:
             robot_name, axis, speed = super(ToolCalibrationRoutines, self) \
                                      .interactive(key, robot_name, axis, speed)
@@ -126,7 +135,7 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
         T = tfs.concatenate_matrices(
                 self.listener.fromTranslationRotation(
                     (xyzrpy[0], xyzrpy[1], xyzrpy[2]),
-                    tfs.quaternion_from_euler(*np.radians(xyzrpy(3:6)))),
+                    tfs.quaternion_from_euler(*np.radians(xyzrpy[3:6]))),
                 tfs.inverse_matrix(self._D0),
                 tfs.inverse_matrix(R),
                 self._R0,
@@ -145,13 +154,13 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
     def rolling_motion(self):
         xyzrpy = copy.deepcopy(self._refpose)
         for i in range(4):
-            xyzrpy[3] += 30
+            xyzrpy[5] += 30
             self.move(xyzrpy)
         for i in range(8):
-            xyzrpy[3] -= 30
+            xyzrpy[5] -= 30
             self.move(xyzrpy)
         for i in range(4):
-            xyzrpy[3] += 30
+            xyzrpy[5] += 30
             self.move(xyzrpy)
 
     def pitching_motion(self):
@@ -168,16 +177,14 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
 
     def yawing_motion(self):
         xyzrpy = copy.deepcopy(self._refpose)
-        xyzrpy[3] = -90
-        xyzrpy[5] = 180
         for i in range(5):
-            xyzrpy[4] += 6
+            xyzrpy[3] += 6
             self.move(xyzrpy)
         for i in range(10):
-            xyzrpy[4] -= 6
+            xyzrpy[3] -= 6
             self.move(xyzrpy)
         for i in range(5):
-            xyzrpy[4] += 6
+            xyzrpy[3] += 6
             self.move(xyzrpy)
 
     def print_tip_link(self):
@@ -187,7 +194,7 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
         D   = tfs.concatenate_matrices(R, self._D0)
         xyz = tfs.translation_from_matrix(D)
         q   = tfs.quaternion_from_matrix(D)
-        rpy = map(degrees, tfs.euler_from_quaternion(q))
+        rpy = np.degrees(tfs.euler_from_quaternion(q))
         print('<origin xyz="{0[0]} {0[1]} {0[2]}" rpy="${{{1[0]}*pi/180}} ${{{1[1]}*pi/180}} ${{{1[2]}*pi/180}}"/>'
               .format(xyz, rpy))
 
