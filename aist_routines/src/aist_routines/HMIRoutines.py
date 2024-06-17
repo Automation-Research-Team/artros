@@ -249,6 +249,8 @@ class HMIRoutines(KittingRoutines):
 
             result = self._sweep(robot_name, pose, sweep_dir, part_id)
 
+            self.go_to_named_pose(robot_name, 'sweep_ready')
+
             if result == SweepResult.DEPARTURE_FAILURE:
                 return False
             elif result == SweepResult.PREEMPTED:
