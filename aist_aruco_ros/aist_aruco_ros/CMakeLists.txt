@@ -15,6 +15,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(common_interfaces REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(aruco REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -53,6 +54,7 @@ target_compile_definitions(
 ament_target_dependencies(
   ${PROJECT_NAME}
     rclcpp_components
+    ament_index_cpp
     aruco
     geometry_msgs
     sensor_msgs

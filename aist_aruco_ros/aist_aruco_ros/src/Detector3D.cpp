@@ -21,7 +21,7 @@
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 
 #include <opencv2/calib3d.hpp>
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 #include <aruco/aruco.h>
 #include <aist_utility/opencv.hpp>
 #include <aist_utility/sensor_msgs.hpp>

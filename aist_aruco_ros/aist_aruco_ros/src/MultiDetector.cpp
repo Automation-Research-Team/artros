@@ -18,7 +18,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 #include <sensor_msgs/image_encodings.hpp>
-#include <cv_bridge/cv_bridge.h>
+#include <cv_bridge/cv_bridge.hpp>
 
 #include <aist_utility/opencv.hpp>
 #include <aist_utility/sensor_msgs.hpp>
