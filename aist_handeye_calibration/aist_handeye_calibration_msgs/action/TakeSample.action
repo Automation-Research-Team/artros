@@ -1,0 +1,7 @@
+# Goal
+---
+# Result
+geometry_msgs/TransformStamped transform_cm  # camera <- marker   transform
+geometry_msgs/TransformStamped transform_we  # world  <- effector transform
+---
+# Feedback
