@@ -108,6 +108,9 @@ class Detector3D : public rclcpp::Node
 
   private:
     std::string	node_name()	const	{ return get_name(); }
+    template <class T>
+    T		declare_read_only_parameter(const std::string& name,
+					    const T& default_value)	;
     void	set_min_marker_size(double size)			;
     void	set_enclosed_marker(bool enable)			;
     void	set_detection_mode(int mode)				;
@@ -181,8 +184,8 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
     :rclcpp::Node("detector_3d", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
      _broadcaster(*this),
-     _marker_frame(_ddr.declare_read_only_parameter<std::string>(
-		       "marker_frame", "marker_frame")),
+     _marker_frame(declare_read_only_parameter<std::string>("marker_frame",
+							    "marker_frame")),
      _it(rclcpp::Node::SharedPtr(this)),
      _image_sub(this, "/image", "raw"),
      _depth_sub(this, "/depth", "raw"),
@@ -191,26 +194,26 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
      _depth_sync(_image_sub, _depth_sub, _camera_info_sub, 3),
      _cloud_sync(_cloud_sub, _camera_info_sub, 3),
      _camParam(),
-     _useRectifiedImages(_ddr.declare_read_only_parameter("image_is_rectified",
-							  false)),
+     _useRectifiedImages(declare_read_only_parameter("image_is_rectified",
+						     false)),
      _rightToLeft(),
      _result_pub(_it.advertise(node_name() + "/result", 1)),
      _debug_pub( _it.advertise(node_name() + "/debug",  1)),
      _pose_pub(create_publisher<pose_t>(node_name() + "/pose", 1)),
      _marker_detector(),
      _marker_map(),
-     _marker_size(_ddr.declare_read_only_parameter("marker_size", 0.05)),
+     _marker_size(declare_read_only_parameter("marker_size", 0.05)),
      _useSimilarity(false),
      _planarityTolerance(0.001)
 {
     using namespace	std::placeholders;
 
   // Load marker map.
-    if (const auto marker_map_name = _ddr.declare_read_only_parameter<
-					 std::string>("marker_map", "");
+    if (const auto marker_map_name = declare_read_only_parameter<std::string>(
+					 "marker_map", "");
 	marker_map_name != "")
     {
-	const auto mMapFile = _ddr.declare_read_only_parameter(
+	const auto mMapFile = declare_read_only_parameter(
 				  "marker_map_dir",
 				  ament_index_cpp::get_package_share_directory(
 				      "aist_aruco_ros")
@@ -293,6 +296,15 @@ Detector3D::Detector3D(const rclcpp::NodeOptions& options)
 				 this);
     _cloud_sync.registerCallback(&Detector3D::detect_marker_from_cloud_cb,
 				 this);
+}
+
+template <class T> T
+Detector3D::declare_read_only_parameter(const std::string& name,
+					const T& default_value)
+{
+    return declare_parameter(
+		name, default_value,
+		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 void

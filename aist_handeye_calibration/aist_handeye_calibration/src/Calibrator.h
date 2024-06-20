@@ -37,33 +37,47 @@
   \file		Calibrator.h
   \brief	Calibrator node implementing a quick compute service, a compute service and 2 subscribers to world_effector_topic and camera_object_topic.
 */
+#pragma once
 
-#ifndef CALIBRATOR_H
-#define CALIBRATOR_H
-
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <tf2_ros/transform_listener.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <std_srvs/Empty.h>
-#include <std_srvs/Trigger.h>
-#include <actionlib/server/simple_action_server.h>
-#include <aist_handeye_calibration/GetSampleList.h>
-#include <aist_handeye_calibration/ComputeCalibration.h>
-#include <aist_handeye_calibration/TakeSampleAction.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <std_srvs/srv/trigger.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <aist_handeye_calibration_msgs/srv/get_sample_list.hpp>
+#include <aist_handeye_calibration_msgs/srv/compute_calibration.hpp>
+#include <aist_handeye_calibration_msgs/action/take_sample.hpp>
 
 namespace aist_handeye_calibration
 {
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
-class Calibrator
+class Calibrator : public rclcpp::Node
 {
   public:
-    using transformMsg_t  = geometry_msgs::TransformStamped;
+    using transformMsg_t	= geometry_msgs::msg::TransformStamped;
 
   private:
-    using poseMsg_cp	  = geometry_msgs::PoseStampedConstPtr;
-    using action_server_t = actionlib::SimpleActionServer<TakeSampleAction>;
+    using poseMsg_t		= geometry_msgs::msg::PoseStamped;
+    using poseMsg_cp		= poseMsg_t::ConstSharedPtr;
+    using GetSampleList		= aist_handeye_calibration_msgs::srv
+					::GetSampleList;
+    using GetSampleListSrvPtr	= rclcpp::Service<GetSampleList>::SharedPtr;
+    using GetSampleListReqPtr	= GetSampleList::Request::SharedPtr;
+    using GetSampleListResPtr	= GetSampleList::Response::SharedPtr;
+    using ComputeCalibration	= aist_handeye_calibration_msgs::srv
+					::ComputeCalibration;
+    using ComputeCalibrationSrvPtr
+				= rclcpp::Service<ComputeCalibration>::SharedPtr;
+    using ComputeCalibrationReqPtr
+				= ComputeCalibration::Request::SharedPtr;
+    using ComputeCalibrationResPtr
+				= ComputeCalibration::Response::SharedPtr;
+    using TakeSample		= aist_handeye_calibration_msgs::action
+					::TakeSample;
+    using TakeSampleActionPtr	= rclcpp_action::Server<TakeSample>::SharedPtr;
 
   public:
 		Calibrator(const ros::NodeHandle& nh)			;
@@ -78,8 +92,8 @@ class Calibrator
     const std::string&	world_frame()				const	;
 
     void	pose_cb(const poseMsg_cp& pose)				;
-    bool	get_sample_list(GetSampleList::Request&,
-				GetSampleList::Response& res)		;
+    bool	get_sample_list(const GetSampeListReqPtr,
+				GetSampleListResPtr res)		;
     bool	compute_calibration(ComputeCalibration::Request&,
 				    ComputeCalibration::Response& res)	;
     bool	save_calibration(std_srvs::Trigger::Request&,
@@ -90,15 +104,13 @@ class Calibrator
     void	cancel()						;
 
   private:
-    ros::NodeHandle		_nh;
-
     ros::Subscriber		_pose_sub;
 
-    const ros::ServiceServer	_get_sample_list_srv;
+    const GetSampleListSrvPtr	_get_sample_list_srv;
     const ros::ServiceServer	_compute_calibration_srv;
     const ros::ServiceServer	_save_calibration_srv;
     const ros::ServiceServer	_reset_srv;
-    action_server_t		_take_sample_srv;
+    action_server_p		_take_sample_srv;
 
     tf2_ros::Buffer			_tf2_buffer;
     const tf2_ros::TransformListener	_tf2_listener;
@@ -113,4 +125,4 @@ class Calibrator
     const ros::Duration		_timeout;
 };
 }	// namespace aist_hnadeye_calibration
-#endif	// !CALIBRATOR_H
+

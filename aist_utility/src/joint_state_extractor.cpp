@@ -11,15 +11,18 @@ namespace aist_utility
 class JointStateExtractor : public rclcpp::Node
 {
   private:
-    using joint_state_t	 = sensor_msgs::msg::JointState;
-    using joint_state_cp = sensor_msgs::msg::JointState::ConstSharedPtr;
+    using joint_state_t	= sensor_msgs::msg::JointState;
+    using joint_state_p = joint_state_t::UniquePtr;
 
   public:
 		JointStateExtractor(const rclcpp::NodeOptions& options)	;
 
   private:
     std::string node_name()			const	{ return get_name(); }
-    void	joint_state_cb(const joint_state_cp& joint_state)	;
+    template <class T>
+    T		declare_read_only_parameter(const std::string& name,
+					    const T& default_value)	;
+    void	joint_state_cb(joint_state_p joint_state)		;
 
   private:
     ddynamic_reconfigure2::DDynamicReconfigure		 _ddr;
@@ -40,8 +43,8 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
      _joint_state()
 {
 
-    _joint_state.name = _ddr.declare_read_only_parameter<
-			    std::vector<std::string> >("joint_names", {});
+    _joint_state.name = declare_read_only_parameter<std::vector<std::string>
+						    >("joint_names", {});
 
     const auto	njoints = _joint_state.name.size();
     _joint_state.position.resize(njoints);
@@ -51,8 +54,17 @@ JointStateExtractor::JointStateExtractor(const rclcpp::NodeOptions& options)
     RCLCPP_INFO_STREAM(get_logger(), "started");
 }
 
+template <class T> T
+JointStateExtractor::declare_read_only_parameter(const std::string& name,
+						 const T& default_value)
+{
+    return declare_parameter(
+		name, default_value,
+		ddynamic_reconfigure2::read_only_param_desc<T>(name));
+}
+
 void
-JointStateExtractor::joint_state_cb(const joint_state_cp& joint_state)
+JointStateExtractor::joint_state_cb(joint_state_p joint_state)
 {
     for (size_t i = 0; i < _joint_state.name.size(); ++i)
     {

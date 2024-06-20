@@ -43,8 +43,8 @@
 #include <cstdlib>	// for std::getenv()
 #include <sys/stat.h>	// for mkdir()
 #include <errno.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <aist_utility/geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include <aist_utility/geometry_msgs.hpp>
 #include "Calibrator.h"
 #include "HandeyeCalibration.h"
 
