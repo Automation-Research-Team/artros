@@ -1,27 +1,27 @@
 from launch                   import LaunchDescription
-from launch.actions           import (DeclareLaunchArgument, OpaqueFunction)
+from launch.actions           import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions     import LaunchConfiguration
 from launch_ros.actions       import Node
-from launch_ros.substitutions import FindPackageShare
 
-EXECUTABLES = {'butterworth': 'butterworth_lpf_test_node',
-               'spline':      'spline_extrapolator_test_node'}
+EXECUTABLES = {
+    'butterworth': 'butterworth_lpf_test_node',
+    'spline':      'spline_extrapolator_test_node'}
 
-launch_arguments = [{'name':        'test_name',
-                     'default':     'butterworth',
-                     'description': 'test program name'},
-                    {'name':        'log_level',
-                     'default':     'info',
-                     'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
-                    {'name':        'output',
-                     'default':     'both',
-                     'description': 'pipe node output [screen|log]'}]
+launch_arguments = [
+    {'name':        'test_name',
+     'default':     'butterworth',
+     'description': 'test program name'},
+    {'name':        'log_level',
+     'default':     'info',
+     'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
+    {'name':        'output',
+     'default':     'both',
+     'description': 'pipe node output [screen|log]'}]
 
-def declare_launch_arguments(args, defaults={}):
-    return [DeclareLaunchArgument(
-                arg['name'],
-                default_value=str(defaults.get(arg['name'], arg['default'])),
-                description=arg['description']) \
+def declare_launch_arguments(args):
+    return [DeclareLaunchArgument(arg['name'],
+                                  default_value=arg['default'],
+                                  description=arg['description']) \
             for arg in args]
 
 def launch_setup(context):

@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Image1
       Splitter Ratio: 0.5
     Tree Height: 433
   - Class: rviz_common/Selection
@@ -59,7 +60,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /realsense/aligned_depth_to_color/image_raw
+        Value: /detector_3d/result
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -179,5 +180,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1200
-  X: 60
-  Y: 60
+  X: 760
+  Y: 203
