@@ -41,7 +41,7 @@
 #ifndef TU_TRANSFORM_H
 #define TU_TRANSFORM_H
 
-#include <geometry_msgs/Transform.h>
+#include <geometry_msgs/msg/transform.hpp>
 #include "DualNumber.h"
 #include "Quaternion.h"
 
@@ -86,7 +86,7 @@ class Transform : boost::multipliable<Transform<T> >
 			{
 			}
 
-			Transform(const geometry_msgs::Transform& trans)
+			Transform(const geometry_msgs::msg::Transform& trans)
 			    :Transform({trans.translation.x,
 					trans.translation.y,
 					trans.translation.z},
@@ -97,10 +97,10 @@ class Transform : boost::multipliable<Transform<T> >
 			{
 			}
 
-			operator geometry_msgs::Transform() const
+			operator geometry_msgs::msg::Transform() const
 			{
-			    geometry_msgs::Transform	ret;
-			    const auto			translation = t();
+			    geometry_msgs::msg::Transform ret;
+			    const auto			  translation = t();
 			    ret.translation.x = translation(0);
 			    ret.translation.y = translation(1);
 			    ret.translation.z = translation(2);

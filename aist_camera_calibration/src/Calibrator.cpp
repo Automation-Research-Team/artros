@@ -282,6 +282,15 @@ Calibrator::~Calibrator()
 {
 }
 
+template <class T> T
+Calibrator::declare_read_only_parameter(const std::string& name,
+					const T& default_value)
+{
+    return declare_parameter(
+		name, default_value,
+		ddynamic_reconfigure2::read_only_param_desc<T>(name));
+}
+
 const std::string&
 Calibrator::getName() const
 {

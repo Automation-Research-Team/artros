@@ -245,7 +245,8 @@ install(
 ## Exports ##
 #############
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(aist_msgs std_srvs pcl_ros pcl_conversions)
+ament_export_dependencies(image_transport aist_msgs std_srvs
+			  pcl_ros pcl_conversions)
 
 ##########
 #  test  #

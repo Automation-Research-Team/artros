@@ -1,158 +1,118 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_handeye_calibration)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-enable_language(CXX)
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-set(CMAKE_CXX_STANDARD		17)
-set(CMAKE_CXX_STANDARD_REQUIRED	ON)
-set(CMAKE_CXX_EXTENSIONS	OFF)
-set(CMAKE_CXX_FLAGS		"-Wall -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE	"")
-set(CMAKE_CXX_FLAGS_DEBUG	"-g")
-set(CMAKE_CXX_BUILD_TYPE	Release)
-
-find_package(Boost REQUIRED COMPONENTS system)
-find_package(Eigen3 REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
-
-find_package(catkin REQUIRED
-  COMPONENTS
-    roscpp
-    image_proc
-    image_transport
-    std_srvs
-    std_msgs
-    sensor_msgs
-    geometry_msgs
-    message_generation
-    tf2_ros
-    tf2_geometry_msgs
-    dynamic_reconfigure
-    pcl_ros
-    pcl_conversions
-    genmsg
-    actionlib
-    actionlib_msgs
-    aist_utility
-)
-
-generate_dynamic_reconfigure_options(
-  cfg/aist_handeye_calibration.cfg
-)
-
-add_service_files(
-  FILES
-    GetSampleList.srv
-    ComputeCalibration.srv
-)
-
-add_action_files(
-  FILES
-    TakeSample.action
-)
-
-generate_messages(
-  DEPENDENCIES
-    std_msgs
-    geometry_msgs
-    actionlib_msgs
-)
-
-catkin_package(
-  CATKIN_DEPENDS
-    roscpp
-    message_runtime
-    std_msgs
-    geometry_msgs
-    actionlib_msgs
-)
-
-## System dependencies are found with CMake's conventions
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(common_interfaces REQUIRED)
+find_package(ament_index_cpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(aist_handeye_calibration_msgs REQUIRED)
+find_package(aist_utility REQUIRED)
+find_package(ddynamic_reconfigure2 REQUIRED)
 
 ###########
 ## Build ##
 ###########
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-  src
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
-add_executable(calibrator
-  src/main.cpp
-  src/Calibrator.cpp
+add_library(
+  ${PROJECT_NAME} SHARED
+    src/Calibrator.cpp
 )
 
-add_dependencies(calibrator
-  ${PROJECT_NAME}_generate_messages_cpp
+target_compile_definitions(
+  ${PROJECT_NAME} PRIVATE
+    COMPOSITION_BUILDING_DLL
 )
 
-target_link_libraries(calibrator
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${YAML-CPP_LIBRARIES}
+ament_target_dependencies(
+  ${PROJECT_NAME}
+    rclcpp_components
+    ament_index_cpp
+    geometry_msgs
+    tf2_ros
+    tf2_geometry_msgs
+    aist_handeye_calibration_msgs
+    aist_utility
+    ddynamic_reconfigure2
 )
 
-add_executable(test_calibrator
-  src/test_calibrator/main.cpp
+rclcpp_components_register_nodes(
+  ${PROJECT_NAME}
+    ${PROJECT_NAME}::Calibrator
 )
 
-add_dependencies(test_calibrator
-  ${PROJECT_NAME}_generate_messages_cpp
+add_executable(
+  test_calibrator
+    src/test_calibrator.cpp
 )
 
-target_link_libraries(test_calibrator
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${YAML-CPP_LIBRARIES}
+ament_target_dependencies(
+  test_calibrator
+    aist_utility
 )
 
-add_executable(plane_detector
-  src/plane_detector/main.cpp
-)
+########################
+#  python executables  #
+########################
+ament_python_install_package(${PROJECT_NAME})
 
-add_dependencies(plane_detector
-  ${PROJECT_NAME}_generate_messages_cpp
-  ${PROJECT_NAME}_gencfg
-)
-
-target_link_libraries(plane_detector
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${pcl_LIBRARIES}
+install(
+  PROGRAMS
+    scripts/run_calibration.py
+    scripts/check_calibration.py
+    scripts/tool_calibration.py
+  DESTINATION
+    lib/${PROJECT_NAME}
 )
 
 #############
 ## Install ##
 #############
 install(
-  TARGETS
-    calibrator test_calibrator plane_detector
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  TARGETS  ${PROJECT_NAME}
+  ARCHIVE  DESTINATION lib
+  LIBRARY  DESTINATION lib
+  RUNTIME  DESTINATION bin
+  INCLUDES DESTINATION include
 )
 
-catkin_install_python(
-  PROGRAMS
-    scripts/run_calibration.py
-    scripts/check_calibration.py
-    scripts/tool_calibration.py
-    scripts/publish_calibration.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
 )
 
-## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
-# )
+##########
+#  test  #
+##########
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
 
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()

@@ -43,9 +43,19 @@
 #include <cstdlib>	// for std::getenv()
 #include <sys/stat.h>	// for mkdir()
 #include <errno.h>
+#include <rclcpp/rclcpp.hpp>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <std_srvs/srv/trigger.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+#include <aist_handeye_calibration_msgs/srv/get_sample_list.hpp>
+#include <aist_handeye_calibration_msgs/srv/compute_calibration.hpp>
+#include <aist_handeye_calibration_msgs/action/take_sample.hpp>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <aist_utility/geometry_msgs.hpp>
-#include "Calibrator.h"
+#include <ddynamic_reconfigure2/ddynamic_reconfigure2.hpp>
 #include "HandeyeCalibration.h"
 
 //#define DEBUG
@@ -55,62 +65,164 @@ namespace aist_handeye_calibration
 /************************************************************************
 *  class Calibrator							*
 ************************************************************************/
-Calibrator::Calibrator(const ros::NodeHandle& nh)
-    :_nh(nh),
-     _pose_sub(_nh.subscribe("/pose", 5, &Calibrator::pose_cb, this)),
-     _get_sample_list_srv(
-	 _nh.advertiseService("get_sample_list",
-			      &Calibrator::get_sample_list, this)),
-     _compute_calibration_srv(
-	 _nh.advertiseService("compute_calibration",
-			      &Calibrator::compute_calibration, this)),
-     _save_calibration_srv(
-	 _nh.advertiseService("save_calibration",
-			      &Calibrator::save_calibration, this)),
-     _reset_srv(_nh.advertiseService("reset", &Calibrator::reset, this)),
-     _take_sample_srv(_nh, "take_sample", false),
-     _tf2_buffer(),
-     _tf2_listener(_tf2_buffer),
-     _use_dual_quaternion(_nh.param<bool>("use_dual_quaternion", true)),
-     _eye_on_hand(_nh.param<bool>("eye_on_hand", true)),
-     _timeout(_nh.param<double>("timeout", 5.0))
+class Calibrator : public rclcpp::Node
 {
-    ROS_INFO_STREAM("initializing calibrator...");
+  public:
+    using transform_t	= geometry_msgs::msg::TransformStamped;
+
+  private:
+    using pose_t		= geometry_msgs::msg::PoseStamped;
+    using pose_p		= pose_t::UniquePtr;
+    using GetSampleList		= aist_handeye_calibration_msgs::srv
+					::GetSampleList;
+    using GetSampleListSrvPtr	= rclcpp::Service<GetSampleList>::SharedPtr;
+    using GetSampleListReqPtr	= GetSampleList::Request::SharedPtr;
+    using GetSampleListResPtr	= GetSampleList::Response::SharedPtr;
+    using ComputeCalibration	= aist_handeye_calibration_msgs::srv
+					::ComputeCalibration;
+    using ComputeCalibrationSrvPtr
+				= rclcpp::Service<ComputeCalibration>::SharedPtr;
+    using ComputeCalibrationReqPtr
+				= ComputeCalibration::Request::SharedPtr;
+    using ComputeCalibrationResPtr
+				= ComputeCalibration::Response::SharedPtr;
+    using Trigger		= std_srvs::srv::Trigger;
+    using TriggerSrvPtr		= rclcpp::Service<Trigger>::SharedPtr;
+    using TriggerReqPtr		= Trigger::Request::SharedPtr;
+    using TriggerResPtr		= Trigger::Response::SharedPtr;
+    using Empty			= std_srvs::srv::Empty;
+    using EmptySrvPtr		= rclcpp::Service<Empty>::SharedPtr;
+    using EmptyReqPtr		= Empty::Request::SharedPtr;
+    using EmptyResPtr		= Empty::Response::SharedPtr;
+    using TakeSample		= aist_handeye_calibration_msgs::action
+					::TakeSample;
+    using TakeSampleSrvPtr	= rclcpp_action::Server<TakeSample>::SharedPtr;
+    using TakeSampleGoalPtr	= std::shared_ptr<const TakeSample::Goal>;
+    using TakeSampleGoalHandlePtr
+	      = std::shared_ptr<rclcpp_action::ServerGoalHandle<TakeSample> >;
+    
+  public:
+		Calibrator(const rclcpp::NodeOptions& options)		;
+
+  private:
+     std::string	node_name()	const	{ return get_name(); }
+    template <class T>
+    T			declare_read_only_parameter(const std::string& name,
+						    const T& default_value);
+    const std::string&	camera_frame()				const	;
+    const std::string&	effector_frame()			const	;
+    const std::string&	marker_frame()				const	;
+    const std::string&	world_frame()				const	;
+
+    void	pose_cb(pose_p pose)					;
+    void	get_sample_list(const GetSampleListReqPtr,
+				GetSampleListResPtr res)		;
+    void	compute_calibration(const ComputeCalibrationReqPtr,
+				    ComputeCalibrationResPtr res)	;
+    void	save_calibration(const TriggerReqPtr, TriggerResPtr res);
+    void	reset(const EmptyReqPtr, EmptyResPtr)			;
+    rclcpp_action::GoalResponse
+		take_sample_goal_cb(const rclcpp_action::GoalUUID&,
+				    TakeSampleGoalPtr)			;
+    rclcpp_action::CancelResponse
+		take_sample_cancel_cb(TakeSampleGoalHandlePtr)		;
+    void	take_sample_accept_cb(TakeSampleGoalHandlePtr gh)	;
+
+  private:
+    const rclcpp::Subscription<pose_t>::SharedPtr _pose_sub;
+    const GetSampleListSrvPtr			  _get_sample_list_srv;
+    const ComputeCalibrationSrvPtr		  _compute_calibration_srv;
+    const TriggerSrvPtr				  _save_calibration_srv;
+    const EmptySrvPtr				  _reset_srv;
+    const TakeSampleSrvPtr			  _take_sample_srv;
+    TakeSampleGoalHandlePtr			  _current_goal_handle;
+    
+    tf2_ros::Buffer				  _tf2_buffer;
+    const tf2_ros::TransformListener		  _tf2_listener;
+
+    std::vector<transform_t>	_Tcm;	//!< in:  camera <- marker   transform
+    std::vector<transform_t>	_Twe;	//!< in:  world  <- effector transform
+    transform_t			_Tec;	//!< out: effector <- camera transform
+    transform_t			_Twm;	//!< out: world    <- marker transform
+
+    const bool			_use_dual_quaternion;
+    const bool			_eye_on_hand;
+    const std::string		_camera_name;
+};
+
+Calibrator::Calibrator(const rclcpp::NodeOptions& options)
+    :rclcpp::Node("calibrator", options),
+     _pose_sub(create_subscription<pose_t>("/pose", 1,
+					   std::bind(&Calibrator::pose_cb,
+						     this,
+						     std::placeholders::_1))),
+     _get_sample_list_srv(create_service<GetSampleList>(
+			      node_name() + "/get_sample_list",
+			      std::bind(&Calibrator::get_sample_list, this,
+					std::placeholders::_1,
+					std::placeholders::_2))),
+     _compute_calibration_srv(create_service<ComputeCalibration>(
+				  node_name() + "/compute_calibration",
+				  std::bind(&Calibrator::compute_calibration,
+					    this,
+					    std::placeholders::_1,
+					    std::placeholders::_2))),
+     _save_calibration_srv(create_service<Trigger>(
+			       node_name() + "/save_calibration",
+			       std::bind(&Calibrator::save_calibration, this,
+					 std::placeholders::_1,
+					 std::placeholders::_2))),
+     _reset_srv(create_service<Empty>(node_name() + "/reset",
+				      std::bind(&Calibrator::reset, this,
+						std::placeholders::_1,
+						std::placeholders::_2))),
+     _take_sample_srv(rclcpp_action::create_server<TakeSample>(
+			  this, node_name() + "/take_sample",
+			  std::bind(&Calibrator::take_sample_goal_cb, this,
+				    std::placeholders::_1,
+				    std::placeholders::_2),
+			  std::bind(&Calibrator::take_sample_cancel_cb, this,
+				    std::placeholders::_1),
+			  std::bind(&Calibrator::take_sample_accept_cb, this,
+				    std::placeholders::_1))),
+     _current_goal_handle(nullptr),
+     _tf2_buffer(get_clock()),
+     _tf2_listener(_tf2_buffer),
+     _use_dual_quaternion(declare_read_only_parameter<bool>(
+			      "use_dual_quaternion", true)),
+     _eye_on_hand(declare_read_only_parameter<bool>("eye_on_hand", true)),
+     _camera_name(declare_read_only_parameter<std::string>("camera_name",
+							   "camera"))
+{
+    RCLCPP_INFO_STREAM(get_logger(), "initializing calibrator...");
 
     if (_eye_on_hand)
     {
-	_Tec.header.frame_id = _nh.param<std::string>("robot_effector_frame",
-						      "tool0");
-	_Twm.header.frame_id = _nh.param<std::string>("robot_base_frame",
-						      "base_link");
+	_Tec.header.frame_id = declare_read_only_parameter<std::string>(
+				   "robot_effector_frame", "tool0");
+	_Twm.header.frame_id = declare_read_only_parameter<std::string>(
+				   "robot_base_frame", "base_link");
     }
     else
     {
-	_Twm.header.frame_id = _nh.param<std::string>("robot_effector_frame",
-						      "tool0");
-	_Tec.header.frame_id = _nh.param<std::string>("robot_base_frame",
-						      "base_link");
+	_Twm.header.frame_id = declare_read_only_parameter<std::string>(
+				   "robot_effector_frame", "tool0");
+	_Tec.header.frame_id = declare_read_only_parameter<std::string>(
+				   "robot_base_frame", "base_link");
     }
 
     _Tec.child_frame_id = "";
-    _Twm.child_frame_id = _nh.param<std::string>("marker_frame",
-						 "marker_frame");
-
-    _take_sample_srv.registerGoalCallback(boost::bind(&Calibrator::take_sample,
-						      this));
-    _take_sample_srv.registerPreemptCallback(boost::bind(&Calibrator::cancel,
-							 this));
-    _take_sample_srv.start();
+    _Twm.child_frame_id = declare_read_only_parameter<std::string>(
+			      "marker_frame", "marker_frame");
 }
 
-Calibrator::~Calibrator()
+template <class T> T
+Calibrator::declare_read_only_parameter(const std::string& name,
+					const T& default_value)
 {
-}
-
-void
-Calibrator::run()
-{
-    ros::spin();
+    return declare_parameter(
+		name, default_value,
+		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 const std::string&
@@ -138,71 +250,73 @@ Calibrator::world_frame() const
 }
 
 void
-Calibrator::pose_cb(const poseMsg_cp& poseMsg)
+Calibrator::pose_cb(pose_p pose)
 {
-    if (!_take_sample_srv.isActive())
+    if (!_current_goal_handle)
 	return;
 
     try
     {
+	using namespace	aist_utility;
+	
       // Set camera frame.
-	_Tec.child_frame_id = poseMsg->header.frame_id;
+	_Tec.child_frame_id = pose->header.frame_id;
 
       // Convert marker pose to camera <= object transform.
-	TakeSampleResult	result;
-	result.Tcm = aist_utility::toTransform(*poseMsg, marker_frame());
+	auto	result = std::make_shared<TakeSample::Result>();
+	result->transform_cm = aist_utility::toTransform(*pose,
+							 marker_frame());
 
       // Lookup world <= effector transform at the moment marker detected.
-	result.Twe = _tf2_buffer.lookupTransform(world_frame(),
-						 effector_frame(),
-						 poseMsg->header.stamp,
-						 _timeout);
-	ROS_DEBUG_STREAM(result.Tcm);
-	ROS_DEBUG_STREAM(result.Twe);
+	result->transform_we = _tf2_buffer.lookupTransform(
+				   world_frame(), effector_frame(),
+				   pose->header.stamp,
+				   tf2::durationFromSec(1.0));
+	RCLCPP_DEBUG_STREAM(get_logger(),
+			    "Tcm: " << result->transform_cm.transform);
+	RCLCPP_DEBUG_STREAM(get_logger(),
+			    "Twe: " << result->transform_we.transform);
 
-	_Tcm.emplace_back(result.Tcm);
-	_Twe.emplace_back(result.Twe);
+	_Tcm.emplace_back(result->transform_cm);
+	_Twe.emplace_back(result->transform_we);
 
-	_take_sample_srv.setSucceeded(result);
+	_current_goal_handle->succeed(result);
 
-	ROS_INFO_STREAM("take_sample(): succeeded");
+	RCLCPP_INFO_STREAM(get_logger(), "take_sample(): succeeded");
     }
     catch (const std::exception& err)
     {
-	_take_sample_srv.setAborted();
+	_current_goal_handle->abort(nullptr);
 
-	ROS_ERROR_STREAM("take_sample(): aborted[" << err.what() << ']');
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "take_sample(): aborted[" << err.what() << ']');
     }
 }
 
-bool
-Calibrator::get_sample_list(GetSampleList::Request&,
-			    GetSampleList::Response& res)
+void
+Calibrator::get_sample_list(const GetSampleListReqPtr, GetSampleListResPtr res)
 {
-    res.success = true;
-    res.message = std::to_string(_Tcm.size()) + " samples in hand.";
-    res.Tcm	= _Tcm;
-    res.Twe	= _Twe;
+    res->success	= true;
+    res->message	= std::to_string(_Tcm.size()) + " samples in hand.";
+    res->transform_cm	= _Tcm;
+    res->transform_we	= _Twe;
 
-    ROS_INFO_STREAM("get_sample_list(): " << res.message);
-
-    return true;
+    RCLCPP_INFO_STREAM(get_logger(), "get_sample_list(): " << res->message);
 }
 
-bool
-Calibrator::compute_calibration(ComputeCalibration::Request&,
-				ComputeCalibration::Response& res)
+void
+Calibrator::compute_calibration(const ComputeCalibrationReqPtr,
+				ComputeCalibrationResPtr res)
 {
     try
     {
-	using transform_t	= TU::Transform<double>;
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "compute_calibration(): computing with "
+			   << (_use_dual_quaternion ? "DUAL quaternion"
+						    : "SINGLE quaternion")
+			   << " algorithm...");
 
-	ROS_INFO_STREAM("compute_calibration(): computing with "
-			<< (_use_dual_quaternion ? "DUAL quaternion"
-						 : "SINGLE quaternion")
-			<< " algorithm...");
-
-	std::vector<transform_t>	Tcm, Twe;
+	std::vector<TU::Transform<double> >	Tcm, Twe;
 	for (size_t i = 0; i < _Tcm.size(); ++i)
 	{
 	    Tcm.emplace_back(_Tcm[i].transform);
@@ -214,7 +328,7 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 			       TU::cameraToEffectorSingle(Tcm, Twe));
 	const auto	Twm = TU::objectToWorld(Tcm, Twe, Tec);
 
-	const auto	now = ros::Time::now();
+	const auto	now = get_clock()->now();
 	_Tec.header.stamp = now;
 	_Tec.transform	  = Tec;
 	_Twm.header.stamp = now;
@@ -222,27 +336,26 @@ Calibrator::compute_calibration(ComputeCalibration::Request&,
 
 	std::ostringstream	sout;
 	TU::evaluateAccuracy(sout, Tcm, Twe, Tec, Twm);
-	res.success = true;
-	res.message = sout.str();
-	res.Tec	    = _Tec;
-	res.Twm	    = _Twm;
+	res->success	  = true;
+	res->message	  = sout.str();
+	res->transform_ec = _Tec;
+	res->transform_wm = _Twm;
 
-	ROS_INFO_STREAM("compute_calibration(): " << res.message);
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "compute_calibration(): " << res->message);
     }
     catch (const std::exception& err)
     {
-	res.success = false;
-	res.message = err.what();
+	res->success = false;
+	res->message = err.what();
 
-	ROS_ERROR_STREAM("compute_calibration(): " << res.message);
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "compute_calibration(): " << res->message);
     }
-
-    return res.success;
 }
 
-bool
-Calibrator::save_calibration(std_srvs::Trigger::Request&,
-			     std_srvs::Trigger::Response& res)
+void
+Calibrator::save_calibration(const TriggerReqPtr, TriggerResPtr res)
 {
     try
     {
@@ -273,9 +386,7 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
       // Read calibration file name from parameter server.
 	const auto	calib_file = std::string(getenv("HOME"))
 				   + "/.ros/aist_handeye_calibration/"
-				   + _nh.param<std::string>("camera_name",
-							    "camera")
-				   + ".yaml";
+				   + _camera_name + ".yaml";
 
       // Open/create parent directory of the calibration file.
 	const auto	dir = calib_file.substr(0,
@@ -294,46 +405,63 @@ Calibrator::save_calibration(std_srvs::Trigger::Request&,
       // Save calitration results.
 	out << emitter.c_str() << std::endl;
 
-	res.success = true;
-	res.message = "saved in " + calib_file;
+	res->success = true;
+	res->message = "saved in " + calib_file;
 
-	ROS_INFO_STREAM("save_calibration(): " << res.message);
+	RCLCPP_INFO_STREAM(get_logger(),
+			   "save_calibration(): " << res->message);
     }
     catch (const std::exception& err)
     {
-	res.success = false;
-	res.message = err.what();
+	res->success = false;
+	res->message = err.what();
 
-	ROS_ERROR_STREAM("compute_calibration(): " << res.message);
+	RCLCPP_ERROR_STREAM(get_logger(),
+			    "compute_calibration(): " << res->message);
     }
-
-    return res.success;
 }
 
-bool
-Calibrator::reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&)
+void
+Calibrator::reset(const EmptyReqPtr, EmptyResPtr)
 {
     _Tcm.clear();
     _Twe.clear();
 
-    ROS_INFO_STREAM("reset(): all samples cleared.");
+    RCLCPP_INFO_STREAM(get_logger(), "reset(): all samples cleared.");
+}
 
-    return true;
+rclcpp_action::GoalResponse
+Calibrator::take_sample_goal_cb(const rclcpp_action::GoalUUID&,
+				TakeSampleGoalPtr)
+{
+    RCLCPP_INFO_STREAM(get_logger(), "TakeSampleAction: new goal received");
+
+    return (!_current_goal_handle ?
+	    rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE :
+	    rclcpp_action::GoalResponse::REJECT);
+}
+
+rclcpp_action::CancelResponse
+Calibrator::take_sample_cancel_cb(TakeSampleGoalHandlePtr)
+{
+    _current_goal_handle.reset();
+
+    RCLCPP_WARN_STREAM(get_logger(),
+		       "TakeSampleAction: current goal canceled");
+
+    return rclcpp_action::CancelResponse::ACCEPT;
 }
 
 void
-Calibrator::take_sample()
+Calibrator::take_sample_accept_cb(TakeSampleGoalHandlePtr gh)
 {
-    _take_sample_srv.acceptNewGoal();
+    _current_goal_handle = gh;
 
-    ROS_INFO_STREAM("take_sample(): accepted new goal");
-}
-
-void
-Calibrator::cancel()
-{
-    ROS_WARN_STREAM("cancel(): taking sample canceled.");
-    _take_sample_srv.setPreempted();
+    RCLCPP_INFO_STREAM(get_logger(), "take_sample(): new goal accepted");
 }
 
 }	// namespace aist_handeye_calibration
+
+#include <rclcpp_components/register_node_macro.hpp>
+
+RCLCPP_COMPONENTS_REGISTER_NODE(aist_handeye_calibration::Calibrator)
