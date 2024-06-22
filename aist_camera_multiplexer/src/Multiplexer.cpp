@@ -75,7 +75,6 @@ class Multiplexer : public rclcpp::Node
 	const rclcpp::Subscription<camera_info_t>::SharedPtr _camera_info_sub;
     };
     
-    using subscribers_cp	 = std::shared_ptr<const Subscribers>;
     using ddynamic_reconfigure_t = ddynamic_reconfigure2::DDynamicReconfigure;
 
   public:
@@ -90,7 +89,7 @@ class Multiplexer : public rclcpp::Node
     void	activate_camera(const std::string& camera_name)		;
 
   private:
-    std::vector<subscribers_cp>				_subscribers;
+    std::vector<Subscribers>				_subscribers;
     size_t						_active_camera_number;
 
     ddynamic_reconfigure_t				_ddr;
@@ -180,13 +179,13 @@ Multiplexer::Multiplexer(const rclcpp::NodeOptions& options)
     for (const auto& camera_name : camera_names)
     {
 	enum_cameras[camera_name] = camera_name;
-	_subscribers.emplace_back(new Subscribers(this, camera_name));
+	_subscribers.emplace_back(this, camera_name);
 	RCLCPP_INFO_STREAM(get_logger(),
 			   "Subscribe camera[" << camera_name << ']');
     }
 
     _ddr.registerEnumVariable<std::string>(
-	"active_camera", _subscribers[_active_camera_number]->camera_name(),
+	"active_camera", _subscribers[_active_camera_number].camera_name(),
 	std::bind(&Multiplexer::activate_camera, this, std::placeholders::_1),
 	"Currently active camera", enum_cameras);
 }
@@ -210,7 +209,7 @@ void
 Multiplexer::activate_camera(const std::string& camera_name)
 {
     for (size_t i = 0; i < ncameras(); ++i)
-	if (_subscribers[i]->camera_name() == camera_name)
+	if (_subscribers[i].camera_name() == camera_name)
 	{
 	    _active_camera_number = i;
 	    RCLCPP_INFO_STREAM(get_logger(),
