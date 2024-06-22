@@ -128,7 +128,7 @@ make_assignment_iterator(ITER iter)
 template <class T, class ITER> static ITER
 copy_image(const sensor_msgs::msg::Image& image, ITER out)
 {
-    for (int v = 0; v < image.height; ++v)
+    for (size_t v = 0; v < image.height; ++v)
 	out = std::copy_n(ptr<T>(image, v), image.width, out);
 
     return out;

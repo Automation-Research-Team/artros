@@ -1,57 +1,49 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_camera_multiplexer)
 
-## Compile as C++17, supported in ROS melodic and newer
-enable_language(CXX)
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-set(CMAKE_CXX_STANDARD		17)
-set(CMAKE_CXX_STANDARD_REQUIRED	ON)
-set(CMAKE_CXX_EXTENSIONS	OFF)
-set(CMAKE_CXX_FLAGS		"-Wall -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE	"")
-set(CMAKE_CXX_FLAGS_DEBUG	"-g")
-set(CMAKE_CXX_BUILD_TYPE	Release)
+find_package(PkgConfig)
+pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
+pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
 
-find_package(catkin REQUIRED
-  COMPONENTS
-    ddynamic_reconfigure
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(ddynamic_reconfigure2 REQUIRED)
+
+find_package(ament_cmake_python REQUIRED)
+find_package(rclpy REQUIRED)
+
+###################################################
+#  shared library: libaist_camera_multiplexer.so  #
+###################################################
+add_library(
+  ${PROJECT_NAME} SHARED
+    src/Multiplexer.cpp
+)
+
+target_compile_definitions(
+  ${PROJECT_NAME} PRIVATE
+    COMPOSITION_BUILDING_DLL
+)
+
+ament_target_dependencies(
+  ${PROJECT_NAME}
+    rclcpp_components
     sensor_msgs
     image_transport
-    rospy
-)
-
-catkin_python_setup()
-
-###########
-## Build ##
-###########
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
-
-catkin_package(
-  CATKIN_DEPENDS
-    roscpp
-    rospy
-    sensor_msgs
-    pluginlib
-    nodelet
-)
-
-add_library(${PROJECT_NAME}
-  src/nodelet.cpp
-  src/Multiplexer.cpp
-)
-
-add_dependencies(${PROJECT_NAME}
-  ${${PREOJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${roscpp_LIBRARIES}
-  ${Boost_LIBRARIES}
+    ddynamic_reconfigure2
 )
 
 #############
@@ -60,18 +52,53 @@ target_link_libraries(${PROJECT_NAME}
 install(
   TARGETS
     ${PROJECT_NAME}
-  ARCHIVE
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY
-    DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  EXPORT   export_${PROJECT_NAME}
+  LIBRARY  DESTINATION lib
+  ARCHIVE  DESTINATION lib
+  RUNTIME  DESTINATION bin
+  INCLUDES DESTINATION include
 )
 
-catkin_install_python(
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+#########################
+## Install python code ##
+#########################
+ament_python_install_package(${PROJECT_NAME})
+
+install(
   PROGRAMS
     scripts/drealsense.py
     scripts/select_camera.py
     scripts/select_realsense_camera.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  DESTINATION
+    lib/${PROJECT_NAME}
 )
+
+#############
+## Exports ##
+#############
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(image_transport)
+
+##########
+#  test  #
+##########
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+
+  # the following line skips the linter which checks for copyrights
+  # comment the line when a copyright and license is added to all source files
+  set(ament_cmake_copyright_FOUND TRUE)
+
+  # the following line skips cpplint (only works in a git repo)
+  # comment the line when this package is in a git repo and when
+  # a copyright and license is added to all source files
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_package()

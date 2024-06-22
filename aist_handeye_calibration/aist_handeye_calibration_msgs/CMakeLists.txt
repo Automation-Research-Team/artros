@@ -5,7 +5,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(action_msgs REQUIRED)
 
 set(
   srv_files
@@ -24,7 +23,6 @@ rosidl_generate_interfaces(
     ${action_files}
   DEPENDENCIES
     geometry_msgs
-    action_msgs
 )
 
 ament_export_dependencies(rosidl_default_runtime)

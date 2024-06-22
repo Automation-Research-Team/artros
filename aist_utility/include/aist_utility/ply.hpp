@@ -35,7 +35,7 @@
  *  \author	Toshio Ueshiba
  *  \brief	Save depth and color images to Ordered PLY file
  */
-#pragma onve
+#pragma once
 
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
@@ -49,4 +49,3 @@ void	savePly(const sensor_msgs::msg::CameraInfo& camera_info,
 		const sensor_msgs::msg::Image& normal,
 		const std::string& file)				;
 }	// namespace aist_utility
-

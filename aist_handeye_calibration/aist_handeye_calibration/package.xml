@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
+
   <name>aist_handeye_calibration</name>
   <version>1.0.0</version>
   <description>The aist_handeye_calibration package</description>
@@ -11,6 +12,7 @@
 
   <build_depend>rclcpp_components</build_depend>
   <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
 
   <depend>ament_index_cpp</depend>
   <depend>rclcpp_action</depend>
@@ -22,5 +24,9 @@
   <depend>aist_handeye_calibration_msgs</depend>
   <depend>aist_utility</depend>
   <depend>ddynamic_reconfigure2</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 
 </package>
