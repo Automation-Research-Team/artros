@@ -14,7 +14,6 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_components REQUIRED)
-find_package(common_interfaces REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(aruco REQUIRED)
 find_package(geometry_msgs REQUIRED)
@@ -27,15 +26,6 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(ddynamic_reconfigure2 REQUIRED)
 find_package(aist_utility REQUIRED)
 find_package(aist_aruco_msgs REQUIRED)
-find_package(OpenCV REQUIRED)
-
-###########
-## Build ##
-###########
-include_directories(
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
 
 #####################################
 #  component: libaist_aruco_ros.so  #
@@ -68,11 +58,6 @@ ament_target_dependencies(
     aist_aruco_msgs
 )
 
-target_link_libraries(
-  ${PROJECT_NAME}
-    ${OpenCV_LIBRARIES}
-)
-
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
     ${PROJECT_NAME}::Detector3D
@@ -80,7 +65,7 @@ rclcpp_components_register_nodes(
 )
 
 #############
-## Install ##
+#  install  #
 #############
 install(
   TARGETS  ${PROJECT_NAME}
@@ -97,6 +82,16 @@ install(
 
 install(
   DIRECTORY config
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY urdf
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY media
   DESTINATION share/${PROJECT_NAME}/
 )
 

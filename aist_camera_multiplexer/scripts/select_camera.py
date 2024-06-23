@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, rospy
+import sys, rclpy
 from aist_camera_multiplexer import CameraMultiplexerClient
 
 #########################################################################

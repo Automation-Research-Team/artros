@@ -33,7 +33,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy
+from rclpy.node import Node
 import dynamic_reconfigure.client
 
 ######################################################################
@@ -41,7 +41,7 @@ import dynamic_reconfigure.client
 ######################################################################
 class CameraMultiplexerClient(object):
     def __init__(self, server='camera_multiplexer'):
-        super(CameraMultiplexerClient, self).__init__()
+        super().__init__()
         self._camera_names = rospy.get_param(server + '/camera_names')
         self._ddr_client   = dynamic_reconfigure.client.Client(server,
                                                                timeout=30.0)
@@ -70,7 +70,7 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
 
     class RealSenseCamera(object):
         def __init__(self, camera_name):
-            super(RealSenseMultiplexerClient.RealSenseCamera, self).__init__()
+            super().__init__()
             self._ddr_client = dynamic_reconfigure.client.Client(
                                    camera_name + '/coded_light_depth_sensor',
                                    timeout=5.0)
@@ -85,7 +85,7 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
 
     def __init__(self, server='camera_multiplexer', value=16):
         try:
-            super(RealSenseMultiplexerClient, self).__init__(server)
+            super().__init__(server)
             self._cameras = dict(zip(self.camera_names,
                                  [RealSenseMultiplexerClient.RealSenseCamera(
                                      camera_name)
@@ -101,5 +101,5 @@ class RealSenseMultiplexerClient(CameraMultiplexerClient):
 
     def activate_camera(self, camera_name, value=16):
         self._cameras[self.active_camera].laser_power = 0
-        super(RealSenseMultiplexerClient, self).activate_camera(camera_name)
+        super().activate_camera(camera_name)
         self._cameras[self.active_camera].laser_power = value

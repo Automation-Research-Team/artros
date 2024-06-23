@@ -13,7 +13,6 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
-#include <opencv2/imgproc.hpp>
 #include <pcl_ros/transforms.hpp>
 #include <pcl_conversions/pcl_conversions.h>
 #include <tf2_ros/transform_listener.h>

@@ -1,4 +1,3 @@
-import yaml
 from launch                            import LaunchDescription
 from launch.actions                    import (DeclareLaunchArgument,
                                                IncludeLaunchDescription,
@@ -40,12 +39,12 @@ launch_arguments = [
     {'name':        'container',
      'default':     'my_container',
      'description': 'name of internal or external component container'},
-    {'name':        'log_level',
-     'default':     'info',
-     'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
     {'name':        'output',
      'default':     'both',
      'description': 'pipe node output [screen|log]'},
+    {'name':        'log_level',
+     'default':     'info',
+     'description': 'debug log level [DEBUG|INFO|WARN|ERROR|FATAL]'},
     {'name':        'marker_map_dir',
      'default':     PathJoinSubstitution([ThisLaunchFileDir(),
                                           '..', 'config']),
@@ -92,14 +91,15 @@ def launch_setup(context):
                     PathJoinSubstitution([ThisLaunchFileDir().perform(context),
                                           'detector_3d.launch.py'])),
                 launch_arguments={
-                    'camera_info_topic': camera_name \
-                                         + camera['camera_info_topic'],
-                    'image_topic':       camera_name + camera['image_topic'],
-                    'depth_topic':       camera_name + camera['depth_topic'],
-                    'cloud_topic':       '',
-                    'container':         LaunchConfiguration('container'),
-                    'output':            LaunchConfiguration('output'),
-                    'log_level':         LaunchConfiguration('log_level')
+                    'camera_info_topic':   camera_name \
+                                           + camera['camera_info_topic'],
+                    'image_topic':         camera_name + camera['image_topic'],
+                    'depth_topic':         camera_name + camera['depth_topic'],
+                    'cloud_topic':         '',
+                    'container':           LaunchConfiguration('container'),
+                    'marker_map':          LaunchConfiguration('marker_map'),
+                    'planarity_tolerance': LaunchConfiguration(
+                                               'planarity_tolerance')
                 }.items()),
             Node(name='rviz',
                  package='rviz2', executable='rviz2', output='screen',

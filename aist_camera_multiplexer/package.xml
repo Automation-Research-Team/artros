@@ -9,11 +9,11 @@
   <license>BSD</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  
+
   <build_depend>rclcpp_components</build_depend>
   <exec_depend>rclcpp_components</exec_depend>
   <exec_depend>launch_ros</exec_depend>
-  
+
   <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>image_transport</depend>
@@ -22,5 +22,5 @@
   <export>
     <build_type>ament_cmake</build_type>
   </export>
-  
+
 </package>

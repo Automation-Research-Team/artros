@@ -1,21 +1,42 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.8)
 project(aist_description)
 
-find_package(catkin REQUIRED COMPONENTS)
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package()
-
-###########
-## Build ##
-###########
+find_package(ament_cmake_core REQUIRED)
 
 #############
 ## Install ##
 #############
-catkin_install_python(
-  PROGRAMS scripts/convert_stl_to_ply.py scripts/generate_urdf_from_meshes.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+install(
+  PROGRAMS
+    scripts/convert_stl_to_ply.py
+    scripts/generate_urdf_from_meshes.py
+  DESTINATION
+    lib/${PROJECT_NAME}
 )
+
+install(
+  DIRECTORY devices
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY objects
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY parts
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY scenes
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(
+  DIRECTORY wrc
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+ament_package()

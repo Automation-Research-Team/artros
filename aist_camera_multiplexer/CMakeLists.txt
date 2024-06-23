@@ -11,10 +11,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-find_package(PkgConfig)
-pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
-pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -25,9 +21,9 @@ find_package(ddynamic_reconfigure2 REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclpy REQUIRED)
 
-###################################################
-#  shared library: libaist_camera_multiplexer.so  #
-###################################################
+##############################################
+#  component: libaist_camera_multiplexer.so  #
+##############################################
 add_library(
   ${PROJECT_NAME} SHARED
     src/Multiplexer.cpp
@@ -46,17 +42,20 @@ ament_target_dependencies(
     ddynamic_reconfigure2
 )
 
+rclcpp_components_register_node(
+  ${PROJECT_NAME}
+    PLUGIN     ${PROJECT_NAME}::Multiplexer
+    EXECUTABLE ${PROJECT_NAME}_node
+)
+
 #############
-## Install ##
+#  install  #
 #############
 install(
-  TARGETS
-    ${PROJECT_NAME}
-  EXPORT   export_${PROJECT_NAME}
-  LIBRARY  DESTINATION lib
-  ARCHIVE  DESTINATION lib
-  RUNTIME  DESTINATION bin
-  INCLUDES DESTINATION include
+  TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 install(
@@ -64,9 +63,9 @@ install(
   DESTINATION share/${PROJECT_NAME}/
 )
 
-#########################
-## Install python code ##
-#########################
+############################################
+#  install python library and executables  #
+############################################
 ament_python_install_package(${PROJECT_NAME})
 
 install(
@@ -81,8 +80,7 @@ install(
 #############
 ## Exports ##
 #############
-ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(image_transport)
+ament_export_libraries(${PROJECT_NAME})
 
 ##########
 #  test  #

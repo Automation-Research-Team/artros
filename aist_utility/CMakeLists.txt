@@ -13,7 +13,7 @@ endif()
 
 find_package(PkgConfig)
 pkg_check_modules(LIBTIFF REQUIRED libtiff-4)
-pkg_check_modules(YAML-CPP yaml-cpp REQUIRED)
+pkg_check_modules(YAML-CPP REQUIRED yaml-cpp)
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -34,16 +34,12 @@ find_package(rclpy REQUIRED)
 
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(PCL REQUIRED)
 
 include_directories(
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
   $<INSTALL_INTERFACE:include>
-  ${PCL_INCLUDE_DIRS}
 )
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 
 ########################################
 #  shared library: libaist_utility.so  #
@@ -66,13 +62,10 @@ ament_target_dependencies(
     rclcpp_components
     sensor_msgs
     tf2
-)
-
-target_link_libraries(
-  ${PROJECT_NAME}
-    ${LIBTIFF_LIBRARIES}
-    ${OpenCV_LIBRARIES}
-    ${YAML-CPP_LIBRARIES}
+    LIBTIFF
+    OpenCV
+    Eigen3
+    YAML-CPP
 )
 
 #############
@@ -138,12 +131,7 @@ ament_target_dependencies(
     tf2
     tf2_ros
     ddynamic_reconfigure2
-)
-
-target_link_libraries(
-  capture_pcd
-    ${OpenCV_LIBRARIES}
-    ${PCL_LIBRARIES}
+    OpenCV
 )
 
 rclcpp_components_register_node(
@@ -210,11 +198,6 @@ rclcpp_components_register_node(
 ## Install ##
 #############
 install(
-  DIRECTORY include/
-  DESTINATION include
-)
-
-install(
   TARGETS
     ${PROJECT_NAME} joint_state_extractor capture_pcd
     butterworth_lpf_test spline_extrapolator_test
@@ -226,14 +209,14 @@ install(
 )
 
 install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
   DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}/
 )
-
-#########################
-## Install python code ##
-#########################
-ament_python_install_package(${PROJECT_NAME})
 
 install(
   PROGRAMS scripts/gensig.py
@@ -245,11 +228,11 @@ install(
 #############
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(image_transport aist_msgs std_srvs
-			  pcl_ros pcl_conversions)
+			  pcl_ros pcl_conversions OpenCV)
 
-##########
-#  test  #
-##########
+############
+##  test  ##
+############
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
 
