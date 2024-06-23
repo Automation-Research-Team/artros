@@ -13,7 +13,6 @@
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
-#include <opencv2/imgproc.hpp>
 #include <pcl_ros/transforms.hpp>
 #include <pcl_conversions/pcl_conversions.h>
 #include <tf2_ros/transform_listener.h>
@@ -52,6 +51,9 @@ class PCDCapturer : public rclcpp::Node
 
   private:
     std::string	node_name()			const	{ return get_name(); }
+    template <class T>
+    T		declare_read_only_parameter(const std::string& name,
+					    const T& default_value)	;
     void	camera_cb(const image_cp& color, const image_cp& depth,
 			  const camera_info_cp& camera_info)		;
     bool	save_cloud_cb(const trigger_req_p, trigger_res_p res)	;
@@ -90,10 +92,10 @@ PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
 			       std::placeholders::_1, std::placeholders::_2))),
      _buffer(get_clock()),
      _listener(_buffer),
-     _cloud_frame(_ddr.declare_read_only_parameter<std::string>("cloud_frame",
-								"base_link")),
-     _save_as_binary(_ddr.declare_read_only_parameter<bool>("save_as_binary",
-							    false)),
+     _cloud_frame(declare_read_only_parameter<std::string>("cloud_frame",
+							   "base_link")),
+     _save_as_binary(declare_read_only_parameter<bool>("save_as_binary",
+						       false)),
      _file_num(0),
      _cloud()
 {
@@ -101,6 +103,15 @@ PCDCapturer::PCDCapturer(const rclcpp::NodeOptions& options)
     _sync.registerCallback(&PCDCapturer::camera_cb, this);
 
     RCLCPP_INFO_STREAM(get_logger(), "started");
+}
+
+template <class T> T
+PCDCapturer::declare_read_only_parameter(const std::string& name,
+					 const T& default_value)
+{
+    return declare_parameter(
+		name, default_value,
+		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 void

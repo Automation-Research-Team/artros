@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(aist_aruco_ros)
+project(aist_handeye_calibration)
 
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -14,26 +14,26 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp_components REQUIRED)
+find_package(common_interfaces REQUIRED)
 find_package(ament_index_cpp REQUIRED)
-find_package(aruco REQUIRED)
 find_package(geometry_msgs REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(visualization_msgs REQUIRED)
-find_package(image_transport REQUIRED)
-find_package(cv_bridge REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
-find_package(ddynamic_reconfigure2 REQUIRED)
+find_package(aist_handeye_calibration_msgs REQUIRED)
 find_package(aist_utility REQUIRED)
-find_package(aist_aruco_msgs REQUIRED)
+find_package(ddynamic_reconfigure2 REQUIRED)
 
-#####################################
-#  component: libaist_aruco_ros.so  #
-#####################################
+###########
+## Build ##
+###########
+include_directories(
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
 add_library(
   ${PROJECT_NAME} SHARED
-    src/Detector3D.cpp
-    src/MultiDetector.cpp
+    src/Calibrator.cpp
 )
 
 target_compile_definitions(
@@ -45,27 +45,45 @@ ament_target_dependencies(
   ${PROJECT_NAME}
     rclcpp_components
     ament_index_cpp
-    aruco
     geometry_msgs
-    sensor_msgs
-    visualization_msgs
-    image_transport
-    cv_bridge
     tf2_ros
     tf2_geometry_msgs
-    ddynamic_reconfigure2
+    aist_handeye_calibration_msgs
     aist_utility
-    aist_aruco_msgs
+    ddynamic_reconfigure2
 )
 
 rclcpp_components_register_nodes(
   ${PROJECT_NAME}
-    ${PROJECT_NAME}::Detector3D
-    ${PROJECT_NAME}::MultiDetector
+    ${PROJECT_NAME}::Calibrator
+)
+
+add_executable(
+  test_calibrator
+    src/test_calibrator.cpp
+)
+
+ament_target_dependencies(
+  test_calibrator
+    aist_utility
+)
+
+########################
+#  python executables  #
+########################
+ament_python_install_package(${PROJECT_NAME})
+
+install(
+  PROGRAMS
+    scripts/run_calibration.py
+    scripts/check_calibration.py
+    scripts/tool_calibration.py
+  DESTINATION
+    lib/${PROJECT_NAME}
 )
 
 #############
-#  install  #
+## Install ##
 #############
 install(
   TARGETS  ${PROJECT_NAME}
@@ -77,21 +95,6 @@ install(
 
 install(
   DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY config
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY urdf
-  DESTINATION share/${PROJECT_NAME}/
-)
-
-install(
-  DIRECTORY media
   DESTINATION share/${PROJECT_NAME}/
 )
 

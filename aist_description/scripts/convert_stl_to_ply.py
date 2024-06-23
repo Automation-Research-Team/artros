@@ -1,15 +1,13 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python3
 # Reads every STL file in the meshes folder and saves it as a PLY file.
 
 import open3d as o3d
-import rospkg
 import os
 import sys
-import copy
 from pathlib import Path
+from ament_index_python.packages import get_package_share_directory
 
-directory = os.path.join(rospkg.RosPack().get_path('aist_description'),
+directory = os.path.join(get_package_share_directory('aist_description'),
                          'parts', 'meshes')
 
 nothing_to_be_done = True

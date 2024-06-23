@@ -1,0 +1,5 @@
+---
+bool success
+string message
+geometry_msgs/TransformStamped transform_ec  # effector <- camera transformation
+geometry_msgs/TransformStamped transform_wm  # world    <- marker transformation

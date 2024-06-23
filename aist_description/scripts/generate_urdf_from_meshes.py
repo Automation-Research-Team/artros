@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # Software License Agreement (BSD License)
 #
@@ -36,7 +36,7 @@
 # Author: Toshio Ueshiba
 #
 import os, yaml
-import rospy, rospkg
+from ament_index_python.packages import get_package_share_directory
 
 ######################################################################
 #  class URDFGenerator                                               #
@@ -45,7 +45,7 @@ class URDFGenerator(object):
     def __init__(self):
         super(URDFGenerator, self).__init__()
         self._root \
-            = os.path.join(rospkg.RosPack().get_path('aist_description'),
+            = os.path.join(get_package_share_directory('aist_description'),
                            'parts')
 
     def generate_urdfs(self):

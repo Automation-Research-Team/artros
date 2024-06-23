@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="3">
 
-  <name>aist_aruco_ros</name>
+  <name>aist_handeye_calibration</name>
   <version>1.0.0</version>
-  <description>The aist_aruco_ros package</description>
+  <description>The aist_handeye_calibration package</description>
 
   <maintainer email="t.ueshiba@aist.go.jp">Toshio UESHIBA</maintainer>
   <license>BSD</license>
@@ -15,18 +15,15 @@
   <exec_depend>launch_ros</exec_depend>
 
   <depend>ament_index_cpp</depend>
-  <depend>aruco</depend>
+  <depend>rclcpp_action</depend>
+  <depend>eigen</depend>
+  <depend>std_srvs</depend>
   <depend>geometry_msgs</depend>
-  <depend>sensor_msgs</depend>
-  <depend>visualization_msgs</depend>
-  <depend>image_transport</depend>
-  <depend>cv_bridge</depend>
   <depend>tf2_ros</depend>
   <depend>tf2_geometry_msgs</depend>
-  <depend>ddynamic_reconfigure2</depend>
-
+  <depend>aist_handeye_calibration_msgs</depend>
   <depend>aist_utility</depend>
-  <depend>aist_aruco_msgs</depend>
+  <depend>ddynamic_reconfigure2</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

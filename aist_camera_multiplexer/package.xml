@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
+
   <name>aist_camera_multiplexer</name>
   <version>1.0.0</version>
   <description>The aist_camera_multiplexer package</description>
@@ -7,16 +8,19 @@
   <maintainer email="t.ueshiba@aist.go.jp">Toshio UESHIBA</maintainer>
   <license>BSD</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>pluginlib</depend>
-  <depend>nodelet</depend>
-  <depend>roscpp</depend>
-  <depend>rospy</depend>
-  <depend>ddynamic_reconfigure</depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>rclcpp_components</build_depend>
+  <exec_depend>rclcpp_components</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <depend>rclpy</depend>
   <depend>sensor_msgs</depend>
   <depend>image_transport</depend>
+  <depend>ddynamic_reconfigure2</depend>
 
   <export>
-    <nodelet plugin="${prefix}/nodelet_description.xml"/>
+    <build_type>ament_cmake</build_type>
   </export>
+
 </package>

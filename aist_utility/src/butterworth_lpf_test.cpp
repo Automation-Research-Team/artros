@@ -26,6 +26,9 @@ class ButterworthLPFTest : public rclcpp::Node
 
   private:
     std::string	node_name()			const	{ return get_name(); }
+    template <class T>
+    T		declare_read_only_parameter(const std::string& name,
+					    const T& default_value)	;
     void	initialize(int half_order, double cutoff_frequency)	;
     void	flt_cb(flt_p in)				const	;
 
@@ -41,7 +44,7 @@ class ButterworthLPFTest : public rclcpp::Node
 ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
     :rclcpp::Node("butterworth_lpf_test", options),
      _ddr(rclcpp::Node::SharedPtr(this)),
-     _rate(_ddr.declare_read_only_parameter<double>("rate", 10.0)),
+     _rate(declare_read_only_parameter<double>("rate", 10.0)),
      _sub(create_subscription<flt_t>("/in", 1,
 				     std::bind(&ButterworthLPFTest::flt_cb,
 					       this, std::placeholders::_1))),
@@ -62,6 +65,15 @@ ButterworthLPFTest::ButterworthLPFTest(const rclcpp::NodeOptions& options)
 				  "Cutoff frequency", {0.1, 0.5*_rate});
 
     RCLCPP_INFO_STREAM(get_logger(), "started");
+}
+
+template <class T> T
+ButterworthLPFTest::declare_read_only_parameter(const std::string& name,
+						const T& default_value)
+{
+    return declare_parameter(
+		name, default_value,
+		ddynamic_reconfigure2::read_only_param_desc<T>(name));
 }
 
 void

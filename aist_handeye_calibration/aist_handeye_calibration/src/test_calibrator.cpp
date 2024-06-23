@@ -31,7 +31,7 @@
 // ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 #include <cstdlib>	// for std::getenv()
-#include <aist_utility/geometry_msgs.h>
+#include <aist_utility/geometry_msgs.hpp>
 #include "HandeyeCalibration.h"
 
 namespace TU
@@ -48,11 +48,11 @@ doJob(const std::string& camera_name, bool single)
     const YAML::Node	node = YAML::LoadFile(calib_file);
     const auto		eye_on_hand = node["eye_on_hand"].as<bool>();
 
-    std::vector<geometry_msgs::TransformStamped>	Tcm_msgs, Twe_msgs;
+    std::vector<geometry_msgs::msg::TransformStamped>	Tcm_msgs, Twe_msgs;
     node["Tcm"] >> Tcm_msgs;
     node["Twe"] >> Twe_msgs;
 
-  // Convert geometry_msgs::TransformStamped to TU::Transform<T>.
+  // Convert geometry_msgs::msg::TransformStamped to TU::Transform<T>.
     std::vector<Transform<T> >	Tcm, Twe;
     for (const auto& Tcm_msg : Tcm_msgs)
 	Tcm.push_back(Tcm_msg.transform);
