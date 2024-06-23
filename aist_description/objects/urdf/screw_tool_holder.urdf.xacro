@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot name="screw_tool_holder"
+       xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="screw_tool_holder"
+	       params="prefix parent *origin">
+
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="${prefix}screw_tool_holder">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+	<geometry>
+          <mesh filename="package://aist_description/objects/meshes/screw_tool_holder.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="white">
+	  <color rgba="0.9 0.9 0.9 1"/>
+	</material>
+      </visual>
+      <collision>
+      <!-- avoid collision -->
+	<origin xyz="0 0 0" rpy="0 0 0"/>
+	<geometry>
+	  <mesh
+	      filename="package://aist_description/objects/meshes/screw_tool_holder.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+      </collision>
+    </link>
+    <joint name="${prefix}screw_tool_holder_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}screw_tool_holder"/>
+       <xacro:insert_block name="origin"/>
+    </joint>
+
+    <!-- A link representing the tool of the pad and a joint attaching
+	 it to the gripper -->
+    <link name="${prefix}screw_tool_cup"/>
+    <joint name="${prefix}screw_tool_cup_joint" type="fixed">
+      <parent link="${prefix}screw_tool_holder"/>
+      <child  link="${prefix}screw_tool_cup"/>
+      <origin xyz="0.0525 0 0.007" rpy="0 0 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>
