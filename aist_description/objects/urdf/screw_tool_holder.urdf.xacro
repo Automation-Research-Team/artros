@@ -5,7 +5,7 @@
 	       params="prefix parent *origin">
 
     <!-- A link representing the gripper and a joint attaching it to parnet -->
-    <link name="${prefix}screw_tool_holder">
+    <link name="${prefix}base_link">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
 	<geometry>
@@ -24,18 +24,18 @@
 	</geometry>
       </collision>
     </link>
-    <joint name="${prefix}screw_tool_holder_joint" type="fixed">
+    <joint name="${prefix}base_joint" type="fixed">
       <parent link="${parent}"/>
-      <child  link="${prefix}screw_tool_holder"/>
+      <child  link="${prefix}base_link"/>
        <xacro:insert_block name="origin"/>
     </joint>
 
     <!-- A link representing the tool of the pad and a joint attaching
 	 it to the gripper -->
-    <link name="${prefix}screw_tool_cup"/>
-    <joint name="${prefix}screw_tool_cup_joint" type="fixed">
-      <parent link="${prefix}screw_tool_holder"/>
-      <child  link="${prefix}screw_tool_cup"/>
+    <link name="${prefix}link"/>
+    <joint name="${prefix}joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}link"/>
       <origin xyz="0.0525 0 0.007" rpy="0 0 0"/>
     </joint>
 
