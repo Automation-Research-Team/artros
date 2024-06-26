@@ -34,7 +34,7 @@
     </link>
     <gazebo reference="workspace_table_leg0">
         <material>Gazebo/Grey</material>
-        <plugin name="gazebo_ros_control">
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
             <robotNamespace>/</robotNamespace>
         </plugin>
     </gazebo>
@@ -672,6 +672,80 @@
         <parent link="cage_workspace_bar" />
         <child link="cage_tool_bar" />
         <origin rpy="0 0 0" xyz="0 0 0.31" />
+    </joint>
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="screw_tool_m3_holder_base_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+                <mesh filename="package://aist_description/objects/meshes/screw_tool_holder.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white">
+                <color rgba="0.9 0.9 0.9 1" />
+            </material>
+        </visual>
+        <collision>
+            <!-- avoid collision -->
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+                <mesh filename="package://aist_description/objects/meshes/screw_tool_holder.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
+    <joint name="screw_tool_m3_holder_base_joint" type="fixed">
+        <parent link="cage_tool_bar" />
+        <child link="screw_tool_m3_holder_base_link" />
+        <origin rpy="0 0 0" xyz="0 0.6 0.04" />
+    </joint>
+    <!-- A link representing the tool of the pad and a joint attaching
+	 it to the gripper -->
+    <link name="screw_tool_m3_holder_link" />
+    <joint name="screw_tool_m3_holder_joint" type="fixed">
+        <parent link="screw_tool_m3_holder_base_link" />
+        <child link="screw_tool_m3_holder_link" />
+        <origin rpy="0 0 0" xyz="0.0525 0 0.007" />
+    </joint>
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="screw_tool_m4_holder_base_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+                <mesh filename="package://aist_description/objects/meshes/screw_tool_holder.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white">
+                <color rgba="0.9 0.9 0.9 1" />
+            </material>
+        </visual>
+        <collision>
+            <!-- avoid collision -->
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+                <mesh filename="package://aist_description/objects/meshes/screw_tool_holder.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+    </link>
+    <joint name="screw_tool_m4_holder_base_joint" type="fixed">
+        <parent link="cage_tool_bar" />
+        <child link="screw_tool_m4_holder_base_link" />
+        <origin rpy="0 0 0" xyz="0 0.8 0.04" />
+    </joint>
+    <!-- A link representing the tool of the pad and a joint attaching
+	 it to the gripper -->
+    <link name="screw_tool_m4_holder_link" />
+    <joint name="screw_tool_m4_holder_joint" type="fixed">
+        <parent link="screw_tool_m4_holder_base_link" />
+        <child link="screw_tool_m4_holder_link" />
+        <origin rpy="0 0 0" xyz="0.0525 0 0.007" />
     </joint>
     <!--
     Main xacro macro definition of the "Gazebo robot" model.
@@ -1574,7 +1648,7 @@
     <joint name="a_bot_zivid_base_joint" type="fixed">
         <parent link="a_bot_zivid_coupling_flange_link" />
         <child link="a_bot_zivid_base_link" />
-        <origin rpy="0.0 0.268 0.0" xyz="0.01 0.0 0.065" />
+        <origin rpy="-0.0017467829187330236 0.27937676735622796 -0.006819626383816405" xyz="-0.008354917812276319 0.0008954602737317324 0.0667453856043816" />
     </joint>
     <!-- A link representing the sensor in the mechanical frame -->
     <link name="a_bot_zivid_reference" />
@@ -1620,11 +1694,11 @@
                 <updateRate>10</updateRate>
                 <cameraName>a_bot_zivid</cameraName>
                 <frameName>a_bot_zivid_sensor</frameName>
-                <imageTopicName>texture</imageTopicName>
-                <depthImageTopicName>depth_map</depthImageTopicName>
-                <pointCloudTopicName>pointcloud</pointCloudTopicName>
-                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-                <depthImageCameraInfoTopicName>camera_info</depthImageCameraInfoTopicName>
+                <imageTopicName>color/image_color</imageTopicName>
+                <depthImageTopicName>depth/image</depthImageTopicName>
+                <pointCloudTopicName>points/xyzrgba</pointCloudTopicName>
+                <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
+                <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
                 <pointCloudCutoff>0.4</pointCloudCutoff>
                 <!-- <hackBaseline>0.35</hackBaseline> -->
                 <distortionK1>0.0</distortionK1>
@@ -1711,7 +1785,7 @@
     <joint name="b_bot_ftsensor_ft300_joint" type="fixed">
         <parent link="b_bot_flange" />
         <child link="b_bot_ftsensor_base_link" />
-        <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
+        <origin rpy="0 0 0" xyz="0 0 0" />
     </joint>
     <link name="b_bot_ftsensor_flange_link" />
     <joint name="b_bot_ftsensor_flange_joint" type="fixed">
@@ -1891,7 +1965,7 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="0.03 0.07 0.0075" />
+                <box size="0.027 0.065 0.0075" />
             </geometry>
             <material name="">
                 <color rgba="0.9 0.0 0.0 1" />
@@ -2019,7 +2093,7 @@
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="0.03 0.07 0.0075" />
+                <box size="0.027 0.065 0.0075" />
             </geometry>
             <material name="">
                 <color rgba="0.9 0.0 0.0 1" />
@@ -2195,7 +2269,7 @@
     <joint name="b_bot_gripper_base_joint" type="fixed">
         <parent link="b_bot_ftsensor_flange_link" />
         <child link="b_bot_gripper_base_link" />
-        <origin rpy="0 0.012217304763960306 -0.0017453292519943296" xyz="0 0 0" />
+        <origin rpy="0 -0.017453292519943295 -0.005235987755982988" xyz="0 0 0" />
     </joint>
     <!-- A link representing the tip of the pad and a joint attaching
 	 it to the gripper -->

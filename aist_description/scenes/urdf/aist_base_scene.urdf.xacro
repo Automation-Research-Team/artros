@@ -53,17 +53,19 @@
   </xacro:cage>
 
   <!-- tool holders -->
-  <xacro:property name="m3_screw_tool_holder_y"	value="0.6"/>
-  <xacro:property name="m4_screw_tool_holder_y"	value="0.8"/>
+  <xacro:property name="screw_tool_m3_holder_y"	value="0.6"/>
+  <xacro:property name="screw_tool_m4_holder_y"	value="0.8"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/screw_tool_holder.urdf.xacro"/>
-  <xacro:screw_tool_holder prefix="m3_" parent="cage_tool_bar">
-    <origin xyz="0 ${m3_screw_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+  <xacro:screw_tool_holder prefix="screw_tool_m3_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${screw_tool_m3_holder_y} ${cage_t}" rpy="0 0 0"/>
   </xacro:screw_tool_holder>
-  <xacro:screw_tool_holder prefix="m4_" parent="cage_tool_bar">
-    <origin xyz="0 ${m4_screw_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+  <xacro:screw_tool_holder prefix="screw_tool_m4_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${screw_tool_m4_holder_y} ${cage_t}" rpy="0 0 0"/>
   </xacro:screw_tool_holder>
-  
+
   <!-- robot arms -->
   <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>
   <xacro:ur_robot_gazebo
@@ -146,7 +148,7 @@
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
   <xacro:robotiq_140_gripper prefix="a_bot_gripper_"
-			    parent="a_bot_gripper_coupling_flange_link">
+			     parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_140_gripper>
 
@@ -154,8 +156,7 @@
 			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
   <xacro:single_suction_gripper prefix="b_bot_gripper_"
   				parent="b_bot_ftsensor_flange_link">
-    <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->
-    <origin xyz="0 0 0" rpy="0 ${0.7*pi/180} ${-0.1*pi/180}"/>
+    <origin xyz="0 0 0" rpy="0 ${-1.0*pi/180} ${-0.3*pi/180}"/>
   </xacro:single_suction_gripper>
 
   <!-- Add PhoXi 3D scanner -->
