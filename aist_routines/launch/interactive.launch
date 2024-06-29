@@ -11,6 +11,8 @@
 	pkg="aist_routines" type="interactive.py" output="screen">
     <rosparam file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
     <param name="speed"		value="$(arg speed)"/>
+    <rosparam param="tool_descriptions"
+	      file="$(find aist_fastening_tools)/config/fastening_tools.yaml"/>
   </node>
 
   <!-- Start rviz -->

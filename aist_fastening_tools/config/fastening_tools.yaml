@@ -1,0 +1,35 @@
+screw_tool_m3:
+  frame_id:       screw_tool_m3_base_link
+  primitives:
+    - type:       BOX                     # The bit cushion and motor
+      dimensions: [.026, .04, .055]
+      pose:       [0.0, -0.009, 0.0275, 0.0, 0.0, 0.0]
+    - type:       BOX                     # The "shaft" + suction attachment
+      dimensions: [.019, .03, .08]
+      pose:       [0.0, -0.0055, -0.04, 0.0, 0.0, 0.0]
+    - type:       CYLINDER                # The cylinder representing the tip
+      dimensions: [.018, .0035]
+      pose:       [0.0, 0.0, -0.089, 0.0, 0.0, 0.0]
+  meshes:
+    - url:        'package://aist_fastening_tools/meshes/visual/screw_tool_m3_BC5-XL320-R-AY2.6-EH2.stl'
+      pose:       [0.0, 0.0, -0.0006, 0.0, 0.0, -90.0]
+  subframes:
+    screw_tool_m3_tip_link: [0.0, 0.0, -0.1, 0.0, 0.0, 0.0]
+
+screw_tool_m4:
+  frame_id:       screw_tool_m4_base_link
+  primitives:
+    - type:       BOX                     # The bit cushion and motor
+      dimensions: [.026, .04, .055]
+      pose:       [0.0, -0.009, 0.0275, 0.0, 0.0, 0.0]
+    - type:       BOX                     # The "shaft" + suction attachment
+      dimensions: [.019, .03, .08]
+      pose:       [0.0, -0.0055, -0.04, 0.0, 0.0, 0.0]
+    - type:       CYLINDER                # The cylinder representing the tip
+      dimensions: [.038, .0035]
+      pose:       [0.0, 0.0, -0.099, 0.0, 0.0, 0.0]
+  meshes:
+    - url:        'package://aist_fastening_tools/meshes/visual/screw_tool_m4_BC5-XL320-AY3.5-EH3R4.stl'
+      pose:       [0.0, 0.0, -0.0006, 0.0, 0.0, -90.0]
+  subframes:
+    screw_tool_m4_tip_link: [0.0, 0.0, -0.12, 0.0, 0.0, 0.0]

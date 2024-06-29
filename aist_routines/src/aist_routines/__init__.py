@@ -56,6 +56,7 @@ from aist_routines.CameraClient      import CameraClient
 from aist_routines.MarkerPublisher   import MarkerPublisher
 from aist_routines.PickOrPlaceAction import PickOrPlace
 from aist_utility.compat             import *
+from aist_routines.PlanningSceneInterface import PlanningSceneInterface
 
 ######################################################################
 #  global functions                                                  #
@@ -103,7 +104,8 @@ class AISTBaseRoutines(object):
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
 
         # MoveIt PlanningSceneInterface
-        self._scene = moveit_commander.PlanningSceneInterface()
+        self._scene = PlanningSceneInterface()
+        self._scene.load('~tool_descriptions')
 
         # Grippers
         self._grippers = {}
