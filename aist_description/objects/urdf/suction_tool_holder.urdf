@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description)/objects/urdf/suction_tool_holder.urdf.xacro" />
+
+  <link name ="base_link"/>
+
+  <xacro:suction_tool_holder prefix="suction_tool_holder_" parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:suction_tool_holder>
+</robot>

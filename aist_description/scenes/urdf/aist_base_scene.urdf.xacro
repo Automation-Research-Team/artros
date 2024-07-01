@@ -53,8 +53,9 @@
   </xacro:cage>
 
   <!-- tool holders -->
-  <xacro:property name="screw_tool_m3_holder_y"	value="0.6"/>
-  <xacro:property name="screw_tool_m4_holder_y"	value="0.8"/>
+  <xacro:property name="screw_tool_m3_holder_y"	value="0.75"/>
+  <xacro:property name="screw_tool_m4_holder_y"	value="0.85"/>
+  <xacro:property name="suction_tool_holder_y"	value="0.95"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/screw_tool_holder.urdf.xacro"/>
   <xacro:screw_tool_holder prefix="screw_tool_m3_holder_"
@@ -65,20 +66,12 @@
 			   parent="cage_tool_bar">
     <origin xyz="0 ${screw_tool_m4_holder_y} ${cage_t}" rpy="0 0 0"/>
   </xacro:screw_tool_holder>
-
-  <!-- screw tools -->
-  <!-- <xacro:include filename="$(find aist_fastening_tools -->
-  <!-- 			   )/urdf/screw_tool_m3.urdf.xacro"/> -->
-  <!-- <xacro:screw_tool_m3 prefix="screw_tool_m3_" -->
-  <!-- 		       parent="screw_tool_m3_holder_link"> -->
-  <!--   <origin xyz="0 0 0" rpy="0 0 0" /> -->
-  <!-- </xacro:screw_tool_m3> -->
-  <!-- <xacro:include filename="$(find aist_fastening_tools -->
-  <!-- 			   )/urdf/screw_tool_m4.urdf.xacro"/> -->
-  <!-- <xacro:screw_tool_m3 prefix="screw_tool_m4_" -->
-  <!-- 		       parent="screw_tool_m4_holder_link"> -->
-  <!--   <origin xyz="0 0 0" rpy="0 0 0" /> -->
-  <!-- </xacro:screw_tool_m3> -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/suction_tool_holder.urdf.xacro"/>
+  <xacro:suction_tool_holder prefix="suction_tool_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${suction_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+  </xacro:suction_tool_holder>
 
   <!-- robot arms -->
   <xacro:include filename="$(find ur_gazebo)/urdf/ur_macro.xacro"/>

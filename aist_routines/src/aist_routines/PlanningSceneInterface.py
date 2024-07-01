@@ -105,7 +105,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._collision_objects[name] = co
             rospy.loginfo('collision object[%s] loaded', name)
 
-    def attach_object(self, name, pose, postfix='', use_mesh=True):
+    def attach_object(self, name, pose, postfix='', use_mesh=False):
         co = copy.copy(self._collision_objects[name])
         co.header = pose.header
         co.pose   = pose.pose
