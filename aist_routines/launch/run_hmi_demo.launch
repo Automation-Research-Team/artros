@@ -6,6 +6,8 @@
 	clear_params="true" output="screen">
     <rosparam file="$(dirname)/../config/aist_config.yaml"/>
     <rosparam file="$(dirname)/../config/kitting.yaml"/>
+    <rosparam param="tool_descriptions"
+	      file="$(find aist_fastening_tools)/config/fastening_tools.yaml"/>
   </node>
 
 </launch>

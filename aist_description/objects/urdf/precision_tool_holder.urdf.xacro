@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot name="precision_tool_holder"
+       xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="precision_tool_holder"
+	       params="prefix parent *origin">
+
+    <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <link name="${prefix}base_link">
+      <visual>
+        <origin xyz="0.040 0 0" rpy="0 0 ${pi}"/>
+	<geometry>
+          <mesh filename="package://aist_description/objects/meshes/precision_tool_holder.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+	<material name="white">
+	  <color rgba="0.9 0.9 0.9 1"/>
+	</material>
+      </visual>
+      <collision>
+      <!-- avoid collision -->
+	<origin xyz="0.040 0 0" rpy="0 0 ${pi}"/>
+	<geometry>
+	  <mesh
+	      filename="package://aist_description/objects/meshes/precision_tool_holder.stl" scale="0.001 0.001 0.001"/>
+	</geometry>
+      </collision>
+    </link>
+    <joint name="${prefix}base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+       <xacro:insert_block name="origin"/>
+    </joint>
+
+    <!-- A link representing the tool of the pad and a joint attaching
+	 it to the gripper -->
+    <link name="${prefix}link"/>
+    <joint name="${prefix}joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}link"/>
+      <origin xyz="0.07598 0.015 -0.015" rpy="0 ${30.0*pi/180.0} 0"/>
+    </joint>
+
+  </xacro:macro>
+</robot>

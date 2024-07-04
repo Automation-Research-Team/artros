@@ -53,9 +53,16 @@
   </xacro:cage>
 
   <!-- tool holders -->
-  <xacro:property name="screw_tool_m3_holder_y"	value="0.75"/>
-  <xacro:property name="screw_tool_m4_holder_y"	value="0.85"/>
-  <xacro:property name="suction_tool_holder_y"	value="0.95"/>
+  <xacro:property name="precision_tool_holder_y"	value="0.60"/>
+  <xacro:property name="screw_tool_m3_holder_y"		value="0.70"/>
+  <xacro:property name="screw_tool_m4_holder_y"		value="0.80"/>
+  <xacro:property name="suction_tool_holder_y"		value="0.90"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/precision_tool_holder.urdf.xacro"/>
+  <xacro:precision_tool_holder prefix="precision_tool_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${precision_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+  </xacro:precision_tool_holder>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/screw_tool_holder.urdf.xacro"/>
   <xacro:screw_tool_holder prefix="screw_tool_m3_holder_"
