@@ -2,9 +2,20 @@
 <robot name="aaa" xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:include filename="$(find aist_precision_gripper)/urdf/precision_gripper.urdf.xacro" />
 
-  <link name ="base_link"/>
+  <xacro:arg name="prefix" default="precision_gripper_"/>
 
-  <xacro:precision_gripper prefix="precision_gripper_" parent="base_link">
-    <origin xyz="0 0 0" rpy="0 0 0" />
+  <link name ="world"/>
+
+  <xacro:include filename="$(find aist_precision_gripper
+			   )/urdf/precision_gripper.urdf.xacro"/>
+  <xacro:precision_gripper prefix="$(arg prefix)" parent="world">
+    <origin xyz="0 0 0" rpy="0 ${-pi/2} 0" />
   </xacro:precision_gripper>
+
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo>
+
 </robot>

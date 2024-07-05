@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="prefix" default="precision_gripper_"/>
+
+  <!-- Spawn actionlib client GUI -->
+  <node name="axclient" pkg="actionlib_tools" type="axclient.py"
+  	args="/$(arg prefix)controller/gripper_cmd"
+  	respawn="false" output="screen"/>
+
+</launch>
