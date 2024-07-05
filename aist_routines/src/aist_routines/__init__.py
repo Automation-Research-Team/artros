@@ -112,8 +112,9 @@ class AISTBaseRoutines(object):
                         Pose(Point(0,0,0), Quaternion(0,0,0,1))))
         self._scene.attach_object(
             'screw_tool_m4',
-            PoseStamped(Header(frame_id='a_bot_gripper_tip_link'),
-                        Pose(Point(0,0,0), Quaternion(0,0,0,1))))
+            PoseStamped(Header(frame_id='screw_tool_m4_holder_link'),
+                        Pose(Point(0,0,0), Quaternion(0,0,0,1))),
+            use_mesh=True)
         for name in self._scene.get_attached_objects():
             print('*** collision_object: ' + name)
 

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot name="precision_coupling" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:arg name="prefix" default=""/>
+
+  <link name="world"/>
+
+  <xacro:include filename="$(find aist_precision_gripper
+			   )/urdf/precision_coupling.urdf.xacro" />
+  <xacro:precision_coupling prefix="$(arg prefix)" parent="world">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:precision_coupling>
+
+</robot>

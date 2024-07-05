@@ -4,7 +4,7 @@
 
   <link name ="base_link"/>
 
-  <xacro:precision_gripper prefix="" grippername="gripper" parent="base_link">
+  <xacro:precision_gripper prefix="precision_gripper_" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:precision_gripper>
 </robot>
