@@ -34,14 +34,6 @@
       <child  link="${prefix}body_link"/>
       <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
     </joint>
-
-    <joint name="${prefix}tip_link_joint" type="fixed">
-      <parent link="${prefix}base_link"/>
-      <child  link="${prefix}tip_link"/>
-      <origin xyz="${tip_distance} ${horizontal_offset} 0" rpy="0 ${-pi/2} 0"/>
-    </joint>
-    <link name="${prefix}tip_link"/>
-
     <link name="${prefix}body_link">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -80,6 +72,13 @@
       </collision>
     </link>
 
+    <joint name="${prefix}finger_joint" type="prismatic">
+      <origin xyz="${horizontal_offset} 0 ${rail_distance}" rpy="0 0 0"/>
+      <parent link="${prefix}body_link"/>
+      <child link="${prefix}left_finger"/>
+      <axis xyz="-1 0 0"/>
+      <limit effort="130" lower="0" upper="${max_gap/2}" velocity="0.15"/>
+    </joint>
     <link name="${prefix}left_finger">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -112,6 +111,14 @@
       </inertial>
     </link>
 
+    <joint name="${prefix}right_finger_joint" type="prismatic">
+      <origin xyz="${horizontal_offset} 0 ${rail_distance}" rpy="0 0 0"/>
+      <parent link="${prefix}body_link"/>
+      <child link="${prefix}right_finger"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="130" lower="0" upper="${max_gap/2}" velocity="0.15"/>
+      <mimic joint="${prefix}finger_joint" multiplier="1" offset="0"/>
+    </joint>
     <link name="${prefix}right_finger">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -144,6 +151,13 @@
       </inertial>
     </link>
 
+    <joint name="${prefix}tip_link_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}tip_link"/>
+      <origin xyz="${tip_distance} ${horizontal_offset} 0" rpy="0 ${-pi/2} 0"/>
+    </joint>
+    <link name="${prefix}tip_link"/>
+
     <gazebo reference="${prefix}body_link">
       <material>Gazebo/FlatBlack</material>
     </gazebo>
@@ -153,21 +167,6 @@
     <gazebo reference="${prefix}right_finger">
       <material>Gazebo/Grey</material>
     </gazebo>
-    <joint name="${prefix}finger_joint" type="prismatic">
-      <origin xyz="${horizontal_offset} 0 ${rail_distance}" rpy="0 0 0"/>
-      <parent link="${prefix}body_link"/>
-      <child link="${prefix}left_finger"/>
-      <axis xyz="-1 0 0"/>
-      <limit effort="130" lower="0" upper="${max_gap/2}" velocity="0.15"/>
-    </joint>
-    <joint name="${prefix}right_finger_joint" type="prismatic">
-      <origin xyz="${horizontal_offset} 0 ${rail_distance}" rpy="0 0 0"/>
-      <parent link="${prefix}body_link"/>
-      <child link="${prefix}right_finger"/>
-      <axis xyz="1 0 0"/>
-      <limit effort="130" lower="0" upper="${max_gap/2}" velocity="0.15"/>
-      <mimic joint="${prefix}finger_joint" multiplier="1" offset="0"/>
-    </joint>
 
     <!-- Improve grasping physics -->
     <gazebo reference="${prefix}left_finger">
