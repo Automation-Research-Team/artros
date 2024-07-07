@@ -104,8 +104,19 @@ class AISTBaseRoutines(object):
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
 
         # MoveIt PlanningSceneInterface
-        self._scene = PlanningSceneInterface()
-        self._scene.load('~tool_descriptions')
+        self._scene = PlanningSceneInterface(synchronous=True)
+        self._scene.load_objects('~tool_descriptions')
+        self._scene.attach_object(
+            'screw_tool_m3',
+            PoseStamped(Header(frame_id='screw_tool_m3_holder_link'),
+                        Pose(Point(0,0,0), Quaternion(0,0,0,1))))
+        self._scene.attach_object(
+            'screw_tool_m4',
+            PoseStamped(Header(frame_id='screw_tool_m4_holder_link'),
+                        Pose(Point(0,0,0), Quaternion(0,0,0,1))),
+            use_mesh=True)
+        for name in self._scene.get_attached_objects():
+            print('*** collision_object: ' + name)
 
         # Grippers
         self._grippers = {}

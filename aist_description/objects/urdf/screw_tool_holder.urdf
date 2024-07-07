@@ -4,7 +4,7 @@
 
   <link name ="base_link"/>
 
-  <xacro:screw_tool_holder prefix="screw_tool_m3_" parent="base_link">
+  <xacro:screw_tool_holder prefix="screw_tool_m3_holder_" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:screw_tool_holder>
 </robot>

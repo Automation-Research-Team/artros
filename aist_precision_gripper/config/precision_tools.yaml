@@ -1,0 +1,22 @@
+precision_tool:
+  frame_id: precision_tool_holder_link
+  pose:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  primitives:
+    - type:       BOX                     # The bit cushion and motor
+      dimensions: [ 0.0425, 0.045, 0.030]
+      pose:       [-0.02125, 0.0, 0.0, 0.0, 0.0, 0.0]
+    - type:       BOX
+      dimensions: [0.050, 0.085, 0.030]
+      pose:       [0.0675, 0.0, 0.0, 0.0, 0.0, 0.0]
+    - type:       CYLINDER                # The cylinder representing the tip
+      dimensions: [0.555, 0.003, 0.003
+      pose:       [0.0, 0.0, -0.089, 0.0, 0.0, 0.0]
+  meshes:
+    - url:        'package://aist_precision_gripper/meshes/precision_body.stl'
+      pose:       [-0.015, 0.0, 0.0, 90.0, 0.0, 90.0]
+    - url:        'package://aist_precision_gripper/meshes/precision_left_finger.stl'
+      pose:       [-0.015, 0.0, 0.0, 90.0, 0.0, 90.0]
+    - url:        'package://aist_precision_gripper/meshes/precision_right_finger.stl'
+      pose:       [0.0, 0.0, 0.0, 90.0, 0.0, 90.0]
+  subframes:
+    precision_tool_tip_link: [-0.015, 0.0, -0.1, 0.0, 0.0, 0.0]
