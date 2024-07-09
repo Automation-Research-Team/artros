@@ -13,6 +13,9 @@
     <param name="speed"		value="$(arg speed)"/>
     <rosparam param="tool_descriptions"
 	      file="$(find aist_fastening_tools)/config/fastening_tools.yaml"/>
+    <rosparam param="tool_descriptions"
+	      file="$(find
+		    aist_precision_gripper)/config/precision_tools.yaml"/>
   </node>
 
   <!-- Start rviz -->

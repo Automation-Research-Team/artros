@@ -22,21 +22,15 @@
     <xacro:property name="lower_body_height"		value="0.050"/>
     <xacro:property name="finger_collision_width"	value="0.003"/>
 
+    <!-- base -->
     <joint name="${prefix}base_joint" type="fixed">
       <parent link="${parent}"/>
       <child  link="${prefix}base_link"/>
       <xacro:insert_block name="origin"/>
     </joint>
-    <link name="${prefix}base_link"/>
-
-    <joint name="${prefix}body_joint" type="fixed">
-      <parent link="${prefix}base_link"/>
-      <child  link="${prefix}body_link"/>
-      <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
-    </joint>
-    <link name="${prefix}body_link">
+    <link name="${prefix}base_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
         <geometry>
           <mesh filename="package://aist_precision_gripper/meshes/precision_body.stl" scale="0.001 0.001 0.001"/>
         </geometry>
@@ -45,9 +39,9 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 ${motor_height/2}" rpy="0 0 0"/>
+        <origin xyz="${motor_height/2} 0 0" rpy="0 0 0"/>
         <geometry>
-          <box size="${motor_width} ${depth} ${motor_height}"/>
+          <box size="${motor_height} ${motor_width} ${depth}"/>
         </geometry>
       </collision>
       <inertial>
@@ -58,30 +52,32 @@
       </inertial>
     </link>
 
+    <!-- lower body(collision only) -->
     <joint name="${prefix}lower_body_joint" type="fixed">
-      <parent link="${prefix}body_link"/>
+      <parent link="${prefix}base_link"/>
       <child  link="${prefix}lower_body_link"/>
-      <origin xyz="${horizontal_offset} 0 ${motor_height}" rpy="0 0 0"/>
+      <origin xyz="${motor_height} ${horizontal_offset} 0" rpy="0 0 0"/>
     </joint>
     <link name="${prefix}lower_body_link">
       <collision>
-	<origin xyz="0 0 ${lower_body_height/2}" rpy="0 0 0"/>
+	<origin xyz="${lower_body_height/2} 0 0" rpy="0 0 0"/>
 	<geometry>
-	  <box size="${lower_body_width} ${depth} ${lower_body_height}"/>
+	  <box size="${lower_body_height} ${lower_body_width} ${depth}"/>
 	</geometry>
       </collision>
     </link>
 
+    <!-- left finger -->
     <joint name="${prefix}finger_joint" type="prismatic">
-      <origin xyz="${horizontal_offset} 0 ${rail_distance}" rpy="0 0 0"/>
-      <parent link="${prefix}body_link"/>
+      <origin xyz="${rail_distance} ${horizontal_offset} 0" rpy="0 0 0"/>
+      <parent link="${prefix}base_link"/>
       <child link="${prefix}left_finger"/>
-      <axis xyz="-1 0 0"/>
+      <axis xyz="0 1 0"/>
       <limit effort="130" lower="0" upper="${max_gap/2}" velocity="0.15"/>
     </joint>
     <link name="${prefix}left_finger">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
         <geometry>
           <mesh filename="package://aist_precision_gripper/meshes/precision_left_finger.stl" scale="0.001 0.001 0.001"/>
         </geometry>
@@ -90,17 +86,17 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
 	<geometry>
           <mesh filename="package://aist_precision_gripper/meshes/collision/precision_left_finger.stl" scale="0.001 0.001 0.001"/>
         </geometry>
-	<!-- <origin xyz="${-finger_collision_width/2} 0 -->
-	<!-- 	     ${(tip_distance - rail_distance)/2}" -->
+	<!-- <origin xyz="${(tip_distance - rail_distance)/2} -->
+	<!-- 	     ${finger_collision_width/2} 0" -->
 	<!-- 	rpy="0 0 0"/> -->
 	<!-- <geometry> -->
-	<!--   <box size="${finger_collision_width} -->
+	<!--   <box size="${tip_distance - rail_distance} -->
 	<!-- 	     ${finger_collision_width} -->
-	<!-- 	     ${tip_distance - rail_distance}"/> -->
+	<!-- 	     ${finger_collision_width}"/> -->
 	<!-- </geometry> -->
       </collision>
       <inertial>
@@ -111,17 +107,18 @@
       </inertial>
     </link>
 
+    <!-- right finger -->
     <joint name="${prefix}right_finger_joint" type="prismatic">
-      <origin xyz="${horizontal_offset} 0 ${rail_distance}" rpy="0 0 0"/>
-      <parent link="${prefix}body_link"/>
+      <origin xyz="${rail_distance} ${horizontal_offset} 0" rpy="0 0 0"/>
+      <parent link="${prefix}base_link"/>
       <child link="${prefix}right_finger"/>
-      <axis xyz="1 0 0"/>
+      <axis xyz="0 -1 0"/>
       <limit effort="130" lower="0" upper="${max_gap/2}" velocity="0.15"/>
       <mimic joint="${prefix}finger_joint" multiplier="1" offset="0"/>
     </joint>
     <link name="${prefix}right_finger">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
         <geometry>
           <mesh filename="package://aist_precision_gripper/meshes/precision_right_finger.stl" scale="0.001 0.001 0.001"/>
         </geometry>
@@ -130,17 +127,17 @@
         </material>
       </visual>
       <colliaion>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
 	<geometry>
           <mesh filename="package://aist_precision_gripper/meshes/collision/precision_right_finger.stl" scale="0.001 0.001 0.001"/>
         </geometry>
-	<!-- <origin xyz="${finger_collision_width/2} 0 -->
-	<!-- 	     ${(tip_distance - rail_distance)/2}" -->
+	<!-- <origin xyz="${(tip_distance - rail_distance)/2} -->
+	<!-- 	     ${-finger_collision_width/2} 0" -->
 	<!-- 	rpy="0 0 0"/> -->
 	<!-- <geometry> -->
-	<!--   <box size="${finger_collision_width} -->
+	<!--   <box size="${tip_distance - rail_distance} -->
 	<!-- 	     ${finger_collision_width} -->
-	<!-- 	     ${tip_distance - rail_distance}"/> -->
+	<!-- 	     ${finger_collision_width}"/> -->
 	<!-- </geometry> -->
       </colliaion>
       <inertial>
@@ -151,6 +148,7 @@
       </inertial>
     </link>
 
+    <!-- tip -->
     <joint name="${prefix}tip_link_joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child  link="${prefix}tip_link"/>
@@ -158,7 +156,7 @@
     </joint>
     <link name="${prefix}tip_link"/>
 
-    <gazebo reference="${prefix}body_link">
+    <gazebo reference="${prefix}base_link">
       <material>Gazebo/FlatBlack</material>
     </gazebo>
     <gazebo reference="${prefix}left_finger">
