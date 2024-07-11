@@ -42,6 +42,7 @@ from geometry_msgs.msg      import (Point, Vector3, Quaternion, Pose,
 from moveit_msgs.msg        import CollisionObject
 from shape_msgs.msg         import Mesh, MeshTriangle, SolidPrimitive
 from visualization_msgs.msg import Marker
+from std_msgs.msg           import ColorRGBA
 
 try:
     from pyassimp import pyassimp
@@ -60,6 +61,9 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
     def __init__(self, ns='', synchronous=True):
         super().__init__(ns, synchronous)
         self._collision_objects = {}
+        self._mesh_urls         = {}
+        self._pub = rospy.Publisher("collision_marker",
+                                    Marker, queue_size=10)
 
     def load_objects(self, param_ns='~tool_descriptions'):
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
@@ -94,7 +98,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(subframe_pose[3:6])))))
 
-            for mesh in desc.get('meshes', []):
+            for i, mesh in enumerate(desc.get('meshes', [])):
+                self._mesh_urls[name + '_' + str(i)] = mesh['url']
                 mesh_pose = mesh['pose']
                 co.meshes.append(self._load_mesh(mesh['url']))
                 co.mesh_poses.append(
@@ -110,6 +115,24 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         co.header = pose.header
         co.pose   = pose.pose
         co.id     = co.id + postfix
+
+        for i, (mesh, mesh_pose) in enumerate(zip(co.meshes, co.mesh_poses)):
+            marker = Marker()
+            marker.header        = co.header
+            marker.ns            = ''
+            marker.id            = i
+            marker.type          = marker.MESH_RESOURCE
+            marker.action        = Marker.ADD
+            marker.pose          = self._compose_poses(co.pose, mesh_pose)
+            marker.scale         = Vector3(0.001, 0.001, 0.001)
+            marker.color         = ColorRGBA(0.0, 0.8, 0.5, 1.0)
+            marker.lifetime      = rospy.Duration(0)
+            marker.frame_locked  = False
+            marker.mesh_resource = "file://" \
+                                 + self._url_to_filepath(
+                                     self._mesh_urls[name + '_' + str(i)])
+            self._pub.publish(marker)
+
         if use_mesh:
             co.primitives      = []
             co.primitive_poses = []
@@ -117,29 +140,6 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             co.meshes     = []
             co.mesh_poses = []
         super().attach_object(co, co.header.frame_id)
-
-    def create_marker(self, object_name, pose,
-                      color=None, lifetime=0, frame_locked=False):
-        co = self.get_collision_object(object_name)
-
-        marker = Marker()
-        marker.id            = object_name
-        marker.header        = pose.header
-        marker.pose          = pose.pose
-        marker.frame_locked  = frame_locked
-        marker.lifetime      = rospy.Duration(lifetime)
-        marker.type          = marker.MESH_RESOURCE
-        marker.mesh_resource = "file://" + self._url_to_filepath(
-                                               self.get_mesh_url(object_name))
-        marker.scale         = Vector3(0.001, 0.001, 0.001)
-        if color:
-            marker.color = color
-        else:
-            marker.color.a = 1.0
-            marker.color.g = .8
-            marker.color.b = .5
-            marker.action = marker.ADD
-        return marker
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
@@ -184,3 +184,22 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         if len(tokens) < 2 or tokens[0] != 'package:' or tokens[1] != '':
             raise('Illegal URL: ' + url)
         return os.path.join(rospkg.RosPack().get_path(tokens[2]), *tokens[3:])
+
+    def _compose_poses(self, pose0, pose1):
+        T = tfs.concatenate_matrices(
+                tfs.translation_matrix((pose0.position.x,
+                                        pose0.position.y,
+                                        pose0.position.z)),
+                tfs.quaternion_matrix((pose0.orientation.x,
+                                       pose0.orientation.y,
+                                       pose0.orientation.z,
+                                       pose0.orientation.w)),
+                tfs.translation_matrix((pose1.position.x,
+                                        pose1.position.y,
+                                        pose1.position.z)),
+                tfs.quaternion_matrix((pose1.orientation.x,
+                                       pose1.orientation.y,
+                                       pose1.orientation.z,
+                                       pose1.orientation.w)))
+        return Pose(Point(*tuple(tfs.translation_from_matrix(T))),
+                    Quaternion(*tuple(tfs.quaternion_from_matrix(T))))

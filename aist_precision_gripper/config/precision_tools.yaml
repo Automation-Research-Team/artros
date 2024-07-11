@@ -3,23 +3,23 @@ precision_tool:
   pose:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   primitives:
     - type:       BOX                     # motor
-      dimensions: [ 0.0425, 0.045, 0.030]
+      dimensions: [ 0.0425, 0.055, 0.030]
       pose:       [0.02125, 0.0, 0.0, 0.0, 0.0, 0.0]
     - type:       BOX                     # lower body
       dimensions: [0.050, 0.085, 0.030]
-      pose:       [0.0675, -0.015, 0.0, 0.0, 0.0, 0.0]
+      pose:       [0.0675, -0.012, 0.0, 0.0, 0.0, 0.0]
     - type:       BOX                     # left finger
       dimensions: [0.0555, 0.003, 0.003]
-      pose:       [0.11925, -0.0135, 0.0, 0.0, 0.0, 0.0]
+      pose:       [0.11925, -0.0105, 0.0, 0.0, 0.0, 0.0]
     - type:       BOX                     # right finger
       dimensions: [0.0555, 0.003, 0.003]
-      pose:       [0.11925, -0.0165, 0.0, 0.0, 0.0, 0.0]
+      pose:       [0.11925, -0.0135, 0.0, 0.0, 0.0, 0.0]
   meshes:
     - url:        'package://aist_precision_gripper/meshes/precision_body.stl'
-      pose:       [0.0, 0.0, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0, 0.003, 0.0, 90.0, 0.0, 90.0]
     - url:        'package://aist_precision_gripper/meshes/precision_left_finger.stl'
-      pose:       [0.0915, -0.015, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0915, -0.012, 0.0, 90.0, 0.0, 90.0]
     - url:        'package://aist_precision_gripper/meshes/precision_right_finger.stl'
-      pose:       [0.0915, -0.015, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0915, -0.012, 0.0, 90.0, 0.0, 90.0]
   subframes:
-    precision_tool_tip_link: [0.147, -0.015, 0.0, 0.0, -90.0, 0.0]
+    precision_tool_tip_link: [0.147, -0.009, 0.0, 0.0, -90.0, 0.0]
