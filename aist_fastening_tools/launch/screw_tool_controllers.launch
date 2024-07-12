@@ -2,7 +2,7 @@
 <launch>
 
   <arg name="driver_ns"		default="dynamixel_driver"/>
-  <arg name="usb_port"		default="/dev/ttyUSB0"/>
+  <arg name="usb_port"		default="/dev/ttyUSB1"/>
   <arg name="dxl_baud_rate"	default="1000000"/>
   <arg name="control_period"	default="0.010"/>
   <arg name="dynamixel_info"	default="dynamixel_info"/>
