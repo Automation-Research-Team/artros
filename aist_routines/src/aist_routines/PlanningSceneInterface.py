@@ -36,13 +36,17 @@
 import os, copy, rospy, rospkg
 import numpy as np
 import moveit_commander
-from tf                     import transformations as tfs
-from geometry_msgs.msg      import (Point, Vector3, Quaternion, Pose,
-                                    PoseStamped, TransformStamped)
-from moveit_msgs.msg        import CollisionObject
-from shape_msgs.msg         import Mesh, MeshTriangle, SolidPrimitive
-from visualization_msgs.msg import Marker
-from std_msgs.msg           import ColorRGBA
+
+from collections                 import namedtuple
+from tf                          import transformations as tfs
+from geometry_msgs.msg           import (Point, Vector3, Quaternion, Pose,
+                                         PoseStamped, TransformStamped)
+from moveit_msgs.msg             import CollisionObject
+from object_recognition_msgs.msg import ObjectType
+from shape_msgs.msg              import (Mesh, MeshTriangle, Plane,
+                                         SolidPrimitive)
+from visualization_msgs.msg      import Marker
+from std_msgs.msg                import ColorRGBA
 
 try:
     from pyassimp import pyassimp
@@ -58,10 +62,17 @@ except:
 #  class PlanningSceneInterface                                         #
 #########################################################################
 class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
+    ObjectDescription = namedtuple('ObjectDescription',
+                                   ['id', 'primitives', 'primitive_poses',
+                                    'mesh_urls', 'meshes', 'mesh_poses',
+                                    'planes', 'plane_poses',
+                                    'subframe_names', 'subframe_poses'])
+
     def __init__(self, ns='', synchronous=True):
         super().__init__(ns, synchronous)
-        self._collision_objects = {}
-        self._mesh_urls         = {}
+        self._object_descriptions = {}
+        self._marker_ids          = {}
+        self._marker_id_max       = 0
         self._pub = rospy.Publisher("collision_marker",
                                     Marker, queue_size=10)
 
@@ -71,56 +82,62 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
 
         for name, desc in rospy.get_param(param_ns, {}).items():
             pose = desc['pose']
-            co = CollisionObject()
-            co.header.frame_id = desc['frame_id']
-            co.pose            = Pose(Point(*pose[0:3]),
-                                      Quaternion(*tfs.quaternion_from_euler(
-                                          *np.radians(pose[3:6]))))
-            co.pose            = Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1))
-            co.id              = name
-            co.operation       = CollisionObject.ADD
+            od = PlanningSceneInterface.ObjectDescription(name, [], [], [], [],
+                                                          [], [], [], [], [])
 
             for primitive in desc.get('primitives', []):
                 primitive_pose = primitive['pose']
-                co.primitives.append(SolidPrimitive(
+                od.primitives.append(SolidPrimitive(
                     type=PRIMITIVES[primitive['type']],
                     dimensions=primitive['dimensions']))
-                co.primitive_poses.append(
+                od.primitive_poses.append(
                     Pose(Point(*primitive_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(primitive_pose[3:6])))))
 
             for subframe_name, subframe_pose in desc.get('subframes',
                                                          {}).items():
-                co.subframe_names.append(subframe_name)
-                co.subframe_poses.append(
+                od.subframe_names.append(subframe_name)
+                od.subframe_poses.append(
                     Pose(Point(*subframe_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(subframe_pose[3:6])))))
 
             for i, mesh in enumerate(desc.get('meshes', [])):
-                self._mesh_urls[name + '_' + str(i)] = mesh['url']
+                od.mesh_urls.append(mesh['url'])
                 mesh_pose = mesh['pose']
-                co.meshes.append(self._load_mesh(mesh['url']))
-                co.mesh_poses.append(
+                od.meshes.append(self._load_mesh(mesh['url']))
+                od.mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
 
-            self._collision_objects[name] = co
+            self._object_descriptions[name] = od
             rospy.loginfo('collision object[%s] loaded', name)
 
     def attach_object(self, name, pose, postfix='', use_mesh=False):
-        co = copy.copy(self._collision_objects[name])
+        # Create and attach a collision object.
+        od = self._object_descriptions[name]
+        co = CollisionObject()
         co.header = pose.header
         co.pose   = pose.pose
-        co.id     = co.id + postfix
+        co.id     = od.id + postfix
+        if use_mesh:
+            co.meshes     = od.meshes
+            co.mesh_poses = od.mesh_poses
+        else:
+            co.primitives      = od.primitives
+            co.primitive_poses = od.primitive_poses
+        co.operation = CollisionObject.ADD
+        super().attach_object(co, co.header.frame_id)
 
-        for i, (mesh, mesh_pose) in enumerate(zip(co.meshes, co.mesh_poses)):
+        # Publish shape of the collision object as visualization markers.
+        self._marker_ids[co.id] = []
+        for i, (mesh, mesh_pose) in enumerate(zip(od.meshes, od.mesh_poses)):
             marker = Marker()
             marker.header        = co.header
             marker.ns            = ''
-            marker.id            = i
+            marker.id            = self._marker_id_max
             marker.type          = marker.MESH_RESOURCE
             marker.action        = Marker.ADD
             marker.pose          = self._compose_poses(co.pose, mesh_pose)
@@ -129,17 +146,10 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             marker.lifetime      = rospy.Duration(0)
             marker.frame_locked  = False
             marker.mesh_resource = "file://" \
-                                 + self._url_to_filepath(
-                                     self._mesh_urls[name + '_' + str(i)])
+                                 + self._url_to_filepath(od.mesh_urls[i])
             self._pub.publish(marker)
-
-        if use_mesh:
-            co.primitives      = []
-            co.primitive_poses = []
-        else:
-            co.meshes     = []
-            co.mesh_poses = []
-        super().attach_object(co, co.header.frame_id)
+            self._marker_ids[co.id].append(self._marker_id_max)
+            self._marker_id_max += 1
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
