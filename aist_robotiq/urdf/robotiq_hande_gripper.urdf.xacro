@@ -40,8 +40,11 @@
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_hande.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_hande.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+        <material name="">
+          <color rgba="0.1 0.1 0.1 1"/>
+        </material>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -59,8 +62,13 @@
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_hande_finger_1.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_hande_finger_1.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+        <material name="">
+          <color rgba="0.792156862745098
+		       0.819607843137255
+		       0.933333333333333 1"/>
+        </material>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -78,8 +86,13 @@
       <visual>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <geometry>
-          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_hande_finger_2.dae" scale="1.0 1.0 1.0"/>
+          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_hande_finger_2.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+        <material name="">
+          <color rgba="0.792156862745098
+		       0.819607843137255
+		       0.933333333333333 1"/>
+        </material>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>

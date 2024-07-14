@@ -21,7 +21,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_outer_knuckle.dae"
+          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_outer_knuckle.stl"
 		scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="">
@@ -58,7 +58,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_outer_finger.dae" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_outer_finger.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="">
           <color rgba="0.1 0.1 0.1 1"/>
@@ -126,7 +126,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
-          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_inner_finger.dae"
+          <mesh filename="package://aist_robotiq/meshes/visual/robotiq_arg2f_${stroke}_inner_finger.stl"
 		scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="">
