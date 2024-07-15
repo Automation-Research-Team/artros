@@ -39,7 +39,8 @@ import moveit_commander
 
 from collections                 import namedtuple
 from tf                          import transformations as tfs
-from geometry_msgs.msg           import (Point, Vector3, Quaternion, Pose,
+from geometry_msgs.msg           import (Point, Vector3, Quaternion,
+                                         Pose, Transform,
                                          PoseStamped, TransformStamped)
 from moveit_msgs.msg             import CollisionObject
 from object_recognition_msgs.msg import ObjectType
@@ -47,6 +48,7 @@ from shape_msgs.msg              import (Mesh, MeshTriangle, Plane,
                                          SolidPrimitive)
 from visualization_msgs.msg      import Marker
 from std_msgs.msg                import ColorRGBA
+from tf2_ros                     import TransformBroadcaster
 
 try:
     from pyassimp import pyassimp
@@ -73,8 +75,9 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         self._object_descriptions = {}
         self._marker_ids          = {}
         self._marker_id_max       = 0
-        self._pub = rospy.Publisher("collision_marker",
-                                    Marker, queue_size=10)
+        self._pub                 = rospy.Publisher("collision_marker",
+                                                    Marker, queue_size=10)
+        self._broadcaster         = TransformBroadcaster()
 
     def load_objects(self, param_ns='~tool_descriptions'):
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
@@ -119,9 +122,10 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         # Create and attach a collision object.
         od = self._object_descriptions[name]
         co = CollisionObject()
-        co.header = pose.header
-        co.pose   = pose.pose
-        co.id     = od.id + postfix
+        co.header.frame_id = pose.header.frame_id
+        co.header.stamp    = rospy.Time.now()
+        co.pose            = pose.pose
+        co.id              = od.id + postfix
         if use_mesh:
             co.meshes     = od.meshes
             co.mesh_poses = od.mesh_poses
@@ -150,6 +154,29 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._pub.publish(marker)
             self._marker_ids[co.id].append(self._marker_id_max)
             self._marker_id_max += 1
+
+        # Broadcast subframes
+        t = TransformStamped(co.header, co.id,
+                             Transform(Vector3(pose.pose.position.x,
+                                               pose.pose.position.y,
+                                               pose.pose.position.z),
+                                       Quaternion(pose.pose.orientation.x,
+                                                  pose.pose.orientation.y,
+                                                  pose.pose.orientation.z,
+                                                  pose.pose.orientation.w)))
+        self._broadcaster.sendTransform(t)
+        for subframe_name, subframe_pose in zip(od.subframe_names,
+                                                od.subframe_poses):
+            t.header.frame_id = co.id
+            t.child_frame_id  = subframe_name
+            t.transform = Transform(Vector3(subframe_pose.position.x,
+                                            subframe_pose.position.y,
+                                            subframe_pose.position.z),
+                                    Quaternion(subframe_pose.orientation.x,
+                                               subframe_pose.orientation.y,
+                                               subframe_pose.orientation.z,
+                                               subframe_pose.orientation.w))
+            self._broadcaster.sendTransform(t)
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
