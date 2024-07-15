@@ -156,7 +156,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._marker_id_max += 1
 
         # Broadcast subframes
-        t = TransformStamped(co.header, co.id,
+        T = TransformStamped(co.header, co.id,
                              Transform(Vector3(pose.pose.position.x,
                                                pose.pose.position.y,
                                                pose.pose.position.z),
@@ -164,19 +164,19 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                                                   pose.pose.orientation.y,
                                                   pose.pose.orientation.z,
                                                   pose.pose.orientation.w)))
-        self._broadcaster.sendTransform(t)
+        self._broadcaster.sendTransform(T)
         for subframe_name, subframe_pose in zip(od.subframe_names,
                                                 od.subframe_poses):
-            t.header.frame_id = co.id
-            t.child_frame_id  = subframe_name
-            t.transform = Transform(Vector3(subframe_pose.position.x,
+            T.header.frame_id = co.id
+            T.child_frame_id  = subframe_name
+            T.transform = Transform(Vector3(subframe_pose.position.x,
                                             subframe_pose.position.y,
                                             subframe_pose.position.z),
                                     Quaternion(subframe_pose.orientation.x,
                                                subframe_pose.orientation.y,
                                                subframe_pose.orientation.z,
                                                subframe_pose.orientation.w))
-            self._broadcaster.sendTransform(t)
+            self._broadcaster.sendTransform(T)
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
@@ -205,11 +205,9 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             else:
                 raise Exception("Unable to build triangles from mesh due to mesh object structure")
             for vertex in scene.meshes[0].vertices:
-                point = Point()
-                point.x = vertex[0]*scale[0]
-                point.y = vertex[1]*scale[1]
-                point.z = vertex[2]*scale[2]
-                mesh.vertices.append(point)
+                mesh.vertices.append(Point(vertex[0]*scale[0],
+                                           vertex[1]*scale[1],
+                                           vertex[2]*scale[2]))
             pyassimp.release(scene)
             return mesh
         except Exception as e:
