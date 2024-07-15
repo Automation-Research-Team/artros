@@ -69,15 +69,20 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                                     'mesh_urls', 'meshes', 'mesh_poses',
                                     'planes', 'plane_poses',
                                     'subframe_names', 'subframe_poses'])
+    MarkerInfo = namedtuple('MarkerInfo', ['ids', 'link'])
 
     def __init__(self, ns='', synchronous=True):
         super().__init__(ns, synchronous)
         self._object_descriptions = {}
-        self._marker_ids          = {}
+        self._marker_info         = {}
         self._marker_id_max       = 0
-        self._pub                 = rospy.Publisher("collision_marker",
+        self._marker_pub          = rospy.Publisher("collision_marker",
                                                     Marker, queue_size=10)
+        self._transforms          = {}
         self._broadcaster         = TransformBroadcaster()
+        self._timer               = rospy.Timer(rospy.Duration(0.1),
+                                                self._timer_cb)
+        self._timer.run()
 
     def load_objects(self, param_ns='~tool_descriptions'):
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
@@ -136,7 +141,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         super().attach_object(co, co.header.frame_id)
 
         # Publish shape of the collision object as visualization markers.
-        self._marker_ids[co.id] = []
+        marker_ids = []
         for i, (mesh, mesh_pose) in enumerate(zip(od.meshes, od.mesh_poses)):
             marker = Marker()
             marker.header        = co.header
@@ -151,11 +156,14 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             marker.frame_locked  = False
             marker.mesh_resource = "file://" \
                                  + self._url_to_filepath(od.mesh_urls[i])
-            self._pub.publish(marker)
-            self._marker_ids[co.id].append(self._marker_id_max)
+            self._marker_pub.publish(marker)
+            marker_ids.append(marker.id)
             self._marker_id_max += 1
+        self._marker_info[co.id] = PlanningSceneInterface.MarkerInfo(
+                                       marker_ids, marker.header.frame_id)
 
         # Broadcast subframes
+        transforms = []
         T = TransformStamped(co.header, co.id,
                              Transform(Vector3(pose.pose.position.x,
                                                pose.pose.position.y,
@@ -164,7 +172,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                                                   pose.pose.orientation.y,
                                                   pose.pose.orientation.z,
                                                   pose.pose.orientation.w)))
-        self._broadcaster.sendTransform(T)
+        transforms.append(T)
         for subframe_name, subframe_pose in zip(od.subframe_names,
                                                 od.subframe_poses):
             T.header.frame_id = co.id
@@ -176,7 +184,41 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                                                subframe_pose.orientation.y,
                                                subframe_pose.orientation.z,
                                                subframe_pose.orientation.w))
-            self._broadcaster.sendTransform(T)
+            transforms.append(T)
+        self._transforms[co.id] = transforms
+
+    def remove_attached_object(self, link=None, name=None):
+        if name is not None:
+            marker_info = self._marker_info.get(name, None)
+            if marker_info is None:
+                rospy.logerr('PlanningSceneInterface.remove_attached_object(): unknown attached object[%s]', name)
+                return
+            for marker_id in marker_info.ids:
+                marker = Marker()
+                marker.id = marker_info.id
+                marker.action = Marker.DELETE
+                self._marker_pub.publish(marker)
+        elif link is not None:
+            for marker_info in self._marker_info:
+                if marker_info.link == link:
+                    for marker_id in marker_info.ids:
+                        marker = Marker()
+                        marker.id = marker_info.id
+                        marker.action = Marker.DELETE
+                        self._marker_pub.publish(marker)
+        else:
+            for marker_info in self._marker_info:
+                for marker_id in marker_info.ids:
+                    marker = Marker()
+                    marker.id = marker_info.id
+                    marker.action = Marker.DELETE
+                    self._marker_pub.publish(marker)
+        super().remove_attached_object(link, name)
+
+    def _timer_cb(self, event):
+        for transforms in self._transforms:
+            for transform in transform:
+                self._broadcaster.sendTransform(transform)
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
