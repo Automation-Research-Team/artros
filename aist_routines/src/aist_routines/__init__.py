@@ -122,6 +122,7 @@ class AISTBaseRoutines(object):
             use_mesh=False)
         for name in self._scene.get_attached_objects():
             print('*** collision_object: ' + name)
+        #self._scene.remove_attached_object()
 
         # Grippers
         self._grippers = {}

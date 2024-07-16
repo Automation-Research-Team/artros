@@ -36,6 +36,7 @@
 import os, copy, rospy, rospkg
 import numpy as np
 import moveit_commander
+import threading
 
 from collections                 import namedtuple
 from tf                          import transformations as tfs
@@ -47,7 +48,7 @@ from object_recognition_msgs.msg import ObjectType
 from shape_msgs.msg              import (Mesh, MeshTriangle, Plane,
                                          SolidPrimitive)
 from visualization_msgs.msg      import Marker
-from std_msgs.msg                import ColorRGBA
+from std_msgs.msg                import Header, ColorRGBA
 from tf2_ros                     import TransformBroadcaster
 
 try:
@@ -74,15 +75,15 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
     def __init__(self, ns='', synchronous=True):
         super().__init__(ns, synchronous)
         self._object_descriptions = {}
-        self._marker_info         = {}
+        self._marker_infos        = {}
         self._marker_id_max       = 0
         self._marker_pub          = rospy.Publisher("collision_marker",
                                                     Marker, queue_size=10)
         self._transforms          = {}
-        self._broadcaster         = TransformBroadcaster()
-        self._timer               = rospy.Timer(rospy.Duration(0.1),
-                                                self._timer_cb)
-        self._timer.run()
+        self._lock                = threading.Lock()
+        th = threading.Thread(target=self._transform_thread)
+        th.daemon = True
+        th.start()
 
     def load_objects(self, param_ns='~tool_descriptions'):
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
@@ -149,7 +150,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             marker.id            = self._marker_id_max
             marker.type          = marker.MESH_RESOURCE
             marker.action        = Marker.ADD
-            marker.pose          = self._compose_poses(co.pose, mesh_pose)
+            marker.pose          = PlanningSceneInterface._compose(co.pose,
+                                                                   mesh_pose)
             marker.scale         = Vector3(0.001, 0.001, 0.001)
             marker.color         = ColorRGBA(0.0, 0.8, 0.5, 1.0)
             marker.lifetime      = rospy.Duration(0)
@@ -159,8 +161,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._marker_pub.publish(marker)
             marker_ids.append(marker.id)
             self._marker_id_max += 1
-        self._marker_info[co.id] = PlanningSceneInterface.MarkerInfo(
-                                       marker_ids, marker.header.frame_id)
+        self._marker_infos[co.id] = PlanningSceneInterface.MarkerInfo(
+                                        marker_ids, marker.header.frame_id)
 
         # Broadcast subframes
         transforms = []
@@ -175,50 +177,71 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         transforms.append(T)
         for subframe_name, subframe_pose in zip(od.subframe_names,
                                                 od.subframe_poses):
-            T.header.frame_id = co.id
-            T.child_frame_id  = subframe_name
-            T.transform = Transform(Vector3(subframe_pose.position.x,
-                                            subframe_pose.position.y,
-                                            subframe_pose.position.z),
-                                    Quaternion(subframe_pose.orientation.x,
+            T = TransformStamped(Header(frame_id=co.id), subframe_name,
+                                 Transform(Vector3(subframe_pose.position.x,
+                                                   subframe_pose.position.y,
+                                                   subframe_pose.position.z),
+                                           Quaternion(
+                                               subframe_pose.orientation.x,
                                                subframe_pose.orientation.y,
                                                subframe_pose.orientation.z,
-                                               subframe_pose.orientation.w))
+                                               subframe_pose.orientation.w)))
             transforms.append(T)
-        self._transforms[co.id] = transforms
+        with self._lock:
+            self._transforms[co.id] = transforms
 
     def remove_attached_object(self, link=None, name=None):
         if name is not None:
-            marker_info = self._marker_info.get(name, None)
+            marker_info = self._marker_infos.get(name, None)
             if marker_info is None:
                 rospy.logerr('PlanningSceneInterface.remove_attached_object(): unknown attached object[%s]', name)
                 return
             for marker_id in marker_info.ids:
                 marker = Marker()
-                marker.id = marker_info.id
+                marker.id = marker_id
                 marker.action = Marker.DELETE
                 self._marker_pub.publish(marker)
+            del self._marker_infos[name]
+            with self._lock:
+                del self._transforms[name]
         elif link is not None:
-            for marker_info in self._marker_info:
-                if marker_info.link == link:
-                    for marker_id in marker_info.ids:
-                        marker = Marker()
-                        marker.id = marker_info.id
-                        marker.action = Marker.DELETE
-                        self._marker_pub.publish(marker)
-        else:
-            for marker_info in self._marker_info:
+            marker_infos = {name: marker_info
+                            for name, marker_info in self._marker_infos.items()
+                            if marker_info.link == link}
+            for name, marker_info in marker_infos.items():
                 for marker_id in marker_info.ids:
                     marker = Marker()
-                    marker.id = marker_info.id
+                    marker.id = marker_id
                     marker.action = Marker.DELETE
                     self._marker_pub.publish(marker)
+            for name in marker_infos.keys():
+                del self._marker_infos[name]
+                with self._lock:
+                    del self._transforms[name]
+        else:
+            for marker_info in self._marker_infos.values():
+                for marker_id in marker_info.ids:
+                    marker = Marker()
+                    marker.id = marker_id
+                    marker.action = Marker.DELETE
+                    self._marker_pub.publish(marker)
+            self._marker_infos.clear()
+            with self._lock:
+                self._transforms.clear()
         super().remove_attached_object(link, name)
+        self.remove_world_object(name)
+
+    def _transform_thread(self):
+        self._broadcaster = TransformBroadcaster()
+        self._timer       = rospy.Timer(rospy.Duration(0.1), self._timer_cb)
+        rospy.spin()
 
     def _timer_cb(self, event):
-        for transforms in self._transforms:
-            for transform in transform:
-                self._broadcaster.sendTransform(transform)
+        with self._lock:
+            for transforms in self._transforms.values():
+                for transform in transforms:
+                    transform.header.stamp = rospy.Time.now()
+                    self._broadcaster.sendTransform(transform)
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
@@ -262,7 +285,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             raise('Illegal URL: ' + url)
         return os.path.join(rospkg.RosPack().get_path(tokens[2]), *tokens[3:])
 
-    def _compose_poses(self, pose0, pose1):
+    @staticmethod
+    def _compose(pose0, pose1):
         T = tfs.concatenate_matrices(
                 tfs.translation_matrix((pose0.position.x,
                                         pose0.position.y,
