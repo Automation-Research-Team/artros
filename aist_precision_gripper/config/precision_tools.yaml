@@ -1,6 +1,4 @@
 precision_tool:
-  frame_id: precision_tool_holder_link
-  pose:     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   primitives:
     - type:       BOX                     # motor
       dimensions: [ 0.0425, 0.055, 0.030]
@@ -22,4 +20,4 @@ precision_tool:
     - url:        'package://aist_precision_gripper/meshes/precision_right_finger.stl'
       pose:       [0.0915, -0.012, 0.0, 90.0, 0.0, 90.0]
   subframes:
-    precision_tool_tip_link: [0.147, -0.009, 0.0, 0.0, -90.0, 0.0]
+    tip_link: [0.147, -0.009, 0.0, 0.0, -90.0, 0.0]

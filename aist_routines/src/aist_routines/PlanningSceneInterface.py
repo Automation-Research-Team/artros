@@ -90,7 +90,6 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                       'CYLINDER': SolidPrimitive.CYLINDER}
 
         for name, desc in rospy.get_param(param_ns, {}).items():
-            pose = desc['pose']
             od = PlanningSceneInterface.ObjectDescription(name, [], [], [], [],
                                                           [], [], [], [], [])
 
@@ -177,7 +176,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         transforms.append(T)
         for subframe_name, subframe_pose in zip(od.subframe_names,
                                                 od.subframe_poses):
-            T = TransformStamped(Header(frame_id=co.id), subframe_name,
+            T = TransformStamped(Header(frame_id=co.id),
+                                 co.id + '_' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
                                                    subframe_pose.position.y,
                                                    subframe_pose.position.z),
