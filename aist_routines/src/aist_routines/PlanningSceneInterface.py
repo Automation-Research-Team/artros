@@ -177,7 +177,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         for subframe_name, subframe_pose in zip(od.subframe_names,
                                                 od.subframe_poses):
             T = TransformStamped(Header(frame_id=co.id),
-                                 co.id + '_' + subframe_name,
+                                 co.id + '/' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
                                                    subframe_pose.position.y,
                                                    subframe_pose.position.z),
