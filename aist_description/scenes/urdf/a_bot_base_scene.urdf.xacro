@@ -50,9 +50,16 @@
   </xacro:cage>
 
   <!-- tool holders -->
-  <xacro:property name="screw_tool_m3_holder_y"	value="0.75"/>
-  <xacro:property name="screw_tool_m4_holder_y"	value="0.85"/>
-  <xacro:property name="suction_tool_holder_y"	value="0.95"/>
+  <xacro:property name="precision_tool_holder_y"	value="0.60"/>
+  <xacro:property name="screw_tool_m3_holder_y"		value="0.70"/>
+  <xacro:property name="screw_tool_m4_holder_y"		value="0.80"/>
+  <xacro:property name="suction_tool_holder_y"		value="0.90"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/precision_tool_holder.urdf.xacro"/>
+  <xacro:precision_tool_holder prefix="precision_tool_holder_"
+			   parent="cage_tool_bar">
+    <origin xyz="0 ${precision_tool_holder_y} ${cage_t}" rpy="0 0 0"/>
+  </xacro:precision_tool_holder>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/screw_tool_holder.urdf.xacro"/>
   <xacro:screw_tool_holder prefix="screw_tool_m3_holder_"
@@ -98,18 +105,18 @@
     <origin xyz="0 0 0" rpy="${pi} 0 0" />
   </xacro:zivid_coupling>
 
-  <!-- Spawn and attach Zivid2+ camera -->
-  <xacro:include filename="$(find aist_description
-			   )/scenes/urdf/load_calibration.urdf.xacro"/>
-  <xacro:load_calibration filename="$(find aist_handeye_calibration
-				    )/calib/a_bot_zivid.yaml"/>
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/zivid2plus.urdf.xacro"/>
-  <xacro:zivid2plus name="a_bot_zivid"
-		    parent="a_bot_zivid_coupling_flange_link">
-    <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}"
-    	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/>
-  </xacro:zivid2plus>
+  <!-- <!-\- Spawn and attach Zivid2+ camera -\-> -->
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/scenes/urdf/load_calibration.urdf.xacro"/> -->
+  <!-- <xacro:load_calibration filename="$(find aist_handeye_calibration -->
+  <!-- 				    )/calib/a_bot_zivid.yaml"/> -->
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/zivid2plus.urdf.xacro"/> -->
+  <!-- <xacro:zivid2plus name="a_bot_zivid" -->
+  <!-- 		    parent="a_bot_zivid_coupling_flange_link"> -->
+  <!--   <origin xyz="${origin[0]} ${origin[1]} ${origin[2]}" -->
+  <!--   	    rpy="${origin[3]} ${origin[4]} ${origin[5]}"/> -->
+  <!-- </xacro:zivid2plus> -->
 
   <!-- Spawn and attach force sensor -->
   <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
