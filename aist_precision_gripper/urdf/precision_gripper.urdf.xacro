@@ -1,10 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!--
-  Author: Cristian Beltran
--->
-
   <xacro:macro name="precision_gripper" params="prefix parent *origin">
 
     <xacro:include filename="$(find aist_precision_gripper
@@ -16,8 +12,9 @@
     <xacro:property name="rail_distance"		value="0.0915"/>
     <xacro:property name="max_gap"			value="0.010"/>
     <xacro:property name="depth"			value="0.030"/>
-    <xacro:property name="motor_width"			value="0.045"/>
+    <xacro:property name="motor_width"			value="0.055"/>
     <xacro:property name="motor_height"			value="0.0425"/>
+    <xacro:property name="motor_offset"			value="-0.003"/>
     <xacro:property name="lower_body_width"		value="0.085"/>
     <xacro:property name="lower_body_height"		value="0.050"/>
     <xacro:property name="finger_collision_width"	value="0.003"/>
@@ -39,7 +36,7 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="${motor_height/2} 0 0" rpy="0 0 0"/>
+        <origin xyz="${motor_height/2} ${motor_offset} 0" rpy="0 0 0"/>
         <geometry>
           <box size="${motor_height} ${motor_width} ${depth}"/>
         </geometry>
