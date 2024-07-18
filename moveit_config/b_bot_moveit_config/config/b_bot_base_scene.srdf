@@ -172,6 +172,7 @@
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_front_left_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_front_right_pillar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_lower_front_bar" reason="Never"/>
+    <disable_collisions link1="b_bot_wrist_1_link" link2="cage_lower_right_bar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_upper_front_bar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="cage_upper_left_bar" reason="Never"/>
     <disable_collisions link1="b_bot_wrist_1_link" link2="workspace_table_leg0" reason="Never"/>
