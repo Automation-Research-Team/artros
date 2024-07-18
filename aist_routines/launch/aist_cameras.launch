@@ -16,12 +16,12 @@
   </node>
 
   <!-- Launch camera multiplexer and Realsense cameras -->
-  <!-- <include file="$(find aist_camera_multiplexer)/launch/realsense.launch"> -->
-  <!--   <arg name="camera_names"		value="$(arg camera_names)"/> -->
-  <!--   <arg name="active_camera_name"	value="$(arg active_camera_name)"/> -->
-  <!--   <arg name="manager"			value="$(arg manager)"/> -->
-  <!--   <arg name="sim"			value="$(arg sim)"/> -->
-  <!-- </include> -->
+  <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
+    <arg name="camera_names"		value="$(arg camera_names)"/>
+    <arg name="active_camera_name"	value="$(arg active_camera_name)"/>
+    <arg name="manager"			value="$(arg manager)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+  </include>
 
   <!-- Launch PhoXi camera -->
   <!-- <include unless="$(arg sim)" -->
@@ -43,11 +43,11 @@
     </include>
 
     <!-- Launch Zivid camera -->
-    <include file="$(dirname)/zivid_camera.launch">
-      <arg name="camera_name"		value="a_bot_zivid"/>
-      <arg name="external_manager"	value="false"/>
-      <arg name="manager"		value="$(arg manager)"/>
-    </include>
+    <!-- <include file="$(dirname)/zivid_camera.launch"> -->
+    <!--   <arg name="camera_name"		value="a_bot_zivid"/> -->
+    <!--   <arg name="external_manager"	value="false"/> -->
+    <!--   <arg name="manager"		value="$(arg manager)"/> -->
+    <!-- </include> -->
 
   </group>
 
