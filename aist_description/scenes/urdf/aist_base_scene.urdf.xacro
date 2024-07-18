@@ -38,7 +38,8 @@
   <xacro:property name="tool_bar_h"	value="0.270"/>
   <xacro:property name="camera_bar_h"	value="1.325"/>
   <xacro:property name="cage_z"		value="0.164"/>
-  <xacro:property name="cage_offset"	value="0.020"/>
+  <xacro:property name="cage_offset_x"	value="0.020"/>
+  <xacro:property name="cage_offset_y"	value="0.005"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/cage.urdf.xacro"/>
   <xacro:cage prefix="cage_"
@@ -48,7 +49,9 @@
 	      tool_bar_height="${tool_bar_h}"
 	      camera_bar_height="${camera_bar_h}"
 	      parent="ground">
-    <origin xyz="${-cage_w/2 + cage_offset} ${-cage_l/2} ${cage_z}"
+    <origin xyz="${-cage_w/2 + cage_offset_x}
+		 ${-cage_l/2 + cage_offset_y}
+		 ${cage_z}"
 	    rpy="0 0 0" />
   </xacro:cage>
 
