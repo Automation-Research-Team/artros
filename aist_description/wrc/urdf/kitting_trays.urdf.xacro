@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro"
        name="kitting_trays">
-  
+
   <!-- ========== This file defines the trays for the assembly and kitting task -->
 
   <xacro:property name="tray_width" value=".300" />
@@ -11,8 +11,10 @@
 
   <!-- ========== The basic tray, without partitions -->
   <xacro:macro name="kitting_tray" params="trayname parent *origin">
-    <xacro:property name="mesh_file" value="package://aist_description/wrc/meshes/tray_PZ-0006-B.stl" />
-    <xacro:property name="mesh_file_col" value="package://aist_description/wrc/meshes/tray_PZ-0006-B.vhacd.dae" />
+    <xacro:property name="mesh_file"
+		    value="package://aist_description/wrc/meshes/tray_PZ-0006-B.stl" />
+    <xacro:property name="mesh_file_col"
+		    value="package://aist_description/wrc/meshes/tray_PZ-0006-B.vhacd.dae" />
 
     <link name="${trayname}">
       <inertial>
@@ -24,7 +26,6 @@
         <origin rpy="${pi/2} 0 ${pi/2}" xyz="${tray_width/2 +mesh_offset_x} ${tray_length/2 + mesh_offset_y} 0"/>
         <geometry>
           <mesh filename="${mesh_file}" scale="0.001 0.001 0.001"/>
-          <!-- <mesh filename="package://ur_description/meshes/ur5/visual/shoulder.dae"/> -->
         </geometry>
         <material name="white">
           <color rgba="1 1 1 1"/>
@@ -34,7 +35,6 @@
         <origin rpy="${pi/2} 0 ${pi/2}" xyz="${tray_width/2 +mesh_offset_x} ${tray_length/2 + mesh_offset_y} 0"/>
         <geometry>
           <mesh filename="${mesh_file_col}" scale="0.001 0.001 0.001"/>
-          <!-- <mesh filename="package://ur_description/meshes/ur5/collision/shoulder.stl"/> -->
         </geometry>
       </collision>
     </link>
@@ -118,7 +118,7 @@
     <xacro:auxiliary_frame parent="${trayname}" framename="partition_5">
       <origin rpy="0.0 0.0 0.0" xyz="0.16 0.26 0.02"/>
     </xacro:auxiliary_frame>
-    
+
     <xacro:auxiliary_frame parent="${trayname}_partition_1" framename="pickup">
       <origin rpy="0.0 0 0" xyz="0 0 0"/>
     </xacro:auxiliary_frame>
@@ -175,8 +175,8 @@
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="partition_8">
       <origin rpy="0.0 0.0 0.0" xyz="0.04 0.0525 0.02"/>
-    </xacro:auxiliary_frame>    
-    
+    </xacro:auxiliary_frame>
+
     <!-- Frames used for picking up parts during assembly -->
     <xacro:property name="partition_width" value="0.055"/>
     <xacro:property name="partition_length" value="0.06"/>
@@ -213,35 +213,44 @@
     <xacro:property name="m4_y_0" value="0.275"/>
     <xacro:property name="m4_y_delta" value="-0.03"/>
     <xacro:property name="m4_z_0" value="0.021"/>
-    
+
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_1">
-      <origin xyz="${m4_x_0 + m4_x_delta*0} ${m4_y_0 + m4_y_delta*0} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*0} ${m4_y_0 + m4_y_delta*0} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_2">
-      <origin xyz="${m4_x_0 + m4_x_delta*0} ${m4_y_0 + m4_y_delta*1} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*0} ${m4_y_0 + m4_y_delta*1} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_3">
-      <origin xyz="${m4_x_0 + m4_x_delta*0} ${m4_y_0 + m4_y_delta*2} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*0} ${m4_y_0 + m4_y_delta*2} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
 
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_4">
-      <origin xyz="${m4_x_0 + m4_x_delta*1} ${m4_y_0 + m4_y_delta*0} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*1} ${m4_y_0 + m4_y_delta*0} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_5">
-      <origin xyz="${m4_x_0 + m4_x_delta*1} ${m4_y_0 + m4_y_delta*1} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*1} ${m4_y_0 + m4_y_delta*1} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_6">
-      <origin xyz="${m4_x_0 + m4_x_delta*1} ${m4_y_0 + m4_y_delta*2} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*1} ${m4_y_0 + m4_y_delta*2} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
 
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_7">
-      <origin xyz="${m4_x_0 + m4_x_delta*2} ${m4_y_0 + m4_y_delta*0} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*2} ${m4_y_0 + m4_y_delta*0} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_8">
-      <origin xyz="${m4_x_0 + m4_x_delta*2} ${m4_y_0 + m4_y_delta*1} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*2} ${m4_y_0 + m4_y_delta*1} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m4_9">
-      <origin xyz="${m4_x_0 + m4_x_delta*2} ${m4_y_0 + m4_y_delta*2} ${m4_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m4_x_0 + m4_x_delta*2} ${m4_y_0 + m4_y_delta*2} ${m4_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
 
     <xacro:property name="m3_x_0" value="0.14"/>
@@ -249,25 +258,31 @@
     <xacro:property name="m3_y_0" value="0.275"/>
     <xacro:property name="m3_y_delta" value="-0.03"/>
     <xacro:property name="m3_z_0" value="0.021"/>
-    
+
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m3_1">
-      <origin xyz="${m3_x_0 + m3_x_delta*0} ${m3_y_0 + m3_y_delta*0} ${m3_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m3_x_0 + m3_x_delta*0} ${m3_y_0 + m3_y_delta*0} ${m3_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m3_2">
-      <origin xyz="${m3_x_0 + m3_x_delta*0} ${m3_y_0 + m3_y_delta*1} ${m3_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m3_x_0 + m3_x_delta*0} ${m3_y_0 + m3_y_delta*1} ${m3_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m3_3">
-      <origin xyz="${m3_x_0 + m3_x_delta*0} ${m3_y_0 + m3_y_delta*2} ${m3_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m3_x_0 + m3_x_delta*0} ${m3_y_0 + m3_y_delta*2} ${m3_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
 
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m3_4">
-      <origin xyz="${m3_x_0 + m3_x_delta*1} ${m3_y_0 + m3_y_delta*0} ${m3_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m3_x_0 + m3_x_delta*1} ${m3_y_0 + m3_y_delta*0} ${m3_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m3_5">
-      <origin xyz="${m3_x_0 + m3_x_delta*1} ${m3_y_0 + m3_y_delta*1} ${m3_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m3_x_0 + m3_x_delta*1} ${m3_y_0 + m3_y_delta*1} ${m3_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
     <xacro:auxiliary_frame parent="${trayname}" framename="screw_m3_6">
-      <origin xyz="${m3_x_0 + m3_x_delta*1} ${m3_y_0 + m3_y_delta*2} ${m3_z_0}" rpy="0 ${pi/2} 0" />   
+      <origin xyz="${m3_x_0 + m3_x_delta*1} ${m3_y_0 + m3_y_delta*2} ${m3_z_0}"
+	      rpy="0 0 0" />
     </xacro:auxiliary_frame>
   </xacro:macro>
 
