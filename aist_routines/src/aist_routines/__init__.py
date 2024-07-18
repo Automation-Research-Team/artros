@@ -105,24 +105,23 @@ class AISTBaseRoutines(object):
 
         # MoveIt PlanningSceneInterface
         self._scene = PlanningSceneInterface(synchronous=True)
-        self._scene.load_objects('~tool_descriptions')
-        self._scene.attach_object(
-            'screw_tool_m3',
-            PoseStamped(Header(frame_id='screw_tool_m3_holder_link'),
-                        Pose(Point(0,0,0), Quaternion(0,0,0,1))))
-        self._scene.attach_object(
-            'screw_tool_m4',
-            PoseStamped(Header(frame_id='screw_tool_m4_holder_link'),
-                        Pose(Point(0,0,0), Quaternion(0,0,0,1))),
-            use_mesh=False)
-        self._scene.attach_object(
-            'precision_tool',
-            PoseStamped(Header(frame_id='precision_tool_holder_link'),
-                        self.pose_from_offset((0, 0, 0, 0, 90, 0))),
-            use_mesh=False)
-        for name in self._scene.get_attached_objects():
-            print('*** collision_object: ' + name)
-        #self._scene.remove_attached_object()
+        # self._scene.load_objects('~tool_descriptions')
+        # self._scene.attach_object(
+        #     'screw_tool_m3',
+        #     PoseStamped(Header(frame_id='screw_tool_m3_holder_link'),
+        #                 Pose(Point(0,0,0), Quaternion(0,0,0,1))))
+        # self._scene.attach_object(
+        #     'screw_tool_m4',
+        #     PoseStamped(Header(frame_id='screw_tool_m4_holder_link'),
+        #                 Pose(Point(0,0,0), Quaternion(0,0,0,1))),
+        #     use_mesh=False)
+        # self._scene.attach_object(
+        #     'precision_tool',
+        #     PoseStamped(Header(frame_id='precision_tool_holder_link'),
+        #                 self.pose_from_offset((0, 0, 0, 0, 90, 0))),
+        #     use_mesh=False)
+        # for name in self._scene.get_attached_objects():
+        #     print('*** collision_object: ' + name)
 
         # Grippers
         self._grippers = {}

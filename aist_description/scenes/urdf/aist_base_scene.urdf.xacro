@@ -169,7 +169,7 @@
 			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
   <xacro:single_suction_gripper prefix="b_bot_gripper_"
   				parent="b_bot_ftsensor_flange_link">
-    <origin xyz="0 0 0" rpy="0 ${-1.0*pi/180} ${-0.3*pi/180}"/>
+    <origin xyz="0 0 0" rpy="0 ${0.3*pi/180} ${0.2*pi/180}"/>
   </xacro:single_suction_gripper>
 
   <!-- Add PhoXi 3D scanner -->

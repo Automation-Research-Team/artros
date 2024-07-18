@@ -11,7 +11,6 @@
     <arg unless="$(eval 'phoxi' in camera_name)"
 	 name="active_camera_name"	value="$(arg camera_name)"/>
     <arg name="sim"			value="$(arg sim)"/>
-    <arg name="manager"			value=""/>
   </include>
 
   <!-- Launch ArUco and calibrator -->
