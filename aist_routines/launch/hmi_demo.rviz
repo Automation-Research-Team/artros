@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Scene Robot1
+        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.6159420013427734
     Tree Height: 480
@@ -92,6 +93,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
           a_bot_base_link_inertia:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_camera_mount:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -190,6 +196,88 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          a_bot_inside_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_left_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_inside_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_right_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_left_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_outside_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_right_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_shoulder_link:
             Alpha: 1
             Show Axes: false
@@ -219,32 +307,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_bot_zivid_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_bot_zivid_coupling_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_bot_zivid_coupling_flange_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_zivid_projector:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_zivid_reference:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_zivid_sensor:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_motioncam_link:
             Alpha: 1
             Show Axes: false
@@ -640,6 +702,42 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          precision_tool_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          precision_tool_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          screw_tool_m3_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_tool_m3_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          screw_tool_m4_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_tool_m4_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          suction_tool_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          suction_tool_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           tray_1:
             Alpha: 1
             Show Axes: false
@@ -842,11 +940,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workspace_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           workspace_center:
             Alpha: 1
             Show Axes: false
@@ -947,6 +1040,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          a_bot_camera_mount:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           a_bot_flange:
             Alpha: 1
             Show Axes: false
@@ -1041,6 +1139,88 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          a_bot_inside_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_left_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_inside_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_inside_camera_right_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_color_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_color_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_connector_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_left_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_left_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          a_bot_outside_camera_right_ir_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          a_bot_outside_camera_right_ir_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           a_bot_shoulder_link:
             Alpha: 1
             Show Axes: false
@@ -1070,32 +1250,6 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          a_bot_zivid_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_bot_zivid_coupling_base_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          a_bot_zivid_coupling_flange_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_zivid_projector:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_zivid_reference:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          a_bot_zivid_sensor:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
           a_motioncam_link:
             Alpha: 1
             Show Axes: false
@@ -1491,6 +1645,42 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          precision_tool_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          precision_tool_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          screw_tool_m3_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_tool_m3_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          screw_tool_m4_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_tool_m4_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          suction_tool_holder_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          suction_tool_holder_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           tray_1:
             Alpha: 1
             Show Axes: false
@@ -1693,11 +1883,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workspace_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           workspace_center:
             Alpha: 1
             Show Axes: false
@@ -1757,6 +1942,8 @@ Visualization Manager:
           Value: false
         a_bot_base_link_inertia:
           Value: false
+        a_bot_camera_mount:
+          Value: false
         a_bot_flange:
           Value: false
         a_bot_forearm_link:
@@ -1797,12 +1984,52 @@ Visualization Manager:
           Value: false
         a_bot_gripper_tip_link:
           Value: true
+        a_bot_inside_camera_color_frame:
+          Value: false
+        a_bot_inside_camera_color_optical_frame:
+          Value: true
+        a_bot_inside_camera_connector_link:
+          Value: false
+        a_bot_inside_camera_depth_frame:
+          Value: false
+        a_bot_inside_camera_depth_optical_frame:
+          Value: false
+        a_bot_inside_camera_left_ir_frame:
+          Value: false
+        a_bot_inside_camera_left_ir_optical_frame:
+          Value: false
+        a_bot_inside_camera_link:
+          Value: false
+        a_bot_inside_camera_right_ir_frame:
+          Value: false
+        a_bot_inside_camera_right_ir_optical_frame:
+          Value: false
+        a_bot_outside_camera_color_frame:
+          Value: false
+        a_bot_outside_camera_color_optical_frame:
+          Value: true
+        a_bot_outside_camera_connector_link:
+          Value: false
+        a_bot_outside_camera_depth_frame:
+          Value: false
+        a_bot_outside_camera_depth_optical_frame:
+          Value: false
+        a_bot_outside_camera_left_ir_frame:
+          Value: false
+        a_bot_outside_camera_left_ir_optical_frame:
+          Value: false
+        a_bot_outside_camera_link:
+          Value: false
+        a_bot_outside_camera_right_ir_frame:
+          Value: false
+        a_bot_outside_camera_right_ir_optical_frame:
+          Value: false
         a_bot_shoulder_link:
           Value: false
         a_bot_tool0:
           Value: false
         a_bot_tool0_controller:
-          Value: true
+          Value: false
         a_bot_upper_arm_link:
           Value: false
         a_bot_wrist_1_link:
@@ -1811,24 +2038,12 @@ Visualization Manager:
           Value: false
         a_bot_wrist_3_link:
           Value: false
-        a_bot_zivid_base_link:
-          Value: true
-        a_bot_zivid_coupling_base_link:
-          Value: true
-        a_bot_zivid_coupling_flange_link:
-          Value: true
-        a_bot_zivid_projector:
-          Value: true
-        a_bot_zivid_reference:
-          Value: true
-        a_bot_zivid_sensor:
-          Value: true
         a_motioncam_color_sensor:
-          Value: true
+          Value: false
         a_motioncam_link:
-          Value: true
+          Value: false
         a_motioncam_reference:
-          Value: true
+          Value: false
         a_motioncam_sensor:
           Value: true
         b_bot_base:
@@ -1856,7 +2071,7 @@ Visualization Manager:
         b_bot_tool0:
           Value: false
         b_bot_tool0_controller:
-          Value: true
+          Value: false
         b_bot_upper_arm_link:
           Value: false
         b_bot_wrist_1_link:
@@ -1974,40 +2189,56 @@ Visualization Manager:
         bin_2_part_8_top_front_right_corner:
           Value: false
         cage_back_left_pillar:
-          Value: true
+          Value: false
         cage_back_right_pillar:
-          Value: true
+          Value: false
         cage_front_left_pillar:
-          Value: true
+          Value: false
         cage_front_right_pillar:
-          Value: true
+          Value: false
         cage_lower_back_bar:
-          Value: true
+          Value: false
         cage_lower_front_bar:
-          Value: true
+          Value: false
         cage_lower_left_bar:
-          Value: true
+          Value: false
         cage_lower_right_bar:
-          Value: true
+          Value: false
         cage_tool_bar:
-          Value: true
+          Value: false
         cage_upper_back_bar:
-          Value: true
+          Value: false
         cage_upper_front_bar:
-          Value: true
+          Value: false
         cage_upper_left_bar:
-          Value: true
+          Value: false
         cage_upper_right_bar:
-          Value: true
+          Value: false
         cage_workspace_bar:
-          Value: true
+          Value: false
         ground:
-          Value: true
+          Value: false
         live_camera_optical_frame:
-          Value: true
+          Value: false
         plate:
           Value: false
         plate_center:
+          Value: false
+        precision_tool_holder_base_link:
+          Value: false
+        precision_tool_holder_link:
+          Value: false
+        screw_tool_m3_holder_base_link:
+          Value: false
+        screw_tool_m3_holder_link:
+          Value: false
+        screw_tool_m4_holder_base_link:
+          Value: false
+        screw_tool_m4_holder_link:
+          Value: false
+        suction_tool_holder_base_link:
+          Value: false
+        suction_tool_holder_link:
           Value: false
         tray_1:
           Value: false
@@ -2107,24 +2338,22 @@ Visualization Manager:
           Value: false
         virtual_screen:
           Value: false
-        workspace_ar_marker:
-          Value: true
         workspace_center:
           Value: false
         workspace_table_leg0:
-          Value: true
+          Value: false
         workspace_table_leg1:
-          Value: true
+          Value: false
         workspace_table_leg2:
-          Value: true
+          Value: false
         workspace_table_leg3:
-          Value: true
+          Value: false
         workspace_table_top:
-          Value: true
+          Value: false
         workspace_table_top_origin:
-          Value: true
+          Value: false
         workspace_table_top_origin_center:
-          Value: true
+          Value: false
         world:
           Value: false
       Marker Alpha: 1
@@ -2148,40 +2377,62 @@ Visualization Manager:
                         a_bot_wrist_2_link:
                           a_bot_wrist_3_link:
                             a_bot_flange:
+                              a_bot_ftsensor_base_link:
+                                a_bot_ftsensor_flange_link:
+                                  a_bot_ftsensor_wrench_link:
+                                    {}
+                                  a_bot_gripper_coupling_base_link:
+                                    a_bot_gripper_coupling_flange_link:
+                                      a_bot_gripper_base_link:
+                                        a_bot_camera_mount:
+                                          {}
+                                        a_bot_gripper_robotiq_arg2f_base_link:
+                                          a_bot_gripper_left_inner_knuckle:
+                                            {}
+                                          a_bot_gripper_left_outer_knuckle:
+                                            a_bot_gripper_left_outer_finger:
+                                              a_bot_gripper_left_inner_finger:
+                                                a_bot_gripper_left_inner_finger_pad:
+                                                  {}
+                                          a_bot_gripper_right_inner_knuckle:
+                                            {}
+                                          a_bot_gripper_right_outer_knuckle:
+                                            a_bot_gripper_right_outer_finger:
+                                              a_bot_gripper_right_inner_finger:
+                                                a_bot_gripper_right_inner_finger_pad:
+                                                  {}
+                                        a_bot_gripper_tip_link:
+                                          {}
+                                        a_bot_inside_camera_connector_link:
+                                          a_bot_inside_camera_link:
+                                            a_bot_inside_camera_depth_frame:
+                                              a_bot_inside_camera_color_frame:
+                                                a_bot_inside_camera_color_optical_frame:
+                                                  {}
+                                              a_bot_inside_camera_depth_optical_frame:
+                                                {}
+                                              a_bot_inside_camera_left_ir_frame:
+                                                a_bot_inside_camera_left_ir_optical_frame:
+                                                  {}
+                                              a_bot_inside_camera_right_ir_frame:
+                                                a_bot_inside_camera_right_ir_optical_frame:
+                                                  {}
+                                        a_bot_outside_camera_connector_link:
+                                          a_bot_outside_camera_link:
+                                            a_bot_outside_camera_depth_frame:
+                                              a_bot_outside_camera_color_frame:
+                                                a_bot_outside_camera_color_optical_frame:
+                                                  {}
+                                              a_bot_outside_camera_depth_optical_frame:
+                                                {}
+                                              a_bot_outside_camera_left_ir_frame:
+                                                a_bot_outside_camera_left_ir_optical_frame:
+                                                  {}
+                                              a_bot_outside_camera_right_ir_frame:
+                                                a_bot_outside_camera_right_ir_optical_frame:
+                                                  {}
                               a_bot_tool0:
                                 {}
-                              a_bot_zivid_coupling_base_link:
-                                a_bot_zivid_coupling_flange_link:
-                                  a_bot_ftsensor_base_link:
-                                    a_bot_ftsensor_flange_link:
-                                      a_bot_ftsensor_wrench_link:
-                                        {}
-                                      a_bot_gripper_coupling_base_link:
-                                        a_bot_gripper_coupling_flange_link:
-                                          a_bot_gripper_base_link:
-                                            a_bot_gripper_robotiq_arg2f_base_link:
-                                              a_bot_gripper_left_inner_knuckle:
-                                                {}
-                                              a_bot_gripper_left_outer_knuckle:
-                                                a_bot_gripper_left_outer_finger:
-                                                  a_bot_gripper_left_inner_finger:
-                                                    a_bot_gripper_left_inner_finger_pad:
-                                                      {}
-                                              a_bot_gripper_right_inner_knuckle:
-                                                {}
-                                              a_bot_gripper_right_outer_knuckle:
-                                                a_bot_gripper_right_outer_finger:
-                                                  a_bot_gripper_right_inner_finger:
-                                                    a_bot_gripper_right_inner_finger_pad:
-                                                      {}
-                                            a_bot_gripper_tip_link:
-                                              {}
-                                  a_bot_zivid_base_link:
-                                    a_bot_zivid_projector:
-                                      {}
-                                    a_bot_zivid_reference:
-                                      a_bot_zivid_sensor:
-                                        {}
             b_bot_base_link:
               b_bot_base:
                 b_bot_tool0_controller:
@@ -2217,7 +2468,18 @@ Visualization Manager:
               cage_lower_left_bar:
                 cage_workspace_bar:
                   cage_tool_bar:
-                    {}
+                    precision_tool_holder_base_link:
+                      precision_tool_holder_link:
+                        {}
+                    screw_tool_m3_holder_base_link:
+                      screw_tool_m3_holder_link:
+                        {}
+                    screw_tool_m4_holder_base_link:
+                      screw_tool_m4_holder_link:
+                        {}
+                    suction_tool_holder_base_link:
+                      suction_tool_holder_link:
+                        {}
               cage_lower_right_bar:
                 {}
               cage_upper_back_bar:
@@ -2423,8 +2685,6 @@ Visualization Manager:
                       {}
                     tray_2_screw_m4_9:
                       {}
-              workspace_ar_marker:
-                {}
             workspace_table_leg0:
               workspace_table_leg1:
                 {}
@@ -2599,7 +2859,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.6557098031044006
+      Distance: 1.019927740097046
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2615,9 +2875,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8897949457168579
+      Pitch: 0.7047950029373169
       Target Frame: <Fixed Frame>
-      Yaw: 0.23610080778598785
+      Yaw: 3.4542853832244873
     Saved: ~
 Window Geometry:
   Displays:

@@ -217,6 +217,15 @@ class AISTBaseRoutines(object):
             else:
                 return True
 
+        def _get_offset():
+            offset = []
+            for s in raw_input('  offset? ').split():
+                if _is_num(s):
+                    offset.append(float(s))
+                else:
+                    return None
+            return offset
+
         if key == 'quit':
             self.go_to_named_pose(robot_name, 'home')  # Reset pose
             rospy.signal_shutdown('manual shutdown')
@@ -297,8 +306,12 @@ class AISTBaseRoutines(object):
             except rospy.ROSException as e:
                 rospy.logerr('Unknown pose: %s' % e)
         elif key == 'frame':
-            frame = raw_input("  frame? ")
-            self.go_to_frame(robot_name, frame)
+            frame  = raw_input("  frame? ")
+            offset = _get_offset()
+            try:
+                self.go_to_frame(robot_name, frame, offset)
+            except Exception as e:
+                rospy.logerr('Unknown frame: %s', frame)
         elif key == 'speed':
             speed = float(raw_input("  speed value? "))
         elif key == 'stop':

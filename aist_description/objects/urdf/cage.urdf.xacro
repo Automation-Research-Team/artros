@@ -113,7 +113,7 @@
     		    length="${length - 2*thickness}"
     		    height="${thickness}"
     		    parent="${prefix}workspace_bar">
-      <origin xyz="0 0 ${tool_bar_height + thickness}" rpy="0 0 0"/>
+      <origin xyz="0 0 ${tool_bar_height}" rpy="0 0 0"/>
     </xacro:aist_box>
 
   </xacro:macro>
