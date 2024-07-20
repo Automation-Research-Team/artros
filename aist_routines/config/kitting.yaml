@@ -207,6 +207,17 @@ picking_parameters:
     departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 1.0
+  precision_tool:
+    approach_offset: [0.0, 0.0, 0.15]
+    grasp_offset: [0.0, 0.0, -0.010]
+    place_offset: [0.0, 0.0, -0.009]
+    departure_offset: [0.0, 0.0, 0.15]
+    speed_fast: 0.1
+    speed_slow: 0.1
+    gripper_parameters:
+      grasp_position: 20
+      release_position: 60
+      max_effort: 100
 
 sweep_parameters:
   04_37D-GEARMOTOR-50-70:
