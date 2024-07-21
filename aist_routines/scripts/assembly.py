@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2021, National Institute of Advanced Industrial Science and Technology (AIST)
@@ -34,11 +36,11 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from aist_routines import AISTBaseRoutines
+from aist_routines.AssemblyRoutines import AssemblyRoutines
 
-######################################################################
-#  class IiwaRoutines                                                #
-######################################################################
-class IiwaRoutines(AISTBaseRoutines):
-    def __init__(self):
-        super().__init__()
+if __name__ == '__main__':
+
+    rospy.init_node('assembly', anonymous=True)
+
+    assembly = AssemblyRoutines()
+    assembly.run()

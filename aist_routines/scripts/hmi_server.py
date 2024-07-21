@@ -50,7 +50,7 @@ class HMIServer(object):
     _Pointing    = ('NO_RES', 'SWEEP_RES', 'RECAPTURE_RES')
 
     def __init__(self):
-        super(HMIServer, self).__init__()
+        super().__init__()
 
         self._seq              = 0
         self._no_req           = RequestHelp(robot_name='unknown_robot_name',

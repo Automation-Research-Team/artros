@@ -51,7 +51,7 @@ from std_msgs.msg                    import Bool
 ######################################################################
 class URRobot(object):
     def __init__(self, robot_name):
-        super(URRobot, self).__init__()
+        super().__init__()
 
         controller_manager = '/' + robot_name + '/controller_manager/'
         hw_interface       = '/' + robot_name + '/ur_hardware_interface/'
@@ -299,7 +299,7 @@ class URRobot(object):
 ######################################################################
 class URRoutines(AISTBaseRoutines):
     def __init__(self):
-        super(URRoutines, self).__init__()
+        super().__init__()
 
         self._ur_robots = {}
         d = rospy.get_param('~robots', {})
@@ -308,7 +308,7 @@ class URRoutines(AISTBaseRoutines):
 
     # Interactive stuffs
     def print_help_messages(self):
-        super(URRoutines, self).print_help_messages()
+        super().print_help_messages()
         print('=== UR specific commands ===')
         print('  activate:    Activate external control URCap')
         print('  load_prog:   Load program')
@@ -331,8 +331,7 @@ class URRoutines(AISTBaseRoutines):
         elif key == 'disconnect':
             self.disconnect_dashboard()
         else:
-            return super(URRoutines, self).interactive(key, robot_name,
-                                                       axis, speed)
+            return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
 
     def activate_external_control(self):

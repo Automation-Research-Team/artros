@@ -70,7 +70,7 @@ class CameraClient(object):
 ######################################################################
 class AreaCamera(CameraClient):
     def __init__(self, name='IIDCCamera'):
-        super(AreaCamera, self).__init__(name)
+        super().__init__(name)
         self._dyn_reconf = DynReconfClient(name, timeout=None)
 
     @staticmethod
@@ -88,7 +88,7 @@ class AreaCamera(CameraClient):
 ######################################################################
 class DepthCamera(CameraClient):
     def __init__(self, name):
-        super(DepthCamera, self).__init__(name)
+        super().__init__(name)
 
     @staticmethod
     def base(name):
@@ -99,7 +99,7 @@ class DepthCamera(CameraClient):
 ######################################################################
 class RealSenseCamera(DepthCamera):
     def __init__(self, name='a_bot_camera'):
-        super(RealSenseCamera, self).__init__(name)
+        super().__init__(name)
         self._enable     = rospy.ServiceProxy(name + '/enable', SetBool)
         self._dyn_camera = DynReconfClient(name, timeout=5.0)
 
@@ -118,7 +118,7 @@ class RealSenseCamera(DepthCamera):
 ######################################################################
 class CodedLightRealSenseCamera(RealSenseCamera):
     def __init__(self, name='a_bot_camera'):
-        super(CodedLightRealSenseCamera, self).__init__(name)
+        super().__init__(name)
         self._dyn_sensor = DynReconfClient(name + '/coded_light_depth_sensor',
                                            timeout=5.0)
         # Don't change current value of laser power not to activate
@@ -137,7 +137,7 @@ class CodedLightRealSenseCamera(RealSenseCamera):
 ######################################################################
 class PhoXiCamera(DepthCamera):
     def __init__(self, name='a_phoxi_m_camera'):
-        super(PhoXiCamera, self).__init__(name)
+        super().__init__(name)
         self._dyn_reconf    = DynReconfClient(name, timeout=5.0)
         self._trigger_frame = rospy.ServiceProxy(name + '/trigger_frame',
                                                  Trigger, persistent=True)
@@ -166,7 +166,7 @@ class ZividCamera(DepthCamera):
     def __init__(self, name='a_bot_camera'):
         from zivid_camera.srv import Capture, LoadSettingsFromFile
 
-        super(ZividCamera, self).__init__(name)
+        super().__init__(name)
         self._dyn_settings = DynReconfClient(name + '/settings', timeout=5.0)
         self._dyn_acquisition_0 \
             = DynReconfClient(name + '/settings/acquisition_0', timeout=5.0)

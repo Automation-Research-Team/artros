@@ -49,7 +49,7 @@ from freight                import FreightRoutines
 ######################################################################
 class FetchRoutines(AISTBaseRoutines, FreightRoutines):
     def __init__(self):
-        super(FetchRoutines, self).__init__()
+        super().__init__()
 
         self._torso_controller = FollowTrajectoryClient("torso_controller",
                                                         ["torso_lift_joint"])

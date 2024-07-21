@@ -48,7 +48,7 @@ class RepeatSweepRoutines(KittingRoutines):
     """Implements RepeatSweep routines for aist robot system."""
 
     def __init__(self, server='hmi_server'):
-        super(RepeatSweepRoutines, self).__init__()
+        super().__init__()
 
         self._repeat_sweep_params = rospy.get_param('~repeat_sweep_parameters')
         self._repeat_sweep_offset = (0.0, 0.0, 0.02)
@@ -59,7 +59,7 @@ class RepeatSweepRoutines(KittingRoutines):
         return self._repeat_sweep.current_robot_name
 
     def print_help_messages(self):
-        super(RepeatSweepRoutines, self).print_help_messages()
+        super().print_help_messages()
         print('=== RepeatSweep commands ===')
         print('  R: Repeat sweep')
         print('  C: Cancel repeat sweep')
@@ -72,8 +72,7 @@ class RepeatSweepRoutines(KittingRoutines):
         elif key == 'C':
             self._repeat_sweep.cancel_goal()
         else:
-            return super(RepeatSweepRoutines,
-                         self).interactive(key, robot_name, axis, speed)
+            return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
 
     # RepeatSweep stuffs
@@ -106,7 +105,7 @@ class RepeatSweepRoutines(KittingRoutines):
                                                   self._done_cb)
 
     def _done_cb(self, state, result):
-        super(RepeatSweepRoutines, self)._done_cb(state, result)
+        super()._done_cb(state, result)
         with open('repeat_sweep.csv', 'w') as f:
             writer = csv.writer(f)
             for upset_result in result.upset_results:

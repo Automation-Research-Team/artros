@@ -57,7 +57,7 @@ def is_num(s):
 ######################################################################
 class BinCalibrationRoutines(AISTBaseRoutines):
     def __init__(self):
-        super(BinCalibrationRoutines, self).__init__()
+        super().__init__()
         self._bins = {
             'bin_1_part_5',
             'bin_1_part_16',

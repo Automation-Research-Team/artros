@@ -43,7 +43,7 @@ from tf import transformations as tfs
 ######################################################################
 class URScriptPublisher(object):
     def __init__(self, robot_name):
-        super(URScriptPublisher, self).__init__()
+        super().__init__()
 
         self._rospack    = rospkg.RosPack()
         self._robot_name = robot_name

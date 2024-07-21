@@ -44,7 +44,7 @@ from aist_utility.compat import *
 ######################################################################
 class FetchInteractiveRoutines(FetchRoutines):
     def __init__(self):
-        super(FetchInteractiveRoutines, self).__init__()
+        super().__init__()
 
     def run(self):
         robot_name = rospy.get_param('~robots').keys()[0]

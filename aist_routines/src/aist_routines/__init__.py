@@ -56,7 +56,6 @@ from aist_routines.CameraClient      import CameraClient
 from aist_routines.MarkerPublisher   import MarkerPublisher
 from aist_routines.PickOrPlaceAction import PickOrPlace
 from aist_utility.compat             import *
-from aist_routines.PlanningSceneInterface import PlanningSceneInterface
 
 ######################################################################
 #  global functions                                                  #
@@ -78,7 +77,7 @@ def paramtuples(d):
 ######################################################################
 class AISTBaseRoutines(object):
     def __init__(self, reference_frame='', eef_step=None):
-        super(AISTBaseRoutines, self).__init__()
+        super().__init__()
 
         moveit_commander.roscpp_initialize(sys.argv)
         self._listener = TransformListener()
@@ -102,26 +101,6 @@ class AISTBaseRoutines(object):
 
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
-
-        # MoveIt PlanningSceneInterface
-        self._scene = PlanningSceneInterface(synchronous=True)
-        # self._scene.load_objects('~tool_descriptions')
-        # self._scene.attach_object(
-        #     'screw_tool_m3',
-        #     PoseStamped(Header(frame_id='screw_tool_m3_holder_link'),
-        #                 Pose(Point(0,0,0), Quaternion(0,0,0,1))))
-        # self._scene.attach_object(
-        #     'screw_tool_m4',
-        #     PoseStamped(Header(frame_id='screw_tool_m4_holder_link'),
-        #                 Pose(Point(0,0,0), Quaternion(0,0,0,1))),
-        #     use_mesh=False)
-        # self._scene.attach_object(
-        #     'precision_tool',
-        #     PoseStamped(Header(frame_id='precision_tool_holder_link'),
-        #                 self.pose_from_offset((0, 0, 0, 0, 90, 0))),
-        #     use_mesh=False)
-        # for name in self._scene.get_attached_objects():
-        #     print('*** collision_object: ' + name)
 
         # Grippers
         self._grippers = {}

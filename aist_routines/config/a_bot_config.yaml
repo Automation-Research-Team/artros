@@ -8,4 +8,20 @@ grippers:
     controller_ns: a_bot_gripper_controller
 
 cameras:
-  a_bot_zivid: ZividCamera
+  a_motioncam:          PhoXiCamera
+#  a_bot_zivid:          ZividCamera
+  a_bot_inside_camera:  CodedLightRealSenseCamera
+  a_bot_outside_camera: CodedLightRealSenseCamera
+
+tools:
+  precision_tool:
+    holder_link:   precision_tool_holder_link
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  screw_tool_m3:
+    holder_link:   screw_tool_m3_holder_link
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+  screw_tool_m4:
+    holder_link:   screw_tool_m4_holder_link
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+moveit_eef_step: 0.002

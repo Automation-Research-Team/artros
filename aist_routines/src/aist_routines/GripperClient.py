@@ -126,7 +126,7 @@ class GripperClient(object):
 ######################################################################
 class VoidGripper(GripperClient):
     def __init__(self, name, tip_link):
-        super(VoidGripper, self).__init__(name, 'void', tip_link, tip_link)
+        super().__init__(name, 'void', tip_link, tip_link)
         rospy.loginfo('void_gripper initialized.')
 
     @staticmethod
@@ -139,8 +139,7 @@ class VoidGripper(GripperClient):
 class GenericGripper(GripperClient):
     def __init__(self, name, action_ns, base_link=None, tip_link=None,
                  min_position=0.0, max_position=0.1, max_effort=5.0):
-        super(GenericGripper, self).__init__(name, 'two_finger',
-                                             base_link, tip_link)
+        super().__init__(name, 'two_finger', base_link, tip_link)
         self._client = SimpleActionClient(action_ns, GripperCommandAction)
         self._parameters = {'grasp_position':   min_position,
                             'release_position': max_position,
@@ -211,11 +210,8 @@ class RobotiqGripper(GenericGripper):
         assert self._min_position != self._max_position
 
 
-        super(RobotiqGripper, self).__init__(name,
-                                             controller_ns + '/gripper_cmd',
-                                             None, None,
-                                             self._min_gap, self._max_gap,
-                                             max_effort)
+        super().__init__(name, controller_ns + '/gripper_cmd', None, None,
+                         self._min_gap, self._max_gap, max_effort)
 
     @staticmethod
     def simulated(name, controller_ns, max_effort=0.0, velocity=0.1):
@@ -226,8 +222,7 @@ class RobotiqGripper(GenericGripper):
             return self._set_velocity(velocity).success
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration()):
-        return super(RobotiqGripper, self).move(self._position(gap),
-                                                max_effort, timeout)
+        return super().move(self._position(gap), max_effort, timeout)
 
     def _position(self, gap):
         return (gap - self._min_gap) * self._position_per_gap \
@@ -253,11 +248,8 @@ class PrecisionGripper(GenericGripper):
 
         assert min_position < max_position
 
-        super(PrecisionGripper, self).__init__(name,
-                                               controller_ns + '/gripper_cmd',
-                                               None, None,
-                                               min_position, max_position,
-                                               max_effort)
+        super().__init__(name, controller_ns + '/gripper_cmd', None, None,
+                         min_position, max_position, max_effort)
 
 ######################################################################
 #  class SuctionGripper                                              #
@@ -265,7 +257,7 @@ class PrecisionGripper(GenericGripper):
 class SuctionGripper(GripperClient):
     def __init__(self, name, controller_ns,
                  suck_min_period=0.5, blow_min_period=0.2):
-        super(SuctionGripper, self).__init__(name, 'suction')
+        super().__init__(name, 'suction')
 
         self._client     = SimpleActionClient(controller_ns + '/command',
                                               SuctionToolCommandAction)
@@ -330,7 +322,7 @@ class Lecp6Gripper(GripperClient):
     def __init__(self, name, controller_ns, open_no=1, close_no=2):
         from tranbo_control.msg import Lecp6CommandAction, Lecp6CommandGoal
 
-        super(Lecp6Gripper, self).__init__(name, 'two_finger')
+        super().__init__(name, 'two_finger')
         self._client     = SimpleActionClient(controller_ns + '/lecp6',
                                               Lecp6CommandAction)
         self._parameters = {'release_stepdata': open_no,
@@ -382,7 +374,7 @@ class MagswitchGripper(GripperClient):
         from tranbo_control.msg import (MagswitchCommandAction,
                                         MagswitchCommandGoal)
 
-        super(MagswitchGripper, self).__init__(name, 'magnet')
+        super().__init__(name, 'magnet')
         self._client           = SimpleActionClient(controller_ns
                                                     + '/magswitch',
                                                     MagswitchCommandAction)

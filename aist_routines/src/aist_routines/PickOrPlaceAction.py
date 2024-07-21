@@ -134,6 +134,7 @@ class PickOrPlace(SimpleActionClient):
         self._server.publish_feedback(feedback)
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
+            gripper.wait()                      # Wait for pregrasp completed
         success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
                                               goal.offset, goal.speed_slow)
         if not self._server.is_active():
@@ -149,7 +150,6 @@ class PickOrPlace(SimpleActionClient):
         feedback.stage = PickOrPlaceFeedback.GRASPING_OR_RELEASING
         self._server.publish_feedback(feedback)
         if goal.pick:
-            gripper.wait()                      # Wait for pregrasp completed
             gripper.grasp()
         else:
             gripper.release()

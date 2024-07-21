@@ -44,7 +44,7 @@ from aist_utility.compat import *
 ######################################################################
 class InteractiveRoutines(AISTBaseRoutines):
     def __init__(self):
-        super(InteractiveRoutines, self).__init__()
+        super().__init__()
 
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]

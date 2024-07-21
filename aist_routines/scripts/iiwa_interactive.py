@@ -75,7 +75,7 @@ class InteractiveRoutines(IiwaRoutines):
     }
 
     def __init__(self, robot_name, camera_name, speed, ns):
-        super(InteractiveRoutines, self).__init__(ns)
+        super().__init__(ns)
 
         self._robot_name   = robot_name
         self._camera_name  = camera_name
