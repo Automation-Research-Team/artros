@@ -29,7 +29,8 @@
         pkg="aist_precision_gripper" type="precision_gripper_controller.py"
         output="screen" respawn="false">
     <param name="driver_ns"	value="$(arg driver_ns)"/>
-    <rosparam file="$(dirname)/../config/precision_gripper.yaml"/>
+    <rosparam file="$(dirname)/../config/precision_gripper.yaml"
+	      subst_value="true"/>
   </node>
 
 </launch>

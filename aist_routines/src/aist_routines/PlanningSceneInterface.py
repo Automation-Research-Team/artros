@@ -123,7 +123,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._object_descriptions[name] = od
             rospy.loginfo('collision object[%s] loaded', name)
 
-    def attach_object(self, name, pose, postfix='', use_mesh=False):
+    def attach_object(self, name, pose,
+                      postfix='', use_mesh=False, touch_links=None):
         # Create and attach a collision object.
         od = self._object_descriptions[name]
         co = CollisionObject()
@@ -138,7 +139,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             co.primitives      = od.primitives
             co.primitive_poses = od.primitive_poses
         co.operation = CollisionObject.ADD
-        super().attach_object(co, co.header.frame_id)
+        super().attach_object(co, co.header.frame_id, touch_links)
 
         # Publish shape of the collision object as visualization markers.
         marker_ids = []
