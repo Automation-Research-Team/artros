@@ -62,7 +62,7 @@ class AssemblyRoutines(URRoutines):
             print('*** collision_object: ' + name)
 
     def run(self):
-        robot_name = 'a_bot'
+        robot_name = list(rospy.get_param('~robots').keys())[0]
         axis       = 'Y'
 
         while not rospy.is_shutdown():

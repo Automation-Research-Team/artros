@@ -65,23 +65,28 @@ except:
 #  class PlanningSceneInterface                                         #
 #########################################################################
 class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
-    ObjectDescription = namedtuple('ObjectDescription',
-                                   ['id', 'primitives', 'primitive_poses',
-                                    'mesh_urls', 'meshes', 'mesh_poses',
-                                    'planes', 'plane_poses',
-                                    'subframe_names', 'subframe_poses'])
-    MarkerInfo = namedtuple('MarkerInfo', ['ids', 'link'])
+    CollisionObjectProps = namedtuple('CollisionObjectProps',
+                                      ['primitives', 'primitive_poses',
+                                       'visual_mesh_urls',
+                                       'visual_meshes',
+                                       'visual_mesh_poses',
+                                       'collision_mesh_urls',
+                                       'collision_meshes',
+                                       'collision_mesh_poses',
+                                       'planes', 'plane_poses',
+                                       'subframe_names', 'subframe_poses'])
+    MarkerProps = namedtuple('MarkerProps', ['ids', 'link'])
 
     def __init__(self, ns='', synchronous=True):
         super().__init__(ns, synchronous)
-        self._object_descriptions = {}
-        self._marker_infos        = {}
-        self._marker_id_max       = 0
-        self._marker_pub          = rospy.Publisher("collision_marker",
-                                                    Marker, queue_size=10)
-        self._transforms          = {}
-        self._lock                = threading.Lock()
-        th = threading.Thread(target=self._transform_thread)
+        self._collision_object_props = {}
+        self._marker_props           = {}
+        self._marker_id_max          = 0
+        self._marker_pub             = rospy.Publisher("collision_marker",
+                                                       Marker, queue_size=10)
+        self._subframe_transforms    = {}
+        self._lock                   = threading.Lock()
+        th = threading.Thread(target=self._broadcast_subframes_thread)
         th.daemon = True
         th.start()
 
@@ -90,60 +95,69 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                       'CYLINDER': SolidPrimitive.CYLINDER}
 
         for name, desc in rospy.get_param(param_ns, {}).items():
-            od = PlanningSceneInterface.ObjectDescription(name, [], [], [], [],
-                                                          [], [], [], [], [])
+            cop = PlanningSceneInterface.CollisionObjectProps([], [], [], [],
+                                                              [], [], [], [],
+                                                              [], [], [], [])
 
             for primitive in desc.get('primitives', []):
                 primitive_pose = primitive['pose']
-                od.primitives.append(SolidPrimitive(
+                cop.primitives.append(SolidPrimitive(
                     type=PRIMITIVES[primitive['type']],
                     dimensions=primitive['dimensions']))
-                od.primitive_poses.append(
+                cop.primitive_poses.append(
                     Pose(Point(*primitive_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(primitive_pose[3:6])))))
 
             for subframe_name, subframe_pose in desc.get('subframes',
                                                          {}).items():
-                od.subframe_names.append(subframe_name)
-                od.subframe_poses.append(
+                cop.subframe_names.append(subframe_name)
+                cop.subframe_poses.append(
                     Pose(Point(*subframe_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(subframe_pose[3:6])))))
 
-            for i, mesh in enumerate(desc.get('meshes', [])):
-                od.mesh_urls.append(mesh['url'])
+            for i, mesh in enumerate(desc.get('visual_meshes', [])):
+                cop.visual_mesh_urls.append(mesh['url'])
                 mesh_pose = mesh['pose']
-                od.meshes.append(self._load_mesh(mesh['url']))
-                od.mesh_poses.append(
+                cop.visual_meshes.append(self._load_mesh(mesh['url']))
+                cop.visual_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
 
-            self._object_descriptions[name] = od
+            for i, mesh in enumerate(desc.get('collision_meshes', [])):
+                cop.collision_mesh_urls.append(mesh['url'])
+                mesh_pose = mesh['pose']
+                cop.collision_meshes.append(self._load_mesh(mesh['url']))
+                cop.collision_mesh_poses.append(
+                    Pose(Point(*mesh_pose[0:3]),
+                         Quaternion(*tfs.quaternion_from_euler(
+                             *np.radians(mesh_pose[3:6])))))
+
+            self._collision_object_props[name] = cop
             rospy.loginfo('collision object[%s] loaded', name)
 
-    def attach_object(self, name, pose,
-                      postfix='', use_mesh=False, touch_links=None):
+    def attach_object(self, name, pose, id=None, touch_links=None):
         # Create and attach a collision object.
-        od = self._object_descriptions[name]
-        co = CollisionObject()
+        cop = self._collision_object_props[name]
+        co  = CollisionObject()
         co.header.frame_id = pose.header.frame_id
-        co.header.stamp    = rospy.Time.now()
         co.pose            = pose.pose
-        co.id              = od.id + postfix
-        if use_mesh:
-            co.meshes     = od.meshes
-            co.mesh_poses = od.mesh_poses
+        co.id              = name if id is None else id
+        if cop.collision_meshes != []:
+            co.meshes     = cop.collision_meshes
+            co.mesh_poses = cop.collision_mesh_poses
         else:
-            co.primitives      = od.primitives
-            co.primitive_poses = od.primitive_poses
+            co.primitives      = cop.primitives
+            co.primitive_poses = cop.primitive_poses
         co.operation = CollisionObject.ADD
         super().attach_object(co, co.header.frame_id, touch_links)
 
         # Publish shape of the collision object as visualization markers.
         marker_ids = []
-        for i, (mesh, mesh_pose) in enumerate(zip(od.meshes, od.mesh_poses)):
+        for i, (mesh, mesh_pose) in enumerate(zip(cop.visual_meshes,
+                                                  cop.visual_mesh_poses)):
             marker = Marker()
             marker.header        = co.header
             marker.ns            = ''
@@ -156,16 +170,16 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             marker.color         = ColorRGBA(0.0, 0.8, 0.5, 1.0)
             marker.lifetime      = rospy.Duration(0)
             marker.frame_locked  = False
-            marker.mesh_resource = "file://" \
-                                 + self._url_to_filepath(od.mesh_urls[i])
+            marker.mesh_resource = "file://" + self._url_to_filepath(
+                                                   cop.visual_mesh_urls[i])
             self._marker_pub.publish(marker)
             marker_ids.append(marker.id)
             self._marker_id_max += 1
-        self._marker_infos[co.id] = PlanningSceneInterface.MarkerInfo(
+        self._marker_props[co.id] = PlanningSceneInterface.MarkerProps(
                                         marker_ids, marker.header.frame_id)
 
         # Broadcast subframes
-        transforms = []
+        subframe_transforms = []
         T = TransformStamped(co.header, co.id,
                              Transform(Vector3(pose.pose.position.x,
                                                pose.pose.position.y,
@@ -174,9 +188,9 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                                                   pose.pose.orientation.y,
                                                   pose.pose.orientation.z,
                                                   pose.pose.orientation.w)))
-        transforms.append(T)
-        for subframe_name, subframe_pose in zip(od.subframe_names,
-                                                od.subframe_poses):
+        subframe_transforms.append(T)
+        for subframe_name, subframe_pose in zip(cop.subframe_names,
+                                                cop.subframe_poses):
             T = TransformStamped(Header(frame_id=co.id),
                                  co.id + '/' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
@@ -187,62 +201,91 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                                                subframe_pose.orientation.y,
                                                subframe_pose.orientation.z,
                                                subframe_pose.orientation.w)))
-            transforms.append(T)
+            subframe_transforms.append(T)
         with self._lock:
-            self._transforms[co.id] = transforms
+            self._subframe_transforms[co.id] = subframe_transforms
 
-    def remove_attached_object(self, link=None, name=None):
-        if name is not None:
-            marker_info = self._marker_infos.get(name, None)
-            if marker_info is None:
-                rospy.logerr('PlanningSceneInterface.remove_attached_object(): unknown attached object[%s]', name)
+    def move_attached_object(self, id, pose, touch_links=None):
+        if self.get_attached_objects([id]).get(id, None) is None:
+            rospy.logerr('PlanningSceneInterface.move_attached_object(): unknown attached object[%s]', id)
+            return
+        co = CollisionObject()
+        co.header.frame_id = pose.header.frame_id
+        co.pose            = pose.pose
+        co.id              = id
+        co.operation       = CollisionObject.MOVE
+        super().attach_object(co, co.header.frame_id, touch_links)
+
+        marker_props = self._marker_props[id]
+
+        for i, marker_id in enumerate(marker_props.ids):
+            marker = Marker()
+            marker.header        = co.header
+            marker.ns            = ''
+            marker.id            = marker_id
+            marker.type          = marker.MESH_RESOURCE
+            marker.action        = Marker.ADD
+            marker.pose          = PlanningSceneInterface._compose(co.pose,
+                                                                   mesh_pose)
+            marker.scale         = Vector3(0.001, 0.001, 0.001)
+            marker.color         = ColorRGBA(0.0, 0.8, 0.5, 1.0)
+            marker.lifetime      = rospy.Duration(0)
+            marker.frame_locked  = False
+            marker.mesh_resource = "file://" \
+                                 + self._url_to_filepath(cop.mesh_urls[i])
+            self._marker_pub.publish(marker)
+            marker_ids.append(marker.id)
+            self._marker_id_max += 1
+
+    def remove_attached_object(self, link=None, id=None):
+        if id is not None:
+            marker_props = self._marker_props.get(id, None)
+            if marker_props is None:
+                rospy.logerr('PlanningSceneInterface.remove_attached_object(): unknown attached object[%s]', id)
                 return
-            for marker_id in marker_info.ids:
-                marker = Marker()
-                marker.id = marker_id
-                marker.action = Marker.DELETE
-                self._marker_pub.publish(marker)
-            del self._marker_infos[name]
+            for marker_id in marker_props.ids:
+                self._delete_marker(marker_id)
+            del self._marker_props[id]
             with self._lock:
-                del self._transforms[name]
+                del self._subframe_transforms[id]
         elif link is not None:
-            marker_infos = {name: marker_info
-                            for name, marker_info in self._marker_infos.items()
-                            if marker_info.link == link}
-            for name, marker_info in marker_infos.items():
-                for marker_id in marker_info.ids:
-                    marker = Marker()
-                    marker.id = marker_id
-                    marker.action = Marker.DELETE
-                    self._marker_pub.publish(marker)
-            for name in marker_infos.keys():
-                del self._marker_infos[name]
+            marker_props = {id: props
+                            for id, props in self._marker_props.items()
+                            if marker_props.link == link}
+            for marker_props in marker_props.values():
+                for marker_id in marker_props.ids:
+                    self._delete_marker(marker_id)
+            for id in marker_props.keys():
+                del self._marker_props[id]
                 with self._lock:
-                    del self._transforms[name]
+                    del self._subframe_transforms[id]
         else:
-            for marker_info in self._marker_infos.values():
-                for marker_id in marker_info.ids:
-                    marker = Marker()
-                    marker.id = marker_id
-                    marker.action = Marker.DELETE
-                    self._marker_pub.publish(marker)
-            self._marker_infos.clear()
+            for marker_props in self._marker_props.values():
+                for marker_id in marker_props.ids:
+                    self._delete_marker(marker_id)
+            self._marker_props.clear()
             with self._lock:
-                self._transforms.clear()
-        super().remove_attached_object(link, name)
-        self.remove_world_object(name)
+                self._subframe_transforms.clear()
+        super().remove_attached_object(link, id)
+        self.remove_world_object(id)
 
-    def _transform_thread(self):
+    def _delete_marker(self, marker_id):
+        marker = Marker()
+        marker.id     = marker_id
+        marker.action = Marker.DELETE
+        self._marker_pub.publish(marker)
+
+    def _broadcast_subframes_thread(self):
         self._broadcaster = TransformBroadcaster()
         self._timer       = rospy.Timer(rospy.Duration(0.1), self._timer_cb)
         rospy.spin()
 
     def _timer_cb(self, event):
         with self._lock:
-            for transforms in self._transforms.values():
-                for transform in transforms:
-                    transform.header.stamp = rospy.Time.now()
-                    self._broadcaster.sendTransform(transform)
+            for subframe_transforms in self._subframe_transforms.values():
+                for subframe_transform in subframe_transforms:
+                    subframe_transform.header.stamp = rospy.Time.now()
+                    self._broadcaster.sendTransform(subframe_transform)
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:

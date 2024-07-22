@@ -29,17 +29,21 @@
       <visual>
 	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
         <geometry>
-          <mesh filename="package://aist_precision_gripper/meshes/precision_body.stl" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://aist_precision_gripper/meshes/visual/precision_body.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="Gazebo/Black">
           <color rgba="0.1 0.1 0.1 1"/>
         </material>
       </visual>
       <collision>
-        <origin xyz="${motor_height/2} ${motor_offset} 0" rpy="0 0 0"/>
-        <geometry>
-          <box size="${motor_height} ${motor_width} ${depth}"/>
+	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
+	<geometry>
+          <mesh filename="package://aist_precision_gripper/meshes/collision/precision_body.stl" scale="0.001 0.001 0.001"/>
         </geometry>
+	<!--   <origin xyz="${motor_height/2} ${motor_offset} 0" rpy="0 0 0"/> -->
+	<!--   <geometry> -->
+	<!--     <box size="${motor_height} ${motor_width} ${depth}"/> -->
+	<!--   </geometry> -->
       </collision>
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -50,19 +54,19 @@
     </link>
 
     <!-- lower body(collision only) -->
-    <joint name="${prefix}lower_body_joint" type="fixed">
-      <parent link="${prefix}base_link"/>
-      <child  link="${prefix}lower_body_link"/>
-      <origin xyz="${motor_height} ${horizontal_offset} 0" rpy="0 0 0"/>
-    </joint>
-    <link name="${prefix}lower_body_link">
-      <collision>
-	<origin xyz="${lower_body_height/2} 0 0" rpy="0 0 0"/>
-	<geometry>
-	  <box size="${lower_body_height} ${lower_body_width} ${depth}"/>
-	</geometry>
-      </collision>
-    </link>
+    <!-- <joint name="${prefix}lower_body_joint" type="fixed"> -->
+    <!--   <parent link="${prefix}base_link"/> -->
+    <!--   <child  link="${prefix}lower_body_link"/> -->
+    <!--   <origin xyz="${motor_height} ${horizontal_offset} 0" rpy="0 0 0"/> -->
+    <!-- </joint> -->
+    <!-- <link name="${prefix}lower_body_link"> -->
+    <!--   <collision> -->
+    <!-- 	<origin xyz="${lower_body_height/2} 0 0" rpy="0 0 0"/> -->
+    <!-- 	<geometry> -->
+    <!-- 	  <box size="${lower_body_height} ${lower_body_width} ${depth}"/> -->
+    <!-- 	</geometry> -->
+    <!--   </collision> -->
+    <!-- </link> -->
 
     <!-- left finger -->
     <joint name="${prefix}finger_joint" type="prismatic">
@@ -76,7 +80,7 @@
       <visual>
 	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
         <geometry>
-          <mesh filename="package://aist_precision_gripper/meshes/precision_left_finger.stl" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://aist_precision_gripper/meshes/visual/precision_left_finger.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="Gazebo/Grey">
           <color rgba="0.7 0.7 0.7 1"/>
@@ -117,7 +121,7 @@
       <visual>
 	<origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}"/>
         <geometry>
-          <mesh filename="package://aist_precision_gripper/meshes/precision_right_finger.stl" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://aist_precision_gripper/meshes/visual/precision_right_finger.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="Gazebo/Grey">
           <color rgba="0.7 0.7 0.7 1"/>
