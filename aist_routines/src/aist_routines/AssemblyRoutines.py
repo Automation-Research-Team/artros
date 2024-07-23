@@ -88,6 +88,8 @@ class AssemblyRoutines(URRoutines):
         print('  t: Pick tool')
         print('  T: Place tool')
         print('  s: Pick screw')
+        print('  a: Add all collision objects')
+        print('  c: Clear all collision objects')
         print('  H: Move all robots to home')
         print('  B: Move all robots to back')
 
@@ -98,8 +100,17 @@ class AssemblyRoutines(URRoutines):
         elif key == 'T':
             tool_name = raw_input(' tool name? ')
             params = rospy.get_param('~tools')[tool_name]
-            self.pick_at_frame(robot_name, params['holder_link'], tool_name,
-                               params['holder_offset'])
+            self.place_at_frame(robot_name, params['holder_link'], tool_name,
+                                params['holder_offset'])
+        elif key == 'a':
+            for tool_name, tool_props in rospy.get_param('~tools').items():
+                self._scene.attach_object(
+                    tool_name,
+                    PoseStamped(
+                        Header(frame_id=tool_props['holder_link']),
+                        self.pose_from_offset(tool_props['holder_offset'])))
+        elif key == 'c':
+            self._scene.remove_attached_object()
         elif key == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif key == 'B':

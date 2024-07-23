@@ -246,6 +246,27 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             marker_ids.append(marker.id)
             self._marker_id_max += 1
 
+    def _publish_markers(self, marker_ids):
+        for i, marker_id in enumerate(marker_ids):
+            marker = Marker()
+            marker.header        = co.header
+            marker.ns            = ''
+            marker.id            = marker_id
+            marker.type          = marker.MESH_RESOURCE
+            marker.action        = Marker.ADD
+            marker.pose          = PlanningSceneInterface._compose(co.pose,
+                                                                   mesh_pose)
+            marker.scale         = Vector3(0.001, 0.001, 0.001)
+            marker.color         = ColorRGBA(0.0, 0.8, 0.5, 1.0)
+            marker.lifetime      = rospy.Duration(0)
+            marker.frame_locked  = False
+            marker.mesh_resource = "file://" \
+                                 + self._url_to_filepath(cop.mesh_urls[i])
+            self._marker_pub.publish(marker)
+
+    def _create_subframe_transforms(self):
+        pass
+
     def remove_attached_object(self, link=None, id=None):
         if id is not None:
             marker_props = self._marker_props.get(id, None)
