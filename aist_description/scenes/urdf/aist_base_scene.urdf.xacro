@@ -38,7 +38,7 @@
   <xacro:property name="tool_bar_h"	value="0.270"/>
   <xacro:property name="camera_bar_h"	value="1.325"/>
   <xacro:property name="cage_z"		value="0.164"/>
-  <xacro:property name="cage_offset_x"	value="0.025"/>
+  <xacro:property name="cage_offset_x"	value="0.015"/>
   <xacro:property name="cage_offset_y"	value="-0.005"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/cage.urdf.xacro"/>
