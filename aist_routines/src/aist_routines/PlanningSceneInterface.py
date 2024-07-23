@@ -70,9 +70,11 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                                        'visual_mesh_urls',
                                        'visual_meshes',
                                        'visual_mesh_poses',
+                                       'visual_mesh_scale',
                                        'collision_mesh_urls',
                                        'collision_meshes',
                                        'collision_mesh_poses',
+                                       'collision_mesh_scale',
                                        'planes', 'plane_poses',
                                        'subframe_names', 'subframe_poses'])
     MarkerProps = namedtuple('MarkerProps', ['ids', 'link'])
@@ -95,7 +97,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                       'CYLINDER': SolidPrimitive.CYLINDER}
 
         for name, desc in rospy.get_param(param_ns, {}).items():
-            cop = PlanningSceneInterface.CollisionObjectProps([], [], [], [],
+            cop = PlanningSceneInterface.CollisionObjectProps([], [],
+                                                              [], [], [], [],
                                                               [], [], [], [],
                                                               [], [], [], [])
 
@@ -120,20 +123,24 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             for i, mesh in enumerate(desc.get('visual_meshes', [])):
                 cop.visual_mesh_urls.append(mesh['url'])
                 mesh_pose = mesh['pose']
-                cop.visual_meshes.append(self._load_mesh(mesh['url']))
+                cop.visual_meshes.append(
+                    self._load_mesh(mesh['url'], mesh['scale']))
                 cop.visual_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
+                cop.visual_mesh_scale.append(Vector3(*mesh['scale']))
 
             for i, mesh in enumerate(desc.get('collision_meshes', [])):
                 cop.collision_mesh_urls.append(mesh['url'])
                 mesh_pose = mesh['pose']
-                cop.collision_meshes.append(self._load_mesh(mesh['url']))
+                cop.collision_meshes.append(
+                    self._load_mesh(mesh['url'], mesh['scale']))
                 cop.collision_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
+                cop.collision_mesh_scale.append(Vector3(*mesh['scale']))
 
             self._collision_object_props[name] = cop
             rospy.loginfo('collision object[%s] loaded', name)
@@ -156,8 +163,10 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
 
         # Publish shape of the collision object as visualization markers.
         marker_ids = []
-        for i, (mesh, mesh_pose) in enumerate(zip(cop.visual_meshes,
-                                                  cop.visual_mesh_poses)):
+        for i, (mesh, mesh_pose, mesh_scale) in enumerate(
+                                                    zip(cop.visual_meshes,
+                                                        cop.visual_mesh_poses,
+                                                        cop.visual_mesh_scale)):
             marker = Marker()
             marker.header        = co.header
             marker.ns            = ''
@@ -166,7 +175,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             marker.action        = Marker.ADD
             marker.pose          = PlanningSceneInterface._compose(co.pose,
                                                                    mesh_pose)
-            marker.scale         = Vector3(0.001, 0.001, 0.001)
+            marker.scale         = mesh_scale
             marker.color         = ColorRGBA(0.0, 0.8, 0.5, 1.0)
             marker.lifetime      = rospy.Duration(0)
             marker.frame_locked  = False

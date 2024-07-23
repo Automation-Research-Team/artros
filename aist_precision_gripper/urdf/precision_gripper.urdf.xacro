@@ -7,14 +7,14 @@
 			     )/urdf/precision_transmission.xacro"/>
     <xacro:precision_transmission prefix="${prefix}"/>
 
-    <xacro:property name="horizontal_offset"		value="-0.015"/>
+    <xacro:property name="horizontal_offset"		value="-0.014"/>
     <xacro:property name="tip_distance"			value="0.147"/>
     <xacro:property name="rail_distance"		value="0.0915"/>
     <xacro:property name="max_gap"			value="0.010"/>
     <xacro:property name="depth"			value="0.030"/>
     <xacro:property name="motor_width"			value="0.055"/>
     <xacro:property name="motor_height"			value="0.0425"/>
-    <xacro:property name="motor_offset"			value="-0.003"/>
+    <xacro:property name="motor_offset"			value="-0.0025"/>
     <xacro:property name="lower_body_width"		value="0.085"/>
     <xacro:property name="lower_body_height"		value="0.050"/>
     <xacro:property name="finger_collision_width"	value="0.003"/>

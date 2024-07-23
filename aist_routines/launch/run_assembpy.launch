@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="config"		default="a_bot"/>
+  <arg name="config"		default="aist"/>
 
   <!-- Start assembly client -->
   <node name="assembly" pkg="aist_routines" type="assembly.py"
@@ -10,8 +10,8 @@
     <rosparam param="tool_descriptions"
 	      file="$(find aist_fastening_tools)/config/fastening_tools.yaml"/>
     <rosparam param="tool_descriptions"
-	      file="$(find aist_precision_gripper
-		    )/config/precision_tools.yaml"/>
+    	      file="$(find aist_precision_gripper
+    		    )/config/precision_tools.yaml"/>
     <rosparam file="$(find aist_routines)/config/assembly.yaml"/>
   </node>
 
