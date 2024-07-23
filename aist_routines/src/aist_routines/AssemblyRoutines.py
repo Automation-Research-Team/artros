@@ -51,7 +51,7 @@ class AssemblyRoutines(URRoutines):
         super().__init__()
 
         self._scene = PlanningSceneInterface(synchronous=True)
-        self._scene.load_objects('~tool_descriptions')
+        self._scene.load_object_descriptions('~tool_descriptions')
         for tool_name, tool_props in rospy.get_param('~tools').items():
             self._scene.attach_object(
                 tool_name,
