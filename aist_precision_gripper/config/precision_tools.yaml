@@ -1,36 +1,36 @@
 precision_tool:
   primitives:
     - type:       BOX                     # motor
-      dimensions: [ 0.0425, 0.055, 0.030]
-      pose:       [0.02125, 0.0, 0.0, 0.0, 0.0, 0.0]
+      dimensions: [0.030, 0.055, 0.0425]
+      pose:       [0.0, 0.0, -0.02125, 0.0, 0.0, 0.0]
     - type:       BOX                     # lower body
-      dimensions: [0.050, 0.085, 0.030]
-      pose:       [0.0675, -0.0115, 0.0, 0.0, 0.0, 0.0]
+      dimensions: [0.030, 0.085, 0.050]
+      pose:       [0.0, -0.0115, -0.0675, 0.0, 0.0, 0.0]
     - type:       BOX                     # left finger
-      dimensions: [0.0555, 0.003, 0.003]
-      pose:       [0.11925, -0.010, 0.0, 0.0, 0.0, 0.0]
+      dimensions: [0.003, 0.003, 0.0555]
+      pose:       [0.0, -0.010, -0.11925, 0.0, 0.0, 0.0]
     - type:       BOX                     # right finger
-      dimensions: [0.0555, 0.003, 0.003]
-      pose:       [0.11925, -0.013, 0.0, 0.0, 0.0, 0.0]
+      dimensions: [0.003, 0.003, 0.0555]
+      pose:       [0.0, -0.013, -0.11925, 0.0, 0.0, 0.0]
   visual_meshes:
     - url:        'package://aist_precision_gripper/meshes/visual/precision_body.stl'
-      pose:       [0.0, 0.0025, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0, 0.003, 0.0, 180.0, 0.0, 90.0]
       scale:      [0.001, 0.001, 0.001]
     - url:        'package://aist_precision_gripper/meshes/visual/precision_left_finger.stl'
-      pose:       [0.0915, -0.0115, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0, -0.0115, -0.0915, 180.0, 0.0, 90.0]
       scale:      [0.001, 0.001, 0.001]
     - url:        'package://aist_precision_gripper/meshes/visual/precision_right_finger.stl'
-      pose:       [0.0915, -0.0115, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0, -0.0115, -0.0915, 180.0, 0.0, 90.0]
       scale:      [0.001, 0.001, 0.001]
   collision_meshes:
     - url:        'package://aist_precision_gripper/meshes/collision/precision_body.stl'
-      pose:       [0.0, 0.003, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0, 0.003, 0.0, 180.0, 0.0, 90.0]
       scale:      [0.001, 0.001, 0.001]
     - url:        'package://aist_precision_gripper/meshes/collision/precision_left_finger.stl'
-      pose:       [0.0915, -0.0115, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0, -0.0115, -0.0915, 180.0, 0.0, 90.0]
       scale:      [0.001, 0.001, 0.001]
     - url:        'package://aist_precision_gripper/meshes/collision/precision_right_finger.stl'
-      pose:       [0.0915, -0.0115, 0.0, 90.0, 0.0, 90.0]
+      pose:       [0.0, -0.0115, -0.0915, 180.0, 0.0, 90.0]
       scale:      [0.001, 0.001, 0.001]
   subframes:
-    tip_link:     [0.147, -0.0115, 0.0, 0.0, -90.0, 0.0]
+    tip_link:     [0.0, -0.0115, -0.147, 0.0, 0.0, 0.0]

@@ -96,7 +96,7 @@ class AssemblyRoutines(URRoutines):
     def interactive(self, key, robot_name, axis, speed):
         if key == 't':
             tool_name = raw_input(' tool name? ')
-            self.pick_at_frame(robot_name, tool_name, tool_name)
+            self.pick_tool(robot_name, tool_name)
         elif key == 'T':
             tool_name = raw_input(' tool name? ')
             params = rospy.get_param('~tools')[tool_name]
@@ -118,3 +118,8 @@ class AssemblyRoutines(URRoutines):
         elif robot_name:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
+
+    def pick_tool(self, robot_name, tool_name):
+        self._scene.add_touch_links_to_attached_object(
+            tool_name, self.gripper_parameters(robot_name)['touch_links'])
+        self.pick_at_frame(robot_name, tool_name + '/base_link', tool_name)

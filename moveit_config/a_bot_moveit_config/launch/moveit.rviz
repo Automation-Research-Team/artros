@@ -1008,13 +1008,25 @@ Visualization Manager:
           Value: false
         ground:
           Value: false
+        precision_tool/base_link:
+          Value: true
+        precision_tool/tip_link:
+          Value: true
         precision_tool_holder_base_link:
           Value: false
         precision_tool_holder_link:
           Value: true
+        screw_tool_m3/base_link:
+          Value: true
+        screw_tool_m3/tip_link:
+          Value: true
         screw_tool_m3_holder_base_link:
           Value: false
         screw_tool_m3_holder_link:
+          Value: true
+        screw_tool_m4/base_link:
+          Value: true
+        screw_tool_m4/tip_link:
           Value: true
         screw_tool_m4_holder_base_link:
           Value: false
@@ -1134,13 +1146,19 @@ Visualization Manager:
                   cage_tool_bar:
                     precision_tool_holder_base_link:
                       precision_tool_holder_link:
-                        {}
+                        precision_tool/base_link:
+                          precision_tool/tip_link:
+                            {}
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
-                        {}
+                        screw_tool_m3/base_link:
+                          screw_tool_m3/tip_link:
+                            {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        {}
+                        screw_tool_m4/base_link:
+                          screw_tool_m4/tip_link:
+                            {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
                         {}
@@ -1245,6 +1263,14 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
+    - Class: rviz/Marker
+      Enabled: false
+      Marker Topic: /collision_marker
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -1262,7 +1288,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.2278974056243896
+      Distance: 0.5443115830421448
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1270,17 +1296,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.75
       Focal Point:
-        X: -0.1700654774904251
-        Y: -0.12888585031032562
-        Z: 0.708094596862793
+        X: -0.4761699438095093
+        Y: -0.15676510334014893
+        Z: 1.0359866619110107
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.49979761242866516
+      Pitch: -0.10963550209999084
       Target Frame: world
-      Yaw: 0.5467548370361328
+      Yaw: 0.10331390053033829
     Saved: ~
 Window Geometry:
   Displays:
@@ -1298,7 +1324,7 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1556
-  X: 698
-  Y: 194
+  X: 699
+  Y: 154
   aruco_result:
     collapsed: false

@@ -25,7 +25,7 @@ cameras:
 tools:
   precision_tool:
     holder_link:   precision_tool_holder_link
-    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+    holder_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   screw_tool_m3:
     holder_link:   screw_tool_m3_holder_link
     holder_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

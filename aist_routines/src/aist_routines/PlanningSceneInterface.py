@@ -68,13 +68,11 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
     CollisionObjectProps = namedtuple('CollisionObjectProps',
                                       ['primitives', 'primitive_poses',
                                        'visual_mesh_urls',
-                                       'visual_meshes',
                                        'visual_mesh_poses',
-                                       'visual_mesh_scale',
-                                       'collision_mesh_urls',
+                                       'visual_mesh_scales',
                                        'collision_meshes',
                                        'collision_mesh_poses',
-                                       'collision_mesh_scale',
+                                       'collision_mesh_scales',
                                        'planes', 'plane_poses',
                                        'subframe_names', 'subframe_poses'])
     MarkerProps = namedtuple('MarkerProps', ['ids', 'markers', 'link'])
@@ -94,12 +92,14 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
 
     def load_object_descriptions(self, param_ns='~tool_descriptions'):
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
-                      'CYLINDER': SolidPrimitive.CYLINDER}
+                      'SPHERE':   SolidPrimitive.SPHERE,
+                      'CYLINDER': SolidPrimitive.CYLINDER,
+                      'CONE':     SolidPrimitive.CONE}
 
         for name, desc in rospy.get_param(param_ns, {}).items():
             cop = PlanningSceneInterface.CollisionObjectProps([], [],
-                                                              [], [], [], [],
-                                                              [], [], [], [],
+                                                              [], [], [],
+                                                              [], [], [],
                                                               [], [], [], [])
 
             for primitive in desc.get('primitives', []):
@@ -120,27 +120,24 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(subframe_pose[3:6])))))
 
-            for i, mesh in enumerate(desc.get('visual_meshes', [])):
+            for mesh in desc.get('visual_meshes', []):
                 cop.visual_mesh_urls.append(mesh['url'])
                 mesh_pose = mesh['pose']
-                cop.visual_meshes.append(
-                    self._load_mesh(mesh['url'], mesh['scale']))
                 cop.visual_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
-                cop.visual_mesh_scale.append(Vector3(*mesh['scale']))
+                cop.visual_mesh_scales.append(Vector3(*mesh['scale']))
 
-            for i, mesh in enumerate(desc.get('collision_meshes', [])):
-                cop.collision_mesh_urls.append(mesh['url'])
-                mesh_pose = mesh['pose']
+            for mesh in desc.get('collision_meshes', []):
                 cop.collision_meshes.append(
                     self._load_mesh(mesh['url'], mesh['scale']))
+                mesh_pose = mesh['pose']
                 cop.collision_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
-                cop.collision_mesh_scale.append(Vector3(*mesh['scale']))
+                cop.collision_mesh_scales.append(Vector3(*mesh['scale']))
 
             self._collision_object_props[name] = cop
             rospy.loginfo('collision object[%s] loaded', name)
@@ -162,8 +159,9 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         super().attach_object(co, co.header.frame_id, touch_links)
 
         # Create subframe transforms.
+        base_link = co.id + '/base_link'
         subframe_transforms = []
-        T = TransformStamped(co.header, co.id,
+        T = TransformStamped(co.header, base_link,
                              Transform(Vector3(pose.pose.position.x,
                                                pose.pose.position.y,
                                                pose.pose.position.z),
@@ -174,7 +172,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         subframe_transforms.append(T)
         for subframe_name, subframe_pose in zip(cop.subframe_names,
                                                 cop.subframe_poses):
-            T = TransformStamped(Header(frame_id=co.id),
+            T = TransformStamped(Header(frame_id=base_link),
                                  co.id + '/' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
                                                    subframe_pose.position.y,
@@ -188,11 +186,11 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
 
         # Create markers for visualization.
         markers = []
-        for mesh_pose, mesh_scale, mesh_url in zip(cop.visual_meshes,
+        for mesh_url, mesh_pose, mesh_scale in zip(cop.visual_mesh_urls,
                                                    cop.visual_mesh_poses,
-                                                   cop.visual_mesh_urls)):
+                                                   cop.visual_mesh_scales):
             marker = Marker()
-            marker.header.frame_id = co.id
+            marker.header.frame_id = base_link
             marker.ns              = ''
             marker.id              = self._marker_id_max
             marker.type            = marker.MESH_RESOURCE
