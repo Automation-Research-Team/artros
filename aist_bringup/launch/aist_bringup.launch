@@ -86,11 +86,12 @@
       <arg name="usb_port"		value="/dev/ttyUSB1"/>
     </include>
 
-    <!-- Launch precision gripper -->
-    <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->
-    <!--   <arg name="prefix"		value="a_bot_precision_"/> -->
-    <!--   <arg name="usb_port"		value="/dev/ttyUSB0"/> -->
-    <!-- </include> -->
+    <!-- Launch precision tool controller -->
+    <include file="$(find aist_precision_gripper)/launch/run.launch">
+      <arg name="prefix"		value="precision_tool_"/>
+      <arg name="usb_port"		value="/dev/ttyUSB0"/>
+      <arg name="publish_joint_states"	value="false"/>
+    </include>
 
   </group>
 

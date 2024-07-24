@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="prefix"		default="precision_gripper_"/>
-  <arg name="driver_ns"		default="$(arg prefix)driver"/>
-  <arg name="usb_port"		default="/dev/ttyUSB0"/>
-  <arg name="dxl_baud_rate"	default="57600"/>
+  <arg name="prefix"			default="precision_gripper_"/>
+  <arg name="driver_ns"			default="$(arg prefix)driver"/>
+  <arg name="usb_port"			default="/dev/ttyUSB0"/>
+  <arg name="dxl_baud_rate"		default="57600"/>
+  <arg name="publish_joint_states"	default="true"/>
 
   <param name="dynamixel_info"	value="$(dirname
 				       )/../config/dynamixel_info.yaml"/>
@@ -28,7 +29,8 @@
   <node name="$(arg prefix)controller"
         pkg="aist_precision_gripper" type="precision_gripper_controller.py"
         output="screen" respawn="false">
-    <param name="driver_ns"	value="$(arg driver_ns)"/>
+    <param name="driver_ns"		value="$(arg driver_ns)"/>
+    <param name="publish_joint_states"	value="$(arg publish_joint_states)"/>
     <rosparam file="$(dirname)/../config/precision_gripper.yaml"
 	      subst_value="true"/>
   </node>

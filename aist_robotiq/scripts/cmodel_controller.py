@@ -176,6 +176,8 @@ class CModelController(object):
         self._calibration_step = 1
 
     def _send_move_command(self, position, velocity, effort):
+        print('*** _send_move_command: position=%f, velocity=%f, effort=%f'
+              % (position, velocity, effort))
         pos = np.clip(int((position - self._min_position)
                           / self.position_per_tick + self._min_gap_counts),
                       self._max_gap_counts, self._min_gap_counts)
@@ -188,6 +190,8 @@ class CModelController(object):
         return pos
 
     def _send_raw_move_command(self, pos, vel, eff):
+        print('*** _send_raw_move_command: pos=%d, vel=%d, eff=%d'
+              % (pos, vel, eff))
         command = CModelCommand()
         command.rACT = 1
         command.rGTO = 1
