@@ -16,9 +16,3 @@ max_effort: 185.0
 
 # Joint name
 joint_name: $(arg prefix)joint_finger
-
-# Touch links (allow collision)
-touch_links:
-  - $(arg prefix)left_finger
-  - $(arg prefix)right_finger
-  - $(arg prefix)tip_link

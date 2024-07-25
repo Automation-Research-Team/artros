@@ -26,11 +26,11 @@ grippers:
   screw_tool_m4:
     type:          SuctionGripper
     controller_ns: screw_tool_m4_controller
+    base_link:     screw_tool_m4/base_link
+    tip_link:      screw_tool_m4/tip_link
   base_fixture:
     type:          SuctionGripper
     controller_ns: base_fixture_controller
-    base_link:     screw_tool_m4/base_link
-    tip_link:      screw_tool_m4/tip_link
 
 cameras:
   a_motioncam:          PhoXiCamera
@@ -38,15 +38,12 @@ cameras:
   a_bot_inside_camera:  CodedLightRealSenseCamera
   a_bot_outside_camera: CodedLightRealSenseCamera
 
-tools:
-  precision_tool:
-    holder_link:   precision_tool_holder_link
-    holder_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+fastening_tools:
   screw_tool_m3:
-    holder_link:   screw_tool_m3_holder_link
-    holder_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    type:          ScrewTool
+    controller_ns: screw_tool_m3_fastening_controller
   screw_tool_m4:
-    holder_link:   screw_tool_m4_holder_link
-    holder_offset: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    type:          ScrewTool
+    controller_ns: screw_tool_m4_fastening_controller
 
 moveit_eef_step: 0.002

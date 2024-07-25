@@ -70,7 +70,7 @@
       <arg name="hostname"		value="b_bot"/>
     </include>
 
-    <!-- Launch suction controllers -->
+    <!-- Launch suction tool controllers -->
     <include file="$(find aist_fastening_tools
 		   )/launch/suction_tool_controllers.launch">
       <arg name="driver_ns"		value="b_bot/ur_hardware_interface"/>

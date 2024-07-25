@@ -51,13 +51,14 @@ class AssemblyRoutines(URRoutines):
         super().__init__()
 
         self._scene = PlanningSceneInterface(synchronous=True)
-        self._scene.load_object_descriptions('~tool_descriptions')
-        for tool_name, tool_props in rospy.get_param('~tools').items():
+
+        tool_descriptions = rospy.get_param('~tool_descriptions', {})
+        self._scene.load_object_descriptions(tool_descriptions)
+        for tool_name in tool_descriptions.keys():
             self._scene.attach_object(
                 tool_name,
-                PoseStamped(
-                    Header(frame_id=tool_props['holder_link']),
-                    self.pose_from_offset(tool_props['holder_offset'])))
+                PoseStamped(Header(frame_id=tool_name + '_holder_link'),
+                            self.pose_from_offset((0, 0, 0, 0, 0, 0))))
         for name in self._scene.get_attached_objects():
             print('*** collision_object: ' + name)
 

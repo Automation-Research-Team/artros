@@ -16,13 +16,3 @@ max_effort: 125.0
 
 # Joint name
 joint_name: $(arg prefix)finger_joint
-
-# Touch links (allow collision)
-touch_links:
-  - $(arg prefix)left_inner_knuckle
-  - $(arg prefix)left_inner_finger
-  - $(arg prefix)left_inner_finger_pad
-  - $(arg prefix)right_inner_knuckle
-  - $(arg prefix)right_inner_finger
-  - $(arg prefix)right_inner_finger_pad
-  - $(arg prefix)tip_link

@@ -90,13 +90,13 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         th.daemon = True
         th.start()
 
-    def load_object_descriptions(self, param_ns='~tool_descriptions'):
+    def load_object_descriptions(self, object_descriptions):
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
                       'SPHERE':   SolidPrimitive.SPHERE,
                       'CYLINDER': SolidPrimitive.CYLINDER,
                       'CONE':     SolidPrimitive.CONE}
 
-        for name, desc in rospy.get_param(param_ns, {}).items():
+        for name, desc in object_descriptions.items():
             cop = PlanningSceneInterface.CollisionObjectProps([], [],
                                                               [], [], [],
                                                               [], [], [],

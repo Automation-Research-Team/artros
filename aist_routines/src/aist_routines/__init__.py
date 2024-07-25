@@ -38,24 +38,25 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                            import degrees, sqrt
-from tf                              import (TransformListener,
-                                             transformations as tfs)
-from std_msgs.msg                    import Header
-from geometry_msgs.msg               import (PoseStamped, Pose, Point,
-                                             Quaternion, PoseArray,
-                                             Vector3, Vector3Stamped)
-from moveit_msgs.msg                 import (RobotTrajectory,
-                                             PositionIKRequest,
-                                             MoveItErrorCodes)
-from moveit_msgs.srv                 import GetPositionIK
-from trajectory_msgs.msg             import (JointTrajectoryPoint,
-                                             JointTrajectory)
-from aist_routines.GripperClient     import GripperClient, VoidGripper
-from aist_routines.CameraClient      import CameraClient
-from aist_routines.MarkerPublisher   import MarkerPublisher
-from aist_routines.PickOrPlaceAction import PickOrPlace
-from aist_utility.compat             import *
+from math                              import degrees, sqrt
+from tf                                import (TransformListener,
+                                               transformations as tfs)
+from std_msgs.msg                      import Header
+from geometry_msgs.msg                 import (PoseStamped, Pose, Point,
+                                               Quaternion, PoseArray,
+                                               Vector3, Vector3Stamped)
+from moveit_msgs.msg                   import (RobotTrajectory,
+                                               PositionIKRequest,
+                                               MoveItErrorCodes)
+from moveit_msgs.srv                   import GetPositionIK
+from trajectory_msgs.msg               import (JointTrajectoryPoint,
+                                               JointTrajectory)
+from aist_routines.GripperClient       import GripperClient, VoidGripper
+from aist_routines.CameraClient        import CameraClient
+from aist_routines.FasteningToolClient import FasteningToolClient
+from aist_routines.MarkerPublisher     import MarkerPublisher
+from aist_routines.PickOrPlaceAction   import PickOrPlace
+from aist_utility.compat               import *
 
 ######################################################################
 #  global functions                                                  #
@@ -118,6 +119,12 @@ class AISTBaseRoutines(object):
         for camera_name, props in rospy.get_param('~cameras', {}).items():
             self._cameras[camera_name] = CameraClient.create(camera_name,
                                                              props)
+
+        # Fastening tools
+        self._fastening_tools = {}
+        for tool_name, props in rospy.get_param('~fastening_tools', {}).items():
+            self._fastening_tools[tool_name] \
+                = FasteningToolClient.create(tool_name, props)
 
         # Search graspabilities
         if rospy.has_param('~graspability_parameters'):
@@ -186,6 +193,11 @@ class AISTBaseRoutines(object):
         print('  grasp:       grasp with the current gripper')
         print('  postgrasp:   postgrasp with the current gripper')
         print('  release:     release with the current gripper')
+        print('=== Fastening tool commands ===')
+        print('  gripper:     assign gripper to current robot')
+        print('  tighten:     tighten screw')
+        print('  loosen:      loosen screw')
+        print('  fcancel:     cancel tighten/loosen action')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         def _is_num(s):
@@ -275,24 +287,24 @@ class AISTBaseRoutines(object):
             self.go_to_pose_goal(robot_name,
                                  self.pose_from_xyzrpy(xyzrpy), speed=speed)
         elif key == 'home':
-            self.go_to_named_pose(robot_name, "home")
+            self.go_to_named_pose(robot_name, 'home')
         elif key == 'back':
-            self.go_to_named_pose(robot_name, "back")
+            self.go_to_named_pose(robot_name, 'back')
         elif key == 'named':
-            pose_name = raw_input("  pose name? ")
+            pose_name = raw_input('  pose name? ')
             try:
                 self.go_to_named_pose(robot_name, pose_name)
             except rospy.ROSException as e:
                 rospy.logerr('Unknown pose: %s' % e)
         elif key == 'frame':
-            frame  = raw_input("  frame? ")
+            frame  = raw_input('  frame? ')
             offset = _get_offset()
             try:
                 self.go_to_frame(robot_name, frame, offset)
             except Exception as e:
                 rospy.logerr('Unknown frame: %s', frame)
         elif key == 'speed':
-            speed = float(raw_input("  speed value? "))
+            speed = float(raw_input('  speed value? '))
         elif key == 'stop':
             self.stop(robot_name)
         elif key == 'jvalues':
@@ -300,7 +312,7 @@ class AISTBaseRoutines(object):
 
         # Gripper stuffs
         elif key == 'gripper':
-            gripper_name = raw_input("  gripper name? ")
+            gripper_name = raw_input('  gripper name? ')
             try:
                 self.set_gripper(robot_name, gripper_name)
             except KeyError as e:
@@ -313,6 +325,17 @@ class AISTBaseRoutines(object):
             self.postgrasp(robot_name)
         elif key == 'release':
             self.release(robot_name)
+
+        # Fastening tool stuffs
+        elif key == 'tighten':
+            tool_name = raw_input('  tool name? ')
+            self.tighten(tool_name, rospy.Duration(-1))
+        elif key == 'loosen':
+            tool_name = raw_input('  tool name? ')
+            self.loosen(tool_name, rospy.Duration(-1))
+        elif key == 'fcancel':
+            tool_name = raw_input('  tool name? ')
+            self.cancel_fastening(tool_name)
 
         else:
             print('  unknown command! [%s]' % key)
@@ -512,6 +535,19 @@ class AISTBaseRoutines(object):
 
     def trigger_frame(self, camera_name):
         return self.camera(camera_name).trigger_frame()
+
+    # Fasteing tool stuffs
+    def fastening_tool(self, tool_name):
+        return self._fastening_tools[tool_name]
+
+    def tighten(self, tool_name, timeout=rospy.Duration()):
+        self.fastening_tool(tool_name).tighten(timeout)
+
+    def loosen(self, tool_name, timeout=rospy.Duration()):
+        self.fastening_tool(tool_name).loosen(timeout)
+
+    def cancel_fastening(self, tool_name):
+        self.fastening_tool(tool_name).cancel()
 
     # Marker stuffs
     def delete_all_markers(self):
