@@ -57,6 +57,7 @@ class GripperClient(object):
         self._tip_link    = tip_link if tip_link else name + '_tip_link'
         self._touch_links = touch_links
         self._parameters  = {}
+        print('*** [%s] touch_links=%s' % (self.name, str(self.touch_links)))
 
     @staticmethod
     def create(name, props):

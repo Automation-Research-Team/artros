@@ -110,9 +110,11 @@ class AISTBaseRoutines(object):
                                                                 props)
 
         # Robots
-        self._active_grippers = {}
+        self._default_gripper_names = {}
+        self._active_grippers  = {}
         for robot_name, props in rospy.get_param('~robots', {}).items():
-            self.set_gripper(robot_name, props['default_gripper'])
+            self._default_gripper_names[robot_name] = props['default_gripper']
+            self.set_gripper(robot_name, self.default_gripper_name(robot_name))
 
         # Cameras
         self._cameras = {}
@@ -499,6 +501,9 @@ class AISTBaseRoutines(object):
         group.clear_pose_targets()
 
     # Gripper stuffs
+    def default_gripper_name(self, robot_name):
+        return self._default_gripper_names[robot_name]
+
     def set_gripper(self, robot_name, gripper_name):
         self._active_grippers[robot_name] = self._grippers[gripper_name]
 
