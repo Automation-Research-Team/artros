@@ -251,12 +251,11 @@ class RobotiqGripper(GenericGripper):
 #  class PrecisionGripper                                            #
 ######################################################################
 class PrecisionGripper(GenericGripper):
-    def __init__(self, name, controller_ns,
-                 base_link=None, tip_link=None, touch_links=None):
+    def __init__(self, name, controller_ns, base_link=None, tip_link=None):
         min_position = rospy.get_param(controller_ns + '/min_position')
         max_position = rospy.get_param(controller_ns + '/max_position')
         max_effort   = rospy.get_param(controller_ns + '/max_effort')
-
+        touch_links  = rospy.get_param(controller_ns + '/touch_links')
         assert min_position < max_position
 
         super().__init__(name, controller_ns + '/gripper_cmd',
