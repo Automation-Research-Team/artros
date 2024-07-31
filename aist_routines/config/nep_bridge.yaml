@@ -7,7 +7,7 @@ ros_to_nep:
     to:   Kitting/transforms
   - from: /mesh_generator/mesh
     to:   Kitting/screen_mesh
-  - from: /a_motioncam/color/image
+  - from: /live_camera/image_raw
     to:   Kitting/image
   - from: /help
     to:   Kitting/request_help

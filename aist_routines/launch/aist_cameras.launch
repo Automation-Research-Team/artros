@@ -23,15 +23,14 @@
     <arg name="sim"			value="$(arg sim)"/>
   </include>
 
-  <!-- Launch PhoXi camera -->
-  <!-- <include unless="$(arg sim)" -->
-  <!-- 	   file="$(find aist_phoxi_camera)/launch/run.launch"> -->
-  <!--   <arg name="camera_name"		value="a_phoxi_m_camera"/> -->
-  <!--   <arg name="id"			value="2018-09-017-LC3"/> -->
-  <!--   <arg name="frame"			value="a_phoxi_m_camera_sensor"/> -->
-  <!-- </include> -->
-
   <group unless="$(arg sim)">
+
+    <!-- Launch PhoXi camera -->
+    <!-- <include file="$(find aist_phoxi_camera)/launch/run.launch"> -->
+    <!--   <arg name="camera_name"	value="a_phoxi_m_camera"/> -->
+    <!--   <arg name="id"		value="2018-09-017-LC3"/> -->
+    <!--   <arg name="frame"		value="a_phoxi_m_camera_sensor"/> -->
+    <!-- </include> -->
 
     <!-- Launch Motioncam-3D camera -->
     <include file="$(find aist_phoxi_camera)/launch/run_with_config.launch">
