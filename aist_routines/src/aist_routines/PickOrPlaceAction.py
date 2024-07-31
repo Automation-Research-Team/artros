@@ -61,13 +61,14 @@ class PickOrPlace(SimpleActionClient):
         return self._current_stage
 
     # Client stuffs
-    def send_goal(self, robot_name, pose, pick, offset,
+    def send_goal(self, robot_name, pose, target_frame, pick, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
-                  wait=True, done_cb=None, active_cb=None):
+                  object_name='', wait=True, done_cb=None, active_cb=None):
         self._current_stage = PickOrPlaceFeedback.IDLING
         self._target_stage  = PickOrPlaceFeedback.IDLING
         SimpleActionClient.send_goal(self,
-                                     PickOrPlaceGoal(robot_name, pose, pick,
+                                     PickOrPlaceGoal(robot_name, object_name,
+                                                     pose, pick,
                                                      offset, approach_offset,
                                                      departure_offset,
                                                      speed_fast, speed_slow),
@@ -149,10 +150,40 @@ class PickOrPlace(SimpleActionClient):
         # Grasp/release at pick/place pose.
         feedback.stage = PickOrPlaceFeedback.GRASPING_OR_RELEASING
         self._server.publish_feedback(feedback)
+
+        if goal.object_name != '':
+            transform = self._lookup_transform(gripper.tip_link,
+                                               goal.pose.header.frame_id)
+            if transform is None:
+                result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
+                self._server.set_aborted(result, 'Failed to lookup object pose')
+                return
+
         if goal.pick:
-            gripper.grasp()
+            success = gripper.grasp()
+            if success and goal.object_name != '':
+                object_pose = self._lookup_pose(gripper.tip_link,
+                                                goal.pose.header.frame_id)
+                if transform is None:
+                    result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
+                    self._server.set_aborted(result,
+                                             'Failed to lookup object pose')
+                    return
+
         else:
-            gripper.release()
+            success = gripper.release()
+
+        if goal.object_name != '':
+            self.psi.move_attached_object(goal.object_name,
+                                          goal.pose.header.fram
+                transform = self._lookup_transform(gripper.tip_link,
+                                                   goal_target_frmae)
+                if transform is None:
+                    result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
+                    self._server.set_aborted(result, 'Failed to grasp')
+                    return
+                routines._
+
 
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo('--- Go back to departure pose. ---')
@@ -177,7 +208,7 @@ class PickOrPlace(SimpleActionClient):
 
         if goal.pick and not gripper.wait():    # Wait for postgrasp completed
             gripper.release()
-            result.result = PickOrPlaceResult.GRASP_FAILURE
+            result.result = PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
             self._server.set_aborted(result, 'Failed to grasp')
             rospy.logwarn('--- Pick failed. ---')
             return
@@ -195,3 +226,15 @@ class PickOrPlace(SimpleActionClient):
                                        PickOrPlaceResult.PREEMPTED))
         rospy.logwarn('--- %s cancelled. ---',
                       'Pick' if goal.pick else 'Place')
+
+    def _lookup_transform(self, frame_id, child_frame_id):
+        try:
+            t, q = self._routines.listener.lookupTransform(frame_id,
+                                                           child_frame_id,
+                                                           rospy.Time(0))
+        except Exception as e:
+            rospy.logerr('PickOrPlaceAction._lookup_transform(): %s', str(e))
+            return None
+        return TransformStamped(Header(frame_id=frame_id),
+                                child_frame_id,
+                                Transform(Vector3(*t), Quaternion(*q)))

@@ -103,6 +103,9 @@ class AISTBaseRoutines(object):
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
 
+        # MoveIt PlanningSceneInterface
+        self._psi = PlanningSceneInterface(synchronous=True)
+
         # Grippers
         self._grippers = {}
         for gripper_name, props in rospy.get_param('~grippers', {}).items():
@@ -171,6 +174,10 @@ class AISTBaseRoutines(object):
     @property
     def eef_step(self):
         return self._eef_step
+
+    @property
+    def psi(self):
+        return self._psi
 
     # Interactive stuffs
     def print_help_messages(self):
@@ -634,7 +641,7 @@ class AISTBaseRoutines(object):
 
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
-             wait=True, done_cb=None, active_cb=None):
+             attach=False, wait=True, done_cb=None, active_cb=None):
         params = self._picking_params[part_id]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
@@ -647,10 +654,11 @@ class AISTBaseRoutines(object):
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
-                                             wait, done_cb, active_cb)
+                                             part_id if attach else '',
+                                             attach, wait, done_cb, active_cb)
 
     def place(self, robot_name, target_pose, part_id,
-              wait=True, done_cb=None, active_cb=None):
+              target_frame='', wait=True, done_cb=None, active_cb=None):
         params = self._picking_params[part_id]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
@@ -663,21 +671,22 @@ class AISTBaseRoutines(object):
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
+                                             part_id if attach else '',
                                              wait, done_cb, active_cb)
 
-    def pick_at_frame(self, robot_name, target_frame, part_id,
-                      offset=(), wait=True, done_cb=None, active_cb=None):
+    def pick_at_frame(self, robot_name, target_frame, part_id, offset=(),
+                      attach=False, wait=True, done_cb=None, active_cb=None):
         return self.pick(robot_name,
                          PoseStamped(Header(frame_id=target_frame),
                                      self.pose_from_offset(offset)),
-                         part_id, wait, done_cb, active_cb)
+                         part_id, attach, wait, done_cb, active_cb)
 
-    def place_at_frame(self, robot_name, target_frame, part_id,
-                       offset=(), wait=True, done_cb=None, active_cb=None):
+    def place_at_frame(self, robot_name, target_frame, part_id, offset=(),
+                       attach=False, wait=True, done_cb=None, active_cb=None):
         return self.place(robot_name,
                           PoseStamped(Header(frame_id=target_frame),
                                       self.pose_from_offset(offset)),
-                          part_id, wait, done_cb, active_cb)
+                          part_id, attach, wait, done_cb, active_cb)
 
     def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
         return self._pick_or_place.wait_for_stage(stage, timeout)

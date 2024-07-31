@@ -1,5 +1,6 @@
 # Goal
 string                    robot_name
+string                    object_name
 geometry_msgs/PoseStamped pose
 bool                      pick
 float64[]                 offset
@@ -12,7 +13,7 @@ float64                   speed_slow
 int32 SUCCESS=0
 int32 MOVE_FAILURE=1
 int32 APPROACH_FAILURE=2
-int32 GRASP_FAILURE=3
+int32 GRASP_OR_RELEASE_FAILURE=3
 int32 DEPARTURE_FAILURE=4
 int32 PREEMPTED=10
 

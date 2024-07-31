@@ -50,16 +50,14 @@ class AssemblyRoutines(URRoutines):
     def __init__(self):
         super().__init__()
 
-        self._scene = PlanningSceneInterface(synchronous=True)
-
         tool_descriptions = rospy.get_param('~tool_descriptions', {})
-        self._scene.load_object_descriptions(tool_descriptions)
+        self.psi.load_object_descriptions(tool_descriptions)
         for tool_name in tool_descriptions.keys():
-            self._scene.attach_object(
+            self.psi.attach_object(
                 tool_name,
                 PoseStamped(Header(frame_id=tool_name + '_holder_link'),
                             self.pose_from_offset((0, 0, 0, 0, 0, 0))))
-        for name in self._scene.get_attached_objects():
+        for name in self.psi.get_attached_objects():
             print('*** collision_object: ' + name)
 
     def run(self):
@@ -103,12 +101,12 @@ class AssemblyRoutines(URRoutines):
             self.place_tool(robot_name, tool_name)
         elif key == 'a':
             for tool_name, tool_props in rospy.get_param('~tools').items():
-                self._scene.attach_object(
+                self.psi.attach_object(
                     tool_name,
                     PoseStamped(Header(frame_id=tool_name + '_holder_link'),
                                 self.pose_from_offset(())))
         elif key == 'c':
-            self._scene.remove_attached_object()
+            self.psi.remove_attached_object()
         elif key == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif key == 'B':
@@ -122,11 +120,11 @@ class AssemblyRoutines(URRoutines):
             return True
         elif self.gripper(robot_name).name != self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
-        self._scene.add_touch_links_to_attached_object(
+        self.psi.add_touch_links_to_attached_object(
             tool_name, self.gripper(robot_name).touch_links)
         if self.pick_at_frame(robot_name, tool_name + '/base_link', tool_name):
             return False
-        # self._scene.move_attached_object(tool_name, ,
+        # self.psi.move_attached_object(tool_name, ,
         #                                  self.gripper(robot_name).touch_links)
         # self.set_gripper(robot_name, tool_name)
         return True
