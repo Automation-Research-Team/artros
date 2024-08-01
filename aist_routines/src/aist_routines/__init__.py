@@ -204,7 +204,6 @@ class AISTBaseRoutines(object):
         print('  postgrasp:   postgrasp with the current gripper')
         print('  release:     release with the current gripper')
         print('=== Fastening tool commands ===')
-        print('  gripper:     assign gripper to current robot')
         print('  tighten:     tighten screw')
         print('  loosen:      loosen screw')
         print('  fcancel:     cancel tighten/loosen action')
@@ -656,10 +655,10 @@ class AISTBaseRoutines(object):
                                              params['speed_fast'],
                                              params['speed_slow'],
                                              part_id if attach else '',
-                                             attach, wait, done_cb, active_cb)
+                                             wait, done_cb, active_cb)
 
     def place(self, robot_name, target_pose, part_id,
-              target_frame='', wait=True, done_cb=None, active_cb=None):
+              attach=False, wait=True, done_cb=None, active_cb=None):
         params = self._picking_params[part_id]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
@@ -738,6 +737,16 @@ class AISTBaseRoutines(object):
                 Pose(Point(*tuple(tfs.translation_from_matrix(T))),
                      Quaternion(*tuple(tfs.quaternion_from_matrix(T)))))
         return transformed_poses
+
+    def lookup_pose(self, target_frame, source_frame):
+        try:
+            t, q = self._listener.lookupTransform(target_frame,
+                                                  source_frame, rospy.Time(0))
+        except Exception as e:
+            rospy.logerr('AISTBaseRoutines.lookup_pose(): %s', str(e))
+            return None
+        return PoseStamped(Header(frame_id=target_frame),
+                           Pose(Point(*t), Quaternion(*q)))
 
     def correct_orientation(self, pose):
         poses = self.correct_orientations(PoseArray(pose.header, [pose.pose]))

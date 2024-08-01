@@ -169,7 +169,8 @@ class GenericGripper(GripperClient):
         return self.move(self._parameters['release_position'], 0, timeout)
 
     def move(self, position, max_effort=0, timeout=rospy.Duration()):
-        #print('### position=%f' % position)
+        print('### (GenericGripper) position=%f, max_effort=%f'
+              % (position, max_effort))
         self._client.send_goal(GripperCommandGoal(GripperCommand(position,
                                                                  max_effort)))
         return self.wait(timeout)
@@ -212,9 +213,9 @@ class RobotiqGripper(GenericGripper):
         assert self._min_gap < self._max_gap
         assert self._min_position != self._max_position
 
-        #print('*** init: min_gap=%f, max_gap=%f, min_position=%f, max_position=%f'
-        #       % (self._min_gap, self._max_gap,
-        #          self._min_position, self._max_position))
+        print('### (RobotiqGripper) init: min_gap=%f, max_gap=%f, min_position=%f, max_position=%f'
+              % (self._min_gap, self._max_gap,
+                 self._min_position, self._max_position))
         super().__init__(name, controller_ns + '/gripper_cmd', None, None,
                          rospy.get_param(controller_ns + '/touch_links'),
                          self._min_gap, self._max_gap, max_effort)
@@ -228,10 +229,10 @@ class RobotiqGripper(GenericGripper):
             return self._set_velocity(velocity).success
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration()):
-        # print('*** min_gap=%f, max_gap=%f, min_position=%f, max_position=%f, position_per_gap=%f'
-        #       % (self._min_gap, self._max_gap,
-        #          self._min_position, self._max_position,
-        #          self._position_per_gap))
+        print('### (RobotiqGripper) move: min_gap=%f, max_gap=%f, min_position=%f, max_position=%f, position_per_gap=%f'
+              % (self._min_gap, self._max_gap,
+                 self._min_position, self._max_position,
+                 self._position_per_gap))
         return super().move(self._position(gap), max_effort, timeout)
 
     def _position(self, gap):

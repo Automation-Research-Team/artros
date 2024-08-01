@@ -117,14 +117,14 @@ class AssemblyRoutines(URRoutines):
     def pick_tool(self, robot_name, tool_name):
         if self.gripper(robot_name).name == tool_name:
             return True
-        elif self.gripper(robot_name).name != self.default_gripper_name(robot_name):
+        elif self.gripper(robot_name).name != \
+             self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
         self.psi.add_touch_links_to_attached_object(
             tool_name, self.gripper(robot_name).touch_links)
-        if self.pick_at_frame(robot_name, tool_name + '/base_link', tool_name):
+        if self.pick_at_frame(robot_name, tool_name + '/base_link',
+                              tool_name, attach=True):
             return False
-        # self.psi.move_attached_object(tool_name, ,
-        #                                  self.gripper(robot_name).touch_links)
         # self.set_gripper(robot_name, tool_name)
         return True
 
@@ -133,8 +133,8 @@ class AssemblyRoutines(URRoutines):
         print('*** current gripper = %s' % tool_name)
         if tool_name == self.default_gripper_name(robot_name):
             return True
-        if self.place_at_frame(robot_name,
-                               tool_name + '_holder_link', tool_name):
+        if self.place_at_frame(robot_name, tool_name + '_holder_link',
+                               tool_name, attach=True):
             return False
         # self.set_gripper(robot_name, self.default_gripper_name(robot_name))
         return True

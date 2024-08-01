@@ -210,20 +210,23 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._markers[co.id] = markers
 
     def add_touch_links_to_attached_object(self, id, touch_links):
-        co = CollisionObject()
-        co.id = id
-        super().attach_object(id, touch_links=touch_links)
-
-    def move_attached_object(self, id, pose, touch_links=None):
-        if not self.get_attached_objects([id]):
+        aco = self.get_attached_objects([id]).get(id, None)
+        if aco is None:
             rospy.logerr('PlanningSceneInterface.move_attached_object(): unknown attached object[%s]', id)
             return
-        co = CollisionObject()
-        co.header.frame_id = pose.header.frame_id
-        co.pose            = pose.pose
-        co.id              = id
-        co.operation       = CollisionObject.MOVE
-        super().attach_object(co, co.header.frame_id, touch_links)
+        super().attach_object(aco, aco.object.header.frame_id, touch_links)
+
+    def move_attached_object(self, id, pose, touch_links=None):
+        aco = self.get_attached_objects([id]).get(id, None)
+        if aco is None:
+            rospy.logerr('PlanningSceneInterface.move_attached_object(): unknown attached object[%s]', id)
+            return
+        aco.object.header.frame_id = pose.header.frame_id
+        aco.object.pose            = pose.pose
+        aco.object.operation       = CollisionObject.ADD
+        super().attach_object(aco, aco.object.header.frame_id, touch_links)
+        print('### attached %s to %s' %
+              (aco.object.header.frame_id, pose.header.frame_id))
 
         # Publish visualization markers again.
         for marker in self._markers[id]:
@@ -232,7 +235,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         # Replace the transform from the object to the attached link.
         with self._lock:
             self._subframe_transforms[id][0] \
-                = TransformStamped(co.header, co.id,
+                = TransformStamped(aco.object.header,
+                                   aco.object.id + '/base_link',
                                    Transform(Vector3(pose.pose.position.x,
                                                      pose.pose.position.y,
                                                      pose.pose.position.z),

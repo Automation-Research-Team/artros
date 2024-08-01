@@ -61,7 +61,7 @@ class PickOrPlace(SimpleActionClient):
         return self._current_stage
 
     # Client stuffs
-    def send_goal(self, robot_name, pose, target_frame, pick, offset,
+    def send_goal(self, robot_name, pose, pick, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
                   object_name='', wait=True, done_cb=None, active_cb=None):
         self._current_stage = PickOrPlaceFeedback.IDLING
@@ -153,17 +153,19 @@ class PickOrPlace(SimpleActionClient):
 
         if goal.pick:
             success = gripper.grasp()
+            print('### grasp: %s' % str(success))
             if success and goal.object_name != '':
-                object_pose = self._lookup_pose(gripper.tip_link,
-                                                goal.pose.header.frame_id)
+                object_pose = routines.lookup_pose(gripper.tip_link,
+                                                   goal.pose.header.frame_id)
+                print('### looked-up pose=%s' % str(object_pose))
                 if object_pose is None:
                     gripper.release()
                     result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
                     self._server.set_aborted(result,
                                              'Failed to lookup object pose')
                     return
-                self.psi.move_attached_object(goal.object_name, object_pose,
-                                              gripper.touch_links)
+                routines.psi.move_attached_object(goal.object_name, object_pose,
+                                                  gripper.touch_links)
         else:
             success = gripper.release()
 
@@ -208,14 +210,3 @@ class PickOrPlace(SimpleActionClient):
                                        PickOrPlaceResult.PREEMPTED))
         rospy.logwarn('--- %s cancelled. ---',
                       'Pick' if goal.pick else 'Place')
-
-    def _lookup_pose(self, frame_id, child_frame_id):
-        try:
-            t, q = self._routines.listener.lookupTransform(frame_id,
-                                                           child_frame_id,
-                                                           rospy.Time(0))
-        except Exception as e:
-            rospy.logerr('PickOrPlaceAction._lookup_transform(): %s', str(e))
-            return None
-        return PoseStamped(Header(frame_id=frame_id),
-                           Pose(Point(*t), Quaternion(*q)))

@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /MotionPlanning1/Scene Robot1
         - /TF1/Frames1
-        - /LiveCamera1
       Splitter Ratio: 0.6159420013427734
     Tree Height: 331
   - Class: rviz/Selection
@@ -2222,14 +2221,32 @@ Visualization Manager:
           Value: false
         plate_center:
           Value: false
+        precision_tool:
+          Value: true
+        precision_tool/base_link:
+          Value: true
+        precision_tool/tip_link:
+          Value: true
         precision_tool_holder_base_link:
           Value: false
         precision_tool_holder_link:
           Value: false
+        screw_tool_m3:
+          Value: true
+        screw_tool_m3/base_link:
+          Value: true
+        screw_tool_m3/tip_link:
+          Value: true
         screw_tool_m3_holder_base_link:
           Value: false
         screw_tool_m3_holder_link:
           Value: false
+        screw_tool_m4:
+          Value: true
+        screw_tool_m4/base_link:
+          Value: true
+        screw_tool_m4/tip_link:
+          Value: true
         screw_tool_m4_holder_base_link:
           Value: false
         screw_tool_m4_holder_link:
@@ -2400,7 +2417,12 @@ Visualization Manager:
                                                 a_bot_gripper_right_inner_finger_pad:
                                                   {}
                                         a_bot_gripper_tip_link:
-                                          {}
+                                          precision_tool:
+                                            {}
+                                          screw_tool_m3:
+                                            {}
+                                          screw_tool_m4:
+                                            {}
                                         a_bot_inside_camera_connector_link:
                                           a_bot_inside_camera_link:
                                             a_bot_inside_camera_depth_frame:
@@ -2468,13 +2490,19 @@ Visualization Manager:
                   cage_tool_bar:
                     precision_tool_holder_base_link:
                       precision_tool_holder_link:
-                        {}
+                        precision_tool/base_link:
+                          precision_tool/tip_link:
+                            {}
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
-                        {}
+                        screw_tool_m3/base_link:
+                          screw_tool_m3/tip_link:
+                            {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        {}
+                        screw_tool_m4/base_link:
+                          screw_tool_m4/tip_link:
+                            {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
                         {}
@@ -2840,6 +2868,14 @@ Visualization Manager:
       Transport Hint: raw
       Unreliable: false
       Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /collision_marker
+      Name: CollisionMarker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -2868,7 +2904,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.4329249858856201
+      Distance: 0.5326250195503235
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2876,17 +2912,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.0973861813545227
-        Y: -0.036711256951093674
-        Z: 0.6886240243911743
+        X: -0.5360322594642639
+        Y: -0.14628565311431885
+        Z: 1.0394477844238281
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5197950005531311
+      Pitch: 0.34732913970947266
       Target Frame: <Fixed Frame>
-      Yaw: 3.1292855739593506
+      Yaw: 0.8514724969863892
     Saved: ~
 Window Geometry:
   CameraMultiplexerImage:
@@ -2914,5 +2950,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1878
-  X: 4168
-  Y: 170
+  X: 6442
+  Y: 27
