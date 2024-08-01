@@ -151,39 +151,21 @@ class PickOrPlace(SimpleActionClient):
         feedback.stage = PickOrPlaceFeedback.GRASPING_OR_RELEASING
         self._server.publish_feedback(feedback)
 
-        if goal.object_name != '':
-            transform = self._lookup_transform(gripper.tip_link,
-                                               goal.pose.header.frame_id)
-            if transform is None:
-                result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
-                self._server.set_aborted(result, 'Failed to lookup object pose')
-                return
-
         if goal.pick:
             success = gripper.grasp()
             if success and goal.object_name != '':
                 object_pose = self._lookup_pose(gripper.tip_link,
                                                 goal.pose.header.frame_id)
-                if transform is None:
+                if object_pose is None:
+                    gripper.release()
                     result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
                     self._server.set_aborted(result,
                                              'Failed to lookup object pose')
                     return
-
+                self.psi.move_attached_object(goal.object_name, object_pose,
+                                              gripper.touch_links)
         else:
             success = gripper.release()
-
-        if goal.object_name != '':
-            self.psi.move_attached_object(goal.object_name,
-                                          goal.pose.header.fram
-                transform = self._lookup_transform(gripper.tip_link,
-                                                   goal_target_frmae)
-                if transform is None:
-                    result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
-                    self._server.set_aborted(result, 'Failed to grasp')
-                    return
-                routines._
-
 
         # Go back to departure(pick) or approach(place) pose.
         rospy.loginfo('--- Go back to departure pose. ---')
@@ -227,7 +209,7 @@ class PickOrPlace(SimpleActionClient):
         rospy.logwarn('--- %s cancelled. ---',
                       'Pick' if goal.pick else 'Place')
 
-    def _lookup_transform(self, frame_id, child_frame_id):
+    def _lookup_pose(self, frame_id, child_frame_id):
         try:
             t, q = self._routines.listener.lookupTransform(frame_id,
                                                            child_frame_id,
@@ -235,6 +217,5 @@ class PickOrPlace(SimpleActionClient):
         except Exception as e:
             rospy.logerr('PickOrPlaceAction._lookup_transform(): %s', str(e))
             return None
-        return TransformStamped(Header(frame_id=frame_id),
-                                child_frame_id,
-                                Transform(Vector3(*t), Quaternion(*q)))
+        return PoseStamped(Header(frame_id=frame_id),
+                           Pose(Point(*t), Quaternion(*q)))

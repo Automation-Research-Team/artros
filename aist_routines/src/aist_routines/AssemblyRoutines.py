@@ -35,11 +35,10 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from std_msgs.msg                         import Header
-from geometry_msgs.msg                    import PoseStamped
-from aist_routines.ur                     import URRoutines
-from aist_utility.compat                  import *
-from aist_routines.PlanningSceneInterface import PlanningSceneInterface
+from std_msgs.msg        import Header
+from geometry_msgs.msg   import PoseStamped
+from aist_routines.ur    import URRoutines
+from aist_utility.compat import *
 
 ######################################################################
 #  class AssemblyRoutines                                            #
