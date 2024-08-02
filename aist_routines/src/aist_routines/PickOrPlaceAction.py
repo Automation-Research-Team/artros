@@ -180,15 +180,15 @@ class PickOrPlace(SimpleActionClient):
         else:
             offset = goal.approach_offset
             speed  = goal.speed_fast
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, offset, speed)
-        if not self._server.is_active():
-            return
-        if not success:
-            gripper.release()
-            result.result = PickOrPlaceResult.DEPARTURE_FAILURE
-            self._server.set_aborted(result, 'Failed to depart from target')
-            return
+        # success, _ = routines.go_to_pose_goal(goal.robot_name,
+        #                                       goal.pose, offset, speed)
+        # if not self._server.is_active():
+        #     return
+        # if not success:
+        #     gripper.release()
+        #     result.result = PickOrPlaceResult.DEPARTURE_FAILURE
+        #     self._server.set_aborted(result, 'Failed to depart from target')
+        #     return
 
         if goal.pick and not gripper.wait():    # Wait for postgrasp completed
             gripper.release()

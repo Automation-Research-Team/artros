@@ -55,7 +55,8 @@ class AssemblyRoutines(URRoutines):
             self.psi.attach_object(
                 tool_name,
                 PoseStamped(Header(frame_id=tool_name + '_holder_link'),
-                            self.pose_from_offset((0, 0, 0, 0, 0, 0))))
+                            self.pose_from_offset(())),
+                touch_links=(tool_name + '_holder_base_link'))
         for name in self.psi.get_attached_objects():
             print('*** collision_object: ' + name)
 
@@ -99,11 +100,12 @@ class AssemblyRoutines(URRoutines):
             tool_name = raw_input(' tool name? ')
             self.place_tool(robot_name, tool_name)
         elif key == 'a':
-            for tool_name, tool_props in rospy.get_param('~tools').items():
+            for tool_name in rospy.get_param('~tool_descriptions').keys():
                 self.psi.attach_object(
                     tool_name,
                     PoseStamped(Header(frame_id=tool_name + '_holder_link'),
-                                self.pose_from_offset(())))
+                                self.pose_from_offset(())),
+                    touch_links=(tool_name + '_holder_base_link'))
         elif key == 'c':
             self.psi.remove_attached_object()
         elif key == 'H':

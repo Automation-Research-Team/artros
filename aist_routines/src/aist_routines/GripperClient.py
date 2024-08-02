@@ -229,10 +229,6 @@ class RobotiqGripper(GenericGripper):
             return self._set_velocity(velocity).success
 
     def move(self, gap, max_effort=0, timeout=rospy.Duration()):
-        print('### (RobotiqGripper) move: min_gap=%f, max_gap=%f, min_position=%f, max_position=%f, position_per_gap=%f'
-              % (self._min_gap, self._max_gap,
-                 self._min_position, self._max_position,
-                 self._position_per_gap))
         return super().move(self._position(gap), max_effort, timeout)
 
     def _position(self, gap):
