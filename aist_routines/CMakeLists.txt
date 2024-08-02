@@ -24,11 +24,11 @@ catkin_package(CATKIN_DEPENDS
 
 catkin_install_python(
   PROGRAMS
-    scripts/interactive.py
-    scripts/kitting.py
-    scripts/assembly.py
+    scripts/run_kitting.py
+    scripts/run_assembly.py
+    scripts/run_hmi_demo.py
     scripts/hmi_server.py
-    scripts/hmi_demo.py
+    scripts/interactive.py
     scripts/iiwa_interactive.py
     scripts/base_interactive.py
     scripts/fetch_interactive.py
