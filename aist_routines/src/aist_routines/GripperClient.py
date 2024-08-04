@@ -68,6 +68,7 @@ class GripperClient(object):
         if rospy.get_param('use_real_robot', False):
             return ClientClass(name, **props)
         else:
+            print('type_name=%s' % type_name)
             return ClientClass.simulated(name, **props)
 
     @property
@@ -258,6 +259,10 @@ class PrecisionGripper(GenericGripper):
         super().__init__(name, controller_ns + '/gripper_cmd',
                          base_link, tip_link, touch_links,
                          min_position, max_position, max_effort)
+
+    @staticmethod
+    def simulated(name, controller_ns, base_link=None, tip_link=None):
+        return PrecisionGripper(name, controller_ns, base_link, tip_link)
 
 ######################################################################
 #  class SuctionGripper                                              #

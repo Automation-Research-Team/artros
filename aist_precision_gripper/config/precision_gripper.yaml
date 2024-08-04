@@ -17,4 +17,3 @@ max_effort_count: 13
 touch_links:
   - $(arg prefix)left_finger
   - $(arg prefix)right_finger
-  - $(arg prefix)tip_link

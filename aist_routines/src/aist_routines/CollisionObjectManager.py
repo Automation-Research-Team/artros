@@ -35,7 +35,6 @@
 #
 import os, copy, rospy, rospkg
 import numpy as np
-import moveit_commander
 import threading
 
 from collections                 import namedtuple
@@ -43,6 +42,7 @@ from tf                          import transformations as tfs
 from geometry_msgs.msg           import (Point, Vector3, Quaternion,
                                          Pose, Transform,
                                          PoseStamped, TransformStamped)
+from moveit_commander            import PlanningSceneInterface
 from moveit_msgs.msg             import CollisionObject
 from object_recognition_msgs.msg import ObjectType
 from shape_msgs.msg              import (Mesh, MeshTriangle, Plane,
@@ -62,9 +62,9 @@ except:
         print("Failed to import pyassimp, see https://github.com/moveit/moveit/issues/86 for more info")
 
 #########################################################################
-#  class PlanningSceneInterface                                         #
+#  class CollisionObjectManager                                         #
 #########################################################################
-class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
+class CollisionObjectManager(object):
     CollisionObjectProps = namedtuple('CollisionObjectProps',
                                       ['primitives', 'primitive_poses',
                                        'visual_mesh_urls',
@@ -78,7 +78,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
     MarkerProps = namedtuple('MarkerProps', ['ids', 'markers', 'link'])
 
     def __init__(self, ns='', synchronous=True):
-        super().__init__(ns, synchronous)
+        super().__init__()
+        self._psi                    = PlanningSceneInterface(ns, synchronous)
         self._marker_id_max          = 0
         self._collision_object_props = {}
         self._subframe_transforms    = {}
@@ -97,7 +98,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
                       'CONE':     SolidPrimitive.CONE}
 
         for name, desc in object_descriptions.items():
-            cop = PlanningSceneInterface.CollisionObjectProps([], [],
+            cop = CollisionObjectManager.CollisionObjectProps([], [],
                                                               [], [], [],
                                                               [], [], [],
                                                               [], [], [], [])
@@ -142,13 +143,13 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._collision_object_props[name] = cop
             rospy.loginfo('collision object[%s] loaded', name)
 
-    def attach_object(self, name, pose, id=None, touch_links=None):
+    def create_object(self, name, pose, id=None, touch_links=None):
         # Create and attach a collision object.
-        cop = self._collision_object_props[name]
-        co  = CollisionObject()
+        co = CollisionObject()
         co.header.frame_id = pose.header.frame_id
         co.pose            = pose.pose
         co.id              = name if id is None else id
+        cop = self._collision_object_props[name]
         if cop.collision_meshes != []:
             co.meshes     = cop.collision_meshes
             co.mesh_poses = cop.collision_mesh_poses
@@ -156,7 +157,9 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             co.primitives      = cop.primitives
             co.primitive_poses = cop.primitive_poses
         co.operation = CollisionObject.ADD
-        super().attach_object(co, co.header.frame_id, touch_links)
+        self._psi.attach_object(co, co.header.frame_id, touch_links)
+        rospy.loginfo('collision object[%s] with touch_links%s created',
+                      co.id, touch_links)
 
         # Create subframe transforms.
         base_link = co.id + '/base_link'
@@ -209,30 +212,34 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             self._subframe_transforms[co.id] = subframe_transforms
             self._markers[co.id] = markers
 
-    def add_touch_links_to_attached_object(self, id, touch_links):
-        aco = self.get_attached_objects([id]).get(id, None)
+    def add_touch_links_to_attached_object(self, id, touch_links,
+                                           append=False):
+        aco = self._psi.get_attached_objects([id]).get(id, None)
         if aco is None:
-            rospy.logerr('PlanningSceneInterface.move_attached_object(): unknown attached object[%s]', id)
+            rospy.logerr('unknown attached object[%s]', id)
             return
-        super().attach_object(aco, aco.object.header.frame_id, touch_links)
 
-    def move_attached_object(self, id, pose, touch_links=None):
-        aco = self.get_attached_objects([id]).get(id, None)
+        if append:
+            touch_links.extend(aco.touch_links)
+        self._psi.attach_object(aco, aco.object.header.frame_id, touch_links)
+        rospy.loginfo('touch_links%s added to object[%s]', touch_links, id)
+
+    def attach_object(self, id, pose, touch_links=None):
+        aco = self._psi.get_attached_objects([id]).get(id, None)
         if aco is None:
-            rospy.logerr('PlanningSceneInterface.move_attached_object(): unknown attached object[%s]', id)
+            rospy.logerr('unknown attached object[%s]', id)
             return
         aco.object.header.frame_id = pose.header.frame_id
         aco.object.pose            = pose.pose
         aco.object.operation       = CollisionObject.ADD
-        super().attach_object(aco, aco.object.header.frame_id, touch_links)
-        print('### attached %s to %s' %
-              (aco.object.header.frame_id, pose.header.frame_id))
+        self._psi.attach_object(aco, aco.object.header.frame_id, touch_links)
+        rospy.loginfo('attached %s to %s', id, pose.header.frame_id)
 
         # Publish visualization markers again.
         for marker in self._markers[id]:
             self._marker_pub.publish(marker)
 
-        # Replace the transform from the object to the attached link.
+        # Replace the transform from the object base_link to the attached link.
         with self._lock:
             self._subframe_transforms[id][0] \
                 = TransformStamped(aco.object.header,
@@ -250,7 +257,7 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
         if id is not None:
             markers = self._markers.get(id, None)
             if markers is None:
-                rospy.logerr('PlanningSceneInterface.remove_attached_object(): unknown attached object[%s]', id)
+                rospy.logerr('unknown attached object[%s]', id)
                 return
             for marker in markers:
                 self._delete_marker(marker.id)
@@ -273,8 +280,8 @@ class PlanningSceneInterface(moveit_commander.PlanningSceneInterface):
             with self._lock:
                 self._subframe_transforms.clear()
                 self._markers.clear()
-        super().remove_attached_object(link, id)
-        self.remove_world_object(id)
+        self._psi.remove_attached_object(link, id)
+        self._psi.remove_world_object(id)
 
     # visualization marker stuffs
     def _delete_marker(self, marker_id):

@@ -6,6 +6,8 @@ grippers:
   a_bot_gripper:
     type:          RobotiqGripper
     controller_ns: a_bot_gripper_controller
+    max_effort:    5.0
+    velocity:      0.1
   precision_tool:
     type:          PrecisionGripper
     controller_ns: precision_tool_controller

@@ -21,4 +21,3 @@ joint_name: $(arg prefix)joint_finger
 touch_links:
   - $(arg prefix)left_finger
   - $(arg prefix)right_finger
-  - $(arg prefix)tip_link

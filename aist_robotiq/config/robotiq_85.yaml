@@ -25,4 +25,3 @@ touch_links:
   - $(arg prefix)right_inner_knuckle
   - $(arg prefix)right_inner_finger
   - $(arg prefix)right_inner_finger_pad
-  - $(arg prefix)tip_link

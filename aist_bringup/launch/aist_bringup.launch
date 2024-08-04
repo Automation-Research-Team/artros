@@ -53,6 +53,14 @@
     <arg name="vis"			value="false"/>
   </include>
 
+  <!-- Launch precision tool controller -->
+  <include file="$(find aist_precision_gripper)/launch/run.launch">
+    <arg name="prefix"			value="precision_tool_"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="usb_port"		value="/dev/ttyUSB0"/>
+    <arg name="publish_joint_states"	value="false"/>
+  </include>
+
   <!-- Launch other hardware drivers -->
   <group unless="$(arg sim)">
 
@@ -84,13 +92,6 @@
       <arg name="driver_ns"		value="dynamixel_driver"/>
       <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4"/>
       <arg name="usb_port"		value="/dev/ttyUSB1"/>
-    </include>
-
-    <!-- Launch precision tool controller -->
-    <include file="$(find aist_precision_gripper)/launch/run.launch">
-      <arg name="prefix"		value="precision_tool_"/>
-      <arg name="usb_port"		value="/dev/ttyUSB0"/>
-      <arg name="publish_joint_states"	value="false"/>
     </include>
 
   </group>

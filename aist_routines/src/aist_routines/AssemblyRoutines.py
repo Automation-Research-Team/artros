@@ -50,15 +50,13 @@ class AssemblyRoutines(URRoutines):
         super().__init__()
 
         tool_descriptions = rospy.get_param('~tool_descriptions', {})
-        self.psi.load_object_descriptions(tool_descriptions)
+        self.com.load_object_descriptions(tool_descriptions)
         for tool_name in tool_descriptions.keys():
-            self.psi.attach_object(
+            self.com.create_object(
                 tool_name,
                 PoseStamped(Header(frame_id=tool_name + '_holder_link'),
                             self.pose_from_offset(())),
-                touch_links=(tool_name + '_holder_base_link'))
-        for name in self.psi.get_attached_objects():
-            print('*** collision_object: ' + name)
+                touch_links=[tool_name + '_holder_base_link'])
 
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]
@@ -97,17 +95,16 @@ class AssemblyRoutines(URRoutines):
             tool_name = raw_input(' tool name? ')
             self.pick_tool(robot_name, tool_name)
         elif key == 'T':
-            tool_name = raw_input(' tool name? ')
-            self.place_tool(robot_name, tool_name)
+            self.place_tool(robot_name)
         elif key == 'a':
             for tool_name in rospy.get_param('~tool_descriptions').keys():
-                self.psi.attach_object(
+                self.com.create_object(
                     tool_name,
                     PoseStamped(Header(frame_id=tool_name + '_holder_link'),
                                 self.pose_from_offset(())),
-                    touch_links=(tool_name + '_holder_base_link'))
+                    touch_links=[tool_name + '_holder_base_link'])
         elif key == 'c':
-            self.psi.remove_attached_object()
+            self.com.remove_attached_object()
         elif key == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif key == 'B':
@@ -122,21 +119,18 @@ class AssemblyRoutines(URRoutines):
         elif self.gripper(robot_name).name != \
              self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
-        self.psi.add_touch_links_to_attached_object(
-            tool_name, self.gripper(robot_name).touch_links)
         if self.pick_at_frame(robot_name, tool_name + '/base_link',
                               tool_name, attach=True):
             return False
-        # self.set_gripper(robot_name, tool_name)
+        self.set_gripper(robot_name, tool_name)
         return True
 
-    def place_tool(self, robot_name, tool_name):
-        #tool_name = self.gripper(robot_name).name
+    def place_tool(self, robot_name):
+        tool_name            = self.gripper(robot_name).name
+        default_gripper_name = self.default_gripper(robot_name).name
         print('*** current gripper = %s' % tool_name)
-        if tool_name == self.default_gripper_name(robot_name):
+        if tool_name == default_gripper_name:
             return True
-        if self.place_at_frame(robot_name, tool_name + '_holder_link',
-                               tool_name, attach=True):
-            return False
-        # self.set_gripper(robot_name, self.default_gripper_name(robot_name))
-        return True
+        self.set_gripper(robot_name, default_gripper_name)
+        return self.place_at_frame(robot_name, tool_name + '_holder_link',
+                                   tool_name, attach=True):

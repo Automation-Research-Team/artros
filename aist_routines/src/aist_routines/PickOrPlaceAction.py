@@ -63,11 +63,13 @@ class PickOrPlace(SimpleActionClient):
     # Client stuffs
     def send_goal(self, robot_name, pose, pick, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
-                  object_name='', wait=True, done_cb=None, active_cb=None):
+                  object_name='', holder_name='',
+                  wait=True, done_cb=None, active_cb=None):
         self._current_stage = PickOrPlaceFeedback.IDLING
         self._target_stage  = PickOrPlaceFeedback.IDLING
         SimpleActionClient.send_goal(self,
-                                     PickOrPlaceGoal(robot_name, object_name,
+                                     PickOrPlaceGoal(robot_name,
+                                                     object_name, holder_name,
                                                      pose, pick,
                                                      offset, approach_offset,
                                                      departure_offset,
@@ -111,28 +113,24 @@ class PickOrPlace(SimpleActionClient):
         rospy.loginfo('*** Do %s ***', 'picking' if goal.pick else 'placing')
         routines = self._routines
         gripper  = routines.gripper(goal.robot_name)
-        feedback = PickOrPlaceFeedback()
-        result   = PickOrPlaceResult()
 
         # Go to approach pose.
-        rospy.loginfo('--- Go to approach pose. ---')
-        feedback.stage = PickOrPlaceFeedback.MOVING
-        self._server.publish_feedback(feedback)
+        self._publish_feedback(PickOrPlaceFeedback.MOVING,
+                               'Go to approach pose')
         speed      = goal.speed_fast if goal.pick else goal.speed_slow
         success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
                                               goal.approach_offset, speed)
         if not self._server.is_active():
             return
         if not success:
-            result.result = PickOrPlaceResult.MOVE_FAILURE
-            self._server.set_aborted(result, 'Failed to go to approach pose')
+            self._set_aborted(PickOrPlaceResult.MOVE_FAILURE,
+                              'Failed to go to approach pose')
             return
 
         # Go to pick/place pose.
-        rospy.loginfo('--- Go to %s pose. ---',
-                      'pick' if goal.pick else 'place')
-        feedback.stage = PickOrPlaceFeedback.APPROACHING
-        self._server.publish_feedback(feedback)
+        self._publish_feedback(PickOrPlaceFeedback.APPROACHING,
+                               'Go to %s pose' %
+                               'pick' if goal.pick else 'place')
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
             gripper.wait()                      # Wait for pregrasp completed
@@ -141,38 +139,42 @@ class PickOrPlace(SimpleActionClient):
         if not self._server.is_active():
             return
         if not success:
-            result.result = PickOrPlaceResult.APPROACH_FAILURE
-            self._server.set_aborted(result, 'Failed to approach target')
-            if goal.pick:
-                gripper.release()
+            self._set_aborted(PickOrPlaceResult.APPROACH_FAILURE,
+                              'Failed to approach target')
             return
 
         # Grasp/release at pick/place pose.
-        feedback.stage = PickOrPlaceFeedback.GRASPING_OR_RELEASING
-        self._server.publish_feedback(feedback)
-
+        self._publish_feedback(PickOrPlaceFeedback.GRASPING_OR_RELEASING,
+                               'Pick' if goal.pick else 'Place')
         if goal.pick:
+            # Allow the object collision against the gripper.
+            if goal.object_name != '':
+                routines.com.add_touch_links_to_attached_object(
+                    goal.object_name, gripper.touch_links, True)
+
             success = gripper.grasp()
             print('### grasp: %s' % str(success))
-            if success and goal.object_name != '':
+            # if success and goal.object_name != '':
+            if goal.object_name != '':
                 object_pose = routines.lookup_pose(gripper.tip_link,
                                                    goal.pose.header.frame_id)
-                print('### looked-up pose=%s' % str(object_pose))
                 if object_pose is None:
                     gripper.release()
-                    result.result == PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
-                    self._server.set_aborted(result,
-                                             'Failed to lookup object pose')
+                    self._server.set_set_aborteded(
+                        PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
+                        'Failed to lookup object pose')
                     return
-                routines.psi.move_attached_object(goal.object_name, object_pose,
-                                                  gripper.touch_links)
+                routines.com.attach_object(goal.object_name, object_pose,
+                                           gripper.touch_links)
         else:
-            success = gripper.release()
+            gripper.release()
+            if goal.holder_name != '':
+                routines.com.attach_object(goal.object_name, object_pose,
+                                           gripper.touch_links)
 
         # Go back to departure(pick) or approach(place) pose.
-        rospy.loginfo('--- Go back to departure pose. ---')
-        feedback.stage = PickOrPlaceFeedback.DEPARTING
-        self._server.publish_feedback(feedback)
+        self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
+                               'Go back to departure pose')
         if goal.pick:
             gripper.postgrasp()                 # Postgrasp (not wait)
             offset = goal.departure_offset
@@ -180,25 +182,23 @@ class PickOrPlace(SimpleActionClient):
         else:
             offset = goal.approach_offset
             speed  = goal.speed_fast
-        # success, _ = routines.go_to_pose_goal(goal.robot_name,
-        #                                       goal.pose, offset, speed)
-        # if not self._server.is_active():
-        #     return
-        # if not success:
-        #     gripper.release()
-        #     result.result = PickOrPlaceResult.DEPARTURE_FAILURE
-        #     self._server.set_aborted(result, 'Failed to depart from target')
-        #     return
+        success, _ = routines.go_to_pose_goal(goal.robot_name,
+                                              goal.pose, offset, speed)
+        if not self._server.is_active():
+            return
+        if not success:
+            self._set_aborted(PickOrPlaceResult.DEPARTURE_FAILURE,
+                              'Failed to depart from target')
+            return
 
         if goal.pick and not gripper.wait():    # Wait for postgrasp completed
             gripper.release()
-            result.result = PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE
-            self._server.set_aborted(result, 'Failed to grasp')
-            rospy.logwarn('--- Pick failed. ---')
+            self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
+                              'Failed to grasp')
             return
 
-        result.result = PickOrPlaceResult.SUCCESS
-        self._server.set_succeeded(result, 'Succeeded')
+         self._server.set_succeeded(
+             PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
         rospy.loginfo('--- %s succeeded. ---',
                       'Pick' if goal.pick else 'Place')
 
@@ -210,3 +210,11 @@ class PickOrPlace(SimpleActionClient):
                                        PickOrPlaceResult.PREEMPTED))
         rospy.logwarn('--- %s cancelled. ---',
                       'Pick' if goal.pick else 'Place')
+
+    def _publish_feedback(self, stage, text):
+        self._server.publish(PickOrPlaceFeedback(stage))
+        rospy.loginfo('--- %s ---', text)
+
+    def _set_aborted(self, result, text):
+        self._server.set_aborted(PickOrPlaceResult(result))
+        rospy.logerr('--- %s ---', text)

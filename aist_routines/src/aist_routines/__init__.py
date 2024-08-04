@@ -56,7 +56,7 @@ from aist_routines.CameraClient           import CameraClient
 from aist_routines.FasteningToolClient    import FasteningToolClient
 from aist_routines.MarkerPublisher        import MarkerPublisher
 from aist_routines.PickOrPlaceAction      import PickOrPlace
-from aist_routines.PlanningSceneInterface import PlanningSceneInterface
+from aist_routines.CollisionObjectManager import CollisionObjectManager
 from aist_utility.compat                  import *
 
 ######################################################################
@@ -104,8 +104,8 @@ class AISTBaseRoutines(object):
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
 
-        # MoveIt PlanningSceneInterface
-        self._psi = PlanningSceneInterface(synchronous=True)
+        # CollisionObjectManger wrapping MoveIt PlanningSceneInterface
+        self._com = CollisionObjectManager(synchronous=True)
 
         # Grippers
         self._grippers = {}
@@ -177,8 +177,8 @@ class AISTBaseRoutines(object):
         return self._eef_step
 
     @property
-    def psi(self):
-        return self._psi
+    def com(self):
+        return self._com
 
     # Interactive stuffs
     def print_help_messages(self):
