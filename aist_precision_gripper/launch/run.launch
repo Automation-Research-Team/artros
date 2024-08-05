@@ -39,9 +39,9 @@
       <param name="use_joint_states_topic" value="false"/>
       <param name="use_cmd_vel_topic"	 value="false"/>
       <rosparam>
-	publish_period:   0.010
-	dxl_read_period:  0.010
-	dxl_write_period: 0.010
+        publish_period:   0.010
+        dxl_read_period:  0.010
+        dxl_write_period: 0.010
       </rosparam>
     </node>
 
