@@ -149,25 +149,11 @@ class PickOrPlace(SimpleActionClient):
         self._publish_feedback(PickOrPlaceFeedback.GRASPING_OR_RELEASING,
                                'Pick' if goal.pick else 'Place')
         if goal.pick:
-            # Allow the object collision against the gripper.
             if goal.object_name != '':
                 routines.com.append_touch_links(
                     goal.object_name,
                     routines.com.touch_links[gripper.tip_link])
-
-            success = gripper.grasp()
-            print('### grasp: %s' % str(success))
-            # if success and goal.object_name != '':
-            if goal.object_name != '':
-                object_pose = routines.lookup_pose(gripper.tip_link,
-                                                   goal.pose.header.frame_id)
-                if object_pose is None:
-                    gripper.release()
-                    self._server.set_set_aborteded(
-                        PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
-                        'Failed to lookup object pose')
-                    return
-                routines.com.attach_object(goal.object_name, object_pose)
+            gripper.grasp()
         else:
             gripper.release()
             if goal.object_name != '':
@@ -193,11 +179,29 @@ class PickOrPlace(SimpleActionClient):
                               'Failed to depart from target')
             return
 
-        if goal.pick and not gripper.wait():    # Wait for postgrasp completed
-            gripper.release()
-            self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
-                              'Failed to grasp')
-            return
+        #if goal.pick and not gripper.wait():    # Wait for postgrasp completed
+            # gripper.release()
+            # self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
+            #                   'Failed to grasp')
+            # return
+
+            # Allow the object collide against the gripper.
+
+            success = gripper.grasp()
+            print('### grasp: %s' % str(success))
+            # if success and goal.object_name != '':
+            if goal.object_name != '':
+                object_pose = routines.lookup_pose(gripper.tip_link,
+                                                   goal.pose.header.frame_id)
+                if object_pose is None:
+                    gripper.release()
+                    self._server.set_set_aborteded(
+                        PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
+                        'Failed to lookup object pose')
+                    return
+                routines.com.print_object_info(goal.object_name)
+                routines.com.attach_object(goal.object_name, object_pose)
+                routines.com.print_object_info(goal.object_name)
 
         self._server.set_succeeded(PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
         rospy.loginfo('--- %s succeeded. ---',

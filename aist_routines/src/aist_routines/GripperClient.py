@@ -65,7 +65,6 @@ class GripperClient(object):
         if rospy.get_param('use_real_robot', False):
             return ClientClass(name, **props)
         else:
-            print('type_name=%s' % type_name)
             return ClientClass.simulated(name, **props)
 
     @property

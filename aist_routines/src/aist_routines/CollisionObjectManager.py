@@ -226,9 +226,12 @@ class CollisionObjectManager(object):
             rospy.logerr('unknown attached object[%s]', id)
             return
 
-        touch_links.extend(aco.touch_links)
-        self._psi.attach_object(aco, aco.object.header.frame_id, touch_links)
-        rospy.loginfo('touch_links%s appended to object[%s]', touch_links, id)
+        extended_touch_links = copy.deepcopy(touch_links)
+        extended_touch_links.extend(aco.touch_links)
+        self._psi.attach_object(aco, aco.object.header.frame_id,
+                                extended_touch_links)
+        rospy.loginfo('touch_links%s appended to object[%s]',
+                      extended_touch_links, id)
 
     def attach_object(self, id, pose):
         aco = self._psi.get_attached_objects([id]).get(id, None)
@@ -240,8 +243,9 @@ class CollisionObjectManager(object):
         aco.object.operation       = CollisionObject.ADD
         self._psi.attach_object(aco, aco.object.header.frame_id,
                                 self.touch_links[aco.object.header.frame_id])
-        rospy.loginfo('attached collision object[%s] to %s',
-                      id, aco.object.header.frame_id)
+        rospy.loginfo('attached collision object[%s] to %s with touch links%s',
+                      id, aco.object.header.frame_id,
+                      self.touch_links[aco.object.header.frame_id])
 
         # Publish visualization markers again.
         for marker in self._markers[id]:
@@ -262,8 +266,16 @@ class CollisionObjectManager(object):
                                                  pose.pose.orientation.w)))
 
     def find_attached_objects(self, link):
-        return [aco for aco in self._psi.get_attached_objects()
+        return [aco for aco in self._psi.get_attached_objects().values()
                 if aco.link_name == link]
+
+    def print_object_info(self, id):
+        aco = self._psi.get_attached_objects([id]).get(id, None)
+        if aco is None:
+            rospy.logerr('unknown attached object[%s]', id)
+            return
+        rospy.loginfo('id=%s, attached_link=%s, touch_links=%s',
+                      aco.object.id, aco.link_name, aco.touch_links)
 
     def remove_attached_object(self, link=None, id=None):
         if id is not None:

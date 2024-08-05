@@ -86,6 +86,8 @@ class AssemblyRoutines(URRoutines):
         print('  t: Pick tool')
         print('  T: Place tool')
         print('  s: Pick screw')
+        print('  i: Print tool info with specified id')
+        print('  f: Find tools attached to specified link')
         print('  a: Add all collision objects')
         print('  c: Clear all collision objects')
         print('  H: Move all robots to home')
@@ -93,10 +95,17 @@ class AssemblyRoutines(URRoutines):
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 't':
-            tool_name = raw_input(' tool name? ')
+            tool_name = raw_input('  tool name? ')
             self.pick_tool(robot_name, tool_name)
         elif key == 'T':
             self.place_tool(robot_name)
+        elif key == 'i':
+            tool_name = raw_input('  tool name? ')
+            self.com.print_object_info(tool_name)
+        elif key == 'f':
+            link_name = raw_input('  link name? ')
+            for aco in self.com.find_attached_objects(link_name):
+                self.com.print_object_info(aco.object.id)
         elif key == 'a':
             for tool_name in rospy.get_param('~tool_descriptions').keys():
                 self.com.create_object(
