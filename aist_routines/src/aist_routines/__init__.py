@@ -784,7 +784,7 @@ class AISTBaseRoutines(object):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
             *self.xyzrpy_from_pose(target_pose))
 
-    def pose_from_offset(self, offset):
+    def pose_from_offset(self, offset=()):
         return Pose(Point(*self._position_from_offset(offset[0:3])),
                     Quaternion(*self._orientation_from_offset(offset[3:])))
 

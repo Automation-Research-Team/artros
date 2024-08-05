@@ -63,7 +63,7 @@ touch_links:
     - suction_tool/base_link
   precision_tool_holder_link:
     - precision_tool_holder_base_link
-  screw_tool_m3__holder_link:
+  screw_tool_m3_holder_link:
     - screw_tool_m3_holder_base_link
-  screw_tool_m4__holder_link
+  screw_tool_m4_holder_link:
     - screw_tool_m4_holder_base_link

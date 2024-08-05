@@ -63,13 +63,11 @@ class PickOrPlace(SimpleActionClient):
     # Client stuffs
     def send_goal(self, robot_name, pose, pick, offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
-                  object_name='', holder_name='',
-                  wait=True, done_cb=None, active_cb=None):
+                  object_name='', wait=True, done_cb=None, active_cb=None):
         self._current_stage = PickOrPlaceFeedback.IDLING
         self._target_stage  = PickOrPlaceFeedback.IDLING
         SimpleActionClient.send_goal(self,
-                                     PickOrPlaceGoal(robot_name,
-                                                     object_name, holder_name,
+                                     PickOrPlaceGoal(robot_name, object_name,
                                                      pose, pick,
                                                      offset, approach_offset,
                                                      departure_offset,
@@ -172,8 +170,9 @@ class PickOrPlace(SimpleActionClient):
                 routines.com.attach_object(goal.object_name, object_pose)
         else:
             gripper.release()
-            if goal.holder_name != '':
-                routines.com.attach_object(goal.object_name, object_pose)
+            if goal.object_name != '':
+                print('### place frame=%s' % goal.pose.header.frame_id)
+                routines.com.attach_object(goal.object_name, goal.pose)
 
         # Go back to departure(pick) or approach(place) pose.
         self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
@@ -200,8 +199,7 @@ class PickOrPlace(SimpleActionClient):
                               'Failed to grasp')
             return
 
-         self._server.set_succeeded(
-             PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
+        self._server.set_succeeded(PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
         rospy.loginfo('--- %s succeeded. ---',
                       'Pick' if goal.pick else 'Place')
 
@@ -215,7 +213,7 @@ class PickOrPlace(SimpleActionClient):
                       'Pick' if goal.pick else 'Place')
 
     def _publish_feedback(self, stage, text):
-        self._server.publish(PickOrPlaceFeedback(stage))
+        self._server.publish_feedback(PickOrPlaceFeedback(stage))
         rospy.loginfo('--- %s ---', text)
 
     def _set_aborted(self, result, text):

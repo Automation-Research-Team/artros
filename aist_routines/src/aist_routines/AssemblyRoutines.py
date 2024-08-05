@@ -57,7 +57,7 @@ class AssemblyRoutines(URRoutines):
             holder_link = tool_name + '_holder_link'
             self.com.create_object(tool_name,
                                    PoseStamped(Header(frame_id=holder_link),
-                                               self.pose_from_offset(())))
+                                               self.pose_from_offset()))
 
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]
@@ -102,8 +102,7 @@ class AssemblyRoutines(URRoutines):
                 self.com.create_object(
                     tool_name,
                     PoseStamped(Header(frame_id=tool_name + '_holder_link'),
-                                self.pose_from_offset(())),
-                    touch_links=[tool_name + '_holder_base_link'])
+                                self.pose_from_offset()))
         elif key == 'c':
             self.com.remove_attached_object()
         elif key == 'H':
@@ -128,10 +127,10 @@ class AssemblyRoutines(URRoutines):
 
     def place_tool(self, robot_name):
         tool_name            = self.gripper(robot_name).name
-        default_gripper_name = self.default_gripper(robot_name).name
+        default_gripper_name = self.default_gripper_name(robot_name)
         print('*** current gripper = %s' % tool_name)
         if tool_name == default_gripper_name:
             return True
         self.set_gripper(robot_name, default_gripper_name)
         return self.place_at_frame(robot_name, tool_name + '_holder_link',
-                                   tool_name, attach=True):
+                                   tool_name, attach=True)
