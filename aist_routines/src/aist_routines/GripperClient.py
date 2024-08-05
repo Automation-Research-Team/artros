@@ -48,16 +48,13 @@ from std_msgs.msg             import Bool
 #  class GripperClient                                               #
 ######################################################################
 class GripperClient(object):
-    def __init__(self, name, type,
-                 base_link=None, tip_link=None, touch_links=None):
+    def __init__(self, name, type, base_link=None, tip_link=None):
         object.__init__(self)
         self._name        = name
         self._type        = type
         self._base_link   = base_link if base_link else name + '_base_link'
         self._tip_link    = tip_link if tip_link else name + '_tip_link'
-        self._touch_links = touch_links
         self._parameters  = {}
-        print('*** [%s] touch_links=%s' % (self.name, str(self.touch_links)))
 
     @staticmethod
     def create(name, props):
@@ -86,10 +83,6 @@ class GripperClient(object):
     @property
     def tip_link(self):
         return self._tip_link
-
-    @property
-    def touch_links(self):
-        return self._touch_links
 
     @property
     def parameters(self):
@@ -137,10 +130,9 @@ class VoidGripper(GripperClient):
 #  class GenericGripper                                              #
 ######################################################################
 class GenericGripper(GripperClient):
-    def __init__(self, name, action_ns,
-                 base_link=None, tip_link=None, touch_links=None,
+    def __init__(self, name, action_ns, base_link=None, tip_link=None,
                  min_position=0.0, max_position=0.1, max_effort=5.0):
-        super().__init__(name, 'two_finger', base_link, tip_link, touch_links)
+        super().__init__(name, 'two_finger', base_link, tip_link)
         self._client = SimpleActionClient(action_ns, GripperCommandAction)
         self._parameters = {'grasp_position':   min_position,
                             'release_position': max_position,
@@ -154,11 +146,9 @@ class GenericGripper(GripperClient):
         rospy.loginfo('%s initialized.', action_ns)
 
     @staticmethod
-    def simulated(name, action_ns,
-                  base_link=None, tip_link=None, touch_links=None,
+    def simulated(name, action_ns, base_link=None, tip_link=None,
                   min_position=0.0, max_position=0.1, max_effort=5.0):
-        return GenericGripper(name, action_ns,
-                              base_link, tip_link, touch_links,
+        return GenericGripper(name, action_ns, base_link, tip_link,
                               min_position, max_position, max_effort)
 
     def grasp(self, timeout=rospy.Duration()):
@@ -218,7 +208,6 @@ class RobotiqGripper(GenericGripper):
               % (self._min_gap, self._max_gap,
                  self._min_position, self._max_position))
         super().__init__(name, controller_ns + '/gripper_cmd', None, None,
-                         rospy.get_param(controller_ns + '/touch_links'),
                          self._min_gap, self._max_gap, max_effort)
 
     @staticmethod
@@ -253,11 +242,10 @@ class PrecisionGripper(GenericGripper):
         min_position = rospy.get_param(controller_ns + '/min_position')
         max_position = rospy.get_param(controller_ns + '/max_position')
         max_effort   = rospy.get_param(controller_ns + '/max_effort')
-        touch_links  = rospy.get_param(controller_ns + '/touch_links')
         assert min_position < max_position
 
         super().__init__(name, controller_ns + '/gripper_cmd',
-                         base_link, tip_link, touch_links,
+                         base_link, tip_link,
                          min_position, max_position, max_effort)
 
     @staticmethod
@@ -269,8 +257,8 @@ class PrecisionGripper(GenericGripper):
 ######################################################################
 class SuctionGripper(GripperClient):
     def __init__(self, name, controller_ns, base_link=None, tip_link=None,
-                 touch_links=None, suck_min_period=0.5, blow_min_period=0.2):
-        super().__init__(name, 'suction', base_link, tip_link, touch_links)
+                 suck_min_period=0.5, blow_min_period=0.2):
+        super().__init__(name, 'suction', base_link, tip_link)
 
         self._client     = SimpleActionClient(controller_ns + '/command',
                                               SuctionToolCommandAction)
@@ -287,8 +275,8 @@ class SuctionGripper(GripperClient):
 
     @staticmethod
     def simulated(name, controller_ns, base_link=None, tip_link=None,
-                  touch_links=None, suck_min_period=0.5, blow_min_period=0.2):
-        return GripperClient(name, 'suction', base_link, tip_link, touch_links)
+                  suck_min_period=0.5, blow_min_period=0.2):
+        return GripperClient(name, 'suction', base_link, tip_link)
 
     def pregrasp(self):
         # Set goal.min_period to zero so that the goal succeeds immediately.
@@ -332,11 +320,10 @@ class SuctionGripper(GripperClient):
 #  class Lecp6Gripper                                                #
 ######################################################################
 class Lecp6Gripper(GripperClient):
-    def __init__(self, name, controller_ns, touch_links=None,
-                 open_no=1, close_no=2):
+    def __init__(self, name, controller_ns, open_no=1, close_no=2):
         from tranbo_control.msg import Lecp6CommandAction, Lecp6CommandGoal
 
-        super().__init__(name, 'two_finger', touch_links=touch_links)
+        super().__init__(name, 'two_finger')
         self._client     = SimpleActionClient(controller_ns + '/lecp6',
                                               Lecp6CommandAction)
         self._parameters = {'release_stepdata': open_no,
@@ -348,9 +335,8 @@ class Lecp6Gripper(GripperClient):
                          controller_ns + '/lecp6')
 
     @staticmethod
-    def simulated(name, controller_ns, touch_links=None,
-                  open_no=1, close_no=2):
-        return GripperClient(name, 'two_finger', touch_links)
+    def simulated(name, controller_ns, open_no=1, close_no=2):
+        return GripperClient(name, 'two_finger')
 
     def grasp(self, timeout=rospy.Duration()):
         return self._send_command(True, timeout)
@@ -384,12 +370,12 @@ class Lecp6Gripper(GripperClient):
 #  class MagswitchGripper                                            #
 ######################################################################
 class MagswitchGripper(GripperClient):
-    def __init__(self, name, controller_ns, touch_links=None,
+    def __init__(self, name, controller_ns,
                  sensitivity=0, grasp_position=30, confirm_position=100):
         from tranbo_control.msg import (MagswitchCommandAction,
                                         MagswitchCommandGoal)
 
-        super().__init__(name, 'magnet', touch_links)
+        super().__init__(name, 'magnet')
         self._client           = SimpleActionClient(controller_ns
                                                     + '/magswitch',
                                                     MagswitchCommandAction)
@@ -405,9 +391,9 @@ class MagswitchGripper(GripperClient):
                          controller_ns + '/magswitch')
 
     @staticmethod
-    def simulated(name, controller_ns, touch_links=None,
+    def simulated(name, controller_ns,
                  sensitivity=0, grasp_position=30, confirm_position=100):
-        return GripperClient(name, 'magnet', touch_links=touch_links)
+        return GripperClient(name, 'magnet')
 
     @property
     def calibration_step(self):

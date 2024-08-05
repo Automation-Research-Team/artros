@@ -49,14 +49,15 @@ class AssemblyRoutines(URRoutines):
     def __init__(self):
         super().__init__()
 
+        self.com.touch_links = rospy.get_param('~touch_links', {})
+
         tool_descriptions = rospy.get_param('~tool_descriptions', {})
         self.com.load_object_descriptions(tool_descriptions)
         for tool_name in tool_descriptions.keys():
-            self.com.create_object(
-                tool_name,
-                PoseStamped(Header(frame_id=tool_name + '_holder_link'),
-                            self.pose_from_offset(())),
-                touch_links=[tool_name + '_holder_base_link'])
+            holder_link = tool_name + '_holder_link'
+            self.com.create_object(tool_name,
+                                   PoseStamped(Header(frame_id=holder_link),
+                                               self.pose_from_offset(())))
 
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]

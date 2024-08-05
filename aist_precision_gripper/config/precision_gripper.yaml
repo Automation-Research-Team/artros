@@ -12,8 +12,3 @@ max_position_count: 2050
 
 min_effort_count: 7
 max_effort_count: 13
-
-# Touch links (allow collision)
-touch_links:
-  - $(arg prefix)left_finger
-  - $(arg prefix)right_finger

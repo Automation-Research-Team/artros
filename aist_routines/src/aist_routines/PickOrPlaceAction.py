@@ -134,6 +134,10 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
             gripper.wait()                      # Wait for pregrasp completed
+        elif goal.object_name != '':
+            routines.com.append_touch_links(
+                goal.object_name,
+                routines.com.touch_links[goal.pose.header.frame_id])
         success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
                                               goal.offset, goal.speed_slow)
         if not self._server.is_active():
@@ -149,8 +153,9 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             # Allow the object collision against the gripper.
             if goal.object_name != '':
-                routines.com.add_touch_links_to_attached_object(
-                    goal.object_name, gripper.touch_links, True)
+                routines.com.append_touch_links(
+                    goal.object_name,
+                    routines.com.touch_links[gripper.tip_link])
 
             success = gripper.grasp()
             print('### grasp: %s' % str(success))
@@ -164,13 +169,11 @@ class PickOrPlace(SimpleActionClient):
                         PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
                         'Failed to lookup object pose')
                     return
-                routines.com.attach_object(goal.object_name, object_pose,
-                                           gripper.touch_links)
+                routines.com.attach_object(goal.object_name, object_pose)
         else:
             gripper.release()
             if goal.holder_name != '':
-                routines.com.attach_object(goal.object_name, object_pose,
-                                           gripper.touch_links)
+                routines.com.attach_object(goal.object_name, object_pose)
 
         # Go back to departure(pick) or approach(place) pose.
         self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
