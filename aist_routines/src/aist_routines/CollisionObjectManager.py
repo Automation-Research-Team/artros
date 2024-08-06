@@ -90,21 +90,13 @@ class CollisionObjectManager(object):
         th.daemon = True
         th.start()
 
-    @property
-    def touch_links(self):
-        return self._touch_links
-
-    @touch_links.setter
-    def touch_links(self, touch_links):
-        self._touch_links = touch_links
-
-    def load_object_descriptions(self, object_descriptions):
+    def initialize(self, object_descriptions, touch_links):
         PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
                       'SPHERE':   SolidPrimitive.SPHERE,
                       'CYLINDER': SolidPrimitive.CYLINDER,
                       'CONE':     SolidPrimitive.CONE}
 
-        for name, desc in object_descriptions.items():
+        for object_name, desc in object_descriptions.items():
             cop = CollisionObjectManager.CollisionObjectProps([], [],
                                                               [], [], [],
                                                               [], [], [],
@@ -147,16 +139,18 @@ class CollisionObjectManager(object):
                              *np.radians(mesh_pose[3:6])))))
                 cop.collision_mesh_scales.append(Vector3(*mesh['scale']))
 
-            self._collision_object_props[name] = cop
-            rospy.loginfo('collision object[%s] loaded', name)
+            self._collision_object_props[object_name] = cop
+            rospy.loginfo('collision object[%s] loaded', object_name)
 
-    def create_object(self, name, pose, id=None):
+        self._touch_links = touch_links
+
+    def create_object(self, object_name, pose, object_id=None):
         # Create and attach a collision object.
         co = CollisionObject()
         co.header.frame_id = pose.header.frame_id
         co.pose            = pose.pose
-        co.id              = name if id is None else id
-        cop = self._collision_object_props[name]
+        co.id              = object_name if object_id is None else object_id
+        cop = self._collision_object_props[object_name]
         if cop.collision_meshes != []:
             co.meshes     = cop.collision_meshes
             co.mesh_poses = cop.collision_mesh_poses
@@ -165,7 +159,7 @@ class CollisionObjectManager(object):
             co.primitive_poses = cop.primitive_poses
         co.operation = CollisionObject.ADD
         self._psi.attach_object(co, co.header.frame_id,
-                                self.touch_links[co.header.frame_id])
+                                self.get_touch_links(co.header.frame_id))
         rospy.loginfo('created collision object[%s] and attached to %s',
                       co.id, co.header.frame_id)
 
@@ -220,40 +214,40 @@ class CollisionObjectManager(object):
             self._subframe_transforms[co.id] = subframe_transforms
             self._markers[co.id] = markers
 
-    def append_touch_links(self, id, touch_links):
-        aco = self._psi.get_attached_objects([id]).get(id, None)
+    def append_touch_links(self, object_id, link_to_be_attached):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
         if aco is None:
-            rospy.logerr('unknown attached object[%s]', id)
+            rospy.logerr('unknown attached object[%s]', object_id)
             return
 
-        extended_touch_links = copy.deepcopy(touch_links)
-        extended_touch_links.extend(aco.touch_links)
+        aco.touch_links.extend(self.get_touch_links(link_to_be_attached))
         self._psi.attach_object(aco, aco.object.header.frame_id,
-                                extended_touch_links)
+                                aco.touch_links)
         rospy.loginfo('touch_links%s appended to object[%s]',
-                      extended_touch_links, id)
+                      aco.touch_links, object_id)
 
-    def attach_object(self, id, pose):
-        aco = self._psi.get_attached_objects([id]).get(id, None)
+    def attach_object(self, object_id, pose):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
         if aco is None:
-            rospy.logerr('unknown attached object[%s]', id)
+            rospy.logerr('unknown attached object[%s]', object_id)
             return
         aco.object.header.frame_id = pose.header.frame_id
         aco.object.pose            = pose.pose
         aco.object.operation       = CollisionObject.ADD
-        self._psi.attach_object(aco, aco.object.header.frame_id,
-                                self.touch_links[aco.object.header.frame_id])
+        self._psi.attach_object(
+            aco, aco.object.header.frame_id,
+            self.get_touch_links(aco.object.header.frame_id))
         rospy.loginfo('attached collision object[%s] to %s with touch links%s',
-                      id, aco.object.header.frame_id,
-                      self.touch_links[aco.object.header.frame_id])
+                      aco.object.id, aco.object.header.frame_id,
+                      self.get_touch_links(aco.object.header.frame_id))
 
         # Publish visualization markers again.
-        for marker in self._markers[id]:
+        for marker in self._markers[object_id]:
             self._marker_pub.publish(marker)
 
         # Replace the transform from the object base_link to the attached link.
         with self._lock:
-            self._subframe_transforms[id][0] \
+            self._subframe_transforms[object_id][0] \
                 = TransformStamped(aco.object.header,
                                    aco.object.id + '/base_link',
                                    Transform(Vector3(pose.pose.position.x,
@@ -265,37 +259,25 @@ class CollisionObjectManager(object):
                                                  pose.pose.orientation.z,
                                                  pose.pose.orientation.w)))
 
-    def find_attached_objects(self, link):
-        return [aco for aco in self._psi.get_attached_objects().values()
-                if aco.link_name == link]
-
-    def print_object_info(self, id):
-        aco = self._psi.get_attached_objects([id]).get(id, None)
-        if aco is None:
-            rospy.logerr('unknown attached object[%s]', id)
-            return
-        rospy.loginfo('id=%s, attached_link=%s, touch_links=%s',
-                      aco.object.id, aco.link_name, aco.touch_links)
-
-    def remove_attached_object(self, link=None, id=None):
-        if id is not None:
-            markers = self._markers.get(id, None)
+    def remove_attached_object(self, link=None, object_id=None):
+        if object_id is not None:
+            markers = self._markers.get(object_id, None)
             if markers is None:
-                rospy.logerr('unknown attached object[%s]', id)
+                rospy.logerr('unknown attached object[%s]', object_id)
                 return
             for marker in markers:
                 self._delete_marker(marker.id)
             with self._lock:
-                del self._subframe_transforms[id]
-                del self._markers[id]
+                del self._subframe_transforms[object_id]
+                del self._markers[object_id]
         elif link is not None:
-            for id, aco in self.get_attached_objects().items():
+            for object_id, aco in self.get_attached_objects().items():
                 if aco.link_name == link:
-                    for marker in self._markers[id]:
+                    for marker in self._markers[object_id]:
                         self._delete_marker(marker.id)
                     with self._lock:
-                        del self._subframe_transforms[id]
-                        del self._markers[id]
+                        del self._subframe_transforms[object_id]
+                        del self._markers[object_id]
         else:
             for markers in self._markers.values():
                 for marker in markers:
@@ -304,8 +286,23 @@ class CollisionObjectManager(object):
             with self._lock:
                 self._subframe_transforms.clear()
                 self._markers.clear()
-        self._psi.remove_attached_object(link, id)
-        self._psi.remove_world_object(id)
+        self._psi.remove_attached_object(link, object_id)
+        self._psi.remove_world_object(object_id)
+
+    def find_attached_objects(self, link):
+        return [aco for aco in self._psi.get_attached_objects().values()
+                if aco.link_name == link]
+
+    def print_object_info(self, object_id):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
+        if aco is None:
+            rospy.logerr('unknown attached object[%s]', object_id)
+            return
+        rospy.loginfo('object_id=%s, attached_link=%s, touch_links=%s',
+                      aco.object.id, aco.link_name, aco.touch_links)
+
+    def get_touch_links(self, link_to_be_attached):
+        return self._touch_links.get(link_to_be_attached, [])
 
     # visualization marker stuffs
     def _delete_marker(self, marker_id):
