@@ -214,32 +214,20 @@ class CollisionObjectManager(object):
             self._subframe_transforms[co.id] = subframe_transforms
             self._markers[co.id] = markers
 
-    def append_touch_links(self, object_id, link_to_be_attached):
-        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
-        if aco is None:
-            rospy.logerr('unknown attached object[%s]', object_id)
-            return
-
-        aco.touch_links.extend(self.get_touch_links(link_to_be_attached))
-        self._psi.attach_object(aco, aco.object.header.frame_id,
-                                aco.touch_links)
-        rospy.loginfo('touch_links%s appended to object[%s]',
-                      aco.touch_links, object_id)
-
     def attach_object(self, object_id, pose):
         aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
         if aco is None:
             rospy.logerr('unknown attached object[%s]', object_id)
-            return
+            return None
+        old_link_name = aco.link_name
         aco.object.header.frame_id = pose.header.frame_id
         aco.object.pose            = pose.pose
         aco.object.operation       = CollisionObject.ADD
-        self._psi.attach_object(
-            aco, aco.object.header.frame_id,
-            self.get_touch_links(aco.object.header.frame_id))
-        rospy.loginfo('attached collision object[%s] to %s with touch links%s',
-                      aco.object.id, aco.object.header.frame_id,
-                      self.get_touch_links(aco.object.header.frame_id))
+        touch_links = list(set(aco.touch_links) |
+                           set(self.get_touch_links(pose.header.frame_id)))
+        self._psi.attach_object(aco, aco.object.header.frame_id, touch_links)
+        rospy.loginfo('attach_object(): object_id=%s, link=%s, touch_links=%s',
+                      aco.object.id, aco.link_name, aco.touch_links)
 
         # Publish visualization markers again.
         for marker in self._markers[object_id]:
@@ -258,6 +246,33 @@ class CollisionObjectManager(object):
                                                  pose.pose.orientation.y,
                                                  pose.pose.orientation.z,
                                                  pose.pose.orientation.w)))
+
+        return old_link_name
+
+    def append_touch_links(self, object_id, link_to_be_touched):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
+        if aco is None:
+            rospy.logerr('unknown attached object[%s]', object_id)
+            return
+
+        touch_links = list(set(aco.touch_links) |
+                           set(self.get_touch_links(link_to_be_touched)))
+        self._psi.attach_object(aco, aco.object.header.frame_id, touch_links)
+        rospy.loginfo('append_touch_links(): object_id=%s, link=%s, touch_links=%s',
+                      aco.object.id, aco.link_name, aco.touch_links)
+
+    def remove_touch_links(self, object_id, link_to_be_detached):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
+        if aco is None:
+            rospy.logerr('unknown attached object[%s]', object_id)
+            return
+
+        self._psi.attach_object(
+            aco, aco.object.frame_id,
+            list(set(aco.touch_links) -
+                 set(self.get_touch_links(link_to_be_detached))))
+        rospy.loginfo('remove_touch_links(): object_id=%s, link=%s, touch_links=%s',
+                      aco.object.id, aco.link_name, aco.touch_links)
 
     def remove_attached_object(self, link=None, object_id=None):
         if object_id is not None:
@@ -301,8 +316,8 @@ class CollisionObjectManager(object):
         rospy.loginfo('object_id=%s, attached_link=%s, touch_links=%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
-    def get_touch_links(self, link_to_be_attached):
-        return self._touch_links.get(link_to_be_attached, [])
+    def get_touch_links(self, link_to_be_touched):
+        return self._touch_links.get(link_to_be_touched, [])
 
     # visualization marker stuffs
     def _delete_marker(self, marker_id):

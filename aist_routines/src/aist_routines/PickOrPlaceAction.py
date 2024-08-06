@@ -151,11 +151,19 @@ class PickOrPlace(SimpleActionClient):
             if goal.object_id != '':
                 com.append_touch_links(goal.object_id, gripper.tip_link)
             gripper.grasp()
+            if goal.object_id != '':
+                object_pose = routines.lookup_pose(gripper.tip_link,
+                                                   goal.pose.header.frame_id)
+                com.attach_object(goal.object_id, object_pose)
+                com.append_touch_links(goal.object_id,
+                                       goal.pose.header.frame_id)
         else:
             gripper.release()
             if goal.object_id != '':
                 print('### place frame=%s' % goal.pose.header.frame_id)
-                com.attach_object(goal.object_id, goal.pose)
+                object_pose = routines.lookup_pose(goal.pose.header.frame_id,
+                                                   gripper.tip_link)
+                com.attach_object(goal.object_id, object_pose)
 
         # Go back to departure(pick) or approach(place) pose.
         self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
