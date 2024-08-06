@@ -133,8 +133,12 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
             gripper.wait()                      # Wait for pregrasp completed
-        elif goal.object_id != '':
-            com.append_touch_links(goal.object_id, goal.pose.header.frame_id)
+        if goal.object_id != '':
+            if goal.pick:
+                com.append_touch_links(goal.object_id, gripper.tip_link)
+            else:
+                com.append_touch_links(goal.object_id,
+                                       goal.pose.header.frame_id)
         success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
                                               goal.offset, goal.speed_slow)
         if not self._server.is_active():
@@ -148,22 +152,20 @@ class PickOrPlace(SimpleActionClient):
         self._publish_feedback(PickOrPlaceFeedback.GRASPING_OR_RELEASING,
                                'Pick' if goal.pick else 'Place')
         if goal.pick:
-            if goal.object_id != '':
-                com.append_touch_links(goal.object_id, gripper.tip_link)
             gripper.grasp()
             if goal.object_id != '':
-                object_pose = routines.lookup_pose(gripper.tip_link,
-                                                   goal.pose.header.frame_id)
-                com.attach_object(goal.object_id, object_pose)
-                com.append_touch_links(goal.object_id,
-                                       goal.pose.header.frame_id)
+                old_link = com.attach_object(goal.object_id,
+                                             routines.lookup_pose(
+                                                 gripper.tip_link,
+                                                 goal.pose.header.frame_id))
+                com.append_touch_links(goal.object_id, old_link)
         else:
             gripper.release()
             if goal.object_id != '':
-                print('### place frame=%s' % goal.pose.header.frame_id)
-                object_pose = routines.lookup_pose(goal.pose.header.frame_id,
-                                                   gripper.tip_link)
-                com.attach_object(goal.object_id, object_pose)
+                com.attach_object(goal.object_id,
+                                  routines.lookup_pose(
+                                      goal.pose.header.frame_id,
+                                      goal.object_id + '/base_link'))
 
         # Go back to departure(pick) or approach(place) pose.
         self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
@@ -185,14 +187,14 @@ class PickOrPlace(SimpleActionClient):
             return
 
         if goal.pick:
-            if not gripper.wait():    # Wait for postgrasp completed
-                gripper.release()
-                self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
-                                  'Failed to grasp')
-                return
+            # if not gripper.wait():    # Wait for postgrasp completed
+            #     gripper.release()
+            #     self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
+            #                       'Failed to grasp')
+            #     return
 
             if goal.object_id != '':
-                com.attach_object(goal.object_id, gripper.tip_link)
+                com.remove_touch_links(goal.object_id, old_link)
 
         self._server.set_succeeded(PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
         rospy.loginfo('--- %s succeeded. ---',

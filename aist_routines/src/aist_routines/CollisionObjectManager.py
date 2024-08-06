@@ -223,10 +223,9 @@ class CollisionObjectManager(object):
         aco.object.header.frame_id = pose.header.frame_id
         aco.object.pose            = pose.pose
         aco.object.operation       = CollisionObject.ADD
-        touch_links = list(set(aco.touch_links) |
-                           set(self.get_touch_links(pose.header.frame_id)))
-        self._psi.attach_object(aco, aco.object.header.frame_id, touch_links)
-        rospy.loginfo('attach_object(): object_id=%s, link=%s, touch_links=%s',
+        self._psi.attach_object(aco, pose.header.frame_id,
+                                self.get_touch_links(pose.header.frame_id))
+        rospy.loginfo('attached collision object[%s] to link[%s] with touch_links%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
         # Publish visualization markers again.
@@ -249,29 +248,30 @@ class CollisionObjectManager(object):
 
         return old_link_name
 
-    def append_touch_links(self, object_id, link_to_be_touched):
+    def append_touch_links(self, object_id, link_to_touch):
         aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
         if aco is None:
             rospy.logerr('unknown attached object[%s]', object_id)
             return
 
-        touch_links = list(set(aco.touch_links) |
-                           set(self.get_touch_links(link_to_be_touched)))
-        self._psi.attach_object(aco, aco.object.header.frame_id, touch_links)
-        rospy.loginfo('append_touch_links(): object_id=%s, link=%s, touch_links=%s',
+        self._psi.attach_object(aco,
+                                touch_links=list(
+                                    set(aco.touch_links) |
+                                    set(self.get_touch_links(link_to_touch))))
+        rospy.loginfo('appended touch links to collision object[%s] attached to link[%s] resulting in touch_links=%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
-    def remove_touch_links(self, object_id, link_to_be_detached):
+    def remove_touch_links(self, object_id, link_to_detach):
         aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
         if aco is None:
             rospy.logerr('unknown attached object[%s]', object_id)
             return
 
-        self._psi.attach_object(
-            aco, aco.object.frame_id,
-            list(set(aco.touch_links) -
-                 set(self.get_touch_links(link_to_be_detached))))
-        rospy.loginfo('remove_touch_links(): object_id=%s, link=%s, touch_links=%s',
+        self._psi.attach_object(aco,
+                                touch_links=list(
+                                    set(aco.touch_links) -
+                                    set(self.get_touch_links(link_to_detach))))
+        rospy.loginfo('removed touch_links to collision object[%s] attached to link[%s] resulting in touch_links=%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
     def remove_attached_object(self, link=None, object_id=None):
