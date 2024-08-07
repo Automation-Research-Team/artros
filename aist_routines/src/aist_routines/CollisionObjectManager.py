@@ -316,8 +316,8 @@ class CollisionObjectManager(object):
         rospy.loginfo('object_id=%s, attached_link=%s, touch_links=%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
-    def get_touch_links(self, link_to_be_touched):
-        return self._touch_links.get(link_to_be_touched, [])
+    def get_touch_links(self, link_to_touch):
+        return self._touch_links.get(link_to_touch, [])
 
     # visualization marker stuffs
     def _delete_marker(self, marker_id):
