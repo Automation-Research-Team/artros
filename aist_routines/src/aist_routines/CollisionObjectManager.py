@@ -37,19 +37,19 @@ import os, copy, rospy, rospkg
 import numpy as np
 import threading
 
-from collections                 import namedtuple
-from tf                          import transformations as tfs
-from geometry_msgs.msg           import (Point, Vector3, Quaternion,
-                                         Pose, Transform,
-                                         PoseStamped, TransformStamped)
-from moveit_commander            import PlanningSceneInterface
-from moveit_msgs.msg             import CollisionObject
-from object_recognition_msgs.msg import ObjectType
-from shape_msgs.msg              import (Mesh, MeshTriangle, Plane,
-                                         SolidPrimitive)
-from visualization_msgs.msg      import Marker
-from std_msgs.msg                import Header, ColorRGBA
-from tf2_ros                     import TransformBroadcaster
+from collections                               import namedtuple
+from tf                                        import transformations as tfs
+from geometry_msgs.msg                         import (Point, Vector3,
+                                                       Quaternion, Pose,
+                                                       Transform, PoseStamped,
+                                                       TransformStamped)
+from moveit_commander.planning_scene_interface import PlanningSceneInterface
+from moveit_msgs.msg                           import CollisionObject
+from shape_msgs.msg                            import (Mesh, MeshTriangle,
+                                                       Plane, SolidPrimitive)
+from visualization_msgs.msg                    import Marker
+from std_msgs.msg                              import Header, ColorRGBA
+from tf2_ros                                   import TransformBroadcaster
 
 try:
     from pyassimp import pyassimp
@@ -225,7 +225,7 @@ class CollisionObjectManager(object):
         aco.object.operation       = CollisionObject.ADD
         self._psi.attach_object(aco, pose.header.frame_id,
                                 self.get_touch_links(pose.header.frame_id))
-        rospy.loginfo('attached collision object[%s] to link[%s] with touch_links%s',
+        rospy.loginfo('attached %s to %s with touch_links%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
         # Publish visualization markers again.
@@ -258,7 +258,7 @@ class CollisionObjectManager(object):
                                 touch_links=list(
                                     set(aco.touch_links) |
                                     set(self.get_touch_links(link_to_touch))))
-        rospy.loginfo('appended touch links to collision object[%s] attached to link[%s] resulting in touch_links=%s',
+        rospy.loginfo('appended touch links to %s attached to %s resulting in touch_links=%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
     def remove_touch_links(self, object_id, link_to_detach):
@@ -271,7 +271,7 @@ class CollisionObjectManager(object):
                                 touch_links=list(
                                     set(aco.touch_links) -
                                     set(self.get_touch_links(link_to_detach))))
-        rospy.loginfo('removed touch_links to collision object[%s] attached to link[%s] resulting in touch_links=%s',
+        rospy.loginfo('removed touch_links from %s attached to %s resulting in touch_links=%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
     def remove_attached_object(self, link=None, object_id=None):
@@ -313,7 +313,7 @@ class CollisionObjectManager(object):
         if aco is None:
             rospy.logerr('unknown attached object[%s]', object_id)
             return
-        rospy.loginfo('object_id=%s, attached_link=%s, touch_links=%s',
+        rospy.loginfo('%s: attached to %s with touch_links%s',
                       aco.object.id, aco.link_name, aco.touch_links)
 
     def get_touch_links(self, link_to_touch):

@@ -105,7 +105,7 @@ class AISTBaseRoutines(object):
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
 
         # CollisionObjectManger wrapping MoveIt PlanningSceneInterface
-        self._com = CollisionObjectManager(synchronous=True)
+        self._com = CollisionObjectManager(synchronous=False)
 
         # Grippers
         self._grippers = {}
@@ -458,11 +458,13 @@ class AISTBaseRoutines(object):
 
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
+        print('### set end effector link to %s' % end_effector_link)
         group.set_end_effector_link(end_effector_link)
 
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         transformed_poses = self.transform_poses_to_target_frame(poses, offset)
+        print('### end_effector_link=%s' % group.get_end_effector_link())
 
         try:
             path, fraction = group.compute_cartesian_path(

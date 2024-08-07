@@ -137,7 +137,6 @@ class AssemblyRoutines(URRoutines):
     def place_tool(self, robot_name):
         tool_name            = self.gripper(robot_name).name
         default_gripper_name = self.default_gripper_name(robot_name)
-        print('*** current gripper = %s' % tool_name)
         if tool_name == default_gripper_name:
             return True
         self.set_gripper(robot_name, default_gripper_name)
