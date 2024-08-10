@@ -53,8 +53,8 @@ touch_links:
     - a_bot_gripper_right_inner_finger
     - a_bot_gripper_right_inner_finger_pad
   precision_tool/tip_link:
-    - precision_tool/left_finter
-    - precision_tool/right_finter
+    - precision_tool/left_finger
+    - precision_tool/right_finger
   screw_tool_m3/tip_link:
     - screw_tool_m3/base_link
   screw_tool_m4/tip_link:

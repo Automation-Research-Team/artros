@@ -108,9 +108,9 @@ class Sweep(SimpleActionClient):
         rospy.loginfo("--- Go to approach pose. ---")
         feedback.stage = SweepFeedback.MOVING
         self._server.publish_feedback(feedback)
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, goal.approach_offset,
-                                              goal.speed_fast)
+        success = routines.go_to_pose_goal(goal.robot_name,
+                                           goal.pose, goal.approach_offset,
+                                           goal.speed_fast)
         if not self._server.is_active():
             return
         if not success:
@@ -121,9 +121,9 @@ class Sweep(SimpleActionClient):
         # Approach sweep pose.
         feedback.stage = SweepFeedback.APPROACHING
         self._server.publish_feedback(feedback)
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, goal.sweep_offset,
-                                              goal.speed_slow)
+        success = routines.go_to_pose_goal(goal.robot_name,
+                                           goal.pose, goal.sweep_offset,
+                                           goal.speed_slow)
         if not self._server.is_active():
             return
         if not success:
@@ -137,9 +137,8 @@ class Sweep(SimpleActionClient):
         self._server.publish_feedback(feedback)
         offset = list(goal.sweep_offset)
         offset[1] += goal.sweep_length
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, offset,
-                                              goal.speed_fast)
+        success = routines.go_to_pose_goal(goal.robot_name, goal.pose, offset,
+                                           goal.speed_fast)
         if not self._server.is_active():
             return
         if not success:
@@ -151,9 +150,9 @@ class Sweep(SimpleActionClient):
         rospy.loginfo("--- Go back to departure pose. ---")
         feedback.stage = SweepFeedback.DEPARTING
         self._server.publish_feedback(feedback)
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, goal.departure_offset,
-                                              goal.speed_fast)
+        success = routines.go_to_pose_goal(goal.robot_name,
+                                           goal.pose, goal.departure_offset,
+                                           goal.speed_fast)
         if not self._server.is_active():
             return
         if not success:

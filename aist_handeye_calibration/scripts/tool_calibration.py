@@ -146,10 +146,10 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
         target_pose.pose = Pose(Point(*tfs.translation_from_matrix(T)),
                                 Quaternion(*tfs.quaternion_from_matrix(T)))
         print('move to ' + self.format_pose(target_pose))
-        success, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                     target_pose,
-                                                     speed=self._speed)
-        print('reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name,
+                                       target_pose, speed=self._speed)
+        print('reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
         return success
 
     def rolling_motion(self):

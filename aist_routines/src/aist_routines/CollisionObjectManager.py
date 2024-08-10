@@ -50,6 +50,9 @@ from shape_msgs.msg                            import (Mesh, MeshTriangle,
 from visualization_msgs.msg                    import Marker
 from std_msgs.msg                              import Header, ColorRGBA
 from tf2_ros                                   import TransformBroadcaster
+from aist_msgs.msg                             import MeshResource
+from aist_msgs.srv                             import (GetMeshResources,
+                                                       GetMeshResourcesResponse)
 
 try:
     from pyassimp import pyassimp
@@ -85,6 +88,9 @@ class CollisionObjectManager(object):
         self._markers                = {}
         self._marker_pub             = rospy.Publisher("collision_marker",
                                                        Marker, queue_size=10)
+        self._get_mesh_resources     = rospy.Service('/get_mesh_resources',
+                                                     GetMeshResources,
+                                                     self._get_mesh_resources_cb)
         self._lock                   = threading.Lock()
         th = threading.Thread(target=self._subframes_and_markers_thread)
         th.daemon = True
@@ -157,7 +163,9 @@ class CollisionObjectManager(object):
         else:
             co.primitives      = cop.primitives
             co.primitive_poses = cop.primitive_poses
-        co.operation = CollisionObject.ADD
+        co.subframe_names = cop.subframe_names
+        co.subframe_poses = cop.subframe_poses
+        co.operation      = CollisionObject.ADD
         self._psi.attach_object(co, co.header.frame_id,
                                 self.get_touch_links(co.header.frame_id))
         rospy.loginfo('created collision object[%s] and attached to %s',
@@ -343,6 +351,19 @@ class CollisionObjectManager(object):
                 for marker in markers:
                     self._marker_pub.publish(marker)
 
+    # GetMeshResources service stuffs
+    def _get_mesh_resources_cb(self, req):
+        res = GetMeshResourcesResponse()
+        for cop in self._collision_object_props.values():
+            for mesh_url in cop.visual_mesh_urls:
+                resource = MeshResource()
+                resource.mesh_resource = mesh_url
+                with open(self._url_to_filepath(mesh_url), 'rb') as f:
+                    resource.data = f.read()
+                res.resources.append(resource)
+        return res
+
+    # utilities
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:
             scene = pyassimp.load(self._url_to_filepath(url))

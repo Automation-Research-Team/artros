@@ -105,7 +105,7 @@ class AISTBaseRoutines(object):
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
 
         # CollisionObjectManger wrapping MoveIt PlanningSceneInterface
-        self._com = CollisionObjectManager(synchronous=False)
+        self._com = CollisionObjectManager(synchronous=True)
 
         # Grippers
         self._grippers = {}
@@ -436,14 +436,13 @@ class AISTBaseRoutines(object):
         path  = self.create_path(robot_name, poses, offset,
                                  speed, accel, end_effector_link)
         if path is None:
-            return False, group.get_current_pose()
+            return False
 
-        return (self.execute_path(robot_name,
-                                  group.retime_trajectory(
-                                      self._cmd.get_current_state(), path,
-                                          velocity_scaling_factor=speed,
-                                          acceleration_scaling_factor=accel)),
-                group.get_current_pose())
+        return self.execute_path(robot_name,
+                                 group.retime_trajectory(
+                                     self._cmd.get_current_state(), path,
+                                     velocity_scaling_factor=speed,
+                                     acceleration_scaling_factor=accel))
 
     def execute_path(self, robot_name, path):
         success = self._cmd.get_group(robot_name).execute(path, wait=True)
@@ -458,13 +457,11 @@ class AISTBaseRoutines(object):
 
         if end_effector_link == '':
             end_effector_link = self.gripper(robot_name).tip_link
-        print('### set end effector link to %s' % end_effector_link)
         group.set_end_effector_link(end_effector_link)
 
         group.set_max_velocity_scaling_factor(np.clip(speed, 0.0, 1.0))
         group.set_max_acceleration_scaling_factor(np.clip(accel, 0.0, 1.0))
         transformed_poses = self.transform_poses_to_target_frame(poses, offset)
-        print('### end_effector_link=%s' % group.get_end_effector_link())
 
         try:
             path, fraction = group.compute_cartesian_path(

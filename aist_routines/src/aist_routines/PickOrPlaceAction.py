@@ -116,9 +116,9 @@ class PickOrPlace(SimpleActionClient):
         # Go to approach pose.
         self._publish_feedback(PickOrPlaceFeedback.MOVING,
                                'Go to approach pose')
-        speed      = goal.speed_fast if goal.pick else goal.speed_slow
-        success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                              goal.approach_offset, speed)
+        speed   = goal.speed_fast if goal.pick else goal.speed_slow
+        success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           goal.approach_offset, speed)
 
         # Check success of going to approach pose.
         if not self._server.is_active():
@@ -141,8 +141,8 @@ class PickOrPlace(SimpleActionClient):
             else:
                 com.append_touch_links(goal.object_id,
                                        goal.pose.header.frame_id)
-        success, _ = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                              goal.offset, goal.speed_slow)
+        success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           goal.offset, goal.speed_slow)
 
         # Check success of going to pick/place pose.
         if not self._server.is_active() or not success:
@@ -163,11 +163,11 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             gripper.grasp()
             if goal.object_id != '':
-                old_link = com.attach_object(goal.object_id,
-                                             routines.lookup_pose(
-                                                 gripper.tip_link,
-                                                 goal.pose.header.frame_id))
-                com.append_touch_links(goal.object_id, old_link)
+                holder_link = com.attach_object(goal.object_id,
+                                                routines.lookup_pose(
+                                                    gripper.tip_link,
+                                                    goal.pose.header.frame_id))
+                com.append_touch_links(goal.object_id, holder_link)
         else:
             gripper.release()
             if goal.object_id != '':
@@ -186,8 +186,8 @@ class PickOrPlace(SimpleActionClient):
         else:
             offset = goal.approach_offset
             speed  = goal.speed_fast
-        success, _ = routines.go_to_pose_goal(goal.robot_name,
-                                              goal.pose, offset, speed)
+        success = routines.go_to_pose_goal(goal.robot_name,
+                                           goal.pose, offset, speed)
 
         # Check success of going back to departure/approach pose.
         if not self._server.is_active() or not success:
@@ -196,7 +196,7 @@ class PickOrPlace(SimpleActionClient):
                 if goal.object_id != '':
                     com.attach_object(goal.object_id,
                                       routines.lookup_pose(
-                                          goal.object_id + '_holder_liknk',
+                                          holder_link,
                                           goal.object_id + '/base_link'))
             if not success:
                 self._set_aborted(PickOrPlaceResult.DEPARTURE_FAILURE,
@@ -206,12 +206,12 @@ class PickOrPlace(SimpleActionClient):
         # Check success of postgrasp.
         if goal.pick:
             if goal.object_id != '':
-                com.remove_touch_links(goal.object_id, old_link)
-            if not gripper.wait():    # Wait for postgrasp completed
-                gripper.release()
-                self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
-                                  'Failed to grasp')
-                return
+                com.remove_touch_links(goal.object_id, holder_link)
+            # if not gripper.wait():    # Wait for postgrasp completed
+            #     gripper.release()
+            #     self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
+            #                       'Failed to grasp')
+            #     return
 
         self._server.set_succeeded(PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
         rospy.loginfo('--- %s succeeded. ---',

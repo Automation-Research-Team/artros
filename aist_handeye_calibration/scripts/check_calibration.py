@@ -100,10 +100,11 @@ class CheckCalibrationRoutines(AISTBaseRoutines):
     def go_to_initpose(self):
         pose = self.pose_from_xyzrpy(self._initpose)
         print('  move to %s' % self.format_pose(pose))
-        success, current_pose = self.go_to_pose_goal(self._robot_name, pose,
-                                                     speed=self._speed,
-                                                     end_effector_link=self._robot_effector_frame)
-        print('  reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name, pose,
+                                       speed=self._speed,
+                                       end_effector_link=self._robot_effector_frame)
+        print('  reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
 
     def go_to_marker(self):
         self.trigger_frame(self._camera_name)
@@ -118,17 +119,19 @@ class CheckCalibrationRoutines(AISTBaseRoutines):
         #  to the approach pose because the marker pose is given w.r.t. camera
         #  frame which will change while moving in the case of "eye on hand".
         marker_pose = self.transform_pose_to_target_frame(marker_pose)
-        success, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                     marker_pose, (0, 0, 0.05),
-                                                     speed=self._speed,
-                                                     end_effector_link=self._robot_effector_tip_frame)
-        print('  reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name,
+                                       marker_pose, (0, 0, 0.05),
+                                       speed=self._speed,
+                                       end_effector_link=self._robot_effector_tip_frame)
+        print('  reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
         rospy.sleep(1)
         print('  move to %s' % self.format_pose(marker_pose))
-        success, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                     marker_pose, speed=0.05,
-                                                     end_effector_link=self._robot_effector_tip_frame)
-        print('  reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name,
+                                       marker_pose, speed=0.05,
+                                       end_effector_link=self._robot_effector_tip_frame)
+        print('  reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
 
 
 ######################################################################
