@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
 
-  <xacro:arg name="scene" default=""/>
+  <xacro:arg name="scene" default="kitting2"/>
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
