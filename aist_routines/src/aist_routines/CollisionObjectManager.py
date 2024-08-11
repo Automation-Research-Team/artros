@@ -73,6 +73,7 @@ class CollisionObjectManager(object):
                                        'visual_mesh_urls',
                                        'visual_mesh_poses',
                                        'visual_mesh_scales',
+                                       'visual_mesh_colors',
                                        'collision_meshes',
                                        'collision_mesh_poses',
                                        'collision_mesh_scales',
@@ -104,7 +105,7 @@ class CollisionObjectManager(object):
 
         for object_name, desc in object_descriptions.items():
             cop = CollisionObjectManager.CollisionObjectProps([], [],
-                                                              [], [], [],
+                                                              [], [], [], [],
                                                               [], [], [],
                                                               [], [])
 
@@ -134,6 +135,7 @@ class CollisionObjectManager(object):
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
                 cop.visual_mesh_scales.append(Vector3(*mesh['scale']))
+                cop.visual_mesh_colors.append(ColorRGBA(*mesh['color']))
 
             for mesh in desc.get('collision_meshes', []):
                 cop.collision_meshes.append(
@@ -199,9 +201,9 @@ class CollisionObjectManager(object):
 
         # Create markers for visualization.
         markers = []
-        for mesh_url, mesh_pose, mesh_scale in zip(cop.visual_mesh_urls,
-                                                   cop.visual_mesh_poses,
-                                                   cop.visual_mesh_scales):
+        for mesh_url, mesh_pose, mesh_scale, mesh_color \
+            in zip(cop.visual_mesh_urls, cop.visual_mesh_poses,
+                   cop.visual_mesh_scales, cop.visual_mesh_colors):
             marker = Marker()
             marker.header.frame_id = base_link
             marker.ns              = ''
@@ -210,7 +212,7 @@ class CollisionObjectManager(object):
             marker.action          = Marker.ADD
             marker.pose            = mesh_pose
             marker.scale           = mesh_scale
-            marker.color           = ColorRGBA(0.0, 0.8, 0.5, 1.0)
+            marker.color           = mesh_color
             marker.lifetime        = rospy.Duration(0)
             marker.frame_locked    = False
             marker.mesh_resource   = "file://" + self._url_to_filepath(mesh_url)

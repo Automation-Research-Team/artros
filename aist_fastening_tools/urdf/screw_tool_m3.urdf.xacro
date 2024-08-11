@@ -3,22 +3,58 @@
   <xacro:macro name="screw_tool_m3"
 	       params="prefix parent *origin">
 
+    <xacro:macro name="load_properties" params="filename">
+      <xacro:property name="properties"
+		      value="${xacro.load_yaml(filename)}"/>
+      <xacro:property name="visual_meshes"
+		      value="${properties['visual_meshes']}"
+		      scope="parent"/>
+      <xacro:property name="collision_meshes"
+		      value="${properties['collision_meshes']}"
+		      scope="parent"/>
+      <xacro:property name="subframes"
+		      value="${properties['subframes']}"
+		      scope="parent"/>
+    </xacro:macro>
+
+    <xacro:load_properties filename="$(find aist_fastening_tools
+				     )/config/screw_tool_m3_properties.yaml"/>
+
     <!-- A link representing the gripper and a joint attaching it to parnet -->
+    <xacro:property name="vorigin" value="${visual_meshes[0]['pose']}"/>
+    <xacro:property name="vscale"  value="${visual_meshes[0]['scale']}"/>
+    <xacro:property name="vcolor"  value="${visual_meshes[0]['color']}"/>
+    <xacro:property name="corigin" value="${collision_meshes[0]['pose']}"/>
+    <xacro:property name="cscale"  value="${collision_meshes[0]['scale']}"/>
+
+    <joint name="${prefix}base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
     <link name="${prefix}base_link">
       <visual>
-        <origin xyz="0 0 -0.0006" rpy="0 0 ${-pi/2}"/>
-	<geometry>
-          <mesh filename="package://aist_fastening_tools/meshes/visual/screw_tool_m3_BC5-XL320-R-AY2.6-EH2.stl" scale="0.001 0.001 0.001"/>
-	</geometry>
-	<material name="light_grey">
-	  <color rgba="0.8 0.8 0.8 1"/>
-	</material>
+	<origin xyz="${vorigin[0]} ${vorigin[1]} ${vorigin[2]}"
+		rpy="${vorigin[3]*pi/180.0}
+		     ${vorigin[4]*pi/180.0}
+		     ${vorigin[5]*pi/180.0}"/>
+        <geometry>
+          <mesh filename="${visual_meshes[0]['url']}"
+		scale="${vscale[0]} ${vscale[1]} ${vscale[2]}"/>
+        </geometry>
+        <material name="Gazebo/Black">
+          <color rgba="${vcolor[0]} ${vcolor[1]} ${vcolor[2]} ${vcolor[3]}"/>
+        </material>
       </visual>
       <collision>
-	<origin xyz="0 0 0" rpy="0 0 ${-pi/2}"/>
-	<geometry>
-	  <mesh filename="package://aist_fastening_tools/meshes/collision/screw_tool_m3_simplified.stl" scale="0.0001 0.0001 0.0001"/>
-	</geometry>
+	<origin xyz="${corigin[0]} ${corigin[1]} ${corigin[2]}"
+		rpy="${corigin[3]*pi/180.0}
+		     ${corigin[4]*pi/180.0}
+		     ${corigin[5]*pi/180.0}"/>
+        <geometry>
+          <mesh filename="${collision_meshes[0]['url']}"
+		scale="${cscale[0]} ${cscale[1]} ${cscale[2]}"/>
+        </geometry>
       </collision>
       <inertial>
 	  <mass value="0.3"/>
@@ -26,20 +62,19 @@
 		   iyz="0.0" izz ="0.2"/>
       </inertial>
     </link>
-    <joint name="${prefix}base_joint" type="fixed">
-      <parent link="${parent}"/>
-      <child  link="${prefix}base_link"/>
-      <xacro:insert_block name="origin"/>
-    </joint>
 
-    <!-- A link representing the tip of the pad and a joint attaching
-	 it to the gripper -->
-    <link name="${prefix}tip_link"/>
-    <joint name="${prefix}tip_joint" type="fixed">
+    <!-- tip -->
+    <xacro:property name="torigin"
+		    value="${subframes['tip_link']}"/>
+    <joint name="${prefix}tip_link_joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child  link="${prefix}tip_link"/>
-      <origin xyz="0 0 -0.100" rpy="0 0 0"/>
+      <origin xyz="${torigin[0]} ${torigin[1]} ${torigin[2]}"
+	      rpy="${torigin[3]*pi/180.0}
+		   ${torigin[4]*pi/180.0}
+		   ${torigin[5]*pi/180.0}"/>
     </joint>
+    <link name="${prefix}tip_link"/>
 
   </xacro:macro>
 </robot>
