@@ -35,10 +35,9 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, rospy, rospkg, ruamel.yaml
-from math                import pi
-from tf                  import transformations as tfs
-from aist_utility.compat import *
+import os, sys, rospy, rospkg, ruamel.yaml
+from math import pi
+from tf   import transformations as tfs
 
 YAML = ruamel.yaml.YAML()
 
