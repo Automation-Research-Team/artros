@@ -16,6 +16,8 @@ catkin_package()
 ## Install ##
 #############
 catkin_install_python(
-  PROGRAMS scripts/convert_stl_to_ply.py scripts/generate_urdf_from_meshes.py
+  PROGRAMS scripts/convert_stl_to_ply.py
+           scripts/generate_urdf_from_meshes.py
+           scripts/convert_o2ac_to_cop.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

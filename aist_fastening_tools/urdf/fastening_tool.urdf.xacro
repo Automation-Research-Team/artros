@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
-<robot name="screw_tool_m4" xmlns:xacro="http://wiki.ros.org/xacro">
-  <xacro:macro name="screw_tool_m4"
-	       params="prefix parent *origin">
+<robot name="fastening_tool" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:macro name="fastening_tool"
+	       params="toolname prefix parent *origin">
 
     <xacro:macro name="load_properties" params="filename">
       <xacro:property name="properties"
-		      value="${xacro.load_yaml(filename)}"/>
+		      value="${xacro.load_yaml(filename)[toolname]}"/>
       <xacro:property name="visual_meshes"
 		      value="${properties['visual_meshes']}"
 		      scope="parent"/>
@@ -18,7 +18,7 @@
     </xacro:macro>
 
     <xacro:load_properties filename="$(find aist_fastening_tools
-				     )/config/screw_tool_m4_properties.yaml"/>
+				     )/config/fastening_tool_properties.yaml"/>
 
     <!-- A link representing the gripper and a joint attaching it to parnet -->
     <xacro:property name="vorigin" value="${visual_meshes[0]['pose']}"/>
@@ -27,7 +27,7 @@
     <xacro:property name="corigin" value="${collision_meshes[0]['pose']}"/>
     <xacro:property name="cscale"  value="${collision_meshes[0]['scale']}"/>
 
-    <joint name="${prefix}base_joint" type="fixed">
+    <joint name="${prefix}${toolname}base_joint" type="fixed">
       <parent link="${parent}"/>
       <child  link="${prefix}base_link"/>
       <xacro:insert_block name="origin"/>

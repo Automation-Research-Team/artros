@@ -7,12 +7,9 @@
   <node name="assembly" pkg="aist_routines" type="run_assembly.py"
 	clear_params="true" output="screen">
     <rosparam file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
-    <rosparam param="tool_descriptions/screw_tool_m3"
+    <rosparam param="tool_descriptions"
 	      file="$(find aist_fastening_tools
-		    )/config/screw_tool_m3_properties.yaml"/>
-    <rosparam param="tool_descriptions/screw_tool_m4"
-	      file="$(find aist_fastening_tools
-		    )/config/screw_tool_m4_properties.yaml"/>
+		    )/config/fastening_tool_properties.yaml"/>
     <rosparam param="tool_descriptions/precision_tool"
     	      file="$(find aist_precision_gripper
     		    )/config/precision_gripper_properties.yaml"/>

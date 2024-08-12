@@ -1,10 +1,12 @@
 <?xml version="1.0" ?>
 <robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
-  <xacro:include filename="$(find aist_fastening_tools)/urdf/screw_tool_m4.urdf.xacro" />
+  <xacro:include filename="$(find aist_fastening_tools
+			   )/urdf/fastening_tool.urdf.xacro" />
 
-  <link name ="world"/>
+  <link name ="base_link"/>
 
-  <xacro:screw_tool_m4 prefix="" parent="world">
+  <xacro:fastening_tool toolname="screw_tool_m4"
+			prefix="screw_tool_m4_" parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
-  </xacro:screw_tool_m4>
+  </xacro:fastening_tool>
 </robot>
