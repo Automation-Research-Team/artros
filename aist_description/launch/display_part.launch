@@ -1,12 +1,14 @@
 <launch>
 
   <arg name="partname"	 default="base"/>
+  <arg name="collision"	 default="false"/>
   <arg name="rvizconfig" default="$(dirname)/display_part.rviz" />
 
   <param name="robot_description"
 	 command="$(find xacro)/xacro
 		  $(dirname)/../parts/urdf/part.urdf
-		  partname:=$(arg partname)" />
+		  partname:=$(arg partname)
+		  collision:=$(arg collision)"/>
 
   <node name="robot_state_publisher"
 	pkg="robot_state_publisher" type="robot_state_publisher" />
