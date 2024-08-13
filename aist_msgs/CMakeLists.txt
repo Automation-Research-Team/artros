@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     visualization_msgs
     actionlib_msgs
+    shape_msgs
     moveit_msgs
 )
 
@@ -33,6 +34,7 @@ generate_messages(DEPENDENCIES
   geometry_msgs
   visualization_msgs
   actionlib_msgs
+  shape_msgs
   moveit_msgs
 )
 
@@ -43,5 +45,6 @@ catkin_package(CATKIN_DEPENDS
   geometry_msgs
   visualization_msgs
   actionlib_msgs
+  shape_msgs
   moveit_msgs
 )
