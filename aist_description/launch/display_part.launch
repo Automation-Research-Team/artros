@@ -1,8 +1,8 @@
 <launch>
 
-  <arg name="partname"	 default="base"/>
-  <arg name="collision"	 default="false"/>
-  <arg name="rvizconfig" default="$(dirname)/display_part.rviz" />
+  <arg name="partname"		default="base"/>
+  <arg name="collision"		default="false"/>
+  <arg name="rvizconfig"	default="$(dirname)/display_part.rviz" />
 
   <param name="robot_description"
 	 command="$(find xacro)/xacro

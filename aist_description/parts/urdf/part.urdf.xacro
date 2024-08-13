@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="part" params="partname prefix parent
+				   collision *origin">
+
+    <xacro:macro name="load_properties" params="filename">
+      <xacro:property name="properties"
+		      value="${xacro.load_yaml(filename)[partname]}"/>
+      <xacro:property name="visual_mesh"
+		      value="${properties['visual_meshes'][0]}"
+		      scope="parent"/>
+      <xacro:property name="primitives"
+		      value="${properties.get('primitives', list())}"
+		      scope="parent"/>
+      <xacro:property name="subframes"
+		      value="${properties.get('subframes', dict())}"
+		      scope="parent"/>
+      <xacro:property name="grasp_points"
+		      value="${properties.get('grasp_points', dict())}"
+		      scope="parent"/>
+    </xacro:macro>
+
+    <xacro:macro name="set_subframes" params="subframes">
+      <xacro:if value="${len(subframes)}">
+	<xacro:property name="subframe"	value="${subframes.popitem()}"/>
+	<joint name="${prefix}${subframe[0]}_joint" type="fixed">
+	  <parent link="${prefix}base_link"/>
+	  <child  link="${prefix}${subframe[0]}"/>
+	  <origin xyz="${subframe[1][0]} ${subframe[1][1]} ${subframe[1][2]}"
+		  rpy="${subframe[1][3]*pi/180.0}
+		       ${subframe[1][4]*pi/180.0}
+		       ${subframe[1][5]*pi/180.0}"/>
+	</joint>
+	<link name="${prefix}${subframe[0]}"/>
+
+	<xacro:set_subframes subframes="${subframes}"/>
+      </xacro:if>
+    </xacro:macro>
+
+    <xacro:macro name="set_primitive" params="type pose dims">
+      <origin xyz="${pose[0]} ${pose[1]} ${pose[2]}"
+	      rpy="${pose[3]*pi/180.0}
+		   ${pose[4]*pi/180.0}
+		   ${pose[5]*pi/180.0}"/>
+      <geometry>
+	<xacro:if value="${type == 'BOX'}">
+	  <box size="${dims[0]} ${dims[1]} ${dims[2]}"/>
+	</xacro:if>
+	<xacro:if value="${type == 'CYLINDER'}">
+	  <cylinder length="${dims[0]}" radius="${dims[1]}"/>
+	</xacro:if>
+	<xacro:if value="${type == 'SPHERE'}">
+	  <sphere radius="${dims[0]}"/>
+	</xacro:if>
+      </geometry>
+    </xacro:macro>
+
+    <xacro:macro name="set_primitives" params="primitives">
+      <xacro:if value="${len(primitives)}">
+	<xacro:property name="primitive"
+			value="${primitives.pop()}"/>
+	<xacro:property name="primitive_name"
+			value="primitive_${str(len(primitives))}"/>
+	<joint name="${prefix}${primitive_name}_joint" type="fixed">
+	  <parent link="${prefix}base_link"/>
+	  <child  link="${prefix}${primitive_name}"/>
+	</joint>
+	<link name="${prefix}${primitive_name}">
+	  <xacro:if value="${collision}">
+	    <visual>
+	      <xacro:set_primitive type="${primitive['type']}"
+				   pose="${primitive['pose']}"
+				   dims="${primitive['dimensions']}"/>
+              <material name="Grey">
+		<color rgba="0.7 0.7 0.7 1.0"/>
+              </material>
+	    </visual>.
+	  </xacro:if>
+	  <xacro:if value="${not collision}">
+	    <collision>
+	      <xacro:set_primitive type="${primitive['type']}"
+				   pose="${primitive['pose']}"
+				   dims="${primitive['dimensions']}"/>
+	    </collision>
+	  </xacro:if>
+	</link>
+
+	<xacro:set_primitives primitives="${primitives}"/>
+      </xacro:if>
+    </xacro:macro>
+
+    <xacro:load_properties filename="$(find aist_description
+				     )/parts/config/parts_properties.yaml"/>
+
+    <!-- visual mesh -->
+    <xacro:property name="vorigin"	value="${visual_mesh['pose']}"/>
+    <xacro:property name="vscale"	value="${visual_mesh['scale']}"/>
+    <xacro:property name="vcolor"	value="${visual_mesh['color']}"/>
+
+    <joint name="${prefix}base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+    <link name="${prefix}base_link">
+      <xacro:if value="${not collision}">
+	<visual>
+	  <origin xyz="${vorigin[0]} ${vorigin[1]} ${vorigin[2]}"
+		  rpy="${vorigin[3]*pi/180.0}
+		       ${vorigin[4]*pi/180.0}
+		       ${vorigin[5]*pi/180.0}"/>
+          <geometry>
+            <mesh filename="${visual_mesh['url']}"
+		  scale="${vscale[0]} ${vscale[1]} ${vscale[2]}"/>
+          </geometry>
+          <material name="${partname}Color">
+            <color rgba="${vcolor[0]} ${vcolor[1]} ${vcolor[2]} ${vcolor[3]}"/>
+          </material>
+	</visual>
+      </xacro:if>
+    </link>
+
+    <!-- collision primitives -->
+    <xacro:set_primitives primitives="${primitives}"/>
+
+    <!-- subframes and grasp points -->
+    <xacro:set_subframes subframes="${subframes}"/>
+    <xacro:set_subframes subframes="${grasp_points}"/>
+
+  </xacro:macro>
+</robot>
