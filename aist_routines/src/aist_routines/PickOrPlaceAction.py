@@ -207,11 +207,11 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             if goal.object_id != '':
                 com.remove_touch_links(goal.object_id, holder_link)
-            # if not gripper.wait():    # Wait for postgrasp completed
-            #     gripper.release()
-            #     self._set_aborted(PickOrPlaceResult.GRASP_OR_RELEASE_FAILURE,
-            #                       'Failed to grasp')
-            #     return
+            if not gripper.wait():    # Wait for postgrasp completed
+                gripper.release()
+                self._set_aborted(PickOrPlaceResult.GRASP_FAILURE,
+                                  'Failed to grasp')
+                return
 
         self._server.set_succeeded(PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
         rospy.loginfo('--- %s succeeded. ---',
