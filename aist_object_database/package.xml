@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>aist_object_database</name>
+  <version>0.0.0</version>
+  <description>The aist_object_database package</description>
+
+  <maintainer email="t.ueshiba@aist.go.jp">Toshio Ueshiba</maintainer>
+  <license>TODO</license>
+
+  <license>BSD</license>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 2">
+    python-setuptools
+  </buildtool_depend>
+  <buildtool_depend condition="$ROS_PYTHON_VERSION == 3">python3-setuptools
+  </buildtool_depend>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>message_runtime</exec_depend>
+
+  <depend>tf</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>shape_msgs</depend>
+  <depend>aist_msgs</depend>
+
+</package>

@@ -1,5 +1,3 @@
-string                      object_name
-
 # Primitives
 shape_msgs/SolidPrimitive[] primitives
 geometry_msgs/Pose[]        primitive_poses
