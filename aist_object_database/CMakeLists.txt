@@ -20,5 +20,6 @@ catkin_package(CATKIN_DEPENDS
 catkin_install_python(
   PROGRAMS
     scripts/object_database_server.py
+    scripts/convert_o2ac_to_cop.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
