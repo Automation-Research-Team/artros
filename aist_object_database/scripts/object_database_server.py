@@ -40,11 +40,21 @@ import numpy as np
 
 from tf                import transformations as tfs
 from geometry_msgs.msg import Point, Vector3, Quaternion, Pose
-from shape_msgs.msg    import SolidPrimitive
+from shape_msgs.msg    import Mesh, MeshTriangle, Plane, SolidPrimitive
 from std_msgs.msg      import ColorRGBA
 from aist_msgs.msg     import MeshResource, ObjectProperties
 from aist_msgs.srv     import (GetMeshResources, GetMeshResourcesResponse,
                                GetObjectProperties, GetObjectPropertiesResponse)
+
+try:
+    from pyassimp import pyassimp
+except:
+    # support pyassimp > 3.0
+    try:
+        import pyassimp
+    except:
+        pyassimp = False
+        print("Failed to import pyassimp, see https://github.com/moveit/moveit/issues/86 for more info")
 
 #########################################################################
 #  class ObjectDatabaseServer                                           #
@@ -113,6 +123,7 @@ class ObjectDatabaseServer(object):
             = rospy.Service('~get_object_properties', GetObjectProperties,
                             self._get_object_properties_cb)
 
+    # service callbacks
     def _get_mesh_resources_cb(self, req):
         res = GetMeshResourcesResponse()
         for op in self._object_props.values():
@@ -126,8 +137,45 @@ class ObjectDatabaseServer(object):
 
     def _get_object_properties_cb(self, req):
         res = GetObjectPropertiesResponse()
-        res.properties = self._objects_props[req.object_name]
+        res.properties = self._object_props[req.object_name]
         return res
+
+    # utilities
+    def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
+        try:
+            scene = pyassimp.load(self._url_to_filepath(url))
+            if not scene.meshes or len(scene.meshes) == 0:
+                raise Exception("There are no meshes in the file")
+            if len(scene.meshes[0].faces) == 0:
+                raise Exception("There are no faces in the mesh")
+
+            mesh = Mesh()
+            first_face = scene.meshes[0].faces[0]
+            if hasattr(first_face, '__len__'):
+                for face in scene.meshes[0].faces:
+                    if len(face) == 3:
+                        triangle = MeshTriangle()
+                        triangle.vertex_indices = [face[0], face[1], face[2]]
+                        mesh.triangles.append(triangle)
+            elif hasattr(first_face, 'indices'):
+                for face in scene.meshes[0].faces:
+                    if len(face.indices) == 3:
+                        triangle = MeshTriangle()
+                        triangle.vertex_indices = [face.indices[0],
+                                                   face.indices[1],
+                                                   face.indices[2]]
+                        mesh.triangles.append(triangle)
+            else:
+                raise Exception("Unable to build triangles from mesh due to mesh object structure")
+            for vertex in scene.meshes[0].vertices:
+                mesh.vertices.append(Point(vertex[0]*scale[0],
+                                           vertex[1]*scale[1],
+                                           vertex[2]*scale[2]))
+            pyassimp.release(scene)
+            return mesh
+        except Exception as e:
+            rospy.logerr('Failed to load mesh: %s', e)
+            return None
 
     def _url_to_filepath(self, url):
         tokens = url.split('/')

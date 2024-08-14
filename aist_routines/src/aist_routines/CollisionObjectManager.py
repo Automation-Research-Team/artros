@@ -33,140 +33,60 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, copy, rospy, rospkg
-import numpy as np
+import os, rospy, rospkg
 import threading
 
-from collections                               import namedtuple
-from tf                                        import transformations as tfs
-from geometry_msgs.msg                         import (Point, Vector3,
-                                                       Quaternion, Pose,
-                                                       Transform, PoseStamped,
+from geometry_msgs.msg                         import (Vector3, Quaternion,
+                                                       Transform,
                                                        TransformStamped)
 from moveit_commander.planning_scene_interface import PlanningSceneInterface
 from moveit_msgs.msg                           import CollisionObject
-from shape_msgs.msg                            import (Mesh, MeshTriangle,
-                                                       Plane, SolidPrimitive)
 from visualization_msgs.msg                    import Marker
-from std_msgs.msg                              import Header, ColorRGBA
+from std_msgs.msg                              import Header
 from tf2_ros                                   import TransformBroadcaster
-from aist_msgs.msg                             import MeshResource
 from aist_msgs.srv                             import (GetMeshResources,
                                                        GetMeshResourcesResponse)
-
-try:
-    from pyassimp import pyassimp
-except:
-    # support pyassimp > 3.0
-    try:
-        import pyassimp
-    except:
-        pyassimp = False
-        print("Failed to import pyassimp, see https://github.com/moveit/moveit/issues/86 for more info")
 
 #########################################################################
 #  class CollisionObjectManager                                         #
 #########################################################################
 class CollisionObjectManager(object):
-    CollisionObjectProps = namedtuple('CollisionObjectProps',
-                                      ['primitives', 'primitive_poses',
-                                       'visual_mesh_urls',
-                                       'visual_mesh_poses',
-                                       'visual_mesh_scales',
-                                       'visual_mesh_colors',
-                                       'collision_meshes',
-                                       'collision_mesh_poses',
-                                       'collision_mesh_scales',
-                                       'subframe_names', 'subframe_poses'])
-
-    def __init__(self, ns='', synchronous=True):
+    def __init__(self, ns='',
+                 server='object_database_server', synchronous=True):
         super().__init__()
-        self._psi                    = PlanningSceneInterface(ns, synchronous)
-        self._touch_links            = {}
-        self._marker_id_max          = 0
-        self._collision_object_props = {}
-        self._subframe_transforms    = {}
-        self._markers                = {}
-        self._marker_pub             = rospy.Publisher("collision_marker",
-                                                       Marker, queue_size=10)
-        self._get_mesh_resources     = rospy.Service('/get_mesh_resources',
-                                                     GetMeshResources,
-                                                     self._get_mesh_resources_cb)
+
+        self._psi                   = PlanningSceneInterface(ns, synchronous)
+        self._touch_links           = {}
+        self._marker_id_max         = 0
+        self._subframe_transforms   = {}
+        self._markers               = {}
+        self._marker_pub            = rospy.Publisher("collision_marker",
+                                                      Marker, queue_size=10)
+        self._get_object_properties = rospy.Service(
+                                          server + '/get_object_properties',
+                                          GetObjectProperties,
+                                          self._get_object_properties_cb)
         self._lock                   = threading.Lock()
         th = threading.Thread(target=self._subframes_and_markers_thread)
         th.daemon = True
         th.start()
 
-    def initialize(self, object_descriptions, touch_links):
-        PRIMITIVES = {'BOX':      SolidPrimitive.BOX,
-                      'SPHERE':   SolidPrimitive.SPHERE,
-                      'CYLINDER': SolidPrimitive.CYLINDER,
-                      'CONE':     SolidPrimitive.CONE}
-
-        for object_name, desc in object_descriptions.items():
-            cop = CollisionObjectManager.CollisionObjectProps([], [],
-                                                              [], [], [], [],
-                                                              [], [], [],
-                                                              [], [])
-
-            for primitive in desc.get('primitives', []):
-                primitive_pose = primitive['pose']
-                cop.primitives.append(SolidPrimitive(
-                    type=PRIMITIVES[primitive['type']],
-                    dimensions=primitive['dimensions']))
-                cop.primitive_poses.append(
-                    Pose(Point(*primitive_pose[0:3]),
-                         Quaternion(*tfs.quaternion_from_euler(
-                                        *np.radians(primitive_pose[3:6])))))
-
-            for subframe_name, subframe_pose in desc.get('subframes',
-                                                         {}).items():
-                cop.subframe_names.append(subframe_name)
-                cop.subframe_poses.append(
-                    Pose(Point(*subframe_pose[0:3]),
-                         Quaternion(*tfs.quaternion_from_euler(
-                                        *np.radians(subframe_pose[3:6])))))
-
-            for mesh in desc.get('visual_meshes', []):
-                cop.visual_mesh_urls.append(mesh['url'])
-                mesh_pose = mesh['pose']
-                cop.visual_mesh_poses.append(
-                    Pose(Point(*mesh_pose[0:3]),
-                         Quaternion(*tfs.quaternion_from_euler(
-                             *np.radians(mesh_pose[3:6])))))
-                cop.visual_mesh_scales.append(Vector3(*mesh['scale']))
-                cop.visual_mesh_colors.append(ColorRGBA(*mesh['color']))
-
-            for mesh in desc.get('collision_meshes', []):
-                cop.collision_meshes.append(
-                    self._load_mesh(mesh['url'], mesh['scale']))
-                mesh_pose = mesh['pose']
-                cop.collision_mesh_poses.append(
-                    Pose(Point(*mesh_pose[0:3]),
-                         Quaternion(*tfs.quaternion_from_euler(
-                             *np.radians(mesh_pose[3:6])))))
-                cop.collision_mesh_scales.append(Vector3(*mesh['scale']))
-
-            self._collision_object_props[object_name] = cop
-            rospy.loginfo('collision object[%s] loaded', object_name)
-
-        self._touch_links = touch_links
-
     def create_object(self, object_name, pose, object_id=None):
+        object_props = self._get_object_properties(object_name)
+
         # Create and attach a collision object.
         co = CollisionObject()
         co.header.frame_id = pose.header.frame_id
         co.pose            = pose.pose
         co.id              = object_name if object_id is None else object_id
-        cop = self._collision_object_props[object_name]
-        if cop.collision_meshes != []:
-            co.meshes     = cop.collision_meshes
-            co.mesh_poses = cop.collision_mesh_poses
+        if object_props.collision_meshes != []:
+            co.meshes     = object_props.collision_meshes
+            co.mesh_poses = object_props.collision_mesh_poses
         else:
-            co.primitives      = cop.primitives
-            co.primitive_poses = cop.primitive_poses
-        co.subframe_names = cop.subframe_names
-        co.subframe_poses = cop.subframe_poses
+            co.primitives      = object_props.primitives
+            co.primitive_poses = object_props.primitive_poses
+        co.subframe_names = object_props.subframe_names
+        co.subframe_poses = object_props.subframe_poses
         co.operation      = CollisionObject.ADD
         self._psi.attach_object(co, co.header.frame_id,
                                 self.get_touch_links(co.header.frame_id))
@@ -185,8 +105,8 @@ class CollisionObjectManager(object):
                                                   pose.pose.orientation.z,
                                                   pose.pose.orientation.w)))
         subframe_transforms.append(T)
-        for subframe_name, subframe_pose in zip(cop.subframe_names,
-                                                cop.subframe_poses):
+        for subframe_name, subframe_pose in zip(object_props.subframe_names,
+                                                object_props.subframe_poses):
             T = TransformStamped(Header(frame_id=base_link),
                                  co.id + '/' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
@@ -202,8 +122,10 @@ class CollisionObjectManager(object):
         # Create markers for visualization.
         markers = []
         for mesh_url, mesh_pose, mesh_scale, mesh_color \
-            in zip(cop.visual_mesh_urls, cop.visual_mesh_poses,
-                   cop.visual_mesh_scales, cop.visual_mesh_colors):
+            in zip(object_props.visual_mesh_urls,
+                   object_props.visual_mesh_poses,
+                   object_props.visual_mesh_scales,
+                   object_props.visual_mesh_colors):
             marker = Marker()
             marker.header.frame_id = base_link
             marker.ns              = ''
@@ -353,55 +275,7 @@ class CollisionObjectManager(object):
                 for marker in markers:
                     self._marker_pub.publish(marker)
 
-    # GetMeshResources service stuffs
-    def _get_mesh_resources_cb(self, req):
-        res = GetMeshResourcesResponse()
-        for cop in self._collision_object_props.values():
-            for mesh_url in cop.visual_mesh_urls:
-                resource = MeshResource()
-                resource.mesh_resource = mesh_url
-                with open(self._url_to_filepath(mesh_url), 'rb') as f:
-                    resource.data = f.read()
-                res.resources.append(resource)
-        return res
-
     # utilities
-    def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
-        try:
-            scene = pyassimp.load(self._url_to_filepath(url))
-            if not scene.meshes or len(scene.meshes) == 0:
-                raise Exception("There are no meshes in the file")
-            if len(scene.meshes[0].faces) == 0:
-                raise Exception("There are no faces in the mesh")
-
-            mesh = Mesh()
-            first_face = scene.meshes[0].faces[0]
-            if hasattr(first_face, '__len__'):
-                for face in scene.meshes[0].faces:
-                    if len(face) == 3:
-                        triangle = MeshTriangle()
-                        triangle.vertex_indices = [face[0], face[1], face[2]]
-                        mesh.triangles.append(triangle)
-            elif hasattr(first_face, 'indices'):
-                for face in scene.meshes[0].faces:
-                    if len(face.indices) == 3:
-                        triangle = MeshTriangle()
-                        triangle.vertex_indices = [face.indices[0],
-                                                   face.indices[1],
-                                                   face.indices[2]]
-                        mesh.triangles.append(triangle)
-            else:
-                raise Exception("Unable to build triangles from mesh due to mesh object structure")
-            for vertex in scene.meshes[0].vertices:
-                mesh.vertices.append(Point(vertex[0]*scale[0],
-                                           vertex[1]*scale[1],
-                                           vertex[2]*scale[2]))
-            pyassimp.release(scene)
-            return mesh
-        except Exception as e:
-            rospy.logerr('Failed to load mesh: %s', e)
-            return None
-
     def _url_to_filepath(self, url):
         tokens = url.split('/')
         if len(tokens) < 2 or tokens[0] != 'package:' or tokens[1] != '':
