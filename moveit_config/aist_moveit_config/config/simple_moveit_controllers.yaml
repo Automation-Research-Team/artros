@@ -27,3 +27,9 @@ controller_list:
     default: True
     joints:
       - a_bot_gripper_finger_joint
+  - name: b_bot_gripper_controller
+    action_ns: gripper_action
+    type: GripperCommand
+    default: True
+    joints:
+      - b_bot_gripper_finger_joint

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
 
-  <xacro:arg name="scene" default="kitting2"/>
+  <xacro:arg name="scene" default=""/>
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
@@ -168,12 +168,24 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_85_gripper>
 
-  <xacro:include filename="$(find aist_description
-			   )/devices/urdf/single_suction_gripper.urdf.xacro"/>
-  <xacro:single_suction_gripper prefix="b_bot_gripper_"
-  				parent="b_bot_ftsensor_flange_link">
-    <origin xyz="0 0 0" rpy="0 ${0.3*pi/180} ${0.2*pi/180}"/>
-  </xacro:single_suction_gripper>
+  <xacro:robotiq_arg2f_coupling prefix="b_bot_gripper_coupling_"
+				parent="b_bot_ftsensor_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_arg2f_coupling>
+
+  <xacro:include filename="$(find aist_robotiq
+			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
+  <xacro:robotiq_140_gripper prefix="b_bot_gripper_"
+			    parent="b_bot_gripper_coupling_flange_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_140_gripper>
+
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/devices/urdf/single_suction_gripper.urdf.xacro"/> -->
+  <!-- <xacro:single_suction_gripper prefix="b_bot_gripper_" -->
+  <!-- 				parent="b_bot_ftsensor_flange_link"> -->
+  <!--   <origin xyz="0 0 0" rpy="0 ${0.3*pi/180} ${0.2*pi/180}"/> -->
+  <!-- </xacro:single_suction_gripper> -->
 
   <!-- Add PhoXi 3D scanner -->
   <!-- <xacro:include filename="$(find aist_description -->

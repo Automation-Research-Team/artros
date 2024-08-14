@@ -11,8 +11,13 @@ grippers:
     max_effort:    5.0
     velocity:      0.1
   b_bot_gripper:
-    type:          SuctionGripper
+    type:          RobotiqGripper
     controller_ns: b_bot_gripper_controller
+    max_effort:    5.0
+    velocity:      0.1
+#  b_bot_gripper:
+#    type:          SuctionGripper
+#    controller_ns: b_bot_gripper_controller
   precision_tool:
     type:          PrecisionGripper
     controller_ns: precision_tool_controller
@@ -28,6 +33,9 @@ grippers:
     controller_ns: screw_tool_m4_controller
     base_link:     screw_tool_m4/base_link
     tip_link:      screw_tool_m4/tip_link
+  suction_tool:
+    type:          SuctionGripper
+    controller_ns: suction_tool_controller
   base_fixture:
     type:          SuctionGripper
     controller_ns: base_fixture_controller
