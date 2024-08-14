@@ -76,15 +76,15 @@ def create_cops(part_info):
     part_type = part_info['type']
     part_cad  = part_info['cad']
     part_desc = part_info['description']
-    path = os.path.join(rospkg.RosPack().get_path('aist_description'),
-                        'parts', 'config', 'o2ac', part_name + '.yaml')
+    path = os.path.join(rospkg.RosPack().get_path('aist_object_database'),
+                        'config', 'o2ac', part_name + '.yaml')
     with open(path) as file:
         part_props = YAML.load(file)
 
     default_mesh_pose = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     mesh_scale        = [0.001, 0.001, 0.001]
     mesh_color        = [0.2, 0.5, 0.8, 1.0]
-    mesh_url          = 'package://aist_description/parts/meshes/' + part_cad
+    mesh_url          = 'package://aist_object_database/meshes/' + part_cad
     cops = {'id':          part_id,
             'type':        part_type,
             'description': part_desc,
@@ -129,8 +129,7 @@ if __name__ == '__main__':
             rospy.logerr(e)
     YAML.dump(cops_list, sys.stdout)
 
-    path = os.path.join(rospkg.RosPack().get_path('aist_description'),
-                        'parts', 'config',
-                        'parts_properties.yaml')
+    path = os.path.join(rospkg.RosPack().get_path('aist_object_database'),
+                        'config', 'parts_properties.yaml')
     with open(path, 'w') as file:
         YAML.dump(cops_list, file)

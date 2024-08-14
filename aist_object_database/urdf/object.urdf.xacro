@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="part" params="partname prefix parent
-				   collision *origin">
+  <xacro:macro name="object" params="name prefix parent properties_file
+				     collision *origin">
 
+    <!-- local macros -->
     <xacro:macro name="load_properties" params="filename">
       <xacro:property name="properties"
-		      value="${xacro.load_yaml(filename)[partname]}"/>
+		      value="${xacro.load_yaml(filename)[name]}"/>
       <xacro:property name="visual_mesh"
 		      value="${properties['visual_meshes'][0]}"
 		      scope="parent"/>
@@ -89,8 +90,8 @@
       </xacro:if>
     </xacro:macro>
 
-    <xacro:load_properties filename="$(find aist_description
-				     )/parts/config/parts_properties.yaml"/>
+    <!-- load object properties -->
+    <xacro:load_properties filename="$(arg properties_file)"/>
 
     <!-- visual mesh -->
     <xacro:property name="vorigin"	value="${visual_mesh['pose']}"/>
@@ -113,7 +114,7 @@
             <mesh filename="${visual_mesh['url']}"
 		  scale="${vscale[0]} ${vscale[1]} ${vscale[2]}"/>
           </geometry>
-          <material name="${partname}Color">
+          <material name="${name}Color">
             <color rgba="${vcolor[0]} ${vcolor[1]} ${vcolor[2]} ${vcolor[3]}"/>
           </material>
 	</visual>
