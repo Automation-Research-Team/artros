@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <!-- Start object_database_server -->
+  <node name="object_database_server"
+	pkg="aist_object_database" type="object_database_server.py"
+	clear_params="true" output="screen">
+    <rosparam param="object_descriptions"
+	      file="$(find aist_fastening_tools
+		    )/config/fastening_tool_properties.yaml"/>
+    <rosparam param="object_descriptions/precision_tool"
+    	      file="$(find aist_precision_gripper
+    		    )/config/precision_gripper_properties.yaml"/>
+  </node>
+
+</launch>
