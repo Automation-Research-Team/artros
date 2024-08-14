@@ -43,3 +43,26 @@ screw_tool_m4:
     scale:      [0.0001, 0.0001, 0.0001]
   subframes:
     tip_link:   [0.0, 0.0, -0.12, 0.0, 0.0, 0.0]
+
+suction_tool:
+  primitives:
+  - type:       BOX                     # The bit cushion and motor
+    dimensions: [0.04, 0.026, 0.055]
+    pose:       [-0.009, 0.0, 0.0275, 0.0, 0.0, 0.0]
+  - type:       CYLINDER                # The "shaft" + suction attachment
+    dimensions: [0.08, .0085]
+    pose:       [0.0, 0.0, -0.04, 0.0, 0.0, 0.0]
+  - type:       CYLINDER                # The cylinder representing the tip
+    dimensions: [.038, .0035]
+    pose:       [0.0, 0.0, -0.099, 0.0, 0.0, 0.0]
+  visual_meshes:
+  - url:        'package://aist_fastening_tools/meshes/visual/suction_tool.stl'
+    pose:       [0.0, 0.0, -0.0008, 90.0, 0.0, 0.0]
+    scale:      [0.001, 0.001, 0.001]
+    color:      [0.8, 0.8, 0.8, 1.0]
+  collision_meshes:
+  - url:        'package://aist_fastening_tools/meshes/collision/suction_tool.stl'
+    pose:       [0.0, 0.0, 0.0, 90.0, 0.0, 0.0]
+    scale:      [0.001, 0.001, 0.001]
+  subframes:
+    tip_link:   [0.0, 0.0, -0.12, 0.0, 0.0, 0.0]

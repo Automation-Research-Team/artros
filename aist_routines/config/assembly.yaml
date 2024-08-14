@@ -37,11 +37,11 @@ picking_parameters:
     grasp_offset:     [-0.005, 0.000, 0.010, 0.0, 30.0, 0.0]
     place_offset:     [-0.005, 0.000, 0.011, 0.0, 30.0, 0.0]
     departure_offset: [ 0.050, 0.000, 0.012, 0.0, 30.0, 0.0]
-    speed_fast:       1.0
+    speed_fast:       0.1
     speed_slow:       0.1
     gripper_parameters:
       grasp_position:   0.000
-      release_position: 0.035
+      release_position: 0.040
       max_effort:       5.0
 
 touch_links:
@@ -52,6 +52,13 @@ touch_links:
     - a_bot_gripper_right_inner_knucle
     - a_bot_gripper_right_inner_finger
     - a_bot_gripper_right_inner_finger_pad
+  b_bot_gripper_tip_link:
+    - b_bot_gripper_left_inner_knucle
+    - b_bot_gripper_left_inner_finger
+    - b_bot_gripper_left_inner_finger_pad
+    - b_bot_gripper_right_inner_knucle
+    - b_bot_gripper_right_inner_finger
+    - b_bot_gripper_right_inner_finger_pad
   precision_tool/tip_link:
     - precision_tool/left_finger
     - precision_tool/right_finger

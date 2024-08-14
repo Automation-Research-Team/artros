@@ -44,8 +44,7 @@ from moveit_msgs.msg                           import CollisionObject
 from visualization_msgs.msg                    import Marker
 from std_msgs.msg                              import Header
 from tf2_ros                                   import TransformBroadcaster
-from aist_msgs.srv                             import (GetMeshResources,
-                                                       GetMeshResourcesResponse)
+from aist_msgs.srv                             import GetObjectProperties
 
 #########################################################################
 #  class CollisionObjectManager                                         #
@@ -56,23 +55,22 @@ class CollisionObjectManager(object):
         super().__init__()
 
         self._psi                   = PlanningSceneInterface(ns, synchronous)
-        self._touch_links           = {}
+        self._touch_links           = rospy.get_param('~touch_links', {})
         self._marker_id_max         = 0
         self._subframe_transforms   = {}
         self._markers               = {}
         self._marker_pub            = rospy.Publisher("collision_marker",
                                                       Marker, queue_size=10)
-        self._get_object_properties = rospy.Service(
+        self._get_object_properties = rospy.ServiceProxy(
                                           server + '/get_object_properties',
-                                          GetObjectProperties,
-                                          self._get_object_properties_cb)
+                                          GetObjectProperties)
         self._lock                   = threading.Lock()
         th = threading.Thread(target=self._subframes_and_markers_thread)
         th.daemon = True
         th.start()
 
     def create_object(self, object_name, pose, object_id=None):
-        object_props = self._get_object_properties(object_name)
+        object_props = self._get_object_properties(object_name).properties
 
         # Create and attach a collision object.
         co = CollisionObject()
