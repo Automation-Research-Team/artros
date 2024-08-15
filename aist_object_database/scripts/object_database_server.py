@@ -43,7 +43,7 @@ from geometry_msgs.msg import Point, Vector3, Quaternion, Pose
 from shape_msgs.msg    import Mesh, MeshTriangle, Plane, SolidPrimitive
 from std_msgs.msg      import ColorRGBA
 from aist_msgs.msg     import MeshResource, ObjectProperties
-from aist_msgs.srv     import (GetMeshResources, GetMeshResourcesResponse,
+from aist_msgs.srv     import (GetMeshResource, GetMeshResourceResponse,
                                GetObjectProperties, GetObjectPropertiesResponse)
 
 try:
@@ -69,7 +69,6 @@ class ObjectDatabaseServer(object):
                       'CONE':     SolidPrimitive.CONE}
 
         self._object_props = {}
-
         for object_name, desc in rospy.get_param('~object_descriptions',
                                                  {}).items():
 
@@ -116,28 +115,31 @@ class ObjectDatabaseServer(object):
             self._object_props[object_name] = op
             rospy.loginfo('properties of object[%s] loaded', object_name)
 
-        self._get_mesh_resources \
-            = rospy.Service('~get_mesh_resources', GetMeshResources,
-                            self._get_mesh_resources_cb)
+        self._get_mesh_resource \
+            = rospy.Service('~get_mesh_resource', GetMeshResource,
+                            self._get_mesh_resource_cb)
         self._get_object_properties_list \
             = rospy.Service('~get_object_properties', GetObjectProperties,
                             self._get_object_properties_cb)
 
     # service callbacks
-    def _get_mesh_resources_cb(self, req):
-        res = GetMeshResourcesResponse()
+    def _get_mesh_resource_cb(self, req):
+        res = GetMeshResourceResponse()
+        res.mesh_resource = req.mesh_resource
         for op in self._object_props.values():
             for mesh_url in op.visual_mesh_urls:
-                resource = MeshResource()
-                resource.mesh_resource = mesh_url
-                with open(self._url_to_filepath(mesh_url), 'rb') as f:
-                    resource.data = f.read()
-                res.resources.append(resource)
+                if mesh_url == req.mesh_resource:
+                    with open(self._url_to_filepath(mesh_url), 'rb') as f:
+                        res.data = f.read()
+                        rospy.loginfo('(ObjectDatabaseServer) Send response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
+                    return res
+        rospy.logerr('(ObjectDatabaseServer) Send empty response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
         return res
 
     def _get_object_properties_cb(self, req):
         res = GetObjectPropertiesResponse()
         res.properties = self._object_props[req.object_name]
+        rospy.loginfo('(ObjectDatabaseServer) Send response to GetObjectProperties request for the object[%s]', req.object_name)
         return res
 
     # utilities
