@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="object">
   <xacro:include filename="$(find aist_object_database
 			   )/urdf/object.urdf.xacro"/>
