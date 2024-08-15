@@ -21,6 +21,6 @@ services:
   - name:     /robot_description_provider/get_links
     request:  Kitting/get_links
     response: Kitting/links
-  - name:     /object_database_server/get_mesh_resources
-    request:  Kitting/get_mesh_resources
-    response: Kitting/mesh_resources
+  - name:     /object_database_server/get_mesh_resource
+    request:  Kitting/get_mesh_resource
+    response: Kitting/mesh_resource

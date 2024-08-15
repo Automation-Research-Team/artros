@@ -128,10 +128,10 @@ class ObjectDatabaseServer(object):
         res.mesh_resource = req.mesh_resource
         for op in self._object_props.values():
             for mesh_url in op.visual_mesh_urls:
-                if mesh_url == req.mesh_resource:
+                if req.mesh_resource == "file://" + self._url_to_filepath(mesh_url):
                     with open(self._url_to_filepath(mesh_url), 'rb') as f:
                         res.data = f.read()
-                        rospy.loginfo('(ObjectDatabaseServer) Send response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
+                    rospy.loginfo('(ObjectDatabaseServer) Send response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
                     return res
         rospy.logerr('(ObjectDatabaseServer) Send empty response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
         return res
