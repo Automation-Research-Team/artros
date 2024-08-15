@@ -1,0 +1,12 @@
+<launch>
+
+  <arg name="collision"	default="false"/>
+
+  <include file="$(find aist_object_database)/launch/display.launch">
+    <arg name="name"		value="precision_tool"/>
+    <arg name="properties_file"
+	 value="$(dirname)/../config/precision_tools_properties.yaml"/>
+    <arg name="collision"	value="$(arg collision)"/>
+  </include>
+
+</launch>

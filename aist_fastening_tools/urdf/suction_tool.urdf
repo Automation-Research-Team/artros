@@ -1,12 +1,14 @@
 <?xml version="1.0" ?>
-<robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
-  <xacro:include filename="$(find aist_fastening_tools
-			   )/urdf/fastening_tool.urdf.xacro" />
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="suction_tool">
+  <xacro:include filename="$(find aist_object_database
+			   )/urdf/object.urdf.xacro"/>
 
   <link name ="base_link"/>
 
-  <xacro:fastening_tool toolname="suction_tool"
-			prefix="suction_tool_" parent="base_link">
+  <xacro:object name="suction_tool" prefix="suction_tool/" parent="base_link"
+		properties_file="$(find aist_fastening_tools
+  				 )/config/fastening_tools_properties.yaml"
+  		collision="False">
     <origin xyz="0 0 0" rpy="0 0 0" />
-  </xacro:fastening_tool>
+  </xacro:object>
 </robot>

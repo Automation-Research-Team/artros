@@ -91,7 +91,7 @@
     </xacro:macro>
 
     <!-- load object properties -->
-    <xacro:load_properties filename="$(arg properties_file)"/>
+    <xacro:load_properties filename="${properties_file}"/>
 
     <!-- visual mesh -->
     <xacro:property name="vorigin"	value="${visual_mesh['pose']}"/>
@@ -105,19 +105,19 @@
     </joint>
     <link name="${prefix}base_link">
       <xacro:if value="${not collision}">
-	<visual>
-	  <origin xyz="${vorigin[0]} ${vorigin[1]} ${vorigin[2]}"
-		  rpy="${vorigin[3]*pi/180.0}
-		       ${vorigin[4]*pi/180.0}
-		       ${vorigin[5]*pi/180.0}"/>
+    	<visual>
+    	  <origin xyz="${vorigin[0]} ${vorigin[1]} ${vorigin[2]}"
+    		  rpy="${vorigin[3]*pi/180.0}
+    		       ${vorigin[4]*pi/180.0}
+    		       ${vorigin[5]*pi/180.0}"/>
           <geometry>
             <mesh filename="${visual_mesh['url']}"
-		  scale="${vscale[0]} ${vscale[1]} ${vscale[2]}"/>
+    		  scale="${vscale[0]} ${vscale[1]} ${vscale[2]}"/>
           </geometry>
           <material name="${name}Color">
             <color rgba="${vcolor[0]} ${vcolor[1]} ${vcolor[2]} ${vcolor[3]}"/>
           </material>
-	</visual>
+    	</visual>
       </xacro:if>
     </link>
 

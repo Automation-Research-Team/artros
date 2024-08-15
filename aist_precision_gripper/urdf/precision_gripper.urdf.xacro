@@ -5,7 +5,7 @@
 
     <xacro:macro name="load_properties" params="filename">
       <xacro:property name="properties"
-		      value="${xacro.load_yaml(filename)}"/>
+		      value="${xacro.load_yaml(filename)['precision_gripper']}"/>
       <xacro:property name="visual_meshes"
 		      value="${properties['visual_meshes']}"
 		      scope="parent"/>

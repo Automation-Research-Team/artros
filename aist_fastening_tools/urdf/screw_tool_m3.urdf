@@ -3,14 +3,12 @@
   <xacro:include filename="$(find aist_object_database
 			   )/urdf/object.urdf.xacro"/>
 
-  <xacro:arg name="properties_file"
-	     value="$(find aist_fastening_tools
-		    )/config/fastening_tool_properties.yaml"/>
-
   <link name ="base_link"/>
 
   <xacro:object name="screw_tool_m3" prefix="screw_tool_m3/" parent="base_link"
-		properties_file="$(arg properties_file)" collision="False">
+		properties_file="$(find aist_fastening_tools
+  				 )/config/fastening_tools_properties.yaml"
+  		collision="False">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:object>
 </robot>

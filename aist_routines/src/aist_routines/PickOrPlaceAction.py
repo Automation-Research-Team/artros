@@ -108,7 +108,7 @@ class PickOrPlace(SimpleActionClient):
         self._server.__del__()
 
     def _execute_cb(self, goal):
-        rospy.loginfo('*** Do %s ***', 'picking' if goal.pick else 'placing')
+        rospy.loginfo('### Do %s ###', 'picking' if goal.pick else 'placing')
         routines = self._routines
         com      = routines.com
         gripper  = routines.gripper(goal.robot_name)
@@ -131,7 +131,7 @@ class PickOrPlace(SimpleActionClient):
         # Go to pick/place pose.
         self._publish_feedback(PickOrPlaceFeedback.APPROACHING,
                                'Go to %s pose' %
-                               'pick' if goal.pick else 'place')
+                               ('pick' if goal.pick else 'place'))
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
             gripper.wait()                      # Wait for pregrasp completed
@@ -214,7 +214,7 @@ class PickOrPlace(SimpleActionClient):
                 return
 
         self._server.set_succeeded(PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
-        rospy.loginfo('--- %s succeeded. ---',
+        rospy.loginfo('### %s succeeded. ###',
                       'Pick' if goal.pick else 'Place')
 
     def _preempt_cb(self):
@@ -223,7 +223,7 @@ class PickOrPlace(SimpleActionClient):
         self._routines.gripper(goal.robot_name).release()
         self._server.set_preempted(PickOrPlaceResult(
                                        PickOrPlaceResult.PREEMPTED))
-        rospy.logwarn('--- %s cancelled. ---',
+        rospy.logwarn('### %s cancelled. ###',
                       'Pick' if goal.pick else 'Place')
 
     def _publish_feedback(self, stage, text):
@@ -231,5 +231,7 @@ class PickOrPlace(SimpleActionClient):
         rospy.loginfo('--- %s ---', text)
 
     def _set_aborted(self, result, text):
+        goal = self._server.current_goal.get_goal()
         self._server.set_aborted(PickOrPlaceResult(result))
-        rospy.logerr('--- %s ---', text)
+        rospy.logerr('### %s aborted: %s ###',
+                     'Pick' if goal.pick else 'Place', text)

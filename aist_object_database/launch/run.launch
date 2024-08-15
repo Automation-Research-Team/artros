@@ -7,13 +7,12 @@
 	clear_params="true" output="screen">
     <rosparam param="object_descriptions"
 	      file="$(find aist_fastening_tools
-		    )/config/fastening_tool_properties.yaml"/>
-    <rosparam param="object_descriptions/precision_tool"
-    	      file="$(find aist_precision_gripper
-    		    )/config/precision_gripper_properties.yaml"/>
+		    )/config/fastening_tools_properties.yaml"/>
     <rosparam param="object_descriptions"
-	      file="$(find aist_description
-		    )/parts/config/parts_properties.yaml"/>
+    	      file="$(find aist_precision_gripper
+    		    )/config/precision_tools_properties.yaml"/>
+    <rosparam param="object_descriptions"
+	      file="$(dirname)/../config/parts_properties.yaml"/>
   </node>
 
 </launch>
