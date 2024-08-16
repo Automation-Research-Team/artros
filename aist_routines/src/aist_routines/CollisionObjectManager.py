@@ -135,7 +135,7 @@ class CollisionObjectManager(object):
             marker.color           = mesh_color
             marker.lifetime        = rospy.Duration(0)
             marker.frame_locked    = False
-            marker.mesh_resource   = "file://" + self._url_to_filepath(mesh_url)
+            marker.mesh_resource   = mesh_url
             markers.append(marker)
             self._marker_id_max += 1
 
@@ -272,10 +272,3 @@ class CollisionObjectManager(object):
             for markers in self._markers.values():
                 for marker in markers:
                     self._marker_pub.publish(marker)
-
-    # utilities
-    def _url_to_filepath(self, url):
-        tokens = url.split('/')
-        if len(tokens) < 2 or tokens[0] != 'package:' or tokens[1] != '':
-            raise('Illegal URL: ' + url)
-        return os.path.join(rospkg.RosPack().get_path(tokens[2]), *tokens[3:])

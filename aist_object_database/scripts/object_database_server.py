@@ -68,52 +68,51 @@ class ObjectDatabaseServer(object):
                       'CYLINDER': SolidPrimitive.CYLINDER,
                       'CONE':     SolidPrimitive.CONE}
 
-        self._object_props = {}
-        for object_name, desc in rospy.get_param('~object_descriptions',
-                                                 {}).items():
+        self._obj_props = {}
+        for name, desc in rospy.get_param('~object_descriptions', {}).items():
 
-            op = ObjectProperties()
+            obj_prop = ObjectProperties()
 
             for primitive in desc.get('primitives', []):
                 primitive_pose = primitive['pose']
-                op.primitives.append(SolidPrimitive(
+                obj_prop.primitives.append(SolidPrimitive(
                     type=PRIMITIVES[primitive['type']],
                     dimensions=primitive['dimensions']))
-                op.primitive_poses.append(
+                obj_prop.primitive_poses.append(
                     Pose(Point(*primitive_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(primitive_pose[3:6])))))
 
             for subframe_name, subframe_pose in desc.get('subframes',
                                                          {}).items():
-                op.subframe_names.append(subframe_name)
-                op.subframe_poses.append(
+                obj_prop.subframe_names.append(subframe_name)
+                obj_prop.subframe_poses.append(
                     Pose(Point(*subframe_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(subframe_pose[3:6])))))
 
             for mesh in desc.get('visual_meshes', []):
-                op.visual_mesh_urls.append(mesh['url'])
+                obj_prop.visual_mesh_urls.append(mesh['url'])
                 mesh_pose = mesh['pose']
-                op.visual_mesh_poses.append(
+                obj_prop.visual_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
-                op.visual_mesh_scales.append(Vector3(*mesh['scale']))
-                op.visual_mesh_colors.append(ColorRGBA(*mesh['color']))
+                obj_prop.visual_mesh_scales.append(Vector3(*mesh['scale']))
+                obj_prop.visual_mesh_colors.append(ColorRGBA(*mesh['color']))
 
             for mesh in desc.get('collision_meshes', []):
-                op.collision_meshes.append(
+                obj_prop.collision_meshes.append(
                     self._load_mesh(mesh['url'], mesh['scale']))
                 mesh_pose = mesh['pose']
-                op.collision_mesh_poses.append(
+                obj_prop.collision_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                              *np.radians(mesh_pose[3:6])))))
-                op.collision_mesh_scales.append(Vector3(*mesh['scale']))
+                obj_prop.collision_mesh_scales.append(Vector3(*mesh['scale']))
 
-            self._object_props[object_name] = op
-            rospy.loginfo('properties of object[%s] loaded', object_name)
+            self._obj_props[name] = obj_prop
+            rospy.loginfo('properties of object[%s] loaded', name)
 
         self._get_mesh_resource \
             = rospy.Service('~get_mesh_resource', GetMeshResource,
@@ -126,20 +125,19 @@ class ObjectDatabaseServer(object):
     def _get_mesh_resource_cb(self, req):
         res = GetMeshResourceResponse()
         res.mesh_resource = req.mesh_resource
-        for op in self._object_props.values():
-            for mesh_url in op.visual_mesh_urls:
-                if req.mesh_resource == "file://" + self._url_to_filepath(mesh_url):
-                    with open(self._url_to_filepath(mesh_url), 'rb') as f:
-                        res.data = f.read()
-                    rospy.loginfo('(ObjectDatabaseServer) Send response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
-                    return res
-        rospy.logerr('(ObjectDatabaseServer) Send empty response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
+        for obj_prop in self._obj_props.values():
+            if req.mesh_resource in obj_prop.visual_mesh_urls:
+                with open(self._url_to_filepath(req.mesh_resource), 'rb') as f:
+                    res.data = f.read()
+                rospy.loginfo('(ObjectDatabaseServer) Send response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
+                return res
+        rospy.logerr('(ObjectDatabaseServer) Received GetMeshResource request with unknown mesh_url[%s]', req.mesh_resource)
         return res
 
     def _get_object_properties_cb(self, req):
         res = GetObjectPropertiesResponse()
-        res.properties = self._object_props[req.object_name]
-        rospy.loginfo('(ObjectDatabaseServer) Send response to GetObjectProperties request for the object[%s]', req.object_name)
+        res.properties = self._obj_props[req.name]
+        rospy.loginfo('(ObjectDatabaseServer) Send response to GetObjectProperties request for the object[%s]', req.name)
         return res
 
     # utilities

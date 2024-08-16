@@ -10,7 +10,7 @@ ros_to_nep:
   - from: /help
     to:   Kitting/request_help
   - from: /collision_marker
-    to:   Kitting/visualization_marker
+    to:   Kitting/collision_marker
 
 nep_to_ros:
   - from: Kitting/pointing
