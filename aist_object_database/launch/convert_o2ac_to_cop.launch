@@ -5,7 +5,7 @@
 	pkg="aist_object_database" type="convert_o2ac_to_cop.py"
 	clear_params="true" output="screen">
     <rosparam param='parts_list'
-	      file="$(dirname)/../config/o2ac/parts_list.yaml"/>
+	      file="$(dirname)/../config/parts_list.yaml"/>
   </node>
 
 </launch>
