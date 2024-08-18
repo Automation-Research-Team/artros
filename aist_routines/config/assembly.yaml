@@ -56,7 +56,7 @@ touch_links:
     - b_bot_gripper_left_inner_knuckle
     - b_bot_gripper_left_inner_finger
     - b_bot_gripper_left_inner_finger_pad
-    - b_bot_gripper_right_inner_knucle
+    - b_bot_gripper_right_inner_knuckle
     - b_bot_gripper_right_inner_finger
     - b_bot_gripper_right_inner_finger_pad
   precision_tool/tip_link:
