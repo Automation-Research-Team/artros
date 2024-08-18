@@ -207,7 +207,8 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             if goal.object_id != '':
                 com.remove_touch_links(goal.object_id, holder_link)
-            if not gripper.wait():    # Wait for postgrasp completed
+            if rospy.get_param('use_real_robot', False) and \
+               not gripper.wait():    # Wait for postgrasp completed
                 gripper.release()
                 self._set_aborted(PickOrPlaceResult.GRASP_FAILURE,
                                   'Failed to grasp')

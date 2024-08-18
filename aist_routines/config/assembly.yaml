@@ -33,10 +33,10 @@ picking_parameters:
       release_position: 0.035
       max_effort:       5.0
   suction_tool:
-    approach_offset:  [ 0.075, 0.000, 0.022, 0.0, 30.0, 0.0]
-    grasp_offset:     [-0.002, 0.000, 0.020, 0.0, 30.0, 0.0]
-    place_offset:     [-0.002, 0.000, 0.021, 0.0, 30.0, 0.0]
-    departure_offset: [ 0.075, 0.000, 0.022, 0.0, 30.0, 0.0]
+    approach_offset:  [ 0.075, 0.000, 0.017, 0.0, 30.0, 0.0]
+    grasp_offset:     [-0.002, 0.000, 0.015, 0.0, 30.0, 0.0]
+    place_offset:     [-0.002, 0.000, 0.016, 0.0, 30.0, 0.0]
+    departure_offset: [ 0.075, 0.000, 0.017, 0.0, 30.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.1
     gripper_parameters:
@@ -46,14 +46,14 @@ picking_parameters:
 
 touch_links:
   a_bot_gripper_tip_link:
-    - a_bot_gripper_left_inner_knucle
+    - a_bot_gripper_left_inner_knuckle
     - a_bot_gripper_left_inner_finger
     - a_bot_gripper_left_inner_finger_pad
-    - a_bot_gripper_right_inner_knucle
+    - a_bot_gripper_right_inner_knuckle
     - a_bot_gripper_right_inner_finger
     - a_bot_gripper_right_inner_finger_pad
   b_bot_gripper_tip_link:
-    - b_bot_gripper_left_inner_knucle
+    - b_bot_gripper_left_inner_knuckle
     - b_bot_gripper_left_inner_finger
     - b_bot_gripper_left_inner_finger_pad
     - b_bot_gripper_right_inner_knucle
