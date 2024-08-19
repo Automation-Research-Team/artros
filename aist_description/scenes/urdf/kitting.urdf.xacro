@@ -14,10 +14,10 @@
 		  parent="workspace_center">
     <origin xyz="-0.062 ${-plate_l/2} 0" rpy="0 0 0"/>
   </xacro:aist_box>
-  <link name="plate_upper_left_corner"/>
+  <link name="plate_lower_left_corner"/>
   <joint name="plate_corner_joint" type="fixed">
     <parent link="plate"/>
-    <child  link="plate_upper_left_corner"/>
+    <child  link="plate_lower_left_corner"/>
     <origin xyz="0 0 ${plate_h}" rpy="0 0 0"/>
   </joint>
 
@@ -52,21 +52,21 @@
 
   <!--bin_1_part_5_-->
   <xacro:kitting_bin_1 binname	      ="bin_1_part_5"
-		       parent	      ="plate_upper_left_corner"
+		       parent	      ="plate_lower_left_corner"
 		       z_origin_offset="${z_origin_offset_1}">
     <origin xyz="${bin_1_x} ${bin_y + bin_1_width} ${-z_origin_offset_1}"
 	    rpy="0 0 0"/>
   </xacro:kitting_bin_1>
   <!--bin_1_part_16_-->
   <xacro:kitting_bin_1 binname	      ="bin_1_part_16"
-		       parent	      ="plate_upper_left_corner"
+		       parent	      ="plate_lower_left_corner"
 		       z_origin_offset="${z_origin_offset_1}">
     <origin xyz="${bin_1_x} ${bin_y} ${-z_origin_offset_1}"
 	    rpy="0 0 0"/>
   </xacro:kitting_bin_1>
   <!--bin_1_part_17_-->
   <xacro:kitting_bin_1 binname	      ="bin_1_part_17"
-  		       parent	      ="plate_upper_left_corner"
+  		       parent	      ="plate_lower_left_corner"
   		       z_origin_offset="${z_origin_offset_1}">
     <origin xyz="${bin_1_x} ${bin_y - bin_1_width} ${-z_origin_offset_1}"
 	    rpy="0 0 0"/>
@@ -74,33 +74,33 @@
 
   <!-- bin_2_part_4_ -->
   <xacro:kitting_bin_2 binname	      ="bin_2_part_4"
-		       parent	      ="plate_upper_left_corner"
+		       parent	      ="plate_lower_left_corner"
 		       z_origin_offset="${z_origin_offset_2}">
     <origin xyz="${bin_2_x} ${bin_y + bin_2_width} ${-z_origin_offset_2}"
 	    rpy="0 0 0"/>
   </xacro:kitting_bin_2>
   <!--bin_2_part_7_-->
   <xacro:kitting_bin_2 binname	      ="bin_2_part_7"
-		       parent	      ="plate_upper_left_corner"
+		       parent	      ="plate_lower_left_corner"
 		       z_origin_offset="${z_origin_offset_2}">
     <origin xyz="${bin_2_x} ${bin_y} ${-z_origin_offset_2}"
 	    rpy="0 0 0"/>
   </xacro:kitting_bin_2>
   <!--bin_2_part_8_-->
   <xacro:kitting_bin_2 binname	      ="bin_2_part_8"
-  		       parent	      ="plate_upper_left_corner"
+  		       parent	      ="plate_lower_left_corner"
   		       z_origin_offset="${z_origin_offset_2}">
     <origin xyz="${bin_2_x} ${bin_y - bin_2_width} ${-z_origin_offset_2}"
 	    rpy="0 0 0"/>
   </xacro:kitting_bin_2>
 
   <!-- tray_1 -->
-  <!-- <xacro:kitting_tray_1 trayname="tray_1" parent="plate_upper_left_corner"> -->
+  <!-- <xacro:kitting_tray_1 trayname="tray_1" parent="plate_lower_left_corner"> -->
   <!--   <origin xyz="${tray_x - tray_width} ${bin_y + tray_y} 0" -->
   <!-- 	    rpy="0 0 ${-pi/2}"/> -->
   <!-- </xacro:kitting_tray_1> -->
   <!-- tray_2 -->
-  <xacro:kitting_tray_2 trayname="tray_2" parent="plate_upper_left_corner">
+  <xacro:kitting_tray_2 trayname="tray_2" parent="plate_lower_left_corner">
     <origin xyz="${tray_x} ${tray_y} 0" rpy="0 0 ${pi/2}"/>
   </xacro:kitting_tray_2>
 

@@ -8,24 +8,8 @@
   <xacro:property name="bots_z"		value="0.770"/>
   <xacro:property name="screen_z"	value="${bots_z + 0.0347}"/>
 
-  <!-- ground and workspace -->
+  <!-- ground -->
   <link name="ground"/>
-
-  <xacro:property name="table_w"	value="0.900"/>
-  <xacro:property name="table_l"	value="1.800"/>
-  <xacro:include filename="$(find aist_description
-			   )/objects/urdf/table.urdf.xacro"/>
-  <xacro:table prefix="workspace_"
-	       width="${table_w}" length="${table_l}" height="${bots_z}"
-	       parent="ground">
-    <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
-  </xacro:table>
-  <link name="workspace_center"/>
-  <joint name="ground_to_workspace" type="fixed">
-    <parent link="ground"/>
-    <child  link="workspace_center"/>
-    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
-  </joint>
 
   <!-- cage -->
   <xacro:property name="cage_w"		value="1.200"/>
@@ -35,7 +19,7 @@
   <xacro:property name="tool_bar_h"	value="0.270"/>
   <xacro:property name="camera_bar_h"	value="1.325"/>
   <xacro:property name="cage_z"		value="0.164"/>
-  <xacro:property name="cage_offset_x"	value="0.020"/>
+  <xacro:property name="cage_offset_x"	value="0.015"/>
   <xacro:property name="cage_offset_y"	value="-0.005"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/cage.urdf.xacro"/>
@@ -51,6 +35,24 @@
 		 ${cage_z}"
 	    rpy="0 0 0" />
   </xacro:cage>
+
+  <!-- workspace -->
+  <xacro:property name="table_w"	value="0.900"/>
+  <xacro:property name="table_l"	value="1.800"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_"
+	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset_x + cage_t} ${-table_l/2} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
+  <link name="workspace_center"/>
+  <joint name="ground_to_workspace" type="fixed">
+    <parent link="ground"/>
+    <child  link="workspace_center"/>
+    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
+  </joint>
 
   <!-- tool holders -->
   <xacro:property name="precision_tool_holder_y"	value="0.60"/>
@@ -136,11 +138,11 @@
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq
-			   )/urdf/robotiq_85_gripper.urdf.xacro"/>
-  <xacro:robotiq_85_gripper prefix="a_bot_gripper_"
-			    parent="a_bot_gripper_coupling_flange_link">
+			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
+  <xacro:robotiq_140_gripper prefix="a_bot_gripper_"
+			     parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
-  </xacro:robotiq_85_gripper>
+  </xacro:robotiq_140_gripper>
 
   <!-- RealSense cameras -->
   <xacro:include filename="$(find aist_description
