@@ -21,26 +21,26 @@ base:
     big_hole_4: [0.187, 0.0, 0.076, 90.0, 0.0, -180.0]
     under_outer_hole: [0.01, 0.0, 0.01, 90.0, 0.0, -90.0]
     corner_1: [0.0, 0.01, 0.0, 90.0, 0.0, -180.0]
-    corner_2: [0.2, 0.01, 0.0, 90.0, 0.0, -180.0]
-    corner_3: [0.2, 0.01, 0.12, 90.0, 0.0, -180.0]
-    corner_4: [0.0, 0.01, 0.12, 90.0, 0.0, -180.0]
-    screw_hole_panel1_1: [0.006, 0.01, 0.030, 90.0, 0.0, -180.0]
-    screw_hole_panel1_2: [0.11, 0.01, 0.030, 90.0, 0.0, -180.0]
-    screw_hole_panel2_1: [0.131, 0.01, 0.028, 90.0, 0.0, -180.0]
-    screw_hole_panel2_2: [0.179, 0.01, 0.028, 90.0, 0.0, -180.0]
+    corner_2: [0.2, 0.008, 0.0, 90.0, 0.0, -180.0]
+    corner_3: [0.2, 0.008, 0.12, 90.0, 0.0, -180.0]
+    corner_4: [0.0, 0.008, 0.12, 90.0, 0.0, -180.0]
+    screw_hole_panel1_1: [0.006, 0.008, 0.030, 90.0, 0.0, -180.0]
+    screw_hole_panel1_2: [0.11, 0.008, 0.030, 90.0, 0.0, -180.0]
     screw_hole_panel1_3: [0.006, 0.0, 0.030, 90.0, 0.0, -180.0]
-    screw_hole_panel1_4: [0.11, 0.0, 0.032, 90.0, 0.0, -180.0]
-    screw_hole_panel2_3: [0.133, 0.0, 0.028, 90.0, 0.0, -180.0]
-    screw_hole_panel2_4: [0.196, 0.0, 0.028, 90.0, 0.0, -180.0]
-    terminal_top: [0.1, 0.03, 0.099, -90.0, -90.0, 0.0]
+    screw_hole_panel1_4: [0.11, 0.0, 0.030, 90.0, 0.0, -180.0]
+    screw_hole_panel2_1: [0.131, 0.008, 0.028, 90.0, 0.0, -180.0]
+    screw_hole_panel2_2: [0.179, 0.008, 0.028, 90.0, 0.0, -180.0]
+    screw_hole_panel2_3: [0.131, 0.0, 0.028, 90.0, 0.0, -180.0]
+    screw_hole_panel2_4: [0.179, 0.0, 0.028, 90.0, 0.0, -180.0]
+    terminal_top: [0.1, 0.028, 0.099, -90.0, -90.0, 0.0]
     cable_pin1: [0.092, 0.028, 0.108, -75.0, -90.0, 0.0]
     cable_pin2: [0.092, 0.028, 0.092, -75.0, -90.0, 0.0]
     cable_pin3: [0.108, 0.028, 0.092, -105.0, -90.0, 0.0]
     cable_pin4: [0.108, 0.028, 0.108, -105.0, -90.0, 0.0]
   grasp_points:
-    default_grasp: [0.1, -0.015, 0.06, -90.0, -0.0, -0.0]
+    default_grasp: [0.1, 0.0, 0.06, -90.0, -0.0, -0.0]
     terminal_grasp: [0.1, 0.008, 0.1, -90.0, 90.0, 0.0]
-    big_holes_grasp: [0.1, -0.015, 0.076, -90.0, 90.0, 0.0]
+    big_holes_grasp: [0.1, 0.0, 0.076, -90.0, 90.0, 0.0]
 panel_motor:
   id: 2
   type: 02-PANEL
@@ -56,7 +56,7 @@ panel_motor:
     pose: [0.03, 0.03, 0.0025, 0.0, 0.0, 0.0]
   - type: BOX
     dimensions: [0.06, 0.005, 0.025]
-    pose: [0.03, 0.0, 0.0125, 0.0, 0.0, 0.0]
+    pose: [0.03, 0.0025, 0.0125, 0.0, 0.0, 0.0]
   subframes:
     bottom_corner_1: [0.0, 0.0, 0.0, 90.0, 0.0, -180.0]
     bottom_corner_2: [0.06, 0.0, 0.0, 90.0, 0.0, -180.0]
@@ -102,7 +102,7 @@ panel_bearing:
     pose: [0.058, 0.045, 0.0025, 0.0, 0.0, 0.0]
   - type: BOX
     dimensions: [0.116, 0.005, 0.025]
-    pose: [0.058, 0.0, 0.0125, 0.0, 0.0, 0.0]
+    pose: [0.058, 0.0025, 0.0125, 0.0, 0.0, 0.0]
   subframes:
     bottom_corner_1: [0.0, 0.0, 0.0, 90.0, 0.0, -180.0]
     bottom_corner_2: [0.116, 0.0, 0.0, 90.0, 0.0, -180.0]
@@ -156,11 +156,11 @@ motor:
     color: [0.2, 0.5, 0.8, 1.0]
   primitives:
   - type: CYLINDER
-    dimensions: [0.055, 0.016]
-    pose: [0.016, -0.005, -0.006, 0.0, 0.0, 0.0]
+    dimensions: [0.055, 0.0190]
+    pose: [0.020, 0.0, -0.0075, 0.0, 0.0, 0.0]
   - type: CYLINDER
-    dimensions: [0.015, 0.0025]
-    pose: [0.016, -0.0125, 0.0257, 0.0, 0.0, 0.0]
+    dimensions: [0.022, 0.003]
+    pose: [0.020, -0.007, 0.031, 0.0, 0.0, 0.0]
   subframes:
     center: [0.016, 0.0, 0.0, 180.0, -0.0, -90.0]
     tip: [0.02, -0.007, 0.042, 180.0, -0.0, -90.0]
@@ -189,6 +189,10 @@ motor_pulley:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.010, 0.016]
+    pose: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
   grasp_points:
@@ -225,6 +229,13 @@ bearing:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.008, 0.027]
+    pose: [-0.004, 0.0, 0.0, 0.0, 90.0, 0.0]
+  - type: CYLINDER
+    dimensions: [0.022, 0.018]
+    pose: [-0.019, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     front_hole: [0.0, 0.0, 0.0, -90.0, 0.0, -90.0]
     back_hole: [-0.03, 0.0, 0.0, 90.0, 0.0, -90.0]
@@ -287,6 +298,10 @@ end_cap:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.005, 0.007]
+    pose: [0.0025, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     inner_surface: [0.002, 0.0, 0.0, 90.0, 0.0, -90.0]
     screw_hole: [0.0, 0.0, 0.0, -90.0, 0.0, -90.0]
@@ -324,6 +339,10 @@ bearing_spacer:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.004, 0.0085]
+    pose: [0.002, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     center: [0.002, 0.0, 0.0, 90.0, 0.0, -90.0]
   grasp_points:
@@ -348,6 +367,13 @@ output_pulley:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.010, 0.031]
+    pose: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  - type: CYLINDER
+    dimensions: [0.010, 0.0125]
+    pose: [0.010, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     front_hole: [0.015, 0.0, 0.0, -90.0, 0.0, -90.0]
     back_hole: [-0.005, 0.0, 0.0, 90.0, 0.0, -90.0]
@@ -376,6 +402,10 @@ idler_spacer:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.0095, 0.0045]
+    pose: [0.00475, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     center: [0.00475, 0.0, 0.0, 90.0, 0.0, -90.0]
   grasp_points:
@@ -412,6 +442,10 @@ idler_pulley:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.012, 0.016]
+    pose: [0.006, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
     screw_head: [0.0, 0.016, 0.0, 90.0, 0.0, -180.0]
@@ -437,6 +471,13 @@ idler_pin:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.030, 0.003]
+    pose: [0.015, 0.0, 0.0, 0.0, 90.0, 0.0]
+  - type: CYLINDER
+    dimensions: [0.002, 0.0045]
+    pose: [-0.001, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     screw_tip: [0.03, 0.0, 0.0, 90.0, 0.0, -90.0]
     screw_inserted: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
@@ -463,6 +504,10 @@ m6_nut:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.005, 0.00575]
+    pose: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
   grasp_points: {}
@@ -475,6 +520,10 @@ m6_washer:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.0016, 0.00625]
+    pose: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
   grasp_points: {}
@@ -487,8 +536,54 @@ m4_screw:
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.010, 0.002]
+    pose: [0.005, 0.0, 0.0, 0.0, 90.0, 0.0]
+  - type: CYLINDER
+    dimensions: [0.004, 0.0035]
+    pose: [-0.002, 0.0, 0.0, 0.0, 90.0, 0.0]
   subframes:
     screw_tip: [0.01, 0.0, 0.0, 90.0, 0.0, -90.0]
     screw_inserted: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
     screw_head: [-0.004, 0.0, 0.0, 90.0, 0.0, -90.0]
+  grasp_points: {}
+m3_screw_long:
+  id: 18
+  type: 18_SCB3-10
+  description: 10mm M3 Socket Head Cap Screw  (metric coarse thread)
+  visual_meshes:
+  - url: package://aist_object_database/meshes/18_SCB3-10.stl
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    scale: [0.001, 0.001, 0.001]
+    color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.010, 0.0015]
+    pose: [0.005, 0.0, 0.0, 0.0, 90.0, 0.0]
+  - type: CYLINDER
+    dimensions: [0.003, 0.00275]
+    pose: [-0.0015, 0.0, 0.0, 0.0, 90.0, 0.0]
+  subframes:
+    screw_tip: [0.01, 0.0, 0.0, 90.0, 0.0, -90.0]
+    screw_inserted: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
+    screw_head: [-0.003, 0.0, 0.0, 90.0, 0.0, -90.0]
+  grasp_points: {}
+m3_screw_short:
+  id: 19
+  type: 19_MSSFS3-6
+  description: 6mm M3 Hex Socket Set Screw  (metric coarse thread)
+  visual_meshes:
+  - url: package://aist_object_database/meshes/19_MSSFS3-6.stl
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    scale: [0.001, 0.001, 0.001]
+    color: [0.2, 0.5, 0.8, 1.0]
+  primitives:
+  - type: CYLINDER
+    dimensions: [0.006, 0.0015]
+    pose: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+  subframes:
+    screw_tip: [0.01, 0.0, 0.0, 90.0, 0.0, -90.0]
+    screw_inserted: [0.0, 0.0, 0.0, 90.0, 0.0, -90.0]
+    screw_head: [-0.003, 0.0, 0.0, 90.0, 0.0, -90.0]
   grasp_points: {}

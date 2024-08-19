@@ -1,3 +1,7 @@
+collision_primitives:
+- type: CYLINDER
+  dimensions: [0.010, 0.016]
+  pose: [0.0, 0.0, 0.0, 0.0, pi/2, 0.0]
 subframes:
 - pose_xyzrpy:
   - 0.0
@@ -200,4 +204,3 @@ grasp_points:
   - 5.759586531581287
   - 0.0
   - 3.141592653589793
-

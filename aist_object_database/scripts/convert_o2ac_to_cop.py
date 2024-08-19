@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, sys, rospy, rospkg, ruamel.yaml
+import os, sys, copy, rospy, rospkg, ruamel.yaml
 from math import pi
 from tf   import transformations as tfs
 

@@ -1,8 +1,8 @@
 collision_primitives:
-- type: BOX 
+- type: BOX
   dimensions: [0.2, 0.008, 0.12]
   pose: [0.1, 0.004, 0.06, 0.0, 0.0, 0.0]
-- type: BOX 
+- type: BOX
   dimensions: [0.02, 0.02, 0.02]
   pose: [0.1, 0.012, 0.1, 0.0, 0.0, 0.0]
 subframes:
@@ -56,7 +56,7 @@ subframes:
   name: corner_1
 - pose_xyzrpy:
   - 0.2
-  - 0.01
+  - 0.008
   - 0.0
   - -pi/2
   - 0.0
@@ -64,7 +64,7 @@ subframes:
   name: corner_2
 - pose_xyzrpy:
   - 0.2
-  - 0.01
+  - 0.008
   - 0.12
   - -pi/2
   - 0.0
@@ -72,7 +72,7 @@ subframes:
   name: corner_3
 - pose_xyzrpy:
   - 0.0
-  - 0.01
+  - 0.008
   - 0.12
   - -pi/2
   - 0.0
@@ -81,7 +81,7 @@ subframes:
 # Position in the front
 - pose_xyzrpy:
   - 0.006
-  - 0.01
+  - 0.008
   - 0.030
   - -pi/2
   - 0.0
@@ -89,29 +89,12 @@ subframes:
   name: screw_hole_panel1_1
 - pose_xyzrpy:
   - 0.11
-  - 0.01
+  - 0.008
   - 0.030
   - -pi/2
   - 0.0
   - -pi/2
   name: screw_hole_panel1_2
-- pose_xyzrpy:
-  - 0.131
-  - 0.01
-  - 0.028
-  - -pi/2
-  - 0.0
-  - -pi/2
-  name: screw_hole_panel2_1
-- pose_xyzrpy:
-  - 0.179
-  - 0.01
-  - 0.028
-  - -pi/2
-  - 0.0
-  - -pi/2
-  name: screw_hole_panel2_2
-# Position in the back
 - pose_xyzrpy:
   - 0.006
   - 0.0
@@ -123,13 +106,31 @@ subframes:
 - pose_xyzrpy:
   - 0.11
   - 0.0
-  - 0.032
+  - 0.030
   - -pi/2
   - 0.0
   - -pi/2
   name: screw_hole_panel1_4
+
 - pose_xyzrpy:
-  - 0.133
+  - 0.131
+  - 0.008
+  - 0.028
+  - -pi/2
+  - 0.0
+  - -pi/2
+  name: screw_hole_panel2_1
+- pose_xyzrpy:
+  - 0.179
+  - 0.008
+  - 0.028
+  - -pi/2
+  - 0.0
+  - -pi/2
+  name: screw_hole_panel2_2
+# Position in the back
+- pose_xyzrpy:
+  - 0.131
   - 0.0
   - 0.028
   - -pi/2
@@ -137,16 +138,17 @@ subframes:
   - -pi/2
   name: screw_hole_panel2_3
 - pose_xyzrpy:
-  - 0.196
+  - 0.179
   - 0.0
   - 0.028
   - -pi/2
   - 0.0
   - -pi/2
   name: screw_hole_panel2_4
+
 - pose_xyzrpy:
   - 0.1
-  - 0.03
+  - 0.028
   - 0.099
   - 0
   - pi
@@ -165,7 +167,7 @@ subframes:
   - 0.028
   - 0.092
   - 0
-  - pi 
+  - pi
   - 1.8325953 # pi/2 + 15deg
   name: cable_pin2
 - pose_xyzrpy:
@@ -188,7 +190,7 @@ grasp_points:
 - grasp_name: default_grasp
   pose_xyzrpy:
   - 0.1
-  - -0.015
+  - 0.0
   - 0.06
   - -pi/2
   - pi
@@ -204,12 +206,12 @@ grasp_points:
 - grasp_name: big_holes_grasp
   pose_xyzrpy:
   - 0.1
-  - -0.015
+  - 0.0
   - 0.076
   - pi
   - pi
   - pi/2
-  name: big_hole_4  
+  name: big_hole_4
 mesh_pose:
 - pose_xyzrpy:
   - 0.2

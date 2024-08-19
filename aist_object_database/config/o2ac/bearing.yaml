@@ -1,3 +1,10 @@
+collision_primitives:
+- type: CYLINDER
+  dimensions: [0.008, 0.027]
+  pose: [-0.004, 0.0, 0.0, 0.0, pi/2, 0.0]
+- type: CYLINDER
+  dimensions: [0.022, 0.018]
+  pose: [-0.019, 0.0, 0.0, 0.0, pi/2, 0.0]
 subframes:
 - pose_xyzrpy:
   - 0.0
