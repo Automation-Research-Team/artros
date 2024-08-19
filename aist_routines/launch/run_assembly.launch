@@ -12,7 +12,7 @@
 		    )/config/fastening_tools_properties.yaml"/>
     <rosparam param="tool_descriptions"
     	      file="$(find aist_precision_gripper
-    		    )/config/precision_tools_properties.yaml"/>
+    		    )/config/precision_tool_properties.yaml"/>
     <rosparam file="$(find aist_routines)/config/assembly.yaml"/>
   </node>
 

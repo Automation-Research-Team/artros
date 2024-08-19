@@ -16,7 +16,7 @@
 		    )/config/fastening_tools_properties.yaml"/>
     <rosparam param="tool_descriptions/precision_tool"
     	      file="$(find aist_precision_gripper
-    		    )/config/precision_tools_properties.yaml"/>
+    		    )/config/precision_tool_properties.yaml"/>
   </node>
 
   <!-- Start rviz -->

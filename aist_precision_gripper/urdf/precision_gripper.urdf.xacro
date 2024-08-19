@@ -5,7 +5,7 @@
 
     <xacro:macro name="load_properties" params="filename">
       <xacro:property name="properties"
-		      value="${xacro.load_yaml(filename)['precision_gripper']}"/>
+		      value="${xacro.load_yaml(filename)['precision_tool']}"/>
       <xacro:property name="visual_meshes"
 		      value="${properties['visual_meshes']}"
 		      scope="parent"/>
@@ -21,7 +21,7 @@
 			     )/urdf/precision_transmission.xacro"/>
     <xacro:precision_transmission prefix="${prefix}"/>
     <xacro:load_properties filename="$(find aist_precision_gripper
-				     )/config/precision_gripper_properties.yaml"/>
+				     )/config/precision_tool_properties.yaml"/>
 
     <xacro:property name="max_gap"	value="0.010"/>
 
