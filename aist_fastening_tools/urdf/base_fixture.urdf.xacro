@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="base_fixture" params="prefix parent *origin">
+
+    <xacro:macro name="load_properties" params="filename">
+      <xacro:property name="properties"
+		      value="${xacro.load_yaml(filename)['base_fixture']}"/>
+      <xacro:property name="visual_meshes"
+		      value="${properties['visual_meshes']}"
+		      scope="parent"/>
+      <xacro:property name="primitives"
+		      value="${properties['primitives']}"
+		      scope="parent"/>
+      <!-- <xacro:property name="collision_meshes" -->
+      <!-- 		      value="${properties['collision_meshes']}" -->
+      <!-- 		      scope="parent"/> -->
+      <xacro:property name="subframes"
+		      value="${properties['subframes']}"
+		      scope="parent"/>
+    </xacro:macro>
+
+    <xacro:include filename="$(find aist_fastening_tools
+			     )/urdf/base_fixture_transmission.xacro"/>
+    <xacro:base_fixture_transmission prefix="${prefix}"/>
+    <xacro:load_properties filename="$(find aist_fastening_tools
+				     )/config/fastening_tools_properties.yaml"/>
+
+    <xacro:property name="stroke"	value="0.020"/>
+
+    <!-- base -->
+    <xacro:property name="base_vorigin"	value="${visual_meshes[0]['pose']}"/>
+    <xacro:property name="base_vscale"	value="${visual_meshes[0]['scale']}"/>
+    <xacro:property name="base_vcolor"	value="${visual_meshes[0]['color']}"/>
+    <xacro:property name="base_corigin" value="${primitives[0]['pose']}"/>
+    <xacro:property name="base_cdims"   value="${primitives[0]['dimensions']}"/>
+
+    <joint name="${prefix}base_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child  link="${prefix}base_link"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+    <link name="${prefix}base_link">
+      <visual>
+	<origin xyz="${base_vorigin[0]}
+		     ${base_vorigin[1]}
+		     ${base_vorigin[2]}"
+		rpy="${base_vorigin[3]*pi/180.0}
+		     ${base_vorigin[4]*pi/180.0}
+		     ${base_vorigin[5]*pi/180.0}"/>
+        <geometry>
+          <mesh filename="${visual_meshes[0]['url']}"
+		scale="${base_vscale[0]} ${base_vscale[1]} ${base_vscale[2]}"/>
+        </geometry>
+        <material name="Gazebo/Black">
+          <color rgba="${base_vcolor[0]} ${base_vcolor[1]}
+		       ${base_vcolor[2]} ${base_vcolor[3]}"/>
+        </material>
+      </visual>
+      <collision>
+	<origin xyz="${base_corigin[0]}
+		     ${base_corigin[1]}
+		     ${base_corigin[2]}"
+		rpy="${base_corigin[3]*pi/180.0}
+		     ${base_corigin[4]*pi/180.0}
+		     ${base_corigin[5]*pi/180.0}"/>
+        <geometry>
+	  <box size="${base_cdims[0]} ${base_cdims[1]} ${base_cdims[2]}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.86387"/>
+        <inertia ixx="1017560E-9" ixy="0" ixz="2235E-9"
+		 iyy="1028041E-9" iyz="0" izz="489810E-9"/>
+      </inertial>
+    </link>
+
+    <!-- left finger -->
+    <!-- <xacro:property name="cylinder_vorigin" -->
+    <!-- 		    value="${visual_meshes[1]['pose']}"/> -->
+    <!-- <xacro:property name="cylinder_vscale" -->
+    <!-- 		    value="${visual_meshes[1]['scale']}"/> -->
+    <!-- <xacro:property name="cylinder_vcolor" -->
+    <!-- 		    value="${visual_meshes[1]['color']}"/> -->
+    <xacro:property name="cylinder_corigin"
+		    value="${primitives[1]['pose']}"/>
+    <xacro:property name="cylinder_cdims"
+		    value="${primitives[1]['dimensions']}"/>
+
+    <joint name="${prefix}cylinder_joint" type="prismatic">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}cylinder"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="130" lower="0" upper="${stroke}" velocity="0.15"/>
+    </joint>
+    <link name="${prefix}cylinder">
+      <!-- <visual> -->
+      <!-- 	<origin xyz="${cylinder_vorigin[0]} -->
+      <!-- 		     ${cylinder_vorigin[1]} -->
+      <!-- 		     ${cylinder_vorigin[2]}" -->
+      <!-- 		rpy="${cylinder_vorigin[3]*pi/180.0} -->
+      <!-- 		     ${cylinder_vorigin[4]*pi/180.0} -->
+      <!-- 		     ${cylinder_vorigin[5]*pi/180.0}"/> -->
+      <!--   <geometry> -->
+      <!--     <mesh filename="${visual_meshes[1]['url']}" -->
+      <!-- 		scale="${cylinder_vscale[0]} -->
+      <!-- 		       ${cylinder_vscale[1]} -->
+      <!-- 		       ${cylinder_vscale[2]}"/> -->
+      <!--   </geometry> -->
+      <!--   <material name="Gazebo/Grey"> -->
+      <!--     <color rgba="${cylinder_vcolor[0]} ${cylinder_vcolor[1]} -->
+      <!-- 		       ${cylinder_vcolor[2]} ${cylinder_vcolor[3]}"/> -->
+      <!--   </material> -->
+      <!-- </visual> -->
+      <collision>
+	<origin xyz="${cylinder_corigin[0]}
+		     ${cylinder_corigin[1]}
+		     ${cylinder_corigin[2]}"
+		rpy="${cylinder_corigin[3]*pi/180.0}
+		     ${cylinder_corigin[4]*pi/180.0}
+		     ${cylinder_corigin[5]*pi/180.0}"/>
+        <geometry>
+	  <box size="${cylinder_cdims[0]}
+		     ${cylinder_cdims[1]}
+		     ${cylinder_cdims[2]}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0.02262 -0.00759 0.00738" rpy="0 0 0"/>
+        <mass value="0.03804"/>
+        <inertia ixx="13567E-9" ixy="1849E-9" ixz="3622E-9"
+		 iyy="15784E-9" iyz="3616E-9" izz="7478E-9"/>
+      </inertial>
+    </link>
+
+    <!-- tip -->
+    <xacro:property name="tip_link_origin"
+		    value="${subframes['tip_link']}"/>
+    <joint name="${prefix}tip_link_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}tip_link"/>
+      <origin xyz="${tip_link_origin[0]}
+		   ${tip_link_origin[1]}
+		   ${tip_link_origin[2]}"
+	      rpy="${tip_link_origin[3]*pi/180.0}
+		   ${tip_link_origin[4]*pi/180.0}
+		   ${tip_link_origin[5]*pi/180.0}"/>
+    </joint>
+    <link name="${prefix}tip_link"/>
+
+    <gazebo reference="${prefix}base_link">
+      <material>Gazebo/FlatBlack</material>
+    </gazebo>
+    <gazebo reference="${prefix}cylinder">
+      <material>Gazebo/Grey</material>
+    </gazebo>
+
+    <!-- Improve grasping physics -->
+    <gazebo reference="${prefix}cylinder">
+      <kp>1000000.0</kp>
+      <kd>1.0</kd>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+      <minDepth>0.001</minDepth>
+    </gazebo>
+
+  </xacro:macro>
+</robot>

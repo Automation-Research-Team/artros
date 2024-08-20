@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<robot name="aaa" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find aist_fastening_tools)/urdf/base_fixture.urdf.xacro" />
+
+  <xacro:arg name="prefix" default="base_fixture_"/>
+
+  <link name ="base_link"/>
+
+  <xacro:include filename="$(find aist_fastening_tools
+			   )/urdf/base_fixture.urdf.xacro"/>
+  <xacro:base_fixture prefix="$(arg prefix)" parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:base_fixture>
+
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo>
+
+</robot>
