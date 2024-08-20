@@ -62,6 +62,7 @@
 		    width="${border_length}"
 		    length="${border_width}"
 		    height="${border_height}"
+		    rgba="0.2 0.2 0.2 1.0" color_name="black"
 		    parent="${prefix}table_top_origin">
       <origin xyz="${width - border_length} ${length - border_width} 0"
 	      rpy="0 0 0"/>
@@ -71,6 +72,7 @@
 		    width="${border_width}"
 		    length="${border_length - border_width}"
 		    height="${border_height}"
+		    rgba="0.2 0.2 0.2 1.0" color_name="black"
 		    parent="${prefix}table_top_origin">
       <origin xyz="${width - border_width} ${length - border_length} 0"
 	      rpy="0 0 0"/>

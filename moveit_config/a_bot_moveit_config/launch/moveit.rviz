@@ -614,6 +614,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          screw_feeder_m3_front_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m3_gap:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           screw_feeder_m3_inlet_link:
             Alpha: 1
             Show Axes: false
@@ -623,6 +633,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
           screw_feeder_m4_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_front_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_gap:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1501,6 +1521,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          screw_feeder_m3_front_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m3_gap:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           screw_feeder_m3_inlet_link:
             Alpha: 1
             Show Axes: false
@@ -1510,6 +1540,16 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
           screw_feeder_m4_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_front_side:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          screw_feeder_m4_gap:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -2064,11 +2104,19 @@ Visualization Manager:
           Value: false
         screw_feeder_m3_base_link:
           Value: false
+        screw_feeder_m3_front_side:
+          Value: false
+        screw_feeder_m3_gap:
+          Value: false
         screw_feeder_m3_inlet_link:
           Value: false
         screw_feeder_m3_outlet_link:
           Value: true
         screw_feeder_m4_base_link:
+          Value: false
+        screw_feeder_m4_front_side:
+          Value: true
+        screw_feeder_m4_gap:
           Value: false
         screw_feeder_m4_inlet_link:
           Value: false
@@ -2326,14 +2374,18 @@ Visualization Manager:
                             {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
+                      screw_feeder_m3_front_side:
+                        screw_feeder_m3_gap:
+                          screw_feeder_m3_outlet_link:
+                            {}
                       screw_feeder_m3_inlet_link:
                         {}
-                      screw_feeder_m3_outlet_link:
-                        {}
                       screw_feeder_m4_base_link:
+                        screw_feeder_m4_front_side:
+                          screw_feeder_m4_gap:
+                            screw_feeder_m4_outlet_link:
+                              {}
                         screw_feeder_m4_inlet_link:
-                          {}
-                        screw_feeder_m4_outlet_link:
                           {}
                     workbench_back_bar:
                       {}
@@ -2624,13 +2676,13 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/Marker
-      Enabled: false
+      Enabled: true
       Marker Topic: /collision_marker
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -2648,7 +2700,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.990277886390686
+      Distance: 0.932964026927948
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2656,17 +2708,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.75
       Focal Point:
-        X: -0.4761699438095093
-        Y: -0.15676510334014893
-        Z: 1.0359866619110107
+        X: -0.4125758707523346
+        Y: -0.1722821444272995
+        Z: 1.0286030769348145
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2503637671470642
+      Pitch: 0.3653630316257477
       Target Frame: world
-      Yaw: 0.9833016395568848
+      Yaw: 1.2883093357086182
     Saved: ~
 Window Geometry:
   Displays:
@@ -2684,7 +2736,7 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1556
-  X: 699
-  Y: 79
+  X: 994
+  Y: 101
   aruco_result:
     collapsed: false
