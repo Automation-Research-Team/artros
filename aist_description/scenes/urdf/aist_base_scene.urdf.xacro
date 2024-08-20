@@ -44,7 +44,7 @@
   <xacro:property name="table_l"	value="1.800"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
-  <xacro:table prefix="workspace_"
+  <xacro:table prefix="workspace_table_"
 	       width="${table_w}" length="${table_l}" height="${bots_z}"
 	       parent="ground">
     <origin xyz="${-cage_w/2 + cage_offset_x + cage_t} ${-table_l/2} 0"

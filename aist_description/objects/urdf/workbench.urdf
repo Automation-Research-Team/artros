@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<robot name="aaa" xmlns:xacro="http://wiki.ros.org/xacro">
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/workbench.urdf.xacro"/>
+
+  <link name="base_link"/>
+
+  <xacro:workbench prefix="workbench_"
+		   height="0.12" bar_width="0.6" parent="base_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:workbench>
+</robot>

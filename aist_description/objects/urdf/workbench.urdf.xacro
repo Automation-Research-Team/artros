@@ -1,0 +1,95 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="table">
+
+  <xacro:macro name="workbench"
+	       params="prefix height bar_width parent *origin">
+
+    <xacro:property name="bar_thickness"	value="0.020" />
+    <xacro:property name="width"		value="0.240" />
+    <xacro:property name="length"		value="0.320" />
+    <xacro:property name="table_thickness"	value="0.005" />
+    <xacro:property name="border_width"		value="0.016" />
+    <xacro:property name="border_length"	value="0.150" />
+    <xacro:property name="border_height"	value="0.003" />
+
+    <xacro:include filename="$(find aist_description
+			     )/objects/urdf/aist_box.urdf.xacro"/>
+
+    <xacro:aist_box name="${prefix}base_link"
+		    width="${bar_width}"
+		    length="${bar_thickness}"
+		    height="${bar_thickness}"
+		    parent="${parent}">
+      <xacro:insert_block name="origin"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}back_bar"
+		    width="${bar_width}"
+		    length="${bar_thickness}"
+		    height="${bar_thickness}"
+		    parent="${prefix}base_link">
+      <origin xyz="0 ${length - bar_thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}center_bar"
+		    width="${bar_thickness}"
+		    length="${length - 2*bar_thickness}"
+		    height="${bar_thickness}"
+		    parent="${prefix}base_link">
+      <origin xyz="${bar_width - width} ${bar_thickness} 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}right_bar"
+		    width="${bar_thickness}"
+		    length="${length - 2*bar_thickness}"
+		    height="${bar_thickness}"
+		    parent="${prefix}base_link">
+      <origin xyz="${bar_width - bar_thickness} ${bar_thickness} 0"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:include filename="$(find aist_description
+			     )/objects/urdf/table.urdf.xacro"/>
+    <xacro:table prefix="${prefix}table_" width="${width}"
+		 length="${length}" height="${height - bar_thickness}"
+		 table_thickness="${table_thickness}"
+		 table_leg_thickness="${bar_thickness}"
+		 parent="${prefix}base_link">
+      <origin xyz="${bar_width - width} 0 0" rpy="0 0 0"/>
+    </xacro:table>
+
+    <xacro:aist_box name="${prefix}back_border"
+		    width="${border_length}"
+		    length="${border_width}"
+		    height="${border_height}"
+		    parent="${prefix}table_top_origin">
+      <origin xyz="${width - border_length} ${length - border_width} 0"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:aist_box name="${prefix}right_border"
+		    width="${border_width}"
+		    length="${border_length - border_width}"
+		    height="${border_height}"
+		    parent="${prefix}table_top_origin">
+      <origin xyz="${width - border_width} ${length - border_length} 0"
+	      rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <xacro:macro name="auxiliary_frame" params="parent framename *origin">
+      <joint name="${framename}" type="fixed">
+	<parent link="${parent}" />
+	<child link = "${framename}"/>
+	<xacro:insert_block name="origin"/>
+      </joint>
+      <link name="${framename}"/>
+    </xacro:macro>
+
+    <xacro:auxiliary_frame parent="${prefix}table_top_origin"
+			   framename="${prefix}holder_link">
+      <origin xyz="${width - border_width} ${length - border_width} 0"
+	      rpy="0 0 ${pi/2}"/>
+    </xacro:auxiliary_frame>
+
+  </xacro:macro>
+</robot>

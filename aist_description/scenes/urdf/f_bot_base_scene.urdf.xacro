@@ -20,7 +20,7 @@
   <xacro:include filename="$(find aist_description)/objects/urdf/aist_box.urdf.xacro"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
-  <xacro:table prefix="worksapce_"
+  <xacro:table prefix="worksapce_table_"
 	       width="${table_w}" length="${table_l}" height="${table_h}"
 	       parent="ground">
     <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
@@ -34,7 +34,7 @@
   </joint>
 
   <!-- Robot mounter -->
-  <xacro:table prefix="mounter_"
+  <xacro:table prefix="mounter_table_"
 	       width="${mounter_w}" length="${mounter_l}" height="${f_bot_z}"
 	       parent="ground">
     <origin xyz="${f_bot_x - mounter_w/2} ${f_bot_y - mounter_l/2} 0"

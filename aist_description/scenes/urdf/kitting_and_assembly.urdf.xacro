@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="kitting_and_assembly">
+
+  <!-- base fixture table and screw feeders -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/assembly.urdf.xacro"/>
+
+  <!-- kitting bins and trays -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/kitting.urdf.xacro"/>
+
+</robot>

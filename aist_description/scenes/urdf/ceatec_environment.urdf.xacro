@@ -35,7 +35,7 @@
 
   <!-- a_table -->
   <xacro:include filename="$(find aist_description)/objects/urdf/table.urdf.xacro"/>
-  <xacro:table prefix="a_"
+  <xacro:table prefix="a_table_"
 	       width="${a_table_width}"
 	       length="${a_table_length}"
 	       height="${a_table_height}"
@@ -71,7 +71,7 @@
   </joint>
 
   <!-- b_table -->
-  <xacro:table prefix="b_"
+  <xacro:table prefix="b_table_"
 	       width="${b_table_width}"
 	       length="${b_table_length}"
 	       height="${b_table_height}"
