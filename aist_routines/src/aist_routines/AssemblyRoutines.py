@@ -97,6 +97,9 @@ class AssemblyRoutines(URRoutines):
             self.pick_tool(robot_name, tool_name)
         elif key == 'T':
             self.place_tool(robot_name)
+        elif key == 's':
+            screw_name = raw_input('  screw name? ')
+            self.pick_screw(robot_name, screw_name)
         elif key == 'i':
             tool_name = raw_input('  tool name? ')
             self.com.print_object_info(tool_name)
@@ -141,5 +144,15 @@ class AssemblyRoutines(URRoutines):
         if self.place_at_frame(robot_name, tool_name + '_holder_link',
                                tool_name, attach=True):
             self.set_gripper(robot_name, tool_name)
+            return False
+        return True
+
+    def pick_screw(self, robot_name, screw_name):
+        tool_name = 'screw_tool_' + screw_name[-2:]
+        if not self.pick_tool(robot_name, tool_name):
+            return False
+        feeder_name = 'screw_feeder_' + screw_name[-2:]
+        if self.pick_at_frame(robot_name, feeder_name + '_outlet_link',
+                              screw_name, attach=False):
             return False
         return True

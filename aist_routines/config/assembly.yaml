@@ -43,6 +43,20 @@ picking_parameters:
       grasp_position:   0.000
       release_position: 0.040
       max_effort:       5.0
+  screw_m3:
+    approach_offset:  [0.000, 0.000,  0.050, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000,  0.019, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.050, 0.0, 0.0, 0.0]
+    speed_fast:       1.0
+    speed_slow:       0.1
+  screw_m4:
+    approach_offset:  [0.000, 0.000,  0.050, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000,  0.019, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.050, 0.0, 0.0, 0.0]
+    speed_fast:       1.0
+    speed_slow:       0.1
 
 touch_links:
   a_bot_gripper_tip_link:
