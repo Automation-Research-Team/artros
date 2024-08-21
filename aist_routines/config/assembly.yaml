@@ -1,3 +1,20 @@
+initial_object_poses:
+  precision_tool:
+    holder: precision_tool_holder_link
+    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+  screw_tool_m3:
+    holder: screw_tool_m3_holder_link
+    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+  screw_tool_m4:
+    holder: screw_tool_m4_holder_link
+    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+  suction_tool:
+    holder: suction_tool_holder_link
+    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+  base:
+    holder: workbench_holder_link
+    offset: [0.000, 0.000, 0.000, 90.0, 0.0, 180.0]
+
 picking_parameters:
   precision_tool:
     approach_offset:  [0.000, 0.000,  0.050, 0.0, 0.0, 0.0]

@@ -78,17 +78,17 @@
 	      rpy="0 0 0"/>
     </xacro:aist_box>
 
-    <xacro:macro name="auxiliary_frame" params="parent framename *origin">
-      <joint name="${framename}" type="fixed">
+    <xacro:macro name="auxiliary_frame" params="parent child *origin">
+      <joint name="${child}_joint" type="fixed">
 	<parent link="${parent}" />
-	<child link = "${framename}"/>
+	<child  link="${child}"/>
 	<xacro:insert_block name="origin"/>
       </joint>
-      <link name="${framename}"/>
+      <link name="${child}"/>
     </xacro:macro>
 
     <xacro:auxiliary_frame parent="${prefix}table_top_origin"
-			   framename="${prefix}holder_link">
+			   child ="${prefix}holder_link">
       <origin xyz="${width - border_width} ${length - border_width} 0"
 	      rpy="0 0 ${pi/2}"/>
     </xacro:auxiliary_frame>

@@ -884,11 +884,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          workbench_table_top_origin:
+          workbench_table_top_center:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workbench_table_top_origin_center:
+          workbench_table_top_origin:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -921,11 +921,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          workspace_table_top_origin:
+          workspace_table_top_center:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workspace_table_top_origin_center:
+          workspace_table_top_origin:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1791,11 +1791,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          workbench_table_top_origin:
+          workbench_table_top_center:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workbench_table_top_origin_center:
+          workbench_table_top_origin:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1828,11 +1828,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          workspace_table_top_origin:
+          workspace_table_top_center:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workspace_table_top_origin_center:
+          workspace_table_top_origin:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1951,6 +1951,52 @@ Visualization Manager:
         a_bot_wrist_2_link:
           Value: false
         a_bot_wrist_3_link:
+          Value: false
+        base/base_link:
+          Value: true
+        base/big_hole_1:
+          Value: false
+        base/big_hole_2:
+          Value: false
+        base/big_hole_3:
+          Value: false
+        base/big_hole_4:
+          Value: false
+        base/cable_pin1:
+          Value: false
+        base/cable_pin2:
+          Value: false
+        base/cable_pin3:
+          Value: false
+        base/cable_pin4:
+          Value: false
+        base/corner_1:
+          Value: false
+        base/corner_2:
+          Value: false
+        base/corner_3:
+          Value: false
+        base/corner_4:
+          Value: false
+        base/screw_hole_panel1_1:
+          Value: true
+        base/screw_hole_panel1_2:
+          Value: true
+        base/screw_hole_panel1_3:
+          Value: false
+        base/screw_hole_panel1_4:
+          Value: false
+        base/screw_hole_panel2_1:
+          Value: true
+        base/screw_hole_panel2_2:
+          Value: true
+        base/screw_hole_panel2_3:
+          Value: false
+        base/screw_hole_panel2_4:
+          Value: false
+        base/terminal_top:
+          Value: false
+        base/under_outer_hole:
           Value: false
         bin_1_part_16:
           Value: false
@@ -2095,7 +2141,7 @@ Visualization Manager:
         plate_lower_left_corner:
           Value: false
         precision_tool/base_link:
-          Value: false
+          Value: true
         precision_tool/tip_link:
           Value: true
         precision_tool_holder_base_link:
@@ -2123,7 +2169,7 @@ Visualization Manager:
         screw_feeder_m4_outlet_link:
           Value: true
         screw_tool_m3/base_link:
-          Value: false
+          Value: true
         screw_tool_m3/tip_link:
           Value: true
         screw_tool_m3_holder_base_link:
@@ -2131,7 +2177,7 @@ Visualization Manager:
         screw_tool_m3_holder_link:
           Value: false
         screw_tool_m4/base_link:
-          Value: false
+          Value: true
         screw_tool_m4/tip_link:
           Value: true
         screw_tool_m4_holder_base_link:
@@ -2139,7 +2185,7 @@ Visualization Manager:
         screw_tool_m4_holder_link:
           Value: false
         suction_tool/base_link:
-          Value: false
+          Value: true
         suction_tool/tip_link:
           Value: true
         suction_tool_holder_base_link:
@@ -2240,9 +2286,9 @@ Visualization Manager:
           Value: false
         workbench_table_top:
           Value: false
+        workbench_table_top_center:
+          Value: false
         workbench_table_top_origin:
-          Value: true
-        workbench_table_top_origin_center:
           Value: true
         workspace_center:
           Value: false
@@ -2256,9 +2302,9 @@ Visualization Manager:
           Value: false
         workspace_table_top:
           Value: false
-        workspace_table_top_origin:
+        workspace_table_top_center:
           Value: false
-        workspace_table_top_origin_center:
+        workspace_table_top_origin:
           Value: false
         world:
           Value: false
@@ -2405,10 +2451,54 @@ Visualization Manager:
                           workbench_back_border:
                             {}
                           workbench_holder_link:
-                            {}
+                            base/base_link:
+                              base/big_hole_1:
+                                {}
+                              base/big_hole_2:
+                                {}
+                              base/big_hole_3:
+                                {}
+                              base/big_hole_4:
+                                {}
+                              base/cable_pin1:
+                                {}
+                              base/cable_pin2:
+                                {}
+                              base/cable_pin3:
+                                {}
+                              base/cable_pin4:
+                                {}
+                              base/corner_1:
+                                {}
+                              base/corner_2:
+                                {}
+                              base/corner_3:
+                                {}
+                              base/corner_4:
+                                {}
+                              base/screw_hole_panel1_1:
+                                {}
+                              base/screw_hole_panel1_2:
+                                {}
+                              base/screw_hole_panel1_3:
+                                {}
+                              base/screw_hole_panel1_4:
+                                {}
+                              base/screw_hole_panel2_1:
+                                {}
+                              base/screw_hole_panel2_2:
+                                {}
+                              base/screw_hole_panel2_3:
+                                {}
+                              base/screw_hole_panel2_4:
+                                {}
+                              base/terminal_top:
+                                {}
+                              base/under_outer_hole:
+                                {}
                           workbench_right_border:
                             {}
-                          workbench_table_top_origin_center:
+                          workbench_table_top_center:
                             {}
               cage_lower_right_bar:
                 {}
@@ -2595,7 +2685,7 @@ Visualization Manager:
                 {}
               workspace_table_top:
                 workspace_table_top_origin:
-                  workspace_table_top_origin_center:
+                  workspace_table_top_center:
                     {}
       Update Interval: 0
       Value: true
@@ -2700,7 +2790,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.932964026927948
+      Distance: 0.639385461807251
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2708,17 +2798,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.75
       Focal Point:
-        X: -0.4125758707523346
-        Y: -0.1722821444272995
-        Z: 1.0286030769348145
+        X: -0.2833379805088043
+        Y: 0.12947067618370056
+        Z: 1.0513999462127686
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3653630316257477
+      Pitch: 0.38602161407470703
       Target Frame: world
-      Yaw: 1.2883093357086182
+      Yaw: 1.3940324783325195
     Saved: ~
 Window Geometry:
   Displays:
@@ -2737,6 +2827,6 @@ Window Geometry:
     collapsed: false
   Width: 1556
   X: 994
-  Y: 101
+  Y: 27
   aruco_result:
     collapsed: false

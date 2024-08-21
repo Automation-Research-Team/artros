@@ -52,20 +52,21 @@
       <origin xyz="0 0 ${height - table_thickness}" rpy="0 0 0"/>
     </xacro:aist_box>
 
-    <xacro:macro name="auxiliary_frame" params="parent framename *origin">
-      <joint name="${parent}_${framename}" type="fixed">
+    <xacro:macro name="auxiliary_frame" params="parent child *origin">
+      <joint name="${child}_joint" type="fixed">
 	<parent link="${parent}" />
-	<child link = "${parent}_${framename}"/>
+	<child  link="${child}"/>
 	<xacro:insert_block name="origin"/>
       </joint>
-      <link name="${parent}_${framename}"/>
+      <link name="${child}"/>
     </xacro:macro>
 
-    <xacro:auxiliary_frame parent="${prefix}top" framename="origin">
+    <xacro:auxiliary_frame parent="${prefix}top" child="${prefix}top_origin">
       <origin xyz="0 0 ${table_thickness}" rpy="0 0 0"/>
     </xacro:auxiliary_frame>
 
-    <xacro:auxiliary_frame parent="${prefix}top_origin" framename="center">
+    <xacro:auxiliary_frame parent="${prefix}top_origin"
+			   child ="${prefix}top_center">
       <origin xyz="${width/2} ${length/2} 0" rpy="0 0 0"/>
     </xacro:auxiliary_frame>
 

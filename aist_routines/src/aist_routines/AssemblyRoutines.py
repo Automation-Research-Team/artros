@@ -48,14 +48,7 @@ class AssemblyRoutines(URRoutines):
 
     def __init__(self):
         super().__init__()
-
-        tool_descriptions = rospy.get_param('~tool_descriptions', {})
-
-        for tool_name in tool_descriptions.keys():
-            holder_link = tool_name + '_holder_link'
-            self.com.create_object(tool_name,
-                                   PoseStamped(Header(frame_id=holder_link),
-                                               self.pose_from_offset()))
+        self._initialize_object_poses()
 
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]
@@ -108,11 +101,7 @@ class AssemblyRoutines(URRoutines):
             for aco in self.com.find_attached_objects(link_name):
                 self.com.print_object_info(aco.object.id)
         elif key == 'a':
-            for tool_name in rospy.get_param('~tool_descriptions').keys():
-                self.com.create_object(
-                    tool_name,
-                    PoseStamped(Header(frame_id=tool_name + '_holder_link'),
-                                self.pose_from_offset()))
+            self._initialize_object_poses()
         elif key == 'c':
             self.com.remove_attached_object()
         elif key == 'H':
@@ -156,3 +145,11 @@ class AssemblyRoutines(URRoutines):
                               screw_name, attach=False):
             return False
         return True
+
+    def _initialize_object_poses(self):
+        for object_name, pose \
+            in rospy.get_param('~initial_object_poses', {}).items():
+            self.com.create_object(object_name,
+                                   PoseStamped(
+                                       Header(frame_id=pose['holder']),
+                                       self.pose_from_offset(pose['offset'])))
