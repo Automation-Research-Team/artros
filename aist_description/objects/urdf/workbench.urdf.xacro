@@ -14,9 +14,9 @@
     <xacro:property name="theta"		value="${-59.04*pi/180.0}"/>
     <xacro:property name="diag"			value="0.27739"/>
     <xacro:property name="base_fixture_x"
-		    value="${width - 0.010 - diag*cos(theta)}"/>
+		    value="${width - bar_thickness/2 - diag*cos(theta)}"/>
     <xacro:property name="base_fixture_y"
-		    value="${0.010 - diag*sin(theta)}" />
+		    value="${bar_thickness/2 - diag*sin(theta)}" />
 
     <xacro:include filename="$(find aist_description
 			     )/objects/urdf/aist_box.urdf.xacro"/>
