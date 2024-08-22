@@ -190,10 +190,8 @@ class CollisionObjectManager(object):
             aco = self._create_object(req.object_type, req.object_id)
 
         if req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
-            res.old_attach_link = self._attach_object(aco,
-                                                      req.attach_link,
-                                                      req.pose,
-                                                      req.touch_links)
+            res.detach_link = self._attach_object(aco, req.attach_link,
+                                                  req.pose, req.touch_links)
         elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
             self._set_touch_links(aco, list(set(aco.touch_links) |
                                             set(req.touch_links)))
@@ -208,7 +206,7 @@ class CollisionObjectManager(object):
 
     # operations
     def _create_object(self, object_type, object_id):
-        # Create and attach a collision object.
+        # Create an attached collision object.
         obj_props = self._obj_props_dict[object_type]
         aco = AttachedCollisionObject()
         aco.object.id = object_id if object_id != '' else object_type
@@ -223,8 +221,11 @@ class CollisionObjectManager(object):
         aco.object.operation      = CollisionObject.ADD
 
         # Create subframe transforms.
-        subframe_transforms = [TransformStamped()]
         base_link = aco.object.id + '/base_link'
+        subframe_transforms \
+            = [TransformStamped(Header(), base_link,
+                                Transform(Vector3(0, 0, 0),
+                                          Quaternion(0, 0, 0, 1)))]
         for subframe_name, subframe_pose in zip(obj_props.subframe_names,
                                                 obj_props.subframe_poses):
             T = TransformStamped(Header(frame_id=base_link),
@@ -238,6 +239,7 @@ class CollisionObjectManager(object):
                                                subframe_pose.orientation.z,
                                                subframe_pose.orientation.w)))
             subframe_transforms.append(T)
+        self._subframe_transforms[aco.object.id] = subframe_transforms
 
         # Create new marker IDs if not exit for this object.
         if aco.object.id not in self._marker_id_lists:
@@ -263,15 +265,12 @@ class CollisionObjectManager(object):
             marker.frame_locked    = False
             marker.mesh_resource   = mesh_url
             markers.append(marker)
-
-        # Keep created subframe transforms and markers.
-        self._subframe_transforms[aco.object.id] = subframe_transforms
         self._marker_lists[aco.object.id] = markers
 
         return aco
 
     def _attach_object(self, aco, attach_link, pose, touch_links):
-        old_attach_link = aco.link_name
+        detach_link = aco.link_name
         aco.object.header.frame_id = attach_link
         aco.object.pose            = pose
         aco.object.operation       = CollisionObject.ADD
@@ -292,7 +291,7 @@ class CollisionObjectManager(object):
                                                     pose.orientation.z,
                                                     pose.orientation.w)))
 
-        return old_attach_link
+        return detach_link
 
     def _set_touch_links(self, aco, touch_links):
         self._psi.attach_object(aco, touch_links=touch_links)

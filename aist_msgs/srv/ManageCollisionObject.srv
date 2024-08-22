@@ -32,4 +32,4 @@ geometry_msgs/Pose pose
 string[]           touch_links
 ---
 bool               success
-string             old_attach_link
+string             detach_link
