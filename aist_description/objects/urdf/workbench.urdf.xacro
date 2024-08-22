@@ -4,17 +4,24 @@
   <xacro:macro name="workbench"
 	       params="prefix height bar_width parent *origin">
 
-    <xacro:property name="bar_thickness"	value="0.020" />
-    <xacro:property name="width"		value="0.240" />
-    <xacro:property name="length"		value="0.320" />
-    <xacro:property name="table_thickness"	value="0.005" />
-    <xacro:property name="border_width"		value="0.016" />
-    <xacro:property name="border_length"	value="0.150" />
-    <xacro:property name="border_height"	value="0.003" />
+    <xacro:property name="bar_thickness"	value="0.020"/>
+    <xacro:property name="width"		value="0.240"/>
+    <xacro:property name="length"		value="0.320"/>
+    <xacro:property name="table_thickness"	value="0.005"/>
+    <xacro:property name="border_width"		value="0.016"/>
+    <xacro:property name="border_length"	value="0.150"/>
+    <xacro:property name="border_height"	value="0.003"/>
+    <xacro:property name="theta"		value="${-59.04*pi/180.0}"/>
+    <xacro:property name="diag"			value="0.27739"/>
+    <xacro:property name="base_fixture_x"
+		    value="${width - 0.010 - diag*cos(theta)}"/>
+    <xacro:property name="base_fixture_y"
+		    value="${0.010 - diag*sin(theta)}" />
 
     <xacro:include filename="$(find aist_description
 			     )/objects/urdf/aist_box.urdf.xacro"/>
 
+    <!-- base bars -->
     <xacro:aist_box name="${prefix}base_link"
 		    width="${bar_width}"
 		    length="${bar_thickness}"
@@ -48,6 +55,7 @@
 	      rpy="0 0 0"/>
     </xacro:aist_box>
 
+    <!-- table -->
     <xacro:include filename="$(find aist_description
 			     )/objects/urdf/table.urdf.xacro"/>
     <xacro:table prefix="${prefix}table_" width="${width}"
@@ -58,6 +66,7 @@
       <origin xyz="${bar_width - width} 0 0" rpy="0 0 0"/>
     </xacro:table>
 
+    <!-- table borders -->
     <xacro:aist_box name="${prefix}front_border"
 		    width="${border_length}"
 		    length="${border_width}"
@@ -76,6 +85,16 @@
       <origin xyz="${width - border_width} ${border_width} 0" rpy="0 0 0"/>
     </xacro:aist_box>
 
+    <!-- base fixture -->
+    <xacro:include filename="$(find aist_fastening_tools
+			     )/urdf/base_fixture.urdf.xacro"/>
+    <xacro:base_fixture prefix="base_fixture_"
+			parent="${prefix}table_top_origin">
+      <origin xyz="${base_fixture_x} ${base_fixture_y} 0"
+	      rpy="0 0 ${theta}"/>
+    </xacro:base_fixture>
+
+    <!-- auxiliary frames -->
     <xacro:macro name="auxiliary_frame" params="parent child *origin">
       <joint name="${child}_joint" type="fixed">
 	<parent link="${parent}" />

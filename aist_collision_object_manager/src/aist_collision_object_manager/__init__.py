@@ -56,7 +56,7 @@ class CollisionObjectManagerClient(object):
         req = ManageCollisionObjectRequest()
         req.op          = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_type = object_type
-        req.object_id   = object_id if object_id is not None else object_type
+        req.object_id   = object_id
         req.attach_link = pose.header.frame_id
         req.pose        = pose.pose
         req.touch_links = self._touch_links.get(req.attach_link, [])

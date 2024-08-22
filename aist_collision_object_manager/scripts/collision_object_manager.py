@@ -83,14 +83,14 @@ class CollisionObjectManager(object):
                       'CYLINDER': SolidPrimitive.CYLINDER,
                       'CONE':     SolidPrimitive.CONE}
 
-        # Load object descriptions from database.
+        # Load object properties from database.
         self._obj_props_dict = {}
-        for type, desc in rospy.get_param('~object_descriptions', {}).items():
+        for type, props in rospy.get_param('~object_properties', {}).items():
             obj_props = CollisionObjectManager.ObjectProperties([], [],
                                                                 [], [], [], [],
                                                                 [], [], [],
                                                                 [], [])
-            for primitive in desc.get('primitives', []):
+            for primitive in props.get('primitives', []):
                 primitive_pose = primitive['pose']
                 obj_props.primitives.append(SolidPrimitive(
                     type=PRIMITIVES[primitive['type']],
@@ -100,15 +100,15 @@ class CollisionObjectManager(object):
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(primitive_pose[3:6])))))
 
-            for subframe_name, subframe_pose in desc.get('subframes',
-                                                         {}).items():
+            for subframe_name, subframe_pose in props.get('subframes',
+                                                          {}).items():
                 obj_props.subframe_names.append(subframe_name)
                 obj_props.subframe_poses.append(
                     Pose(Point(*subframe_pose[0:3]),
                          Quaternion(*tfs.quaternion_from_euler(
                                         *np.radians(subframe_pose[3:6])))))
 
-            for mesh in desc.get('visual_meshes', []):
+            for mesh in props.get('visual_meshes', []):
                 obj_props.visual_mesh_urls.append(mesh['url'])
                 mesh_pose = mesh['pose']
                 obj_props.visual_mesh_poses.append(
@@ -118,7 +118,7 @@ class CollisionObjectManager(object):
                 obj_props.visual_mesh_scales.append(Vector3(*mesh['scale']))
                 obj_props.visual_mesh_colors.append(ColorRGBA(*mesh['color']))
 
-            for mesh in desc.get('collision_meshes', []):
+            for mesh in props.get('collision_meshes', []):
                 obj_props.collision_meshes.append(
                     self._load_mesh(mesh['url'], mesh['scale']))
                 mesh_pose = mesh['pose']

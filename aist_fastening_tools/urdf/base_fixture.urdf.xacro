@@ -76,7 +76,7 @@
       </inertial>
     </link>
 
-    <!-- left finger -->
+    <!-- cylinder -->
     <!-- <xacro:property name="cylinder_vorigin" -->
     <!-- 		    value="${visual_meshes[1]['pose']}"/> -->
     <!-- <xacro:property name="cylinder_vscale" -->
