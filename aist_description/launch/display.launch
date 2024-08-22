@@ -3,11 +3,11 @@
   <arg name="name"		default="base"/>
   <arg name="collision"		default="false"/>
   <arg name="properties_file"	default="$(dirname
-					 )/../config/parts_properties.yaml"/>
+					 )/../parts/config/parts_properties.yaml"/>
   <arg name="rvizconfig"	default="$(dirname)/display.rviz" />
 
   <param name="robot_description"
-	 command="$(find xacro)/xacro $(dirname)/../urdf/object.urdf
+	 command="$(find xacro)/xacro $(dirname)/../parts/urdf/object.urdf
 		  name:=$(arg name) properties_file:=$(arg properties_file)
 		  collision:=$(arg collision)"/>
 

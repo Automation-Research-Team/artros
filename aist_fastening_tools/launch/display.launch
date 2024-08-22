@@ -3,7 +3,7 @@
   <arg name="name"	default="screw_tool_m3"/>
   <arg name="collision"	default="false"/>
 
-  <include file="$(find aist_object_database)/launch/display.launch">
+  <include file="$(find aist_description)/launch/display.launch">
     <arg name="name"		value="$(arg name)"/>
     <arg name="properties_file"
 	 value="$(dirname)/../config/fastening_tools_properties.yaml"/>

@@ -2,13 +2,13 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="assembly">
 
   <!-- base fixture table -->
-  <xacro:property name="cage_thickness"		 value="0.04"/>
-  <xacro:property name="workbench_bar_thickness" value="0.02"/>
-  <xacro:property name="workbench_height"	 value="0.15"/>
-  <xacro:property name="workbench_bar_width"	 value="0.48"/>
-  <xacro:property name="workbench_y"		 value="0.55"/>
+  <xacro:property name="cage_thickness"		 value="0.040"/>
+  <xacro:property name="workbench_bar_thickness" value="0.020"/>
+  <xacro:property name="workbench_height"	 value="0.150"/>
+  <xacro:property name="workbench_bar_width"	 value="0.480"/>
+  <xacro:property name="workbench_y"		 value="0.630"/>
   <xacro:property name="screw_feeder_width"	 value="0.126"/>
-  <xacro:property name="screw_feeder_y"		 value="0.03"/>
+  <xacro:property name="screw_feeder_y"		 value="0.030"/>
 
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/workbench.urdf.xacro"/>

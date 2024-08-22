@@ -2767,7 +2767,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /collision_marker
+      Marker Topic: /collision_object_manager/collision_marker
       Name: Marker
       Namespaces:
         "": true
@@ -2808,7 +2808,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 0.38602161407470703
       Target Frame: world
-      Yaw: 1.3940324783325195
+      Yaw: 1.3690325021743774
     Saved: ~
 Window Geometry:
   Displays:

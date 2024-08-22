@@ -35,10 +35,10 @@
 # Author: Toshio Ueshiba
 #
 import rospy
-from std_msgs.msg        import Header
-from geometry_msgs.msg   import PoseStamped
-from aist_routines.ur    import URRoutines
-from aist_utility.compat import *
+from std_msgs.msg                  import Header
+from geometry_msgs.msg             import PoseStamped
+from aist_routines.ur              import URRoutines
+from aist_utility.compat           import *
 
 ######################################################################
 #  class AssemblyRoutines                                            #
@@ -48,7 +48,7 @@ class AssemblyRoutines(URRoutines):
 
     def __init__(self):
         super().__init__()
-        self._initialize_object_poses()
+        self._initialize_collision_objects()
 
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]
@@ -77,10 +77,8 @@ class AssemblyRoutines(URRoutines):
         print('  t: Pick tool')
         print('  T: Place tool')
         print('  s: Pick screw')
-        print('  i: Print tool info with specified id')
-        print('  f: Find tools attached to specified link')
-        print('  a: Add all collision objects')
-        print('  c: Clear all collision objects')
+        print('  i: Initialize all collision objects')
+        print('  r: Remove specified collision objects')
         print('  H: Move all robots to home')
         print('  B: Move all robots to back')
 
@@ -94,16 +92,11 @@ class AssemblyRoutines(URRoutines):
             screw_name = raw_input('  screw name? ')
             self.pick_screw(robot_name, screw_name)
         elif key == 'i':
-            tool_name = raw_input('  tool name? ')
-            self.com.print_object_info(tool_name)
-        elif key == 'f':
-            link_name = raw_input('  link name? ')
-            for aco in self.com.find_attached_objects(link_name):
-                self.com.print_object_info(aco.object.id)
-        elif key == 'a':
-            self._initialize_object_poses()
-        elif key == 'c':
-            self.com.remove_attached_object()
+            self._initialize_collision_objects()
+        elif key == 'r':
+            object_id   = raw_input('  object_id? ')
+            attach_link = raw_input('  attach_link? ')
+            self.com.remove_object(object_id, attach_link)
         elif key == 'H':
             self.go_to_named_pose('all_bots', 'home')
         elif key == 'B':
@@ -146,10 +139,10 @@ class AssemblyRoutines(URRoutines):
             return False
         return True
 
-    def _initialize_object_poses(self):
-        for object_name, pose \
+    def _initialize_collision_objects(self):
+        for object_type, pose \
             in rospy.get_param('~initial_object_poses', {}).items():
-            self.com.create_object(object_name,
+            self.com.create_object(object_type,
                                    PoseStamped(
                                        Header(frame_id=pose['holder']),
                                        self.pose_from_offset(pose['offset'])))

@@ -3,7 +3,7 @@ base:
   type: 01-BASE
   description: Base Panel
   visual_meshes:
-  - url: package://aist_object_database/meshes/01-BASE.stl
+  - url: package://aist_description/parts/meshes/01-BASE.stl
     pose: [0.2, 0.0, 0.12, 0.0, 180.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -20,7 +20,7 @@ base:
     big_hole_3: [0.124, 0.0, 0.076, 90.0, 0.0, -180.0]
     big_hole_4: [0.187, 0.0, 0.076, 90.0, 0.0, -180.0]
     under_outer_hole: [0.01, 0.0, 0.01, 90.0, 0.0, -90.0]
-    corner_1: [0.0, 0.01, 0.0, 90.0, 0.0, -180.0]
+    corner_1: [0.0, 0.008, 0.0, 90.0, 0.0, -180.0]
     corner_2: [0.2, 0.008, 0.0, 90.0, 0.0, -180.0]
     corner_3: [0.2, 0.008, 0.12, 90.0, 0.0, -180.0]
     corner_4: [0.0, 0.008, 0.12, 90.0, 0.0, -180.0]
@@ -46,7 +46,7 @@ panel_motor:
   type: 02-PANEL
   description: Motor fixing plate
   visual_meshes:
-  - url: package://aist_object_database/meshes/02-PANEL.stl
+  - url: package://aist_description/parts/meshes/02-PANEL.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -92,7 +92,7 @@ panel_bearing:
   type: 03-PANEL2
   description: Output shaft fixing plate
   visual_meshes:
-  - url: package://aist_object_database/meshes/03-PANEL2.stl
+  - url: package://aist_description/parts/meshes/03-PANEL2.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -150,7 +150,7 @@ motor:
   type: 04_37D-GEARMOTOR-50-70
   description: Geared motor (Gear ratio 1:70)
   visual_meshes:
-  - url: package://aist_object_database/meshes/04_37D-GEARMOTOR-50-70.stl
+  - url: package://aist_description/parts/meshes/04_37D-GEARMOTOR-50-70.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -185,7 +185,7 @@ motor_pulley:
   type: 05_MBRFA30-2-P6
   description: Pulley for Round Belt (4mm) - Setscrew P.D. 30mm
   visual_meshes:
-  - url: package://aist_object_database/meshes/05_MBRFA30-2-P6.stl
+  - url: package://aist_description/parts/meshes/05_MBRFA30-2-P6.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -225,7 +225,7 @@ bearing:
   type: 07_SBARB6200ZZ-30
   description: Bearings with Housings (Double Bearings)
   visual_meshes:
-  - url: package://aist_object_database/meshes/07_SBARB6200ZZ_30.stl
+  - url: package://aist_description/parts/meshes/07_SBARB6200ZZ_30.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -263,7 +263,7 @@ shaft:
   type: 08_KZAF1075NA4WA55GA20AA0
   description: Drive shaft (Straight) D10h6
   visual_meshes:
-  - url: package://aist_object_database/meshes/08_KZAF1075NA4WA55GA20AA0.stl
+  - url: package://aist_description/parts/meshes/08_KZAF1075NA4WA55GA20AA0.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -294,7 +294,7 @@ end_cap:
   type: 09_EDCS10
   description: End Cap for Shaft
   visual_meshes:
-  - url: package://aist_object_database/meshes/09_EDCS10.stl
+  - url: package://aist_description/parts/meshes/09_EDCS10.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -335,7 +335,7 @@ bearing_spacer:
   type: 10_CLBPS10-17-4
   description: Bearing Spacers For Inner Ring (output pulley)
   visual_meshes:
-  - url: package://aist_object_database/meshes/10_CLBPS10_17_4.stl
+  - url: package://aist_description/parts/meshes/10_CLBPS10_17_4.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -363,7 +363,7 @@ output_pulley:
   type: 11_MBRAC60-2-10
   description: Pulley for Round Belts Clamping Type P.D. 60mm
   visual_meshes:
-  - url: package://aist_object_database/meshes/11_MBRAC60-2-10.stl
+  - url: package://aist_description/parts/meshes/11_MBRAC60-2-10.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -398,7 +398,7 @@ idler_spacer:
   type: 12_CLBUS6-9-9.5
   description: Bearing Spacers For Inner Ring (tension pulley)
   visual_meshes:
-  - url: package://aist_object_database/meshes/12_CLBUS6-9-9.5.stl
+  - url: package://aist_description/parts/meshes/12_CLBUS6-9-9.5.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -438,7 +438,7 @@ idler_pulley:
   type: 13_MBGA30-2
   description: Idler for Round Belt - Wide
   visual_meshes:
-  - url: package://aist_object_database/meshes/13_MBGA30-2.stl
+  - url: package://aist_description/parts/meshes/13_MBGA30-2.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -467,7 +467,7 @@ idler_pin:
   type: 14_BGPSL6-9-L30-F8
   description: Bearing Shaft Screw
   visual_meshes:
-  - url: package://aist_object_database/meshes/14_BGPSL6-9-L30-F8.stl
+  - url: package://aist_description/parts/meshes/14_BGPSL6-9-L30-F8.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -500,7 +500,7 @@ m6_nut:
   type: 15_SLBNR6
   description: M6 Hex Nut  (Fixing for idler shaft)
   visual_meshes:
-  - url: package://aist_object_database/meshes/15_SLBNR6.stl
+  - url: package://aist_description/parts/meshes/15_SLBNR6.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -516,7 +516,7 @@ m6_washer:
   type: 16_SPWF6
   description: M6 Flat Washer  (Fixing for idler shaft)
   visual_meshes:
-  - url: package://aist_object_database/meshes/16_SPWF6.stl
+  - url: package://aist_description/parts/meshes/16_SPWF6.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -532,7 +532,7 @@ m4_screw:
   type: 17_SCB4-10
   description: 10mm M4 Socket Head Cap Screw  (metric coarse thread)
   visual_meshes:
-  - url: package://aist_object_database/meshes/17_SCB4-10.stl
+  - url: package://aist_description/parts/meshes/17_SCB4-10.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -553,7 +553,7 @@ m3_screw_long:
   type: 18_SCB3-10
   description: 10mm M3 Socket Head Cap Screw  (metric coarse thread)
   visual_meshes:
-  - url: package://aist_object_database/meshes/18_SCB3-10.stl
+  - url: package://aist_description/parts/meshes/18_SCB3-10.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]
@@ -574,7 +574,7 @@ m3_screw_short:
   type: 19_MSSFS3-6
   description: 6mm M3 Hex Socket Set Screw  (metric coarse thread)
   visual_meshes:
-  - url: package://aist_object_database/meshes/19_MSSFS3-6.stl
+  - url: package://aist_description/parts/meshes/19_MSSFS3-6.stl
     pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     scale: [0.001, 0.001, 0.001]
     color: [0.2, 0.5, 0.8, 1.0]

@@ -9,7 +9,7 @@ ros_to_nep:
     to:   Kitting/image
   - from: /help
     to:   Kitting/request_help
-  - from: /collision_marker
+  - from: /collision_object_manager/collision_marker
     to:   Kitting/collision_marker
 
 nep_to_ros:
@@ -21,6 +21,6 @@ services:
   - name:     /robot_description_provider/get_links
     request:  Kitting/get_links
     response: Kitting/links
-  - name:     /object_database_server/get_mesh_resource
+  - name:     /collision_object_manager/get_mesh_resource
     request:  Kitting/get_mesh_resource
     response: Kitting/mesh_resource

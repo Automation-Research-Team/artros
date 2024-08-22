@@ -48,7 +48,7 @@ subframes:
   name: under_outer_hole
 - pose_xyzrpy:
   - 0.0
-  - 0.01
+  - 0.008
   - 0.0
   - -pi/2
   - 0.0

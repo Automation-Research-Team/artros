@@ -58,14 +58,13 @@
       <origin xyz="${bar_width - width} 0 0" rpy="0 0 0"/>
     </xacro:table>
 
-    <xacro:aist_box name="${prefix}back_border"
+    <xacro:aist_box name="${prefix}front_border"
 		    width="${border_length}"
 		    length="${border_width}"
 		    height="${border_height}"
 		    rgba="0.2 0.2 0.2 1.0" color_name="black"
 		    parent="${prefix}table_top_origin">
-      <origin xyz="${width - border_length} ${length - border_width} 0"
-	      rpy="0 0 0"/>
+      <origin xyz="${width - border_length} 0 0" rpy="0 0 0"/>
     </xacro:aist_box>
 
     <xacro:aist_box name="${prefix}right_border"
@@ -74,8 +73,7 @@
 		    height="${border_height}"
 		    rgba="0.2 0.2 0.2 1.0" color_name="black"
 		    parent="${prefix}table_top_origin">
-      <origin xyz="${width - border_width} ${length - border_length} 0"
-	      rpy="0 0 0"/>
+      <origin xyz="${width - border_width} ${border_width} 0" rpy="0 0 0"/>
     </xacro:aist_box>
 
     <xacro:macro name="auxiliary_frame" params="parent child *origin">
@@ -89,7 +87,7 @@
 
     <xacro:auxiliary_frame parent="${prefix}table_top_origin"
 			   child ="${prefix}holder_link">
-      <origin xyz="${width - border_width} ${length - border_width} 0"
+      <origin xyz="${width - border_width} ${border_width} 0"
 	      rpy="0 0 ${pi/2}"/>
     </xacro:auxiliary_frame>
 

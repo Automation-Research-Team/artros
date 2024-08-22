@@ -13,7 +13,7 @@ initial_object_poses:
     offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
   base:
     holder: workbench_holder_link
-    offset: [0.000, 0.000, 0.000, 90.0, 0.0, 180.0]
+    offset: [0.200, 0.000, 0.000, 90.0, 0.0, 180.0]
 
 picking_parameters:
   precision_tool:

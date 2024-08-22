@@ -38,26 +38,26 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                                 import degrees, sqrt
-from tf                                   import (TransformListener,
-                                                  transformations as tfs)
-from std_msgs.msg                         import Header
-from geometry_msgs.msg                    import (PoseStamped, Pose, Point,
-                                                  Quaternion, PoseArray,
-                                                  Vector3, Vector3Stamped)
-from moveit_msgs.msg                      import (RobotTrajectory,
-                                                  PositionIKRequest,
-                                                  MoveItErrorCodes)
-from moveit_msgs.srv                      import GetPositionIK
-from trajectory_msgs.msg                  import (JointTrajectoryPoint,
-                                                  JointTrajectory)
-from aist_routines.GripperClient          import GripperClient, VoidGripper
-from aist_routines.CameraClient           import CameraClient
-from aist_routines.FasteningToolClient    import FasteningToolClient
-from aist_routines.MarkerPublisher        import MarkerPublisher
-from aist_routines.PickOrPlaceAction      import PickOrPlace
-from aist_routines.CollisionObjectManager import CollisionObjectManager
-from aist_utility.compat                  import *
+from math                              import degrees, sqrt
+from tf                                import (TransformListener,
+                                               transformations as tfs)
+from std_msgs.msg                      import Header
+from geometry_msgs.msg                 import (PoseStamped, Pose, Point,
+                                               Quaternion, PoseArray,
+                                               Vector3, Vector3Stamped)
+from moveit_msgs.msg                   import (RobotTrajectory,
+                                               PositionIKRequest,
+                                               MoveItErrorCodes)
+from moveit_msgs.srv                   import GetPositionIK
+from trajectory_msgs.msg               import (JointTrajectoryPoint,
+                                               JointTrajectory)
+from aist_routines.GripperClient       import GripperClient, VoidGripper
+from aist_routines.CameraClient        import CameraClient
+from aist_routines.FasteningToolClient import FasteningToolClient
+from aist_routines.MarkerPublisher     import MarkerPublisher
+from aist_routines.PickOrPlaceAction   import PickOrPlace
+from aist_collision_object_manager     import CollisionObjectManagerClient
+from aist_utility.compat               import *
 
 ######################################################################
 #  global functions                                                  #
@@ -101,11 +101,11 @@ class AISTBaseRoutines(object):
         rospy.loginfo('planning_frame: %s, reference_frame: %s, eef_step: %f',
                       self.planning_frame, self.reference_frame, self.eef_step)
 
+        # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
+        self._com = CollisionObjectManagerClient()
+
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
-
-        # CollisionObjectManger wrapping MoveIt PlanningSceneInterface
-        self._com = CollisionObjectManager(synchronous=True)
 
         # Grippers
         self._grippers = {}
