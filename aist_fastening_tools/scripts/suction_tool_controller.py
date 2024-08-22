@@ -45,6 +45,7 @@ from aist_fastening_tools.msg import (SuctionToolCommandAction,
 from ur_msgs.msg              import IOStates
 from ur_msgs.srv              import SetIO, SetIORequest
 from std_msgs.msg             import Bool
+from sensor_msgs.msg          import JointState
 
 #########################################################################
 #  class SuctionToolController                                          #
@@ -56,12 +57,10 @@ class SuctionToolController(object):
         self._name = rospy.get_name()
 
         # Initialize ur_control table
-        self._in_port   = rospy.get_param('~digital_in_port') \
-                          if rospy.has_param('~digital_in_port') else None
-        self._suck_port = rospy.get_param('~digital_out_port_suck')
-        self._blow_port = rospy.get_param('~digital_out_port_blow') \
-                          if rospy.has_param('~digital_out_port_blow') \
-                          else None
+        self._in_port    = rospy.get_param('~digital_in_port', None)
+        self._suck_port  = rospy.get_param('~digital_out_port_suck')
+        self._blow_port  = rospy.get_param('~digital_out_port_blow', None)
+        self._joint_name = rospy.get_param('~joint_name', None)
 
         # Subscribe and set I/O states.
         if self._in_port is not None:
@@ -72,6 +71,16 @@ class SuctionToolController(object):
             self._suction_pub   = rospy.Publisher('~suctioned', Bool,
                                                   queue_size=1)
         self._suctioned = False
+
+        # Create a publisher for JointState.
+        if self._joint_name is not None:
+            self._joint_state_pub = rospy.Publisher('/joint_states',
+                                                    JointState, queue_size=1)
+            self._min_pos         = rospy.get_param('~min_position')
+            self._max_pos         = rospy.get_param('~max_position')
+            self._current_pos     = self._min_pos
+            self._timer           = rospy.Timer(rospy.Duration(0.1),
+                                                self._timer_cb)
 
         # Create a service client for setting digital I/O.
         #rospy.wait_for_service(driver_ns + '/set_io')
@@ -99,6 +108,11 @@ class SuctionToolController(object):
         # Set states of suck and blow ports.
         self._set_out_port(self._suck_port, self._active_goal.suck)
         self._set_out_port(self._blow_port, not self._active_goal.suck)
+
+        # If joint name is specified,
+        if self._joint_name is not None:
+            self._current_pos = self._max_pos if self._active_goal.suck else \
+                                self._min_pos
 
         # If no IN ports are watched, i.e. open-loop, return success.
         if self._in_port is None:
@@ -149,6 +163,13 @@ class SuctionToolController(object):
             self._server.set_succeeded(
                 SuctionToolCommandResult(self._suctioned))
             rospy.loginfo('(%s) goal SUCCEEDED: suctioned', self._name)
+
+    def _timer_cb(self, event):
+        joint_state = JointState()
+        joint_state.header.stamp = rospy.get_rostime()
+        joint_state.name         = [self._joint_name]
+        joint_state.position     = [self._current_pos]
+        self._joint_state_pub.publish(joint_state)
 
     def _set_out_port(self, port, state):
         if port is None:        # blow_port may be None
