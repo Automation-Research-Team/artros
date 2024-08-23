@@ -5,11 +5,11 @@
 	       params="prefix height bar_width parent *origin">
 
     <xacro:property name="bar_thickness"	value="0.020"/>
-    <xacro:property name="width"		value="0.240"/>
+    <xacro:property name="width"		value="0.210"/>
     <xacro:property name="length"		value="0.320"/>
     <xacro:property name="table_thickness"	value="0.005"/>
     <xacro:property name="border_width"		value="0.016"/>
-    <xacro:property name="border_length"	value="0.150"/>
+    <xacro:property name="border_length"	value="0.050"/>
     <xacro:property name="border_height"	value="0.003"/>
     <xacro:property name="theta"		value="${-59.04*pi/180.0}"/>
     <xacro:property name="diag"			value="0.27739"/>
@@ -58,12 +58,14 @@
     <!-- table -->
     <xacro:include filename="$(find aist_description
 			     )/objects/urdf/table.urdf.xacro"/>
-    <xacro:table prefix="${prefix}table_" width="${width}"
-		 length="${length}" height="${height - bar_thickness}"
+    <xacro:table prefix="${prefix}table_"
+		 width="${width}"
+		 length="${length}"
+		 height="${height - bar_thickness}"
 		 table_thickness="${table_thickness}"
 		 table_leg_thickness="${bar_thickness}"
 		 parent="${prefix}base_link">
-      <origin xyz="${bar_width - width} 0 0" rpy="0 0 0"/>
+      <origin xyz="${bar_width - width} 0  ${bar_thickness}" rpy="0 0 0"/>
     </xacro:table>
 
     <!-- table borders -->
