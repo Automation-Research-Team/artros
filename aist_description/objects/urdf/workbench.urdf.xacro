@@ -9,7 +9,7 @@
     <xacro:property name="length"		value="0.320"/>
     <xacro:property name="table_thickness"	value="0.005"/>
     <xacro:property name="border_width"		value="0.016"/>
-    <xacro:property name="border_length"	value="0.050"/>
+    <xacro:property name="border_length"	value="0.080"/>
     <xacro:property name="border_height"	value="0.003"/>
     <xacro:property name="theta"		value="${-59.04*pi/180.0}"/>
     <xacro:property name="diag"			value="0.27739"/>

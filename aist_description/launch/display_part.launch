@@ -4,7 +4,7 @@
   <arg name="collision"		default="false"/>
   <arg name="properties_file"	default="$(dirname
 					 )/../parts/config/parts_properties.yaml"/>
-  <arg name="rvizconfig"	default="$(dirname)/display.rviz" />
+  <arg name="rvizconfig"	default="$(dirname)/display_part.rviz" />
 
   <param name="robot_description"
 	 command="$(find xacro)/xacro $(dirname)/../parts/urdf/object.urdf
