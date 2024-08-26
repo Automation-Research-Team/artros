@@ -3,9 +3,7 @@ Panels:
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /TF1
-        - /TF1/Frames1
+      Expanded: ~
       Splitter Ratio: 0.5890688300132751
     Tree Height: 419
   - Class: rviz/Help
@@ -1980,6 +1978,52 @@ Visualization Manager:
           Value: false
         a_bot_wrist_3_link:
           Value: false
+        base/base_link:
+          Value: false
+        base/big_hole_1:
+          Value: false
+        base/big_hole_2:
+          Value: false
+        base/big_hole_3:
+          Value: false
+        base/big_hole_4:
+          Value: false
+        base/cable_pin1:
+          Value: false
+        base/cable_pin2:
+          Value: false
+        base/cable_pin3:
+          Value: false
+        base/cable_pin4:
+          Value: false
+        base/corner_1:
+          Value: false
+        base/corner_2:
+          Value: false
+        base/corner_3:
+          Value: false
+        base/corner_4:
+          Value: false
+        base/screw_hole_panel1_1:
+          Value: true
+        base/screw_hole_panel1_2:
+          Value: true
+        base/screw_hole_panel1_3:
+          Value: false
+        base/screw_hole_panel1_4:
+          Value: false
+        base/screw_hole_panel2_1:
+          Value: true
+        base/screw_hole_panel2_2:
+          Value: true
+        base/screw_hole_panel2_3:
+          Value: false
+        base/screw_hole_panel2_4:
+          Value: false
+        base/terminal_top:
+          Value: false
+        base/under_outer_hole:
+          Value: false
         base_fixture_base_link:
           Value: false
         base_fixture_cylinder:
@@ -2128,6 +2172,10 @@ Visualization Manager:
           Value: false
         plate_lower_left_corner:
           Value: false
+        precision_tool/base_link:
+          Value: true
+        precision_tool/tip_link:
+          Value: true
         precision_tool_holder_base_link:
           Value: false
         precision_tool_holder_link:
@@ -2152,14 +2200,26 @@ Visualization Manager:
           Value: false
         screw_feeder_m4_outlet_link:
           Value: true
+        screw_tool_m3/base_link:
+          Value: true
+        screw_tool_m3/tip_link:
+          Value: true
         screw_tool_m3_holder_base_link:
           Value: false
         screw_tool_m3_holder_link:
           Value: false
+        screw_tool_m4/base_link:
+          Value: true
+        screw_tool_m4/tip_link:
+          Value: true
         screw_tool_m4_holder_base_link:
           Value: false
         screw_tool_m4_holder_link:
           Value: false
+        suction_tool/base_link:
+          Value: true
+        suction_tool/tip_link:
+          Value: true
         suction_tool_holder_base_link:
           Value: false
         suction_tool_holder_link:
@@ -2372,16 +2432,24 @@ Visualization Manager:
                   cage_tool_bar:
                     precision_tool_holder_base_link:
                       precision_tool_holder_link:
-                        {}
+                        precision_tool/base_link:
+                          precision_tool/tip_link:
+                            {}
                     screw_tool_m3_holder_base_link:
                       screw_tool_m3_holder_link:
-                        {}
+                        screw_tool_m3/base_link:
+                          screw_tool_m3/tip_link:
+                            {}
                     screw_tool_m4_holder_base_link:
                       screw_tool_m4_holder_link:
-                        {}
+                        screw_tool_m4/base_link:
+                          screw_tool_m4/tip_link:
+                            {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
-                        {}
+                        suction_tool/base_link:
+                          suction_tool/tip_link:
+                            {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
                       screw_feeder_m3_front_side:
@@ -2420,7 +2488,51 @@ Visualization Manager:
                           workbench_front_border:
                             {}
                           workbench_holder_link:
-                            {}
+                            base/base_link:
+                              base/big_hole_1:
+                                {}
+                              base/big_hole_2:
+                                {}
+                              base/big_hole_3:
+                                {}
+                              base/big_hole_4:
+                                {}
+                              base/cable_pin1:
+                                {}
+                              base/cable_pin2:
+                                {}
+                              base/cable_pin3:
+                                {}
+                              base/cable_pin4:
+                                {}
+                              base/corner_1:
+                                {}
+                              base/corner_2:
+                                {}
+                              base/corner_3:
+                                {}
+                              base/corner_4:
+                                {}
+                              base/screw_hole_panel1_1:
+                                {}
+                              base/screw_hole_panel1_2:
+                                {}
+                              base/screw_hole_panel1_3:
+                                {}
+                              base/screw_hole_panel1_4:
+                                {}
+                              base/screw_hole_panel2_1:
+                                {}
+                              base/screw_hole_panel2_2:
+                                {}
+                              base/screw_hole_panel2_3:
+                                {}
+                              base/screw_hole_panel2_4:
+                                {}
+                              base/terminal_top:
+                                {}
+                              base/under_outer_hole:
+                                {}
                           workbench_right_border:
                             {}
                           workbench_table_top_center:
@@ -2680,7 +2792,7 @@ Visualization Manager:
       Value: false
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /aruco_detector_3d/result
+      Image Topic: /a_bot_inside_camera/color/image_raw
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -2695,7 +2807,7 @@ Visualization Manager:
       Marker Topic: /collision_object_manager/collision_marker
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -2715,7 +2827,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.6372758150100708
+      Distance: 0.6623529195785522
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2731,9 +2843,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.32602182030677795
+      Pitch: 0.26102155447006226
       Target Frame: world
-      Yaw: 1.3740342855453491
+      Yaw: 1.4290295839309692
     Saved: ~
 Window Geometry:
   Displays:
@@ -2751,7 +2863,7 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1556
-  X: 994
-  Y: 183
+  X: 995
+  Y: 146
   aruco_result:
     collapsed: false

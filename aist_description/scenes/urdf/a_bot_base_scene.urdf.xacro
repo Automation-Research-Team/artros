@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot_base_scene" >
 
-  <xacro:arg name="scene" default=""/>
+  <xacro:arg name="scene"		default=""/>
+  <xacro:arg name="hw_interface"	default="PositionJointInterface"/>
+					<!-- or "VelocityJointInterface" -->
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
@@ -94,7 +96,7 @@
 			      )/config/ur5/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/a_bot_calibration.yaml"
-      transmission_hw_interface="hardware_interface/PositionJointInterface"
+      transmission_hw_interface="hardware_interface/$(arg hw_interface)"
       safety_limits="true"
       safety_pos_margin="0.3"/>
 

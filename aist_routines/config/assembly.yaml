@@ -17,10 +17,10 @@ initial_object_poses:
 
 picking_parameters:
   precision_tool:
-    approach_offset:  [0.000, 0.000,  0.050, 0.0, 0.0, 0.0]
-    grasp_offset:     [0.000, 0.000, -0.030, 0.0, 0.0, 0.0]
-    place_offset:     [0.000, 0.000, -0.029, 0.0, 0.0, 0.0]
-    departure_offset: [0.000, 0.000,  0.050, 0.0, 0.0, 0.0]
+    approach_offset:  [0.000, 0.000,  0.050, 0.0, 15.0, 0.0]
+    grasp_offset:     [0.000, 0.000, -0.030, 0.0, 15.0, 0.0]
+    place_offset:     [0.000, 0.000, -0.029, 0.0, 15.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.050, 0.0, 15.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
     gripper_parameters:
