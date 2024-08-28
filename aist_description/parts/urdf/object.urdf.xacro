@@ -7,8 +7,8 @@
     <xacro:macro name="load_properties" params="filename">
       <xacro:property name="properties"
 		      value="${xacro.load_yaml(filename)[name]}"/>
-      <xacro:property name="visual_mesh"
-		      value="${properties['visual_meshes'][0]}"
+      <xacro:property name="visual_meshes"
+		      value="${properties['visual_meshes']}"
 		      scope="parent"/>
       <xacro:property name="primitives"
 		      value="${properties.get('primitives', list())}"
@@ -38,47 +38,83 @@
       </xacro:if>
     </xacro:macro>
 
-    <xacro:macro name="set_collision_primitive" params="type pose dims">
-      <collision>
-	<origin xyz="${pose[0]} ${pose[1]} ${pose[2]}"
-		rpy="${radians(pose[3])}
-		     ${radians(pose[4])}
-		     ${radians(pose[5])}"/>
-	<geometry>
-	  <xacro:if value="${type == 'BOX'}">
-	    <box size="${dims[0]} ${dims[1]} ${dims[2]}"/>
-	  </xacro:if>
-	  <xacro:if value="${type == 'CYLINDER'}">
-	    <cylinder length="${dims[0]}" radius="${dims[1]}"/>
-	  </xacro:if>
-	  <xacro:if value="${type == 'SPHERE'}">
-	    <sphere radius="${dims[0]}"/>
-	  </xacro:if>
-	</geometry>
-      </collision>
+    <xacro:macro name="set_mesh" params="mesh id">
+      <xacro:property name="pose"	value="${mesh['pose']}"/>
+      <xacro:property name="scale"	value="${mesh['scale']}"/>
+      <xacro:property name="color"	value="${mesh['color']}"/>
+
+      <origin xyz="${pose[0]} ${pose[1]} ${pose[2]}"
+    	      rpy="${radians(pose[3])}
+		   ${radians(pose[4])}
+		   ${radians(pose[5])}"/>
+      <geometry>
+        <mesh filename="${mesh['url']}"
+    	      scale="${scale[0]} ${scale[1]} ${scale[2]}"/>
+      </geometry>
+      <material name="${name}/color_${id}">
+	<color rgba="${color[0]} ${color[1]} ${color[2]} ${color[3]}"/>
+      </material>
     </xacro:macro>
 
-    <xacro:macro name="set_collision_primitives" params="primitives">
-      <xacro:if value="${len(primitives)}">
-	<xacro:property name="primitive" value="${primitives.pop()}"/>
+    <xacro:macro name="set_meshes" params="meshes collision">
+      <xacro:if value="${len(meshes)}">
+	<xacro:if value="${collision}">
+	  <collision>
+	    <xacro:set_mesh mesh="${meshes[0]}" id="${len(meshes) - 1}"/>
+	  </collision>
+	</xacro:if>
+	<xacro:if value="${not collision}">
+	  <visual>
+	    <xacro:set_mesh mesh="${meshes[0]}" id="${len(meshes) - 1}"/>
+	  </visual>
+	</xacro:if>
 
-	<xacro:set_collision_primitive type="${primitive['type']}"
-				       pose="${primitive['pose']}"
-				       dims="${primitive['dimensions']}"/>
-	<xacro:set_collision_primitives primitives="${primitives}"/>
+	<xacro:set_meshes meshes="${meshes[1:]}" collision="${collision}"/>
+      </xacro:if>
+    </xacro:macro>
+
+    <xacro:macro name="set_primitive" params="primitive">
+      <xacro:property name="type"	value="${primitive['type']}"/>
+      <xacro:property name="pose"	value="${primitive['pose']}"/>
+      <xacro:property name="dims"	value="${primitive['dimensions']}"/>
+
+      <origin xyz="${pose[0]} ${pose[1]} ${pose[2]}"
+	      rpy="${radians(pose[3])}
+		   ${radians(pose[4])}
+		   ${radians(pose[5])}"/>
+      <geometry>
+	<xacro:if value="${type == 'BOX'}">
+	  <box size="${dims[0]} ${dims[1]} ${dims[2]}"/>
+	</xacro:if>
+	<xacro:if value="${type == 'CYLINDER'}">
+	  <cylinder length="${dims[0]}" radius="${dims[1]}"/>
+	</xacro:if>
+	<xacro:if value="${type == 'SPHERE'}">
+	  <sphere radius="${dims[0]}"/>
+	</xacro:if>
+      </geometry>
+    </xacro:macro>
+
+    <xacro:macro name="set_primitives" params="primitives collision">
+      <xacro:if value="${len(primitives)}">
+	<xacro:if value="${collision}">
+	  <collision>
+	    <xacro:set_primitive primitive="${primitives[0]}"/>
+	  </collision>
+	</xacro:if>
+	<xacro:if value="${not collision}">
+	  <visual>
+	    <xacro:set_primitive primitive="${primitives[0]}"/>
+	  </visual>
+	</xacro:if>
+
+	<xacro:set_primitives primitives="${primitives[1:]}"
+			      collision="${collision}"/>
       </xacro:if>
     </xacro:macro>
 
     <!-- load object properties -->
     <xacro:load_properties filename="${properties_file}"/>
-
-    <xacro:property name="pose"		value="${visual_mesh['pose']}"/>
-    <xacro:property name="scale"	value="${visual_mesh['scale']}"/>
-    <xacro:property name="color"	value="${visual_mesh['color']}"/>
-
-    <material name="${name}_color">
-      <color rgba="${color[0]} ${color[1]} ${color[2]} ${color[3]}"/>
-    </material>
 
     <!-- a joint from myself to parent -->
     <joint name="${prefix}base_joint" type="fixed">
@@ -89,19 +125,8 @@
 
     <!-- my link -->
     <link name="${prefix}base_link">
-      <visual>
-    	<origin xyz="${pose[0]} ${pose[1]} ${pose[2]}"
-    		rpy="${radians(pose[3])}
-		     ${radians(pose[4])}
-		     ${radians(pose[5])}"/>
-        <geometry>
-          <mesh filename="${visual_mesh['url']}"
-    		scale="${scale[0]} ${scale[1]} ${scale[2]}"/>
-        </geometry>
-        <material name="${name}_color"/>
-      </visual>
-
-      <xacro:set_collision_primitives primitives="${primitives}"/>
+      <xacro:set_meshes meshes="${visual_meshes}" collision="False"/>
+      <xacro:set_primitives primitives="${primitives}" collision="True"/>
     </link>
 
     <!-- subframes and grasp points -->
