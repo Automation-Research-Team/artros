@@ -9,11 +9,11 @@ base:
     color: [0.2, 0.5, 0.8, 1.0]
   primitives:
   - type: BOX
-    dimensions: [0.2, 0.008, 0.12]
-    pose: [0.1, 0.06, 0.004, 90.0, -0.0, 180.0]
+    dimensions: [0.200, 0.120, 0.008]
+    pose: [0.100, 0.060, 0.004, 0.0, 0.0, 0.0]
   - type: BOX
     dimensions: [0.02, 0.02, 0.02]
-    pose: [0.1, 0.1, 0.012, 90.0, -0.0, 180.0]
+    pose: [0.1, 0.1, 0.012, 0.0, -0.0, 0.0]
   subframes:
     big_hole_1: [0.187, 0.076, 0.0, -0.0, 0.0, -0.0]
     big_hole_2: [0.124, 0.076, 0.0, -0.0, 0.0, -0.0]
@@ -192,7 +192,7 @@ motor_pulley:
   primitives:
   - type: CYLINDER
     dimensions: [0.010, 0.016]
-    pose: [0.0, 0.0, 0.0, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
   grasp_points:
@@ -232,10 +232,10 @@ bearing:
   primitives:
   - type: CYLINDER
     dimensions: [0.008, 0.027]
-    pose: [-0.0, -0.0, 0.004, 180.0, 0.0, -90.0]
+    pose: [-0.0, -0.0, 0.004, 0.0, 0.0, 0.0]
   - type: CYLINDER
     dimensions: [0.022, 0.018]
-    pose: [-0.0, -0.0, 0.019, 180.0, 0.0, -90.0]
+    pose: [-0.0, -0.0, 0.019, 0.0, 0.0, 0.0]
   subframes:
     front_hole: [0.0, 0.0, 0.0, 180.0, -0.0, -0.0]
     back_hole: [-0.0, -0.0, 0.03, -0.0, 0.0, -0.0]
@@ -270,7 +270,7 @@ shaft:
   primitives:
   - type: CYLINDER
     dimensions: [0.075, 0.005]
-    pose: [0.0, 0.0, -0.0375, 180.0, 0.01, -90.0]
+    pose: [0.0, 0.0, -0.0375, 0.0, 0.0, 0.0]
   subframes:
     screw_hole: [0.0, 0.0, 0.0, -0.0, 0.0, -90.0]
     front_tip: [0.0, 0.0, -0.075, -0.0, 0.0, -0.0]
@@ -301,7 +301,7 @@ end_cap:
   primitives:
   - type: CYLINDER
     dimensions: [0.005, 0.007]
-    pose: [0.0, 0.0, -0.0025, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, -0.0025, 0.0, 0.0, 0.0]
   subframes:
     inner_surface: [0.0, 0.0, -0.002, -0.0, 0.0, -0.0]
     screw_hole: [0.0, 0.0, 0.0, 180.0, -0.0, -0.0]
@@ -342,7 +342,7 @@ bearing_spacer:
   primitives:
   - type: CYLINDER
     dimensions: [0.004, 0.0085]
-    pose: [0.0, 0.0, -0.002, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, -0.002, 0.0, 0.0, 0.0]
   subframes:
     center: [0.0, 0.0, -0.002, -0.0, 0.0, -0.0]
   grasp_points:
@@ -370,10 +370,10 @@ output_pulley:
   primitives:
   - type: CYLINDER
     dimensions: [0.010, 0.031]
-    pose: [0.0, 0.0, 0.0, 180.0, 0.0, 180.0]
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   - type: CYLINDER
     dimensions: [0.010, 0.0125]
-    pose: [0.0, 0.0, -0.01, 180.0, 0.0, 180.0]
+    pose: [0.0, 0.0, -0.01, 0.0, 0.0, 0.0]
   subframes:
     front_hole: [0.0, 0.0, -0.015, 180.0, -0.0, -90.0]
     back_hole: [-0.0, 0.0, 0.005, -0.0, 0.0, -90.0]
@@ -405,7 +405,7 @@ idler_spacer:
   primitives:
   - type: CYLINDER
     dimensions: [0.0095, 0.0045]
-    pose: [0.0, 0.0, -0.0048, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, -0.0048, 0.0, 0.0, 0.0]
   subframes:
     center: [0.0, 0.0, -0.0048, -0.0, 0.0, -0.0]
   grasp_points:
@@ -445,7 +445,7 @@ idler_pulley:
   primitives:
   - type: CYLINDER
     dimensions: [0.012, 0.016]
-    pose: [0.0, 0.0, -0.006, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, -0.006, 0.0, 0.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
     screw_head: [-0.016, 0.0, 0.0, -0.0, -90.0, 0.0]
@@ -474,10 +474,10 @@ idler_pin:
   primitives:
   - type: CYLINDER
     dimensions: [0.030, 0.003]
-    pose: [0.0, 0.0, -0.015, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, -0.015, 0.0, 0.0, 0.0]
   - type: CYLINDER
     dimensions: [0.002, 0.0045]
-    pose: [-0.0, -0.0, 0.001, 180.0, 0.0, -90.0]
+    pose: [-0.0, -0.0, 0.001, 0.0, 0.0, 0.0]
   subframes:
     screw_tip: [0.0, 0.0, -0.03, -0.0, 0.0, -0.0]
     screw_inserted: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
@@ -507,7 +507,7 @@ nut_m6:
   primitives:
   - type: CYLINDER
     dimensions: [0.005, 0.00575]
-    pose: [0.0, 0.0, 0.0, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
   grasp_points: {}
@@ -523,7 +523,7 @@ washer_m6:
   primitives:
   - type: CYLINDER
     dimensions: [0.0016, 0.00625]
-    pose: [0.0, 0.0, 0.0, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   subframes:
     center: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
   grasp_points: {}
@@ -539,10 +539,10 @@ screw_m4:
   primitives:
   - type: CYLINDER
     dimensions: [0.010, 0.002]
-    pose: [0.0, 0.0, -0.005, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, -0.005, 0.0, 0.0, 0.0]
   - type: CYLINDER
     dimensions: [0.004, 0.0035]
-    pose: [-0.0, -0.0, 0.002, 180.0, 0.0, -90.0]
+    pose: [-0.0, -0.0, 0.002, 0.0, 0.0, 0.0]
   subframes:
     screw_tip: [0.0, 0.0, -0.01, -0.0, 0.0, -0.0]
     screw_inserted: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
@@ -560,10 +560,10 @@ screw_m3_long:
   primitives:
   - type: CYLINDER
     dimensions: [0.010, 0.0015]
-    pose: [0.0, 0.0, -0.005, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, -0.005, 0.0, 0.0, 0.0]
   - type: CYLINDER
     dimensions: [0.003, 0.00275]
-    pose: [-0.0, -0.0, 0.0015, 180.0, 0.0, -90.0]
+    pose: [-0.0, -0.0, 0.0015, 0.0, 0.0, 0.0]
   subframes:
     screw_tip: [0.0, 0.0, -0.01, -0.0, 0.0, -0.0]
     screw_inserted: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
@@ -581,7 +581,7 @@ screw_m3_short:
   primitives:
   - type: CYLINDER
     dimensions: [0.006, 0.0015]
-    pose: [0.0, 0.0, 0.0, 180.0, 0.0, -90.0]
+    pose: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   subframes:
     screw_tip: [0.0, 0.0, -0.01, -0.0, 0.0, -0.0]
     screw_inserted: [0.0, 0.0, 0.0, -0.0, 0.0, -0.0]
