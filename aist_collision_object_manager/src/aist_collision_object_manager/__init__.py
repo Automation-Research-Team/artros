@@ -70,7 +70,7 @@ class CollisionObjectManagerClient(object):
         req.pose        = pose.pose
         req.touch_links = self._touch_links.get(req.attach_link, [])
         res = self._send(req)
-        return res.detach_link if res.success else None
+        return res.retval if res.success else None
 
     def append_touch_links(self, object_id, touch_link):
         req = ManageCollisionObjectRequest()
@@ -92,3 +92,10 @@ class CollisionObjectManagerClient(object):
         req.object_id   = object_id
         req.attach_link = attach_link
         return self._send(req).success
+
+    def get_object_type(self, object_id):
+        req           = ManageCollisionObjectRequest()
+        req.op        = ManageCollisionObjectRequest.GET_OBJECT_TYPE
+        req.object_id = object_id
+        res = self._send(req)
+        return res.retval if res.success else None

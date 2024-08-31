@@ -74,6 +74,8 @@ class CollisionObjectManager(object):
                                    'collision_meshes', 'collision_mesh_poses',
                                    'collision_mesh_scales',
                                    'subframe_names', 'subframe_poses'])
+    ObjectInfo = namedtuple('ObjectInfo',
+                            ['type', 'subframe_transforms', 'markers'])
 
     def __init__(self, ns='', synchronous=True):
         super().__init__()
@@ -131,13 +133,12 @@ class CollisionObjectManager(object):
             self._obj_props_dict[type] = obj_props
             rospy.loginfo('(CollisionObjectManager) properties of object[%s] loaded', type)
 
-        self._psi                 = psi.PlanningSceneInterface(ns, synchronous)
-        self._subframe_transforms = {}
-        self._marker_id_min       = 0
-        self._marker_lists        = {}
-        self._marker_id_lists     = {}
-        self._marker_pub          = rospy.Publisher("~collision_marker",
-                                                    Marker, queue_size=10)
+        self._psi             = psi.PlanningSceneInterface(ns, synchronous)
+        self._obj_info_dict   = {}
+        self._marker_id_min   = 0
+        self._marker_id_lists = {}
+        self._marker_pub      = rospy.Publisher("~collision_marker",
+                                                Marker, queue_size=10)
         self._broadcaster = TransformBroadcaster()
         self._timer       = rospy.Timer(rospy.Duration(0.1),
                                         self._subframes_and_markers_cb)
@@ -150,12 +151,11 @@ class CollisionObjectManager(object):
 
     # timer callbacks
     def _subframes_and_markers_cb(self, event):
-        for subframe_transforms in self._subframe_transforms.values():
-            for subframe_transform in subframe_transforms:
+        for obj_info in self._obj_info_dict.values():
+            for subframe_transform in obj_info.subframe_transforms:
                 subframe_transform.header.stamp = rospy.Time.now()
                 self._broadcaster.sendTransform(subframe_transform)
-        for markers in self._marker_lists.values():
-            for marker in markers:
+            for marker in obj_info.markers:
                 self._marker_pub.publish(marker)
 
     # service callbacks
@@ -177,6 +177,15 @@ class CollisionObjectManager(object):
         if req.op == ManageCollisionObjectRequest.REMOVE_OBJECT:
             self._remove_object(req.object_id, req.attach_link)
             return res
+        elif req.op == ManageCollisionObjectRequest.GET_OBJECT_TYPE:
+            obj_info = self._obj_info_dict.get(req.object_id, None)
+            if obj_info is None:
+                rospy.logerr('(CollisionObjectManager) unknown attached object[%s]',
+                             req.object_id)
+                res.success = False
+                return res
+            res.retval = obj_info.type
+            return res
 
         if req.object_type == '':
             aco = self._psi.get_attached_objects([req.object_id]) \
@@ -190,8 +199,8 @@ class CollisionObjectManager(object):
             aco = self._create_object(req.object_type, req.object_id)
 
         if req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
-            res.detach_link = self._attach_object(aco, req.attach_link,
-                                                  req.pose, req.touch_links)
+            res.retval = self._attach_object(aco, req.attach_link,
+                                             req.pose, req.touch_links)
         elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
             self._set_touch_links(aco, list(set(aco.touch_links) |
                                             set(req.touch_links)))
@@ -220,15 +229,19 @@ class CollisionObjectManager(object):
         aco.object.subframe_poses = obj_props.subframe_poses
         aco.object.operation      = CollisionObject.ADD
 
+        # Create info for this object.
+        obj_info = CollisionObjectManager.ObjectInfo(object_type, [], [])
+
         # Create subframe transforms.
         base_link = aco.object.id + '/base_link'
-        subframe_transforms \
-            = [TransformStamped(Header(), base_link,
-                                Transform(Vector3(0, 0, 0),
-                                          Quaternion(0, 0, 0, 1)))]
+        obj_info.subframe_transforms.append(
+            TransformStamped(Header(), base_link,
+                             Transform(Vector3(0, 0, 0),
+                                       Quaternion(0, 0, 0, 1))))
         for subframe_name, subframe_pose in zip(obj_props.subframe_names,
                                                 obj_props.subframe_poses):
-            T = TransformStamped(Header(frame_id=base_link),
+            obj_info.subframe_transforms.append(
+                TransformStamped(Header(frame_id=base_link),
                                  aco.object.id + '/' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
                                                    subframe_pose.position.y,
@@ -237,9 +250,7 @@ class CollisionObjectManager(object):
                                                subframe_pose.orientation.x,
                                                subframe_pose.orientation.y,
                                                subframe_pose.orientation.z,
-                                               subframe_pose.orientation.w)))
-            subframe_transforms.append(T)
-        self._subframe_transforms[aco.object.id] = subframe_transforms
+                                               subframe_pose.orientation.w))))
 
         # Create new marker IDs if not exit for this object.
         if aco.object.id not in self._marker_id_lists:
@@ -247,7 +258,6 @@ class CollisionObjectManager(object):
               = self._generate_marker_id_list(len(obj_props.visual_mesh_urls))
 
         # Create markers for visualization.
-        markers = []
         for mesh_url, mesh_pose, mesh_scale, mesh_color, marker_id \
             in zip(obj_props.visual_mesh_urls,   obj_props.visual_mesh_poses,
                    obj_props.visual_mesh_scales, obj_props.visual_mesh_colors,
@@ -264,9 +274,13 @@ class CollisionObjectManager(object):
             marker.lifetime        = rospy.Duration(0)
             marker.frame_locked    = False
             marker.mesh_resource   = mesh_url
-            markers.append(marker)
-        self._marker_lists[aco.object.id] = markers
+            obj_info.markers.append(marker)
 
+        # Store object info.
+        self._obj_info_dict[aco.object.id] = obj_info
+
+        rospy.loginfo('(CollisionObjectManager) created object with ID[%s] of type[%s]',
+                      aco.object.id, object_type)
         return aco
 
     def _attach_object(self, aco, attach_link, pose, touch_links):
@@ -276,11 +290,11 @@ class CollisionObjectManager(object):
         aco.object.operation       = CollisionObject.ADD
         self._psi.attach_object(aco, attach_link, touch_links)
 
-        rospy.loginfo('(CollisionObjectManager) attached %s to %s with touch_links%s',
+        rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
                       aco.object.id, aco.link_name, aco.touch_links)
 
         # Replace the transform from the object base_link to the attached link.
-        self._subframe_transforms[aco.object.id][0] \
+        self._obj_info_dict[aco.object.id].subframe_transforms[0] \
             = TransformStamped(aco.object.header,
                                aco.object.id + '/base_link',
                                Transform(Vector3(pose.position.x,
@@ -295,7 +309,7 @@ class CollisionObjectManager(object):
 
     def _set_touch_links(self, aco, touch_links):
         self._psi.attach_object(aco, touch_links=touch_links)
-        rospy.loginfo('(CollisionObjectManager) set touch links %s to %s(attached to %s)',
+        rospy.loginfo("(CollisionObjectManager) set touch links %s to '%s'(attached to '%s')",
                       aco.touch_links, aco.object.id, aco.link_name)
 
     def _remove_object(self, object_id, attach_link):
@@ -323,11 +337,11 @@ class CollisionObjectManager(object):
         return marker_id_list
 
     def _delete_markers_and_subframes(self, object_id):
-        for marker in self._marker_lists[object_id]:
+        for marker in self._obj_info_dict[object_id].markers:
             marker.action = Marker.DELETE
             self._marker_pub.publish(marker)
-        del self._marker_lists[object_id]
-        del self._subframe_transforms[object_id]
+        del self._obj_info_dict[object_id]
+        rospy.loginfo("(CollisionObjectManager) removed '%s'", object_id)
 
     def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
         try:

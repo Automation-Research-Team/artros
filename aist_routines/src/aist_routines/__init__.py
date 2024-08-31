@@ -641,7 +641,10 @@ class AISTBaseRoutines(object):
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
              attach=False, wait=True, done_cb=None, active_cb=None):
-        params = self._picking_params[part_id]
+        if part_id in self._picking_params:
+            params = self._picking_params[part_id]
+        else:
+            params = self._picking_params[self.com.get_object_type(part_id)]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
@@ -658,7 +661,10 @@ class AISTBaseRoutines(object):
 
     def place(self, robot_name, target_pose, part_id,
               attach=False, wait=True, done_cb=None, active_cb=None):
-        params = self._picking_params[part_id]
+        if part_id in self._picking_params:
+            params = self._picking_params[part_id]
+        else:
+            params = self._picking_params[self.com.get_object_type(part_id)]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:

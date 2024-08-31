@@ -85,7 +85,7 @@ parts_list:
     cad: 17_SCB4-10.stl
     description: 10mm M4 Socket Head Cap Screw  (metric coarse thread)
   - id: 18
-    name: screw_m3_long
+    name: screw_m3
     type: 18_SCB3-10
     cad: 18_SCB3-10.stl
     description: 10mm M3 Socket Head Cap Screw  (metric coarse thread)
