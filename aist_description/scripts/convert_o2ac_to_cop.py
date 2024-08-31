@@ -35,16 +35,16 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, sys, copy, rospy, rospkg, ruamel.yaml
-from math import pi
-from tf   import transformations as tfs
+import os, sys, copy, rospy, rospkg, ruamel.yaml, numpy as np
+from numpy import pi
+from tf    import transformations as tfs
 
 YAML = ruamel.yaml.YAML()
 
 ######################################################################
 #  global functions                                                  #
 ######################################################################
-def flow_list(l, rotconv=False):
+def eval_list(l):
     def _is_num(x):
         try:
             float(x)
@@ -52,21 +52,24 @@ def flow_list(l, rotconv=False):
             return False
         else:
             return True
+    return [x if _is_num(x) else eval(x) for x in l]
 
-    def _degrees(y):
-        return round(y * 180.0/pi, 2)
+def matrix_from_pose(pose):
+    return tfs.translation_matrix(pose[0:3]) @ tfs.euler_matrix(*pose[3:6])
 
-    y = [x if _is_num(x) else eval(x) for x in l]
-    if len(y) == 6:
-        if rotconv:
-            R = tfs.euler_matrix(y[3], y[4], y[5])
-            S = tfs.euler_matrix(pi, pi/2, 0)
-            #S = tfs.euler_matrix(-pi/2, 0, pi/2)
-            y[3:6] = tfs.euler_from_matrix(tfs.concatenate_matrices(R, S))
-        y[3] = _degrees(y[3])
-        y[4] = _degrees(y[4])
-        y[5] = _degrees(y[5])
-    ret = ruamel.yaml.comments.CommentedSeq(y)
+def to_degrees(pose):
+    return flow_list(list(map(float, [*np.round(pose[0:3], 4),
+                                      *np.round(np.degrees(pose[3:6]), 2)])))
+
+def pose_from_base(mesh_pose, pose, rotconv=False):
+    T = matrix_from_pose(mesh_pose) @ matrix_from_pose(pose)
+    if rotconv:
+        T = T @ tfs.euler_matrix(pi, pi/2, 0)
+    return to_degrees([*tfs.translation_from_matrix(T),
+                       *tfs.euler_from_matrix(T)])
+
+def flow_list(l):
+    ret = ruamel.yaml.comments.CommentedSeq(l)
     ret.fa.set_flow_style()  # fa -> format attribute
     return ret
 
@@ -82,41 +85,38 @@ def create_cops(part_info):
     with open(path) as file:
         part_props = YAML.load(file)
 
-    default_mesh_pose = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    mesh_scale        = [0.001, 0.001, 0.001]
-    mesh_color        = [0.2, 0.5, 0.8, 1.0]
-    mesh_url          = 'package://aist_description/parts/meshes/' + part_cad
-    cops = {'id':          part_id,
-            'type':        part_type,
-            'description': part_desc,
-            'visual_meshes':
-            [{'url':   mesh_url,
-              'pose':  flow_list(default_mesh_pose),
-              'scale': flow_list(mesh_scale),
-              'color': flow_list(mesh_color)}]}
+    mesh_pose  = eval_list(part_props.get('mesh_pose', [0, 0, 0, 0, 0, 0]))
+    mesh_scale = [0.001, 0.001, 0.001]
+    mesh_color = [0.2, 0.5, 0.8, 1.0]
+    mesh_url   = 'package://aist_description/parts/meshes/' + part_cad
+    cops = {'id':           part_id,
+            'type':         part_type,
+            'description':  part_desc,
+            'visual_meshes':[{'url':   mesh_url,
+                              'pose':  to_degrees(mesh_pose),
+                              'scale': flow_list(mesh_scale),
+                              'color': flow_list(mesh_color)}]}
     for name, prop in part_props.items():
         if name == 'collision_primitives':
             cops['primitives'] \
                 = [{'type':       primitive['type'],
                     'dimensions': flow_list(primitive['dimensions']),
-                    'pose':       flow_list(primitive['pose'])} \
+                    'pose':       pose_from_base(mesh_pose,
+                                                 eval_list(primitive['pose']))}
                    for primitive in prop]
+            print(cops['primitives'])
         elif name == 'subframes':
             cops['subframes'] \
-                = {subframe['name']: flow_list(subframe['pose_xyzrpy'], True) \
+                = {subframe['name']:
+                   pose_from_base(mesh_pose,
+                                  eval_list(subframe['pose_xyzrpy']), True)
                    for subframe in prop}
         elif name == 'grasp_points':
             cops['grasp_points'] \
                 = {grasp_point['grasp_name']:
-                   flow_list(grasp_point['pose_xyzrpy'], True) \
+                   pose_from_base(mesh_pose,
+                                  eval_list(grasp_point['pose_xyzrpy']), True)
                    for grasp_point in prop}
-        elif name == 'mesh_pose':
-            cops['visual_meshes'] \
-                = [{'url':   mesh_url,
-                    'pose':  flow_list(mesh_pose['pose_xyzrpy']),
-                    'scale': flow_list(mesh_scale),
-                    'color': flow_list(mesh_color)} \
-                   for mesh_pose in prop]
     return cops
 
 if __name__ == '__main__':

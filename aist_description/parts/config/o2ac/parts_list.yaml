@@ -70,27 +70,27 @@ parts_list:
     cad: 14_BGPSL6-9-L30-F8.stl
     description: Bearing Shaft Screw
   - id: 15
-    name: m6_nut
+    name: nut_m6
     type: 15_SLBNR6
     cad: 15_SLBNR6.stl
     description: M6 Hex Nut  (Fixing for idler shaft)
   - id: 16
-    name: m6_washer
+    name: washer_m6
     type: 16_SPWF6
     cad: 16_SPWF6.stl
     description: M6 Flat Washer  (Fixing for idler shaft)
   - id: 17
-    name: m4_screw
+    name: screw_m4
     type: 17_SCB4-10
     cad: 17_SCB4-10.stl
     description: 10mm M4 Socket Head Cap Screw  (metric coarse thread)
   - id: 18
-    name: m3_screw_long
+    name: screw_m3
     type: 18_SCB3-10
     cad: 18_SCB3-10.stl
     description: 10mm M3 Socket Head Cap Screw  (metric coarse thread)
   - id: 19
-    name: m3_screw_short
+    name: screw_m3_short
     type: 19_MSSFS3-6
     cad: 19_MSSFS3-6.stl
     description: 6mm M3 Hex Socket Set Screw  (metric coarse thread)

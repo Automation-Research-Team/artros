@@ -1,9 +1,10 @@
 #
-# - Attach the collision object with 'object_id' to the 'attach_link'
-#   at the 'pose'.
+# - If 'object_type' is emtpy, attach the existing collision object
+#   with 'object_id' to the 'attach_link' at the 'pose'. Current attach
+#   link before attaching new one is returned in 'retval'.
 # - If 'object_type' is not empty, a new object with 'object_id'
-#   of 'object_type' will be created.
-#
+#   of 'object_type' will be created and then attached.
+# -
 uint8 ATTACH_OBJECT=1
 #
 # - Append 'touch_links' to the existing touch links of the object
@@ -23,6 +24,11 @@ uint8 REMOVE_TOUCH_LINKS=3
 #   will be deleted.
 #
 uint8 REMOVE_OBJECT=5
+#
+# - Return the object type of the existing collision object with 'object_id'
+#   in 'retval'.
+#
+uint8 GET_OBJECT_TYPE=6
 
 uint8              op
 string             object_type
@@ -32,4 +38,4 @@ geometry_msgs/Pose pose
 string[]           touch_links
 ---
 bool               success
-string             detach_link
+string             retval

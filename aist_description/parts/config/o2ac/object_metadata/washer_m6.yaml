@@ -12,3 +12,10 @@ subframes:
   - 0.0
   name: center
 grasp_points: []
+mesh_pose:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  - pi/2
+  - pi/2
