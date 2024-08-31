@@ -2,12 +2,17 @@
 <launch>
 
   <!-- Start hmi_demo client -->
-  <node name="hmi_demo"	pkg="aist_routines" type="hmi_demo.py"
+  <node name="hmi_demo"	pkg="aist_routines" type="run_hmi_demo.py"
 	clear_params="true" output="screen">
     <rosparam file="$(dirname)/../config/aist_config.yaml"/>
     <rosparam file="$(dirname)/../config/kitting.yaml"/>
     <rosparam param="tool_descriptions"
 	      file="$(find aist_fastening_tools)/config/fastening_tools.yaml"/>
   </node>
+
+  <!-- Start nep_bridge server -->
+  <include file="$(find nep_bridge)/launch/run.launch">
+    <arg name="config_file"	value="$(dirname)/../config/nep_bridge.yaml"/>
+  </include>
 
 </launch>

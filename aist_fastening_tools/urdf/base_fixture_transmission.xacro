@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="base_fixture_transmission" params="prefix">
+    <transmission name="${prefix}cylinder_joint_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}cylinder_joint">
+        <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}cylinder_joint_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+  </xacro:macro>
+</robot>

@@ -66,8 +66,8 @@ class HMIRoutines(KittingRoutines):
         }
 
     def __init__(self, server='hmi_server'):
-        super(HMIRoutines, self).__init__(self.request_help_and_sweep,
-                                          self.cancel_request_help_and_sweep)
+        super().__init__(self.request_help_and_sweep,
+                         self.cancel_request_help_and_sweep)
 
         self._ground_frame             = rospy.get_param('~ground_frame',
                                                          'ground')
@@ -85,7 +85,7 @@ class HMIRoutines(KittingRoutines):
 
     # Interactive stuffs
     def print_help_messages(self):
-        super(HMIRoutines, self).print_help_messages()
+        super().print_help_messages()
         print('=== HMI commands ===')
         print('  w: sWeep')
         print('  r: Request help')
@@ -100,15 +100,14 @@ class HMIRoutines(KittingRoutines):
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.request_help_bin(bin_id)
         else:
-            return super(HMIRoutines, self).interactive(key, robot_name, axis,
-                                                        speed)
+            return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
 
     # Graspability stuffs
     def search_bin(self, bin_id, min_height=0.004, max_slant=pi/4):
-        return super(HMIRoutines, self).search_bin(
-                   bin_id, min_height,
-                   0 if self.using_hmi_graspability_params else max_slant)
+        return super().search_bin(bin_id, min_height,
+                                  0 if self.using_hmi_graspability_params else
+                                  max_slant)
 
     @property
     def using_hmi_graspability_params(self):

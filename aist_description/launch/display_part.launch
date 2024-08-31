@@ -1,0 +1,20 @@
+<launch>
+
+  <arg name="name"		default="base"/>
+  <arg name="collision"		default="false"/>
+  <arg name="properties_file"	default="$(dirname
+					 )/../parts/config/parts_properties.yaml"/>
+  <arg name="rvizconfig"	default="$(dirname)/display_part.rviz" />
+
+  <param name="robot_description"
+	 command="$(find xacro)/xacro $(dirname)/../parts/urdf/object.urdf
+		  name:=$(arg name) properties_file:=$(arg properties_file)
+		  collision:=$(arg collision)"/>
+
+  <node name="robot_state_publisher"
+	pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <node name="rviz"
+	pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true" />
+
+</launch>

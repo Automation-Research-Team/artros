@@ -89,7 +89,10 @@ class PrecisionGripperController(object):
 
         # Publish joint state
         self._joint_state_pub = rospy.Publisher('/joint_states',
-                                                JointState, queue_size=1)
+                                                JointState, queue_size=1) \
+                                if rospy.get_param('~publish_joint_states',
+                                                   True) \
+                                else None
 
         # Define the action
         self._server = SimpleActionServer('~gripper_cmd', GripperCommandAction,
@@ -112,13 +115,15 @@ class PrecisionGripperController(object):
         self._dynamixel_state = states[0]
 
         # Publish joint state
-        joint_state = JointState()
-        joint_state.header.stamp = rospy.Time.now()
-        joint_state.name     = [self._dynamixel_state.name + '_finger_joint']
-        joint_state.position = [self._position()]
-        joint_state.velocity = [0.0]
-        joint_state.effort   = [self._effort()]
-        self._joint_state_pub.publish(joint_state)
+        if self._joint_state_pub is not None:
+            joint_state = JointState()
+            joint_state.header.stamp = rospy.Time.now()
+            joint_state.name     = [self._dynamixel_state.name
+                                    + '_finger_joint']
+            joint_state.position = [self._position()]
+            joint_state.velocity = [0.0]
+            joint_state.effort   = [self._effort()]
+            self._joint_state_pub.publish(joint_state)
 
         # Handle active goal
         if self._server.is_active():

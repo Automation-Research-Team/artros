@@ -12,10 +12,11 @@
     <rosparam file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
     <param name="speed"		value="$(arg speed)"/>
     <rosparam param="tool_descriptions"
-	      file="$(find aist_fastening_tools)/config/fastening_tools.yaml"/>
-    <rosparam param="tool_descriptions"
-	      file="$(find
-		    aist_precision_gripper)/config/precision_tools.yaml"/>
+	      file="$(find aist_fastening_tools
+		    )/config/fastening_tools_properties.yaml"/>
+    <rosparam param="tool_descriptions/precision_tool"
+    	      file="$(find aist_precision_gripper
+    		    )/config/precision_tool_properties.yaml"/>
   </node>
 
   <!-- Start rviz -->

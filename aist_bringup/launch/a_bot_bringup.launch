@@ -44,6 +44,14 @@
     <arg name="moveit_config"		value="$(find a_bot_moveit_config)"/>
   </include>
 
+  <!-- Launch precision tool controller -->
+  <include file="$(find aist_precision_gripper)/launch/run.launch">
+    <arg name="prefix"			value="precision_tool_"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="usb_port"		value="/dev/ttyUSB0"/>
+    <arg name="publish_joint_states"	value="false"/>
+  </include>
+
   <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
   <!-- <arg name="camera_names"		default="a_bot_inside_camera -->
   <!-- 						 a_bot_outside_camera"/> -->
@@ -63,14 +71,6 @@
   <!--   <arg name="sim"			value="$(arg sim)"/> -->
   <!-- </include> -->
 
-  <!-- Launch Zivid camera -->
-  <include unless="$(arg sim)"
-	   file="$(dirname)/zivid_camera.launch">
-    <arg name="camera_name"		value="a_bot_zivid"/>
-    <arg name="external_manager"	value="false"/>
-    <arg name="manager"			value="$(arg manager)"/>
-  </include>
-
   <!-- Launch calibration publisher and other hardware drivers -->
   <group unless="$(arg sim)">
 
@@ -81,6 +81,13 @@
       <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
       <arg name="hostname"		value="a_bot"/>
     </include>
+
+    <!-- Launch Zivid camera -->
+    <!-- <include file="$(dirname)/zivid_camera.launch"> -->
+    <!--   <arg name="camera_name"		value="a_bot_zivid"/> -->
+    <!--   <arg name="external_manager"	value="false"/> -->
+    <!--   <arg name="manager"		value="$(arg manager)"/> -->
+    <!-- </include> -->
 
   </group>
 

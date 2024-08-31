@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="assembly">
+
+  <!-- base fixture table -->
+  <xacro:property name="cage_thickness"		 value="0.040"/>
+  <xacro:property name="workbench_bar_thickness" value="0.020"/>
+  <xacro:property name="workbench_height"	 value="0.150"/>
+  <xacro:property name="workbench_bar_width"	 value="0.480"/>
+  <xacro:property name="workbench_y"		 value="0.630"/>
+  <xacro:property name="screw_feeder_width"	 value="0.126"/>
+  <xacro:property name="screw_feeder_y"		 value="0.030"/>
+
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/workbench.urdf.xacro"/>
+  <xacro:workbench prefix="workbench_"
+		   height="${workbench_height}"
+		   bar_width="${workbench_bar_width}"
+		   parent="cage_workspace_bar">
+    <origin xyz="${cage_thickness}
+		 ${workbench_y}
+		 ${(cage_thickness - workbench_bar_thickness)/2}"
+	    rpy="0 0 0"/>
+  </xacro:workbench>
+
+  <!-- screw feeders -->
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/screw_feeder.urdf.xacro" />
+  <xacro:screw_feeder prefix="screw_feeder_m3_"
+		      parent="workbench_base_link">
+    <origin xyz="0 ${screw_feeder_y} 0" rpy="0 0 0"/>
+  </xacro:screw_feeder>
+  <xacro:screw_feeder prefix="screw_feeder_m4_"
+		      parent="screw_feeder_m3_base_link">
+    <origin xyz="0 ${screw_feeder_width} 0" rpy="0 0 0"/>
+  </xacro:screw_feeder>
+
+</robot>

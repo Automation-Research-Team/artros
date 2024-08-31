@@ -75,7 +75,7 @@ class InteractiveRoutines(IiwaRoutines):
     }
 
     def __init__(self, robot_name, camera_name, speed, ns):
-        super(InteractiveRoutines, self).__init__(ns)
+        super().__init__(ns)
 
         self._robot_name   = robot_name
         self._camera_name  = camera_name
@@ -105,10 +105,8 @@ class InteractiveRoutines(IiwaRoutines):
         elif type(pose) is Pose:
             target_pose.pose = pose
 
-        success, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                     target_pose,
-                                                     speed=self._speed)
-        return success
+        return self.go_to_pose_goal(self._robot_name,
+                                    target_pose, speed=self._speed)
 
     def create_objects(self, scene, robot_commander, z_ext):
         scene.remove_world_object()

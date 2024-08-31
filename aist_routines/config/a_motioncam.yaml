@@ -1,4 +1,4 @@
-id: LTR-066
+id: JKE-001
 rate: 20.0
 #frame: a_motioncam_sensor
 #color_camera_frame: a_motioncam_color_camera_frame
@@ -22,4 +22,4 @@ scanner_exposure: 10.24
 confidence: 3
 exposure: 10.24
 gamma: 1
-intensity_scale: 0.5
+intensity_scale: 0.2

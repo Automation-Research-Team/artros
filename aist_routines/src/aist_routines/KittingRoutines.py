@@ -49,7 +49,7 @@ class KittingRoutines(URRoutines):
     """Implements kitting routines for aist robot system."""
 
     def __init__(self, do_error_recovery=None, cancel_error_recovery=None):
-        super(KittingRoutines, self).__init__()
+        super().__init__()
 
         self._bin_props   = rospy.get_param('~bin_props')
         self._part_props  = rospy.get_param('~part_props')
@@ -83,7 +83,7 @@ class KittingRoutines(URRoutines):
     # Interactive stuffs
     def print_help_messages(self):
         if self.current_robot_name:
-            super(KittingRoutines, self).print_help_messages()
+            super().print_help_messages()
         print('=== Kitting commands ===')
         print('  m: Create a mask image')
         print('  s: Search graspabilities')
@@ -115,8 +115,7 @@ class KittingRoutines(URRoutines):
         elif key == 'B':
             self.go_to_named_pose('all_bots', 'back')
         elif robot_name:
-            return super(KittingRoutines, self).interactive(key, robot_name,
-                                                            axis, speed)
+            return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed
 
     # Commands

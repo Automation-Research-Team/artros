@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="object">
+  <xacro:include filename="$(find aist_description
+			   )/parts/urdf/object.urdf.xacro"/>
+  <xacro:arg name="name"	default="panel_bearing"/>
+  <xacro:arg name="properties_file"
+	     default="$(find aist_description
+		      )/parts/config/parts_properties.yaml"/>
+  <xacro:arg name="collision"	default="False"/>
+
+  <link name="base_link"/>
+
+  <xacro:object name="$(arg name)" prefix="$(arg name)/"
+		parent="base_link" properties_file="$(arg properties_file)"
+		collision="$(arg collision)">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:object>
+</robot>

@@ -16,7 +16,7 @@
     <node name="$(arg tool_name)_fastening_controller"
   	  pkg="aist_fastening_tools" type="screw_tool_controller"
   	  output="screen">
-      <param name="driver_ns"		value="/$(arg driver_ns)"/>
+      <param name="driver_ns"		value="/screw_tool/$(arg driver_ns)"/>
       <param name="control_period"	value="$(arg control_period)"/>
       <rosparam file="$(dirname)/../config/$(arg tool_name).yaml"/>
     </node>
@@ -32,7 +32,8 @@
     </include>
   </group>
 
-  <group if ="$(eval tool_number == len(tool_names.split()))">
+  <group if="$(eval tool_number == len(tool_names.split()))"
+	 ns="screw_tool">
     <param name="dynamixel_info"	value="$(dirname)/../config/$(arg
 					       dynamixel_info).yaml"/>
 

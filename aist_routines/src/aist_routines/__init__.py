@@ -38,25 +38,26 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                            import degrees, sqrt
-from tf                              import (TransformListener,
-                                             transformations as tfs)
-from std_msgs.msg                    import Header
-from geometry_msgs.msg               import (PoseStamped, Pose, Point,
-                                             Quaternion, PoseArray,
-                                             Vector3, Vector3Stamped)
-from moveit_msgs.msg                 import (RobotTrajectory,
-                                             PositionIKRequest,
-                                             MoveItErrorCodes)
-from moveit_msgs.srv                 import GetPositionIK
-from trajectory_msgs.msg             import (JointTrajectoryPoint,
-                                             JointTrajectory)
-from aist_routines.GripperClient     import GripperClient, VoidGripper
-from aist_routines.CameraClient      import CameraClient
-from aist_routines.MarkerPublisher   import MarkerPublisher
-from aist_routines.PickOrPlaceAction import PickOrPlace
-from aist_utility.compat             import *
-from aist_routines.PlanningSceneInterface import PlanningSceneInterface
+from math                              import degrees, sqrt
+from tf                                import (TransformListener,
+                                               transformations as tfs)
+from std_msgs.msg                      import Header
+from geometry_msgs.msg                 import (PoseStamped, Pose, Point,
+                                               Quaternion, PoseArray,
+                                               Vector3, Vector3Stamped)
+from moveit_msgs.msg                   import (RobotTrajectory,
+                                               PositionIKRequest,
+                                               MoveItErrorCodes)
+from moveit_msgs.srv                   import GetPositionIK
+from trajectory_msgs.msg               import (JointTrajectoryPoint,
+                                               JointTrajectory)
+from aist_routines.GripperClient       import GripperClient, VoidGripper
+from aist_routines.CameraClient        import CameraClient
+from aist_routines.FasteningToolClient import FasteningToolClient
+from aist_routines.MarkerPublisher     import MarkerPublisher
+from aist_routines.PickOrPlaceAction   import PickOrPlace
+from aist_collision_object_manager     import CollisionObjectManagerClient
+from aist_utility.compat               import *
 
 ######################################################################
 #  global functions                                                  #
@@ -78,7 +79,7 @@ def paramtuples(d):
 ######################################################################
 class AISTBaseRoutines(object):
     def __init__(self, reference_frame='', eef_step=None):
-        super(AISTBaseRoutines, self).__init__()
+        super().__init__()
 
         moveit_commander.roscpp_initialize(sys.argv)
         self._listener = TransformListener()
@@ -100,29 +101,11 @@ class AISTBaseRoutines(object):
         rospy.loginfo('planning_frame: %s, reference_frame: %s, eef_step: %f',
                       self.planning_frame, self.reference_frame, self.eef_step)
 
+        # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
+        self._com = CollisionObjectManagerClient()
+
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
-
-        # MoveIt PlanningSceneInterface
-        self._scene = PlanningSceneInterface(synchronous=True)
-        self._scene.load_objects('~tool_descriptions')
-        self._scene.attach_object(
-            'screw_tool_m3',
-            PoseStamped(Header(frame_id='screw_tool_m3_holder_link'),
-                        Pose(Point(0,0,0), Quaternion(0,0,0,1))))
-        self._scene.attach_object(
-            'screw_tool_m4',
-            PoseStamped(Header(frame_id='screw_tool_m4_holder_link'),
-                        Pose(Point(0,0,0), Quaternion(0,0,0,1))),
-            use_mesh=False)
-        self._scene.attach_object(
-            'precision_tool',
-            PoseStamped(Header(frame_id='precision_tool_holder_link'),
-                        self.pose_from_offset((0, 0, 0, 0, 90, 0))),
-            use_mesh=False)
-        for name in self._scene.get_attached_objects():
-            print('*** collision_object: ' + name)
-        #self._scene.remove_attached_object()
 
         # Grippers
         self._grippers = {}
@@ -131,15 +114,23 @@ class AISTBaseRoutines(object):
                                                                 props)
 
         # Robots
-        self._active_grippers = {}
+        self._default_gripper_names = {}
+        self._active_grippers  = {}
         for robot_name, props in rospy.get_param('~robots', {}).items():
-            self.set_gripper(robot_name, props['default_gripper'])
+            self._default_gripper_names[robot_name] = props['default_gripper']
+            self.set_gripper(robot_name, self.default_gripper_name(robot_name))
 
         # Cameras
         self._cameras = {}
         for camera_name, props in rospy.get_param('~cameras', {}).items():
             self._cameras[camera_name] = CameraClient.create(camera_name,
                                                              props)
+
+        # Fastening tools
+        self._fastening_tools = {}
+        for tool_name, props in rospy.get_param('~fastening_tools', {}).items():
+            self._fastening_tools[tool_name] \
+                = FasteningToolClient.create(tool_name, props)
 
         # Search graspabilities
         if rospy.has_param('~graspability_parameters'):
@@ -185,6 +176,10 @@ class AISTBaseRoutines(object):
     def eef_step(self):
         return self._eef_step
 
+    @property
+    def com(self):
+        return self._com
+
     # Interactive stuffs
     def print_help_messages(self):
         print('=== General commands ===')
@@ -208,6 +203,10 @@ class AISTBaseRoutines(object):
         print('  grasp:       grasp with the current gripper')
         print('  postgrasp:   postgrasp with the current gripper')
         print('  release:     release with the current gripper')
+        print('=== Fastening tool commands ===')
+        print('  tighten:     tighten screw')
+        print('  loosen:      loosen screw')
+        print('  fcancel:     cancel tighten/loosen action')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         def _is_num(s):
@@ -217,6 +216,15 @@ class AISTBaseRoutines(object):
                 return False
             else:
                 return True
+
+        def _get_offset():
+            offset = []
+            for s in raw_input('  offset? ').split():
+                if _is_num(s):
+                    offset.append(float(s))
+                else:
+                    return None
+            return offset
 
         if key == 'quit':
             self.go_to_named_pose(robot_name, 'home')  # Reset pose
@@ -288,20 +296,24 @@ class AISTBaseRoutines(object):
             self.go_to_pose_goal(robot_name,
                                  self.pose_from_xyzrpy(xyzrpy), speed=speed)
         elif key == 'home':
-            self.go_to_named_pose(robot_name, "home")
+            self.go_to_named_pose(robot_name, 'home')
         elif key == 'back':
-            self.go_to_named_pose(robot_name, "back")
+            self.go_to_named_pose(robot_name, 'back')
         elif key == 'named':
-            pose_name = raw_input("  pose name? ")
+            pose_name = raw_input('  pose name? ')
             try:
                 self.go_to_named_pose(robot_name, pose_name)
             except rospy.ROSException as e:
                 rospy.logerr('Unknown pose: %s' % e)
         elif key == 'frame':
-            frame = raw_input("  frame? ")
-            self.go_to_frame(robot_name, frame)
+            frame  = raw_input('  frame? ')
+            offset = _get_offset()
+            try:
+                self.go_to_frame(robot_name, frame, offset)
+            except Exception as e:
+                rospy.logerr('Unknown frame: %s', frame)
         elif key == 'speed':
-            speed = float(raw_input("  speed value? "))
+            speed = float(raw_input('  speed value? '))
         elif key == 'stop':
             self.stop(robot_name)
         elif key == 'jvalues':
@@ -309,7 +321,7 @@ class AISTBaseRoutines(object):
 
         # Gripper stuffs
         elif key == 'gripper':
-            gripper_name = raw_input("  gripper name? ")
+            gripper_name = raw_input('  gripper name? ')
             try:
                 self.set_gripper(robot_name, gripper_name)
             except KeyError as e:
@@ -322,6 +334,17 @@ class AISTBaseRoutines(object):
             self.postgrasp(robot_name)
         elif key == 'release':
             self.release(robot_name)
+
+        # Fastening tool stuffs
+        elif key == 'tighten':
+            tool_name = raw_input('  tool name? ')
+            self.tighten(tool_name, rospy.Duration(-1))
+        elif key == 'loosen':
+            tool_name = raw_input('  tool name? ')
+            self.loosen(tool_name, rospy.Duration(-1))
+        elif key == 'fcancel':
+            tool_name = raw_input('  tool name? ')
+            self.cancel_fastening(tool_name)
 
         else:
             print('  unknown command! [%s]' % key)
@@ -413,14 +436,13 @@ class AISTBaseRoutines(object):
         path  = self.create_path(robot_name, poses, offset,
                                  speed, accel, end_effector_link)
         if path is None:
-            return False, group.get_current_pose()
+            return False
 
-        return (self.execute_path(robot_name,
-                                  group.retime_trajectory(
-                                      self._cmd.get_current_state(), path,
-                                          velocity_scaling_factor=speed,
-                                          acceleration_scaling_factor=accel)),
-                group.get_current_pose())
+        return self.execute_path(robot_name,
+                                 group.retime_trajectory(
+                                     self._cmd.get_current_state(), path,
+                                     velocity_scaling_factor=speed,
+                                     acceleration_scaling_factor=accel))
 
     def execute_path(self, robot_name, path):
         success = self._cmd.get_group(robot_name).execute(path, wait=True)
@@ -485,6 +507,9 @@ class AISTBaseRoutines(object):
         group.clear_pose_targets()
 
     # Gripper stuffs
+    def default_gripper_name(self, robot_name):
+        return self._default_gripper_names[robot_name]
+
     def set_gripper(self, robot_name, gripper_name):
         self._active_grippers[robot_name] = self._grippers[gripper_name]
 
@@ -521,6 +546,19 @@ class AISTBaseRoutines(object):
 
     def trigger_frame(self, camera_name):
         return self.camera(camera_name).trigger_frame()
+
+    # Fasteing tool stuffs
+    def fastening_tool(self, tool_name):
+        return self._fastening_tools[tool_name]
+
+    def tighten(self, tool_name, timeout=rospy.Duration()):
+        self.fastening_tool(tool_name).tighten(timeout)
+
+    def loosen(self, tool_name, timeout=rospy.Duration()):
+        self.fastening_tool(tool_name).loosen(timeout)
+
+    def cancel_fastening(self, tool_name):
+        self.fastening_tool(tool_name).cancel()
 
     # Marker stuffs
     def delete_all_markers(self):
@@ -602,48 +640,52 @@ class AISTBaseRoutines(object):
 
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
-             wait=True, done_cb=None, active_cb=None):
+             attach=False, wait=True, done_cb=None, active_cb=None):
         params = self._picking_params[part_id]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
-            self.gripper(robot_name).parameters = params['gripper_parameters']
+            self.set_gripper_parameters(robot_name,
+                                        params['gripper_parameters'])
         return self._pick_or_place.send_goal(robot_name, target_pose, True,
                                              params['grasp_offset'],
                                              params['approach_offset'],
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
+                                             part_id if attach else '',
                                              wait, done_cb, active_cb)
 
     def place(self, robot_name, target_pose, part_id,
-              wait=True, done_cb=None, active_cb=None):
+              attach=False, wait=True, done_cb=None, active_cb=None):
         params = self._picking_params[part_id]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
-            self.gripper(robot_name).parameters = params['gripper_parameters']
+            self.set_gripper_parameters(robot_name,
+                                        params['gripper_parameters'])
         return self._pick_or_place.send_goal(robot_name, target_pose, False,
                                              params['place_offset'],
                                              params['approach_offset'],
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
+                                             part_id if attach else '',
                                              wait, done_cb, active_cb)
 
-    def pick_at_frame(self, robot_name, target_frame, part_id,
-                      offset=(), wait=True, done_cb=None, active_cb=None):
+    def pick_at_frame(self, robot_name, target_frame, part_id, offset=(),
+                      attach=False, wait=True, done_cb=None, active_cb=None):
         return self.pick(robot_name,
                          PoseStamped(Header(frame_id=target_frame),
                                      self.pose_from_offset(offset)),
-                         part_id, wait, done_cb, active_cb)
+                         part_id, attach, wait, done_cb, active_cb)
 
-    def place_at_frame(self, robot_name, target_frame, part_id,
-                       offset=(), wait=True, done_cb=None, active_cb=None):
+    def place_at_frame(self, robot_name, target_frame, part_id, offset=(),
+                       attach=False, wait=True, done_cb=None, active_cb=None):
         return self.place(robot_name,
                           PoseStamped(Header(frame_id=target_frame),
                                       self.pose_from_offset(offset)),
-                          part_id, wait, done_cb, active_cb)
+                          part_id, attach, wait, done_cb, active_cb)
 
     def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
         return self._pick_or_place.wait_for_stage(stage, timeout)
@@ -695,6 +737,16 @@ class AISTBaseRoutines(object):
                      Quaternion(*tuple(tfs.quaternion_from_matrix(T)))))
         return transformed_poses
 
+    def lookup_pose(self, target_frame, source_frame):
+        try:
+            t, q = self._listener.lookupTransform(target_frame,
+                                                  source_frame, rospy.Time(0))
+        except Exception as e:
+            rospy.logerr('AISTBaseRoutines.lookup_pose(): %s', str(e))
+            return None
+        return PoseStamped(Header(frame_id=target_frame),
+                           Pose(Point(*t), Quaternion(*q)))
+
     def correct_orientation(self, pose):
         poses = self.correct_orientations(PoseArray(pose.header, [pose.pose]))
         return PoseStamped(poses.header, poses.poses[0])
@@ -731,7 +783,7 @@ class AISTBaseRoutines(object):
         return '[{:.4f}, {:.4f}, {:.4f}; {:.2f}, {:.2f}. {:.2f}]'.format(
             *self.xyzrpy_from_pose(target_pose))
 
-    def pose_from_offset(self, offset):
+    def pose_from_offset(self, offset=()):
         return Pose(Point(*self._position_from_offset(offset[0:3])),
                     Quaternion(*self._orientation_from_offset(offset[3:])))
 

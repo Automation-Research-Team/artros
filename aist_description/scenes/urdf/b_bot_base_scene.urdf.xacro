@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="aist_base_scene" >
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="b_bot_base_scene" >
 
   <xacro:arg name="scene" default=""/>
 
@@ -9,24 +9,8 @@
   <xacro:property name="bots_z"		value="0.770"/>
   <xacro:property name="screen_z"	value="${bots_z + 0.0347}"/>
 
-  <!-- ground and workspace -->
+  <!-- ground -->
   <link name="ground"/>
-
-  <xacro:property name="table_w"	value="0.900"/>
-  <xacro:property name="table_l"	value="1.800"/>
-  <xacro:include filename="$(find aist_description
-			   )/objects/urdf/table.urdf.xacro"/>
-  <xacro:table prefix="workspace_"
-	       width="${table_w}" length="${table_l}" height="${bots_z}"
-	       parent="ground">
-    <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
-  </xacro:table>
-  <link name="workspace_center"/>
-  <joint name="ground_to_workspace" type="fixed">
-    <parent link="ground"/>
-    <child  link="workspace_center"/>
-    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
-  </joint>
 
   <!-- cage -->
   <xacro:property name="cage_w"		value="1.200"/>
@@ -34,9 +18,10 @@
   <xacro:property name="cage_h"		value="1.420"/>
   <xacro:property name="cage_t"		value="0.040"/>
   <xacro:property name="tool_bar_h"	value="0.270"/>
-  <xacro:property name="camera_bar_h"	value="1.300"/>
+  <xacro:property name="camera_bar_h"	value="1.325"/>
   <xacro:property name="cage_z"		value="0.164"/>
-  <xacro:property name="cage_offset"	value="0.020"/>
+  <xacro:property name="cage_offset_x"	value="0.020"/>
+  <xacro:property name="cage_offset_y"	value="-0.005"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/cage.urdf.xacro"/>
   <xacro:cage prefix="cage_"
@@ -46,9 +31,29 @@
 	      tool_bar_height="${tool_bar_h}"
 	      camera_bar_height="${camera_bar_h}"
 	      parent="ground">
-    <origin xyz="${-cage_w/2 + cage_offset} ${-cage_l/2} ${cage_z}"
+    <origin xyz="${-cage_w/2 + cage_offset_x}
+		 ${-cage_l/2 + cage_offset_y}
+		 ${cage_z}"
 	    rpy="0 0 0" />
   </xacro:cage>
+
+  <!-- workspace -->
+  <xacro:property name="table_w"	value="0.900"/>
+  <xacro:property name="table_l"	value="1.800"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_table_"
+	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset_x + cage_t} ${-table_l/2} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
+  <link name="workspace_center"/>
+  <joint name="ground_to_workspace" type="fixed">
+    <parent link="ground"/>
+    <child  link="workspace_center"/>
+    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
+  </joint>
 
   <!-- tool holders -->
   <xacro:property name="screw_tool_m3_holder_y"	value="0.75"/>
@@ -105,7 +110,7 @@
   <xacro:single_suction_gripper prefix="b_bot_gripper_"
   				parent="b_bot_ftsensor_flange_link">
     <!-- <origin xyz="0 0 0" rpy="0 ${0.2*pi/180} ${-1.2*pi/180}"/> -->
-    <origin xyz="0 0 0" rpy="0 ${0.7*pi/180} ${-0.1*pi/180}"/>
+    <origin xyz="0 0 0" rpy="0 ${0.3*pi/180} ${0.2*pi/180}"/>
   </xacro:single_suction_gripper>
 
   <!-- Add PhoXi 3D scanner -->

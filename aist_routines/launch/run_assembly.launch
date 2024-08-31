@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="config"		default="aist"/>
+
+  <!-- Start assembly client -->
+  <node name="assembly" pkg="aist_routines" type="run_assembly.py"
+	clear_params="true" output="screen">
+    <rosparam file="$(find aist_routines)/config/$(arg config)_config.yaml"/>
+    <rosparam file="$(find aist_routines)/config/assembly.yaml"/>
+  </node>
+
+</launch>

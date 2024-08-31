@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="screw_feeder">
+
+  <xacro:macro name="screw_feeder" params="prefix parent *origin">
+
+    <xacro:property name="length"	value=".126"/>
+    <xacro:property name="gap_width"	value=".020"/>
+    <xacro:property name="gap_depth"	value=".002"/>
+    <xacro:property name="gap_height"	value=".081"/>
+    <xacro:property name="gap_x"	value=".046"/>
+    <xacro:property name="gap_y"	value="${length/2}"/>
+    <xacro:property name="front_width"	value=".056"/>
+    <xacro:property name="front_height"	value="${gap_height - gap_depth}"/>
+    <xacro:property name="back_width"	value=".126"/>
+    <xacro:property name="back_height"	value=".147"/>
+
+    <xacro:include filename="$(find aist_description
+			     )/objects/urdf/aist_box.urdf.xacro" />
+
+    <!-- Back side -->
+    <xacro:aist_box name="${prefix}base_link" parent="${parent}"
+		    width="${back_width}" length="${length}"
+		    height="${back_height}"
+		    rgba="0.2 0.2 0.2 1.0" color_name="black">
+      <xacro:insert_block name="origin"/>
+    </xacro:aist_box>
+
+    <!-- Front side -->
+    <xacro:aist_box name="${prefix}front_side" parent="${prefix}base_link"
+		    width="${front_width}" length="${length}"
+		    height="${front_height}"
+		    rgba="0.2 0.2 0.2 1.0" color_name="black">
+      <origin xyz="${back_width} 0 0" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <!-- Gap -->
+    <xacro:aist_box name="${prefix}gap" parent="${prefix}front_side"
+		    width="${front_width}" length="${gap_width}"
+		    height="${gap_depth}"
+		    rgba="0.6 0.6 0.6 1.0" color_name="grey">
+      <origin xyz="0 ${gap_y - gap_width/2} ${front_height}" rpy="0 0 0"/>
+    </xacro:aist_box>
+
+    <joint name="${prefix}outlet_joint" type="fixed">
+      <parent link="${prefix}gap"/>
+      <child  link="${prefix}outlet_link"/>
+      <origin xyz="${gap_x} ${gap_width/2} ${gap_depth}"
+	      rpy="0 0 0"/>
+    </joint>
+    <link name="${prefix}outlet_link"/>
+
+    <joint name="${prefix}inlet_joint" type="fixed">
+      <parent link="${prefix}base_link"/>
+      <child  link="${prefix}inlet_link"/>
+      <origin xyz="${back_width/2} ${length/3} ${back_height}" rpy="0 0 0"/>
+    </joint>
+    <link name="${prefix}inlet_link"/>
+
+  </xacro:macro>
+
+</robot>

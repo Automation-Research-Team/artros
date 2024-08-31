@@ -47,10 +47,10 @@ from aist_utility.compat import *
 ######################################################################
 class ToolCalibrationRoutines(AISTBaseRoutines):
     refposes = {
-        'a_bot': [0.00, 0.00, 0.015, 0, 0, 90],
-        'b_bot': [0.00, 0.00, 0.015, 0, 0, 90],
-        'c_bot': [0.00, 0.00, 0.015, 0, 0, 90],
-        'd_bot': [0.00, 0.00, 0.015, 0, 0, 90],
+        'a_bot': [0.00, 0.00, 0.015, 0, 0,  90],
+        'b_bot': [0.00, 0.00, 0.015, 0, 0, -90],
+        'c_bot': [0.00, 0.00, 0.015, 0, 0,  90],
+        'd_bot': [0.00, 0.00, 0.015, 0, 0, -90],
     }
 
     def __init__(self):
@@ -100,9 +100,10 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
         print('  r:  Perform rolling motion')
         print('  p:  Perform pitching motion')
         print('  y:  Perform yawing motion')
+        print('  t:  Perform rolling/pitching/yawing motion')
+        print('  d:  Display tip link')
         print('  pp: Change pitching angle')
         print('  yy: Change yawing angle')
-        print('  t:  Display tip link')
 
     def interactive(self, key, robot_name, axis, speed):
         if key == 'o':
@@ -145,10 +146,10 @@ class ToolCalibrationRoutines(AISTBaseRoutines):
         target_pose.pose = Pose(Point(*tfs.translation_from_matrix(T)),
                                 Quaternion(*tfs.quaternion_from_matrix(T)))
         print('move to ' + self.format_pose(target_pose))
-        success, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                     target_pose,
-                                                     speed=self._speed)
-        print('reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name,
+                                       target_pose, speed=self._speed)
+        print('reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
         return success
 
     def rolling_motion(self):

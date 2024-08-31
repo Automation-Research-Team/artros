@@ -1,31 +1,17 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot__base_scene" >
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="a_bot_base_scene" >
 
-  <xacro:arg name="scene" default=""/>
+  <xacro:arg name="scene"		default=""/>
+  <xacro:arg name="hw_interface"	default="PositionJointInterface"/>
+					<!-- or "VelocityJointInterface" -->
 
   <xacro:property name="a_bot_x"	value="0"/>
   <xacro:property name="a_bot_y"	value="-0.4875"/>
   <xacro:property name="bots_z"		value="0.770"/>
   <xacro:property name="screen_z"	value="${bots_z + 0.0347}"/>
 
-  <!-- ground and workspace -->
+  <!-- ground -->
   <link name="ground"/>
-
-  <xacro:property name="table_w"	value="0.900"/>
-  <xacro:property name="table_l"	value="1.800"/>
-  <xacro:include filename="$(find aist_description
-			   )/objects/urdf/table.urdf.xacro"/>
-  <xacro:table prefix="workspace_"
-	       width="${table_w}" length="${table_l}" height="${bots_z}"
-	       parent="ground">
-    <origin xyz="${-table_w/2} ${-table_l/2} 0" rpy="0 0 0"/>
-  </xacro:table>
-  <link name="workspace_center"/>
-  <joint name="ground_to_workspace" type="fixed">
-    <parent link="ground"/>
-    <child  link="workspace_center"/>
-    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
-  </joint>
 
   <!-- cage -->
   <xacro:property name="cage_w"		value="1.200"/>
@@ -33,9 +19,10 @@
   <xacro:property name="cage_h"		value="1.420"/>
   <xacro:property name="cage_t"		value="0.040"/>
   <xacro:property name="tool_bar_h"	value="0.270"/>
-  <xacro:property name="camera_bar_h"	value="1.300"/>
+  <xacro:property name="camera_bar_h"	value="1.325"/>
   <xacro:property name="cage_z"		value="0.164"/>
-  <xacro:property name="cage_offset"	value="0.020"/>
+  <xacro:property name="cage_offset_x"	value="0.015"/>
+  <xacro:property name="cage_offset_y"	value="-0.005"/>
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/cage.urdf.xacro"/>
   <xacro:cage prefix="cage_"
@@ -45,9 +32,29 @@
 	      tool_bar_height="${tool_bar_h}"
 	      camera_bar_height="${camera_bar_h}"
 	      parent="ground">
-    <origin xyz="${-cage_w/2 + cage_offset} ${-cage_l/2} ${cage_z}"
+    <origin xyz="${-cage_w/2 + cage_offset_x}
+		 ${-cage_l/2 + cage_offset_y}
+		 ${cage_z}"
 	    rpy="0 0 0" />
   </xacro:cage>
+
+  <!-- workspace -->
+  <xacro:property name="table_w"	value="0.900"/>
+  <xacro:property name="table_l"	value="1.800"/>
+  <xacro:include filename="$(find aist_description
+			   )/objects/urdf/table.urdf.xacro"/>
+  <xacro:table prefix="workspace_table_"
+	       width="${table_w}" length="${table_l}" height="${bots_z}"
+	       parent="ground">
+    <origin xyz="${-cage_w/2 + cage_offset_x + cage_t} ${-table_l/2} 0"
+	    rpy="0 0 0"/>
+  </xacro:table>
+  <link name="workspace_center"/>
+  <joint name="ground_to_workspace" type="fixed">
+    <parent link="ground"/>
+    <child  link="workspace_center"/>
+    <origin xyz="0 0 ${bots_z}" rpy="0 0 0"/>
+  </joint>
 
   <!-- tool holders -->
   <xacro:property name="precision_tool_holder_y"	value="0.60"/>
@@ -89,7 +96,7 @@
 			      )/config/ur5/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/a_bot_calibration.yaml"
-      transmission_hw_interface="hardware_interface/PositionJointInterface"
+      transmission_hw_interface="hardware_interface/$(arg hw_interface)"
       safety_limits="true"
       safety_pos_margin="0.3"/>
 
@@ -100,10 +107,10 @@
   </joint>
 
   <!-- Attach mounter for Zivid2+ camera -->
-  <xacro:include filename="$(find aist_description)/devices/urdf/zivid_coupling.urdf.xacro"/>
-  <xacro:zivid_coupling prefix="a_bot_zivid_coupling_" parent="a_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0" />
-  </xacro:zivid_coupling>
+  <!-- <xacro:include filename="$(find aist_description)/devices/urdf/zivid_coupling.urdf.xacro"/> -->
+  <!-- <xacro:zivid_coupling prefix="a_bot_zivid_coupling_" parent="a_bot_flange"> -->
+  <!--   <origin xyz="0 0 0" rpy="${pi} 0 0" /> -->
+  <!-- </xacro:zivid_coupling> -->
 
   <!-- <!-\- Spawn and attach Zivid2+ camera -\-> -->
   <!-- <xacro:include filename="$(find aist_description -->
@@ -120,9 +127,8 @@
 
   <!-- Spawn and attach force sensor -->
   <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="a_bot_ftsensor_"
-	       parent="a_bot_zivid_coupling_flange_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+  <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:ft300>
 
   <!-- Spawn and attach gripper -->
@@ -136,9 +142,16 @@
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_140_gripper.urdf.xacro"/>
   <xacro:robotiq_140_gripper prefix="a_bot_gripper_"
-			    parent="a_bot_gripper_coupling_flange_link">
+			     parent="a_bot_gripper_coupling_flange_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_140_gripper>
+
+  <!-- RealSense cameras -->
+  <xacro:include filename="$(find aist_description
+  			   )/devices/urdf/wrist_cameras.urdf.xacro" />
+  <xacro:wrist_cameras prefix="a_bot_"
+  		       parent="a_bot_gripper_base_link"
+  		       use_nominal_extrinsics="true"/>
 
   <!-- I would like to remove the "world" link definition, but apparently it is necessary for Gazebo -->
   <link name="world"/>

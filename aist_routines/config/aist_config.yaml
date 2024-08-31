@@ -10,37 +10,48 @@ grippers:
     controller_ns: a_bot_gripper_controller
     max_effort:    5.0
     velocity:      0.1
-#  precision_tool:
-#    type: PrecisionGripper
-#    controller_ns: precision_tool_controller
+  b_bot_gripper:
+    type:          RobotiqGripper
+    controller_ns: b_bot_gripper_controller
+    max_effort:    5.0
+    velocity:      0.1
+#  b_bot_gripper:
+#    type:          SuctionGripper
+#    controller_ns: b_bot_gripper_controller
+  precision_tool:
+    type:          PrecisionGripper
+    controller_ns: precision_tool_controller
+    base_link:     precision_tool/base_link
+    tip_link:      precision_tool/tip_link
   screw_tool_m3:
     type:          SuctionGripper
     controller_ns: screw_tool_m3_controller
+    base_link:     screw_tool_m3/base_link
+    tip_link:      screw_tool_m3/tip_link
   screw_tool_m4:
     type:          SuctionGripper
     controller_ns: screw_tool_m4_controller
-  b_bot_gripper:
+    base_link:     screw_tool_m4/base_link
+    tip_link:      screw_tool_m4/tip_link
+  suction_tool:
     type:          SuctionGripper
-    controller_ns: b_bot_gripper_controller
+    controller_ns: suction_tool_controller
   base_fixture:
     type:          SuctionGripper
     controller_ns: base_fixture_controller
 
 cameras:
   a_motioncam:          PhoXiCamera
-  a_bot_zivid:          ZividCamera
-#  a_bot_inside_camera:  CodedLightRealSenseCamera
-#  a_bot_outside_camera: CodedLightRealSenseCamera
+#  a_bot_zivid:          ZividCamera
+  a_bot_inside_camera:  CodedLightRealSenseCamera
+  a_bot_outside_camera: CodedLightRealSenseCamera
 
-tools:
-  precision_tool:
-    holder_link:   precision_tool_holder_link
-    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+fastening_tools:
   screw_tool_m3:
-    holder_link:   screw_tool_m3_holder_link
-    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+    type:          ScrewTool
+    controller_ns: screw_tool_m3_fastening_controller
   screw_tool_m4:
-    holder_link:   screw_tool_m4_holder_link
-    holder_offset: [0.0, 0.0, 0.0, 0.0, 90.0, 0.0]
+    type:          ScrewTool
+    controller_ns: screw_tool_m4_fastening_controller
 
 moveit_eef_step: 0.002

@@ -4,11 +4,11 @@
 
   <xacro:arg name="prefix" default="precision_gripper_"/>
 
-  <link name ="world"/>
+  <link name ="base_link"/>
 
   <xacro:include filename="$(find aist_precision_gripper
 			   )/urdf/precision_gripper.urdf.xacro"/>
-  <xacro:precision_gripper prefix="$(arg prefix)" parent="world">
+  <xacro:precision_gripper prefix="$(arg prefix)" parent="base_link">
     <origin xyz="0 0 0" rpy="0 ${-pi/2} 0" />
   </xacro:precision_gripper>
 

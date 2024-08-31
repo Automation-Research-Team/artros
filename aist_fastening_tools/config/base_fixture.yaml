@@ -1,2 +1,5 @@
 # suction tool controller stuffs
 digital_out_port_suck: 6  # The pin to which the 'vac'  of pump is connected
+joint_name:            base_fixture_cylinder_joint
+min_position:          0.00
+max_position:          0.02

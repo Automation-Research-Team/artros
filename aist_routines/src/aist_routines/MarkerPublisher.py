@@ -64,7 +64,7 @@ class MarkerPublisher(object):
         }
 
     def __init__(self):
-        super(MarkerPublisher, self).__init__()
+        super().__init__()
         self._pub = rospy.Publisher("visualization_marker",
                                     MarkerArray, queue_size=10)
         self._markers = MarkerArray()

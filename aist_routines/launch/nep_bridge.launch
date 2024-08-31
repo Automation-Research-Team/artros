@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <!-- Start nep_bridge server -->
+  <include file="$(find nep_bridge)/launch/run.launch">
+    <arg name="config_file"	value="$(dirname)/../config/nep_bridge.yaml"/>
+  </include>
+
+</launch>

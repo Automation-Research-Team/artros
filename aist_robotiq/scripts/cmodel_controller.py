@@ -92,7 +92,7 @@ class CModelController(object):
         rospy.sleep(2.0)              # wait for server comes up
         self._calibrate()
 
-        rospy.logdebug('(%s) Started' % self._name)
+        rospy.logdebug('(%s) Started', self._name)
 
     def _set_velocity_cb(self, req):
         self._velocity = req.velocity
@@ -109,27 +109,26 @@ class CModelController(object):
         # Handle calibration process if not moving
         if self._is_active(status) and not self._is_moving(status):
             if self._calibration_step == 1:
-                rospy.loginfo("(%s) calibration step 1: start calibration"
-                              % self._name)
+                rospy.loginfo("(%s) calibration step 1: start calibration",
+                              self._name)
                 self._calibration_step = 2
                 self._send_raw_move_command(0, 64, 1)    # full-open
                 rospy.sleep(0.5)
             elif self._calibration_step == 2:
                 self._max_gap_counts = status.gPO        # record at full-open
-                rospy.loginfo("(%s) calibration step 2: gap[%d]@full-open"
-                              % (self._name, self._max_gap_counts))
+                rospy.loginfo("(%s) calibration step 2: gap[%d]@full-open",
+                              self._name, self._max_gap_counts)
                 self._calibration_step = 3
                 self._send_raw_move_command(255, 64, 1)  # full-close
                 rospy.sleep(0.5)
             elif self._calibration_step == 3:
                 self._min_gap_counts = status.gPO        # record at full-close
-                rospy.loginfo("(%s) calibration step 3: gap[%d]@full-close"
-                              % (self._name, self._min_gap_counts))
+                rospy.loginfo("(%s) calibration step 3: gap[%d]@full-close",
+                              self._name, self._min_gap_counts)
                 self._calibration_step = 0
                 self._send_raw_move_command(0, 64, 1)    # full-open
-                rospy.loginfo('(%s) calibrated to [%d, %d]'
-                              % (self._name,
-                                 self._min_gap_counts, self._max_gap_counts))
+                rospy.loginfo('(%s) calibrated to [%d, %d]', self._name,
+                              self._min_gap_counts, self._max_gap_counts)
 
         # Return if no active goals
         if not self._server.is_active():
@@ -137,18 +136,18 @@ class CModelController(object):
 
         # Handle the active goal
         if not self._is_active(status):
-            rospy.logwarn('(%s) abort goal because the gripper is not yet active' % self._name)
+            rospy.logwarn('(%s) abort goal because the gripper is not yet active', self._name)
             self._server.set_aborted()
         elif self._error(status) != 0:
-            rospy.logwarn('(%s) faulted with code: %x'
-                          % (self._name, self._error(status)))
+            rospy.logwarn('(%s) faulted with code: %x',
+                          self._name, self._error(status))
             self._server.set_aborted()
         elif self._reached_goal(status):
-            rospy.loginfo('(%s) reached goal' % self._name)
+            rospy.loginfo('(%s) reached goal', self._name)
             self._server.set_succeeded(
                 GripperCommandResult(*self._status_values(status)))
         elif self._stalled(status):
-            rospy.loginfo('(%s) stalled' % self._name)
+            rospy.loginfo('(%s) stalled', self._name)
             self._server.set_succeeded(
                 GripperCommandResult(*self._status_values(status)))
         else:
@@ -169,13 +168,15 @@ class CModelController(object):
 
     def _preempt_cb(self):
         self._stop()
-        rospy.loginfo('(%s) preempted' % self._name)
+        rospy.loginfo('(%s) preempted', self._name)
         self._server.set_preempted()
 
     def _calibrate(self):
         self._calibration_step = 1
 
     def _send_move_command(self, position, velocity, effort):
+        # print('*** _send_move_command: position=%f, velocity=%f, effort=%f'
+        #       % (position, velocity, effort))
         pos = np.clip(int((position - self._min_position)
                           / self.position_per_tick + self._min_gap_counts),
                       self._max_gap_counts, self._min_gap_counts)
@@ -188,6 +189,8 @@ class CModelController(object):
         return pos
 
     def _send_raw_move_command(self, pos, vel, eff):
+        # print('*** _send_raw_move_command: pos=%d, vel=%d, eff=%d'
+        #       % (pos, vel, eff))
         command = CModelCommand()
         command.rACT = 1
         command.rGTO = 1
@@ -201,7 +204,7 @@ class CModelController(object):
         command.rACT = 1
         command.rGTO = 0
         self._command_pub.publish(command)
-        rospy.logdebug('(%s) stopping' % (self._name))
+        rospy.logdebug('(%s) stopping', self._name)
 
     def _position(self, status):
         return (status.gPO - self._min_gap_counts) * self.position_per_tick \
@@ -211,9 +214,15 @@ class CModelController(object):
         return status.gCOU * self.effort_per_tick + self._min_effort
 
     def _stalled(self, status):
-        return status.gOBJ == 1 or status.gOBJ == 2
+        # After the goal accepted in _goal_cb(), status.gPR does not
+        # correctly reflects the requested position if _status_cb() is
+        # called before _send_move_command(). Thus we have to use
+        # self._goal_rPR instead of status.gPR.
+        return (status.gOBJ == 1 and status.gPO > self._goal_rPR) or \
+               (status.gOBJ == 2 and status.gPO < self._goal_rPR)
 
     def _reached_goal(self, status):
+        # ibid
         return abs(status.gPO - self._goal_rPR) <= 1
 
     def _status_values(self, status):

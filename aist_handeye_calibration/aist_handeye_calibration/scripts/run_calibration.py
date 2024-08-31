@@ -64,7 +64,7 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         self._initpose             = rospy.get_param('~initpose', [])
         self._keyposes             = rospy.get_param('~keyposes', [])
         self._speed                = rospy.get_param('~speed', 1)
-        self._sleep_time           = rospy.get_param('~sleep_time', 0.5)
+        self._sleep_time           = rospy.get_param('~sleep_time', 2.0)
 
         if rospy.get_param('calibration', True):
             ns = '/handeye_calibrator'
@@ -172,17 +172,19 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
         #  to the approach pose because the marker pose is given w.r.t. camera
         #  frame which will change while moving in the case of "eye on hand".
         marker_pose = self.transform_pose_to_target_frame(marker_pose)
-        success, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                     marker_pose, (0, 0, 0.05),
-                                                     speed=self._speed,
-                                                     end_effector_link=self._robot_effector_tip_frame)
-        print('  reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name,
+                                       marker_pose, (0, 0, 0.05),
+                                       speed=self._speed,
+                                       end_effector_link=self._robot_effector_tip_frame)
+        print('  reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
         rospy.sleep(1)
         print('  move to %s' % self.format_pose(marker_pose))
-        success, current_pose = self.go_to_pose_goal(self._robot_name,
-                                                     marker_pose, speed=0.05,
-                                                     end_effector_link=self._robot_effector_tip_frame)
-        print('  reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name,
+                                       marker_pose, speed=0.05,
+                                       end_effector_link=self._robot_effector_tip_frame)
+        print('  reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
 
     # Move stuffs
     def _move_to_subposes(self, keypose, keypose_num):
@@ -242,10 +244,11 @@ class HandEyeCalibrationRoutines(AISTBaseRoutines):
     def _move(self, xyzrpy):
         pose = self.pose_from_xyzrpy(xyzrpy)
         print('  move to %s' % self.format_pose(pose))
-        success, current_pose = self.go_to_pose_goal(self._robot_name, pose,
-                                                     speed=self._speed,
-                                                     end_effector_link=self._robot_effector_frame)
-        print('  reached %s' % self.format_pose(current_pose))
+        success = self.go_to_pose_goal(self._robot_name, pose,
+                                       speed=self._speed,
+                                       end_effector_link=self._robot_effector_frame)
+        print('  reached %s' %
+              self.format_pose(self.get_current_pose(self._robot_name)))
         return success
 
     def _save_camera_placement(self, Tec):

@@ -10,6 +10,9 @@
     <arg name="sim"		value="$(arg sim)"/>
   </include>
 
+  <!-- Start object_database_server -->
+  <include file="$(find aist_object_database)/launch/run.launch"/>
+
   <!-- Start graspability server -->
   <arg name="camera_name"	value="a_motioncam"/>
   <include file="$(find aist_graspability)/launch/run.launch">

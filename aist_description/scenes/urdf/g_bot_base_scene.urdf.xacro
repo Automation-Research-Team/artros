@@ -56,7 +56,7 @@
   <!-- Robot mounter -->
   <xacro:include filename="$(find aist_description
 			   )/objects/urdf/table.urdf.xacro"/>
-  <xacro:table prefix="mounter_"
+  <xacro:table prefix="mounter_table_"
 		 width="${mounter_w}" length="${mounter_l}" height="${g_bot_z}"
 		 parent="ground">
     <origin xyz="${g_bot_x - mounter_w/2} ${g_bot_y - mounter_l/2} 0"
