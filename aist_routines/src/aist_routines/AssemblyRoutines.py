@@ -95,8 +95,8 @@ class AssemblyRoutines(URRoutines):
             self._initialize_collision_objects()
         elif key == 'r':
             object_id   = raw_input('  object_id? ')
-            if object_id == '':
-                attach_link = raw_input('  attach_link? ')
+            attach_link = raw_input('  attach_link? ') if object_id == '' else\
+                          ''
             self.com.remove_object(object_id, attach_link)
             self._num_screw_m3 = 0
             self._num_screw_m4 = 0

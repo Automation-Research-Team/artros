@@ -35,7 +35,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import os, copy, rospy, rospkg
+import os, copy, rospy, rospkg, threading
 import numpy as np
 
 from collections            import namedtuple
@@ -137,9 +137,10 @@ class CollisionObjectManager(object):
         self._obj_info_dict   = {}
         self._marker_id_min   = 0
         self._marker_id_lists = {}
-        self._marker_pub      = rospy.Publisher("~collision_marker",
+        self._marker_pub      = rospy.Publisher('~collision_marker',
                                                 Marker, queue_size=10)
         self._broadcaster = TransformBroadcaster()
+        self._lock        = threading.Lock()
         self._timer       = rospy.Timer(rospy.Duration(0.1),
                                         self._subframes_and_markers_cb)
         self._get_mesh_resource \
@@ -151,12 +152,13 @@ class CollisionObjectManager(object):
 
     # timer callbacks
     def _subframes_and_markers_cb(self, event):
-        for obj_info in self._obj_info_dict.values():
-            for subframe_transform in obj_info.subframe_transforms:
-                subframe_transform.header.stamp = rospy.Time.now()
-                self._broadcaster.sendTransform(subframe_transform)
-            for marker in obj_info.markers:
-                self._marker_pub.publish(marker)
+        with self._lock:
+            for obj_info in self._obj_info_dict.values():
+                for subframe_transform in obj_info.subframe_transforms:
+                    subframe_transform.header.stamp = rospy.Time.now()
+                    self._broadcaster.sendTransform(subframe_transform)
+                for marker in obj_info.markers:
+                    self._marker_pub.publish(marker)
 
     # service callbacks
     def _get_mesh_resource_cb(self, req):
@@ -183,11 +185,18 @@ class CollisionObjectManager(object):
                 rospy.logerr('(CollisionObjectManager) unknown attached object[%s]',
                              req.object_id)
                 res.success = False
-                return res
-            res.retval = obj_info.type
+            else:
+                res.retval = obj_info.type
             return res
 
-        if req.object_type == '':
+        if req.object_type != '':
+            aco = self._create_object(req.object_type, req.object_id)
+            if aco is None:
+                rospy.logerr('(CollisionObjectManger) unknown object type[%s]',
+                             req.object_type)
+                res.success = False
+                return res
+        else:
             aco = self._psi.get_attached_objects([req.object_id]) \
                            .get(req.object_id, None)
             if aco is None:
@@ -195,8 +204,6 @@ class CollisionObjectManager(object):
                              req.object_id)
                 res.success = False
                 return res
-        else:
-            aco = self._create_object(req.object_type, req.object_id)
 
         if req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
             res.retval = self._attach_object(aco, req.attach_link,
@@ -216,7 +223,10 @@ class CollisionObjectManager(object):
     # operations
     def _create_object(self, object_type, object_id):
         # Create an attached collision object.
-        obj_props = self._obj_props_dict[object_type]
+        obj_props = self._obj_props_dict.get(object_type, None)
+        if obj_props is None:
+            return None
+
         aco = AttachedCollisionObject()
         aco.object.id = object_id if object_id != '' else object_type
         if obj_props.collision_meshes != []:
@@ -277,9 +287,10 @@ class CollisionObjectManager(object):
             obj_info.markers.append(marker)
 
         # Store object info.
-        self._obj_info_dict[aco.object.id] = obj_info
+        with self._lock:
+            self._obj_info_dict[aco.object.id] = obj_info
 
-        rospy.loginfo('(CollisionObjectManager) created object with ID[%s] of type[%s]',
+        rospy.loginfo("(CollisionObjectManager) created object '%s' of type[%s]",
                       aco.object.id, object_type)
         return aco
 
@@ -309,7 +320,7 @@ class CollisionObjectManager(object):
 
     def _set_touch_links(self, aco, touch_links):
         self._psi.attach_object(aco, touch_links=touch_links)
-        rospy.loginfo("(CollisionObjectManager) set touch links %s to '%s'(attached to '%s')",
+        rospy.loginfo("(CollisionObjectManager) set touch links%s to '%s' attached to '%s'",
                       aco.touch_links, aco.object.id, aco.link_name)
 
     def _remove_object(self, object_id, attach_link):
@@ -337,7 +348,12 @@ class CollisionObjectManager(object):
         return marker_id_list
 
     def _delete_markers_and_subframes(self, object_id):
-        for marker in self._obj_info_dict[object_id].markers:
+        obj_info = self._obj_info_dict.get(object_id, None)
+        if obj_info is None:
+            rospy.logerr('(CollisionObjectManager) unknown object[%s]',
+                         object_id)
+            return
+        for marker in obj_info.markers:
             marker.action = Marker.DELETE
             self._marker_pub.publish(marker)
         del self._obj_info_dict[object_id]
