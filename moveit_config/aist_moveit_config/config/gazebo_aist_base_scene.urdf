@@ -469,7 +469,7 @@
     <joint name="cage_tool_bar" type="fixed">
         <parent link="cage_workspace_bar" />
         <child link="cage_tool_bar" />
-        <origin rpy="0 0 0" xyz="0 0 0.27" />
+        <origin rpy="0 0 0" xyz="0 0 0.24" />
     </joint>
     <link name="workspace_table_base_link">
         <!-- w is in x, l is in y, h is in z -->

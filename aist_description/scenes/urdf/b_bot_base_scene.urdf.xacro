@@ -17,7 +17,7 @@
   <xacro:property name="cage_l"		value="1.580"/>
   <xacro:property name="cage_h"		value="1.420"/>
   <xacro:property name="cage_t"		value="0.040"/>
-  <xacro:property name="tool_bar_h"	value="0.270"/>
+  <xacro:property name="tool_bar_h"	value="0.240"/>
   <xacro:property name="camera_bar_h"	value="1.325"/>
   <xacro:property name="cage_z"		value="0.164"/>
   <xacro:property name="cage_offset_x"	value="0.020"/>
