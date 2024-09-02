@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <!-- Start assembly client -->
+  <!-- Start collision_object_manager -->
   <node name="collision_object_manager"
 	pkg="aist_collision_object_manager" type="collision_object_manager.py"
 	clear_params="true" output="screen">

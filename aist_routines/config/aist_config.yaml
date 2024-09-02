@@ -43,8 +43,8 @@ grippers:
 cameras:
   a_motioncam:          PhoXiCamera
 #  a_bot_zivid:          ZividCamera
-  a_bot_inside_camera:  CodedLightRealSenseCamera
-  a_bot_outside_camera: CodedLightRealSenseCamera
+#  a_bot_inside_camera:  CodedLightRealSenseCamera
+#  a_bot_outside_camera: CodedLightRealSenseCamera
 
 fastening_tools:
   screw_tool_m3:
