@@ -109,3 +109,9 @@ touch_links:
     - screw_tool_m4_holder_base_link
   suction_tool_holder_link:
     - suction_tool_holder_base_link
+  screw_feeder_m3_outlet_link:
+    - screw_feeder_m3_front_side
+    - screw_feeder_m3_gap
+  screw_feeder_m4_outlet_link:
+    - screw_feeder_m4_front_side
+    - screw_feeder_m4_gap
