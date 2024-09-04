@@ -3394,13 +3394,14 @@
         <child link="workbench_right_border" />
         <origin rpy="0 0 0" xyz="0.194 0.016 0" />
     </joint>
-    <transmission name="base_fixture_cylinder_joint_trans">
+    <transmission name="base_fixture_piston_joint_trans">
         <type>transmission_interface/SimpleTransmission</type>
-        <joint name="base_fixture_cylinder_joint">
+        <joint name="base_fixture_piston_joint">
             <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </joint>
-        <actuator name="base_fixture_cylinder_joint_motor">
+        <actuator name="base_fixture_piston_joint_motor">
             <mechanicalReduction>1</mechanicalReduction>
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
         </actuator>
     </transmission>
     <joint name="base_fixture_base_joint" type="fixed">
@@ -3464,6 +3465,12 @@
         <origin rpy="0.0      0.0      0.0" xyz="0.033      0.0      0.013" />
     </joint>
     <link name="base_fixture_tip_link" />
+    <joint name="base_fixture_piston_head_joint" type="fixed">
+        <parent link="base_fixture_piston" />
+        <child link="base_fixture_piston_head" />
+        <origin rpy="0.0      0.0      0.0" xyz="0.013      0.0      0.013" />
+    </joint>
+    <link name="base_fixture_piston_head" />
     <gazebo reference="base_fixture_base_link">
         <material>Gazebo/FlatBlack</material>
     </gazebo>
@@ -3802,16 +3809,6 @@
             <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
         </joint>
         <actuator name="b_bot_gripper_right_inner_finger_joint_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="trans_base_fixture_piston_joint">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="base_fixture_piston_joint">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="base_fixture_piston_joint_motor">
             <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>

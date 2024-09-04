@@ -12,9 +12,6 @@
       <xacro:property name="primitives"
 		      value="${properties['primitives']}"
 		      scope="parent"/>
-      <!-- <xacro:property name="collision_meshes" -->
-      <!-- 		      value="${properties['collision_meshes']}" -->
-      <!-- 		      scope="parent"/> -->
       <xacro:property name="subframes"
 		      value="${properties['subframes']}"
 		      scope="parent"/>
@@ -28,7 +25,7 @@
 
     <xacro:property name="stroke"	value="0.020"/>
 
-    <!-- body -->
+    <!-- Body -->
     <xacro:property name="body_vorigin"	value="${visual_meshes[0]['pose']}"/>
     <xacro:property name="body_vscale"	value="${visual_meshes[0]['scale']}"/>
     <xacro:property name="body_vcolor"	value="${visual_meshes[0]['color']}"/>
@@ -76,7 +73,7 @@
       </inertial>
     </link>
 
-    <!-- piston -->
+    <!-- Piston -->
     <xacro:property name="piston_vorigin"
     		    value="${visual_meshes[1]['pose']}"/>
     <xacro:property name="piston_vscale"
@@ -134,7 +131,7 @@
       </inertial>
     </link>
 
-    <!-- tip -->
+    <!-- Tip -->
     <xacro:property name="tip_link_origin"
 		    value="${subframes['tip_link']}"/>
     <joint name="${prefix}tip_link_joint" type="fixed">
@@ -148,6 +145,21 @@
 		   ${tip_link_origin[5]*pi/180.0}"/>
     </joint>
     <link name="${prefix}tip_link"/>
+
+    <!-- Piston head -->
+    <xacro:property name="piston_head_origin"
+		    value="${subframes['piston_head']}"/>
+    <joint name="${prefix}piston_head_joint" type="fixed">
+      <parent link="${prefix}piston"/>
+      <child  link="${prefix}piston_head"/>
+      <origin xyz="${piston_head_origin[0]}
+		   ${piston_head_origin[1]}
+		   ${piston_head_origin[2]}"
+	      rpy="${piston_head_origin[3]*pi/180.0}
+		   ${piston_head_origin[4]*pi/180.0}
+		   ${piston_head_origin[5]*pi/180.0}"/>
+    </joint>
+    <link name="${prefix}piston_head"/>
 
     <gazebo reference="${prefix}base_link">
       <material>Gazebo/FlatBlack</material>

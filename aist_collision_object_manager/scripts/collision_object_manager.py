@@ -367,10 +367,10 @@ class CollisionObjectManager(object):
                       aco.object.id, aco.link_name, aco.touch_links)
 
         # Attach child objects recursively.
-        for child in _obj_info_dict[aco.object.id].children:
-            child_aco = self._psi.get_attached_objects()[child]
+        # for child in self._obj_info_dict[aco.object.id].children:
+        #     child_aco = self._psi.get_attached_objects()[child]
+        #     self._attach_object(child_aco, attach_link, child_pose, touch_links)
 
-            self._attach_object(child_aco, attach_link, child_pose, touch_links)
         # Replace the transform from the object base_link to the attached link.
         self._obj_info_dict[aco.object.id].subframe_transforms[0] \
             = TransformStamped(aco.object.header,
