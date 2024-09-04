@@ -28,12 +28,12 @@
 
     <xacro:property name="stroke"	value="0.020"/>
 
-    <!-- base -->
-    <xacro:property name="base_vorigin"	value="${visual_meshes[0]['pose']}"/>
-    <xacro:property name="base_vscale"	value="${visual_meshes[0]['scale']}"/>
-    <xacro:property name="base_vcolor"	value="${visual_meshes[0]['color']}"/>
-    <xacro:property name="base_corigin" value="${primitives[0]['pose']}"/>
-    <xacro:property name="base_cdims"   value="${primitives[0]['dimensions']}"/>
+    <!-- body -->
+    <xacro:property name="body_vorigin"	value="${visual_meshes[0]['pose']}"/>
+    <xacro:property name="body_vscale"	value="${visual_meshes[0]['scale']}"/>
+    <xacro:property name="body_vcolor"	value="${visual_meshes[0]['color']}"/>
+    <xacro:property name="body_corigin" value="${primitives[0]['pose']}"/>
+    <xacro:property name="body_cdims"   value="${primitives[0]['dimensions']}"/>
 
     <joint name="${prefix}base_joint" type="fixed">
       <parent link="${parent}"/>
@@ -42,30 +42,30 @@
     </joint>
     <link name="${prefix}base_link">
       <visual>
-	<origin xyz="${base_vorigin[0]}
-		     ${base_vorigin[1]}
-		     ${base_vorigin[2]}"
-		rpy="${base_vorigin[3]*pi/180.0}
-		     ${base_vorigin[4]*pi/180.0}
-		     ${base_vorigin[5]*pi/180.0}"/>
+	<origin xyz="${body_vorigin[0]}
+		     ${body_vorigin[1]}
+		     ${body_vorigin[2]}"
+		rpy="${body_vorigin[3]*pi/180.0}
+		     ${body_vorigin[4]*pi/180.0}
+		     ${body_vorigin[5]*pi/180.0}"/>
         <geometry>
           <mesh filename="${visual_meshes[0]['url']}"
-		scale="${base_vscale[0]} ${base_vscale[1]} ${base_vscale[2]}"/>
+		scale="${body_vscale[0]} ${body_vscale[1]} ${body_vscale[2]}"/>
         </geometry>
         <material name="Gazebo/Black">
-          <color rgba="${base_vcolor[0]} ${base_vcolor[1]}
-		       ${base_vcolor[2]} ${base_vcolor[3]}"/>
+          <color rgba="${body_vcolor[0]} ${body_vcolor[1]}
+		       ${body_vcolor[2]} ${body_vcolor[3]}"/>
         </material>
       </visual>
       <collision>
-	<origin xyz="${base_corigin[0]}
-		     ${base_corigin[1]}
-		     ${base_corigin[2]}"
-		rpy="${base_corigin[3]*pi/180.0}
-		     ${base_corigin[4]*pi/180.0}
-		     ${base_corigin[5]*pi/180.0}"/>
+	<origin xyz="${body_corigin[0]}
+		     ${body_corigin[1]}
+		     ${body_corigin[2]}"
+		rpy="${body_corigin[3]*pi/180.0}
+		     ${body_corigin[4]*pi/180.0}
+		     ${body_corigin[5]*pi/180.0}"/>
         <geometry>
-	  <box size="${base_cdims[0]} ${base_cdims[1]} ${base_cdims[2]}"/>
+	  <box size="${body_cdims[0]} ${body_cdims[1]} ${body_cdims[2]}"/>
         </geometry>
       </collision>
       <inertial>
@@ -76,54 +76,54 @@
       </inertial>
     </link>
 
-    <!-- cylinder -->
-    <!-- <xacro:property name="cylinder_vorigin" -->
-    <!-- 		    value="${visual_meshes[1]['pose']}"/> -->
-    <!-- <xacro:property name="cylinder_vscale" -->
-    <!-- 		    value="${visual_meshes[1]['scale']}"/> -->
-    <!-- <xacro:property name="cylinder_vcolor" -->
-    <!-- 		    value="${visual_meshes[1]['color']}"/> -->
-    <xacro:property name="cylinder_corigin"
+    <!-- piston -->
+    <xacro:property name="piston_vorigin"
+    		    value="${visual_meshes[1]['pose']}"/>
+    <xacro:property name="piston_vscale"
+    		    value="${visual_meshes[1]['scale']}"/>
+    <xacro:property name="piston_vcolor"
+    		    value="${visual_meshes[1]['color']}"/>
+    <xacro:property name="piston_corigin"
 		    value="${primitives[1]['pose']}"/>
-    <xacro:property name="cylinder_cdims"
+    <xacro:property name="piston_cdims"
 		    value="${primitives[1]['dimensions']}"/>
 
-    <joint name="${prefix}cylinder_joint" type="prismatic">
+    <joint name="${prefix}piston_joint" type="prismatic">
       <parent link="${prefix}base_link"/>
-      <child link="${prefix}cylinder"/>
+      <child link="${prefix}piston"/>
       <axis xyz="1 0 0"/>
       <limit effort="130" lower="0" upper="${stroke}" velocity="0.15"/>
     </joint>
-    <link name="${prefix}cylinder">
-      <!-- <visual> -->
-      <!-- 	<origin xyz="${cylinder_vorigin[0]} -->
-      <!-- 		     ${cylinder_vorigin[1]} -->
-      <!-- 		     ${cylinder_vorigin[2]}" -->
-      <!-- 		rpy="${cylinder_vorigin[3]*pi/180.0} -->
-      <!-- 		     ${cylinder_vorigin[4]*pi/180.0} -->
-      <!-- 		     ${cylinder_vorigin[5]*pi/180.0}"/> -->
-      <!--   <geometry> -->
-      <!--     <mesh filename="${visual_meshes[1]['url']}" -->
-      <!-- 		scale="${cylinder_vscale[0]} -->
-      <!-- 		       ${cylinder_vscale[1]} -->
-      <!-- 		       ${cylinder_vscale[2]}"/> -->
-      <!--   </geometry> -->
-      <!--   <material name="Gazebo/Grey"> -->
-      <!--     <color rgba="${cylinder_vcolor[0]} ${cylinder_vcolor[1]} -->
-      <!-- 		       ${cylinder_vcolor[2]} ${cylinder_vcolor[3]}"/> -->
-      <!--   </material> -->
-      <!-- </visual> -->
-      <collision>
-	<origin xyz="${cylinder_corigin[0]}
-		     ${cylinder_corigin[1]}
-		     ${cylinder_corigin[2]}"
-		rpy="${cylinder_corigin[3]*pi/180.0}
-		     ${cylinder_corigin[4]*pi/180.0}
-		     ${cylinder_corigin[5]*pi/180.0}"/>
+    <link name="${prefix}piston">
+      <visual>
+      	<origin xyz="${piston_vorigin[0]}
+      		     ${piston_vorigin[1]}
+      		     ${piston_vorigin[2]}"
+      		rpy="${piston_vorigin[3]*pi/180.0}
+      		     ${piston_vorigin[4]*pi/180.0}
+      		     ${piston_vorigin[5]*pi/180.0}"/>
         <geometry>
-	  <box size="${cylinder_cdims[0]}
-		     ${cylinder_cdims[1]}
-		     ${cylinder_cdims[2]}"/>
+          <mesh filename="${visual_meshes[1]['url']}"
+      		scale="${piston_vscale[0]}
+		       ${piston_vscale[1]}
+		       ${piston_vscale[2]}"/>
+        </geometry>
+        <material name="Gazebo/Grey">
+          <color rgba="${piston_vcolor[0]} ${piston_vcolor[1]}
+      		       ${piston_vcolor[2]} ${piston_vcolor[3]}"/>
+        </material>
+      </visual>
+      <collision>
+	<origin xyz="${piston_corigin[0]}
+		     ${piston_corigin[1]}
+		     ${piston_corigin[2]}"
+		rpy="${piston_corigin[3]*pi/180.0}
+		     ${piston_corigin[4]*pi/180.0}
+		     ${piston_corigin[5]*pi/180.0}"/>
+        <geometry>
+	  <box size="${piston_cdims[0]}
+		     ${piston_cdims[1]}
+		     ${piston_cdims[2]}"/>
         </geometry>
       </collision>
       <inertial>
@@ -152,12 +152,12 @@
     <gazebo reference="${prefix}base_link">
       <material>Gazebo/FlatBlack</material>
     </gazebo>
-    <gazebo reference="${prefix}cylinder">
+    <gazebo reference="${prefix}piston">
       <material>Gazebo/Grey</material>
     </gazebo>
 
     <!-- Improve grasping physics -->
-    <gazebo reference="${prefix}cylinder">
+    <gazebo reference="${prefix}piston">
       <kp>1000000.0</kp>
       <kd>1.0</kd>
       <mu1>1.0</mu1>

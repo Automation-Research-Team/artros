@@ -66,20 +66,20 @@ suction_tool:
 
 base_fixture:
   primitives:
-  - type:       BOX                     # Base
+  - type:       BOX                     # Body
     dimensions: [0.049, 0.058, 0.026]
     pose:       [-0.0245, 0.0, 0.013, 0.0, 0.0, 0.0]
-  - type:       BOX                     # Plate
+  - type:       BOX                     # Piston
     dimensions: [0.007, 0.056, 0.022]
-    pose:       [0.0035, 0.0, 0.013, 0.0, 0.0, 0.0]
+    pose:       [0.0095, 0.0, 0.013, 0.0, 0.0, 0.0]
   visual_meshes:
-  - url:        'package://aist_fastening_tools/meshes/visual/MGPM12-20Z.stl'
+  - url:        'package://aist_fastening_tools/meshes/visual/MGPM12-20Z_body.stl'
     pose:       [0.0, 0.0, 0.013, 0.0, 0.0, 180.0]
     scale:      [0.001, 0.001, 0.001]
     color:      [0.8, 0.8, 0.8, 1.0]
-#  collision_meshes:
-#  - url:        'package://aist_fastening_tools/meshes/collision/MGPM12-20Z.stl'
-#    pose:       [0.0, 0.0, 0.013, 0.0, 0.0, 180.0]
-#    scale:      [0.001, 0.001, 0.001]
+  - url:        'package://aist_fastening_tools/meshes/visual/MGPM12-20Z_piston.stl'
+    pose:       [0.0, 0.0, 0.013, 0.0, 0.0, 180.0]
+    scale:      [0.001, 0.001, 0.001]
+    color:      [0.8, 0.8, 0.8, 1.0]
   subframes:
-    tip_link:   [0.027, 0.0, 0.013, 0.0, 0.0, 0.0]
+    tip_link:   [0.033, 0.0, 0.013, 0.0, 0.0, 0.0]
