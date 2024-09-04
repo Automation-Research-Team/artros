@@ -118,6 +118,11 @@ def _pose_matrix(pose):
                                                            pose.orientation.z,
                                                            pose.orientation.w]))
 
+def _transform_pose(T, pose):
+    P = tfs.concatenate_matrices(T, _pose_matrix(pose))
+    return Pose(Point(*tfs.translation_from_matrix(P)),
+                Quaternion(*tfs.quaternion_from_matrix(P)))
+
 #########################################################################
 #  class CollisionObjectManager                                         #
 #########################################################################
@@ -356,12 +361,23 @@ class CollisionObjectManager(object):
         return aco
 
     def _attach_object(self, aco, attach_link, pose, touch_links):
-        attach_link, pose = self._fix_attach_link_and_pose(attach_link, pose)
         detach_link = aco.link_name
+        attach_link, pose, fixed = self._fix_attach_link_and_pose(attach_link,
+                                                                  pose)
+        T = tfs.concatenate_matrices(_pose_matrix(pose),
+                                     tfs.inverse_matrix(
+                                         _pose_matrix(aco.object.pose)))
+
         aco.object.header.frame_id = attach_link
         aco.object.pose            = pose
         aco.object.operation       = CollisionObject.ADD
         self._psi.attach_object(aco, attach_link, touch_links)
+
+        for child in self._obj_info_dict[aco.object.id].children:
+            child_aco = self._psi.get_attached_objects()[child]
+            self._attach_object(child_aco, attach_link,
+                                _transform_pose(T, child_aco.object.pose),
+                                child_aco.touch_links)
 
         rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
                       aco.object.id, aco.link_name, aco.touch_links)
@@ -428,22 +444,21 @@ class CollisionObjectManager(object):
 
     def _fix_attach_link_and_pose(self, attach_link, pose):
         # Check if 'attach_link' belongs to a collision object.
+        # - tokens[0]: object_id, tokens[1]: subframe
         tokens = attach_link.rsplit('/', 1)
         aco = self._psi.get_attached_objects().get(tokens[0], None)
         if aco is None:
-            return attach_link, pose
+            return attach_link, pose, False
 
         T = _pose_matrix(aco.object.pose)
-        P = _pose_matrix(pose)
-        if tokens[1] == 'base_link':
-            P = tfs.concatenate_matrices(T, P)
-        else:
-            S = _pose_matrix(aco.object.subframe_poses[
-                                 aco.object.subframe_names.index(tokens[1])])
-            P = tfs.concatenate_matrices(T, S, P)
+        if tokens[1] != 'base_link':
+            T = tfs.concatenate_matrices(
+                    T,
+                    _pose_matrix(
+                        aco.object.subframe_poses[
+                            aco.object.subframe_names.index(tokens[1])]))
 
-        return aco.link_name, Pose(Point(*tfs.translation_from_matrix(P)),
-                                   Quaternion(*tfs.quaternion_from_matrix(P)))
+        return aco.link_name, _transform_pose(T, pose), True
 
 #########################################################################
 #  Entry point                                                          #
