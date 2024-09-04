@@ -7,7 +7,7 @@
     <!-- A link representing the gripper and a joint attaching it to parnet -->
     <link name="${prefix}base_link">
       <visual>
-        <origin xyz="-0.008 0 0" rpy="0 0 0"/>
+        <origin xyz="-0.008 0 0" rpy="0 0 ${pi}"/>
 	<geometry>
           <mesh filename="package://aist_description/objects/meshes/suction_tool_holder.stl" scale="0.001 0.001 0.001"/>
 	</geometry>
@@ -36,7 +36,7 @@
     <joint name="${prefix}joint" type="fixed">
       <parent link="${prefix}base_link"/>
       <child  link="${prefix}link"/>
-      <origin xyz="0.050 0 0.007" rpy="0 0 0"/>
+      <origin xyz="0.07032 0.000 0.03784" rpy="0 ${30*pi/180} 0"/>
     </joint>
 
   </xacro:macro>
