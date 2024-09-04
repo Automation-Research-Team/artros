@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1/Scene Robot1
+        - /TF1
         - /TF1/Frames1
       Splitter Ratio: 0.6159420013427734
     Tree Height: 341
@@ -460,11 +461,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          base_fixture_cylinder:
+          base_fixture_piston:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_piston_head:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_tip_link:
             Alpha: 1
             Show Axes: false
@@ -1538,11 +1543,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          base_fixture_cylinder:
+          base_fixture_piston:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_piston_head:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_tip_link:
             Alpha: 1
             Show Axes: false
@@ -2376,52 +2385,54 @@ Visualization Manager:
         base/base_link:
           Value: true
         base/big_hole_1:
-          Value: true
+          Value: false
         base/big_hole_2:
-          Value: true
+          Value: false
         base/big_hole_3:
-          Value: true
+          Value: false
         base/big_hole_4:
-          Value: true
+          Value: false
         base/cable_pin1:
-          Value: true
+          Value: false
         base/cable_pin2:
-          Value: true
+          Value: false
         base/cable_pin3:
-          Value: true
+          Value: false
         base/cable_pin4:
-          Value: true
+          Value: false
         base/corner_1:
-          Value: true
+          Value: false
         base/corner_2:
-          Value: true
+          Value: false
         base/corner_3:
-          Value: true
+          Value: false
         base/corner_4:
-          Value: true
+          Value: false
         base/screw_hole_panel1_1:
           Value: true
         base/screw_hole_panel1_2:
           Value: true
         base/screw_hole_panel1_3:
-          Value: true
+          Value: false
         base/screw_hole_panel1_4:
-          Value: true
+          Value: false
         base/screw_hole_panel2_1:
           Value: true
         base/screw_hole_panel2_2:
           Value: true
         base/screw_hole_panel2_3:
-          Value: true
+          Value: false
         base/screw_hole_panel2_4:
-          Value: true
+          Value: false
         base/terminal_top:
-          Value: true
+          Value: false
         base/under_outer_hole:
-          Value: true
+          Value: false
         base_fixture_base_link:
-          Value: true
-        base_fixture_cylinder:
+          Value: false
+        base_fixture_piston:
+          Value: false
+        base_fixture_piston_head:
           Value: true
         base_fixture_tip_link:
           Value: true
@@ -2578,41 +2589,41 @@ Visualization Manager:
         precision_tool_holder_link:
           Value: false
         screw_feeder_m3_base_link:
-          Value: true
+          Value: false
         screw_feeder_m3_front_side:
-          Value: true
+          Value: false
         screw_feeder_m3_gap:
-          Value: true
+          Value: false
         screw_feeder_m3_inlet_link:
-          Value: true
+          Value: false
         screw_feeder_m3_outlet_link:
           Value: true
         screw_feeder_m4_base_link:
-          Value: true
+          Value: false
         screw_feeder_m4_front_side:
-          Value: true
+          Value: false
         screw_feeder_m4_gap:
-          Value: true
+          Value: false
         screw_feeder_m4_inlet_link:
-          Value: true
+          Value: false
         screw_feeder_m4_outlet_link:
           Value: true
         screw_m3_1/base_link:
           Value: true
         screw_m3_1/screw_head:
-          Value: true
+          Value: false
         screw_m3_1/screw_inserted:
-          Value: true
+          Value: false
         screw_m3_1/screw_tip:
-          Value: true
+          Value: false
         screw_m4_1/base_link:
-          Value: true
+          Value: false
         screw_m4_1/screw_head:
-          Value: true
+          Value: false
         screw_m4_1/screw_inserted:
-          Value: true
+          Value: false
         screw_m4_1/screw_tip:
-          Value: true
+          Value: false
         screw_tool_m3/base_link:
           Value: true
         screw_tool_m3/tip_link:
@@ -2710,37 +2721,37 @@ Visualization Manager:
         virtual_screen:
           Value: false
         workbench_back_bar:
-          Value: true
+          Value: false
         workbench_base_link:
-          Value: true
+          Value: false
         workbench_center_bar:
-          Value: true
+          Value: false
         workbench_front_border:
-          Value: true
+          Value: false
         workbench_holder_link:
           Value: true
         workbench_right_bar:
-          Value: true
-        workbench_right_border:
-          Value: true
-        workbench_table_base_link:
-          Value: true
-        workbench_table_leg1:
-          Value: true
-        workbench_table_leg2:
-          Value: true
-        workbench_table_leg3:
-          Value: true
-        workbench_table_top:
-          Value: true
-        workbench_table_top_center:
-          Value: true
-        workbench_table_top_origin:
-          Value: true
-        workspace_center:
           Value: false
-        workspace_table_base_link:
+        workbench_right_border:
+          Value: false
+        workbench_table_base_link:
+          Value: false
+        workbench_table_leg1:
+          Value: false
+        workbench_table_leg2:
+          Value: false
+        workbench_table_leg3:
+          Value: false
+        workbench_table_top:
+          Value: false
+        workbench_table_top_center:
+          Value: false
+        workbench_table_top_origin:
+          Value: false
+        workspace_center:
           Value: true
+        workspace_table_base_link:
+          Value: false
         workspace_table_leg1:
           Value: false
         workspace_table_leg2:
@@ -2947,8 +2958,9 @@ Visualization Manager:
                       workbench_table_top:
                         workbench_table_top_origin:
                           base_fixture_base_link:
-                            base_fixture_cylinder:
-                              {}
+                            base_fixture_piston:
+                              base_fixture_piston_head:
+                                {}
                             base_fixture_tip_link:
                               {}
                           workbench_front_border:
@@ -3381,7 +3393,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.4846267700195312
+      Distance: 1.2325488328933716
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3389,17 +3401,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.5360322594642639
-        Y: -0.14628565311431885
-        Z: 1.0394477844238281
+        X: -0.38509637117385864
+        Y: -0.08132120966911316
+        Z: 0.7839149236679077
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.24732913076877594
+      Pitch: 0.5673288106918335
       Target Frame: <Fixed Frame>
-      Yaw: 0.38147252798080444
+      Yaw: 0.5414740443229675
     Saved: ~
 Window Geometry:
   CameraMultiplexerImage:
