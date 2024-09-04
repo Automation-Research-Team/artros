@@ -3,7 +3,8 @@ Panels:
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /TF1/Frames1
       Splitter Ratio: 0.5890688300132751
     Tree Height: 419
   - Class: rviz/Help
@@ -298,11 +299,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          base_fixture_cylinder:
+          base_fixture_piston:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_piston_head:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_tip_link:
             Alpha: 1
             Show Axes: false
@@ -1219,11 +1224,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          base_fixture_cylinder:
+          base_fixture_piston:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          base_fixture_piston_head:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           base_fixture_tip_link:
             Alpha: 1
             Show Axes: false
@@ -2026,8 +2035,10 @@ Visualization Manager:
           Value: false
         base_fixture_base_link:
           Value: false
-        base_fixture_cylinder:
-          Value: false
+        base_fixture_piston:
+          Value: true
+        base_fixture_piston_head:
+          Value: true
         base_fixture_tip_link:
           Value: true
         bin_1_part_16:
@@ -2200,6 +2211,22 @@ Visualization Manager:
           Value: false
         screw_feeder_m4_outlet_link:
           Value: true
+        screw_m3_1/base_link:
+          Value: true
+        screw_m3_1/screw_head:
+          Value: true
+        screw_m3_1/screw_inserted:
+          Value: true
+        screw_m3_1/screw_tip:
+          Value: true
+        screw_m4_1/base_link:
+          Value: true
+        screw_m4_1/screw_head:
+          Value: true
+        screw_m4_1/screw_inserted:
+          Value: true
+        screw_m4_1/screw_tip:
+          Value: true
         screw_tool_m3/base_link:
           Value: true
         screw_tool_m3/tip_link:
@@ -2223,7 +2250,7 @@ Visualization Manager:
         suction_tool_holder_base_link:
           Value: false
         suction_tool_holder_link:
-          Value: false
+          Value: true
         tray_2:
           Value: false
         tray_2_divider2:
@@ -2385,7 +2412,9 @@ Visualization Manager:
                                                 a_bot_gripper_right_inner_finger_pad:
                                                   {}
                                         a_bot_gripper_tip_link:
-                                          {}
+                                          suction_tool/base_link:
+                                            suction_tool/tip_link:
+                                              {}
                                         a_bot_inside_camera_connector_link:
                                           a_bot_inside_camera_link:
                                             a_bot_inside_camera_depth_frame:
@@ -2447,22 +2476,32 @@ Visualization Manager:
                             {}
                     suction_tool_holder_base_link:
                       suction_tool_holder_link:
-                        suction_tool/base_link:
-                          suction_tool/tip_link:
-                            {}
+                        {}
                   workbench_base_link:
                     screw_feeder_m3_base_link:
                       screw_feeder_m3_front_side:
                         screw_feeder_m3_gap:
                           screw_feeder_m3_outlet_link:
-                            {}
+                            screw_m3_1/base_link:
+                              screw_m3_1/screw_head:
+                                {}
+                              screw_m3_1/screw_inserted:
+                                {}
+                              screw_m3_1/screw_tip:
+                                {}
                       screw_feeder_m3_inlet_link:
                         {}
                       screw_feeder_m4_base_link:
                         screw_feeder_m4_front_side:
                           screw_feeder_m4_gap:
                             screw_feeder_m4_outlet_link:
-                              {}
+                              screw_m4_1/base_link:
+                                screw_m4_1/screw_head:
+                                  {}
+                                screw_m4_1/screw_inserted:
+                                  {}
+                                screw_m4_1/screw_tip:
+                                  {}
                         screw_feeder_m4_inlet_link:
                           {}
                     workbench_back_bar:
@@ -2481,8 +2520,9 @@ Visualization Manager:
                       workbench_table_top:
                         workbench_table_top_origin:
                           base_fixture_base_link:
-                            base_fixture_cylinder:
-                              {}
+                            base_fixture_piston:
+                              base_fixture_piston_head:
+                                {}
                             base_fixture_tip_link:
                               {}
                           workbench_front_border:
@@ -2827,7 +2867,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.6623529195785522
+      Distance: 0.7420206069946289
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2843,9 +2883,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.26102155447006226
+      Pitch: 0.3460213541984558
       Target Frame: world
-      Yaw: 1.4290295839309692
+      Yaw: 1.2290282249450684
     Saved: ~
 Window Geometry:
   Displays:
@@ -2864,6 +2904,6 @@ Window Geometry:
     collapsed: false
   Width: 1556
   X: 995
-  Y: 146
+  Y: 109
   aruco_result:
     collapsed: false
