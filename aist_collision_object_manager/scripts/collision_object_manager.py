@@ -135,7 +135,7 @@ class CollisionObjectManager(object):
                                    'collision_mesh_scales',
                                    'subframe_names', 'subframe_poses'])
     ObjectInfo = namedtuple('ObjectInfo',
-                            ['type', 'children',
+                            ['type', 'parent_aco',
                              'subframe_transforms', 'markers'])
 
     def __init__(self, ns='', synchronous=True):
@@ -306,7 +306,7 @@ class CollisionObjectManager(object):
         aco.object.operation      = CollisionObject.ADD
 
         # Create info for this object.
-        obj_info = CollisionObjectManager.ObjectInfo(object_type, [], [], [])
+        obj_info = CollisionObjectManager.ObjectInfo(object_type, None, [], [])
 
         # Create subframe transforms.
         base_link = aco.object.id + '/base_link'
@@ -361,34 +361,11 @@ class CollisionObjectManager(object):
         return aco
 
     def _attach_object(self, aco, attach_link, pose, touch_links):
-        detach_link = aco.link_name
-        attach_link, pose, fixed = self._fix_attach_link_and_pose(attach_link,
-                                                                  pose)
-        T = tfs.concatenate_matrices(_pose_matrix(pose),
-                                     tfs.inverse_matrix(
-                                         _pose_matrix(aco.object.pose)))
-
-        aco.object.header.frame_id = attach_link
-        aco.object.pose            = pose
-        aco.object.operation       = CollisionObject.ADD
-        self._psi.attach_object(aco, attach_link, touch_links)
-
-        for child in self._obj_info_dict[aco.object.id].children:
-            child_aco = self._psi.get_attached_objects()[child]
-            self._attach_object(child_aco, attach_link,
-                                _transform_pose(T, child_aco.object.pose),
-                                child_aco.touch_links)
-
-        rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                      aco.object.id, aco.link_name, aco.touch_links)
-
-        # Attach child objects recursively.
-        # for child in self._obj_info_dict[aco.object.id].children:
-        #     child_aco = self._psi.get_attached_objects()[child]
-        #     self._attach_object(child_aco, attach_link, child_pose, touch_links)
+        # Get information of this attached collision object(aco).
+        obj_info = self._obj_info_dict[aco.object.id]
 
         # Replace the transform from the object base_link to the attached link.
-        self._obj_info_dict[aco.object.id].subframe_transforms[0] \
+        obj_info.subframe_transforms[0] \
             = TransformStamped(aco.object.header,
                                aco.object.id + '/base_link',
                                Transform(Vector3(pose.position.x,
@@ -398,6 +375,33 @@ class CollisionObjectManager(object):
                                                     pose.orientation.y,
                                                     pose.orientation.z,
                                                     pose.orientation.w)))
+
+        # Keep the old attach link.
+        detach_link = aco.link_name
+
+        # Fix the attach link and pose
+        if obj_info.parent_aco != None:
+            pass
+        obj_info.parent_aco, attach_link, pose \
+            = self._fix_attach_link_and_pose(attach_link, pose)
+
+        # Attach aco to the fixed attach link with the fixed pose.
+        aco.object.header.frame_id = attach_link
+        aco.object.pose            = pose
+        aco.object.operation       = CollisionObject.ADD
+        self._psi.attach_object(aco, attach_link, touch_links)
+
+        T = tfs.concatenate_matrices(_pose_matrix(pose),
+                                     tfs.inverse_matrix(
+                                         _pose_matrix(aco.object.pose)))
+        for child_id, child_aco in self._psi.get_attached_objects().items():
+            if self._obj_info[child_id].parent_aco == aco:
+                self._attach_object(child_aco, attach_link,
+                                    _transform_pose(T, child_aco.object.pose),
+                                    child_aco.touch_links)
+
+        rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
+                      aco.object.id, aco.link_name, aco.touch_links)
 
         return detach_link
 
@@ -448,7 +452,7 @@ class CollisionObjectManager(object):
         tokens = attach_link.rsplit('/', 1)
         aco = self._psi.get_attached_objects().get(tokens[0], None)
         if aco is None:
-            return attach_link, pose, False
+            return None, attach_link, pose
 
         T = _pose_matrix(aco.object.pose)
         if tokens[1] != 'base_link':
@@ -458,7 +462,7 @@ class CollisionObjectManager(object):
                         aco.object.subframe_poses[
                             aco.object.subframe_names.index(tokens[1])]))
 
-        return aco.link_name, _transform_pose(T, pose), True
+        return aco, aco.link_name, _transform_pose(T, pose)
 
 #########################################################################
 #  Entry point                                                          #
