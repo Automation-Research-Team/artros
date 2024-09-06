@@ -40,7 +40,8 @@ import numpy as np
 
 from collections            import namedtuple
 from tf                     import transformations as tfs
-from tf2_ros                import TransformBroadcaster
+from tf2_ros                import (TransformBroadcaster, Buffer,
+                                    TransformListener)
 from std_msgs.msg           import Header, ColorRGBA
 from geometry_msgs.msg      import (Point, Vector3, Quaternion, Pose,
                                     Transform, TransformStamped)
@@ -64,6 +65,68 @@ except:
         print("Failed to import pyassimp, see https://github.com/moveit/moveit/issues/86 for more info")
 
 #########################################################################
+#  local functions                                                      #
+#########################################################################
+def _load_mesh(url, scale=(0.001, 0.001, 0.001)):
+    try:
+        scene = pyassimp.load(_url_to_filepath(url))
+        if not scene.meshes or len(scene.meshes) == 0:
+            raise Exception("There are no meshes in the file")
+        if len(scene.meshes[0].faces) == 0:
+            raise Exception("There are no faces in the mesh")
+
+        mesh = Mesh()
+        first_face = scene.meshes[0].faces[0]
+        if hasattr(first_face, '__len__'):
+            for face in scene.meshes[0].faces:
+                if len(face) == 3:
+                    triangle = MeshTriangle()
+                    triangle.vertex_indices = [face[0], face[1], face[2]]
+                    mesh.triangles.append(triangle)
+        elif hasattr(first_face, 'indices'):
+            for face in scene.meshes[0].faces:
+                if len(face.indices) == 3:
+                    triangle = MeshTriangle()
+                    triangle.vertex_indices = [face.indices[0],
+                                               face.indices[1],
+                                               face.indices[2]]
+                    mesh.triangles.append(triangle)
+        else:
+            raise Exception("Unable to build triangles from mesh due to mesh object structure")
+        for vertex in scene.meshes[0].vertices:
+            mesh.vertices.append(Point(vertex[0]*scale[0],
+                                       vertex[1]*scale[1],
+                                       vertex[2]*scale[2]))
+        pyassimp.release(scene)
+        return mesh
+    except Exception as e:
+        rospy.logerr('(CollisionObjectManager) failed to load mesh: %s', e)
+        return None
+
+def _url_to_filepath(url):
+    tokens = url.split('/')
+    if len(tokens) < 2 or tokens[0] != 'package:' or tokens[1] != '':
+        raise('Illegal URL: ' + url)
+    return os.path.join(rospkg.RosPack().get_path(tokens[2]), *tokens[3:])
+
+def _pose_matrix(pose):
+    return tfs.concatenate_matrices(tfs.translation_matrix([pose.position.x,
+                                                            pose.position.y,
+                                                            pose.position.z]),
+                                    tfs.quaternion_matrix([pose.orientation.x,
+                                                           pose.orientation.y,
+                                                           pose.orientation.z,
+                                                           pose.orientation.w]))
+
+def _pose_from_matrix(T):
+    return Pose(Point(*tfs.translation_from_matrix(T)),
+                Quaternion(*tfs.quaternion_from_matrix(T)))
+
+def _transform_pose(T, pose):
+    return _pose_from_matrix(tfs.concatenate_matrices(T, _pose_matrix(pose)))
+
+
+#########################################################################
 #  class CollisionObjectManager                                         #
 #########################################################################
 class CollisionObjectManager(object):
@@ -74,8 +137,12 @@ class CollisionObjectManager(object):
                                    'collision_meshes', 'collision_mesh_poses',
                                    'collision_mesh_scales',
                                    'subframe_names', 'subframe_poses'])
-    ObjectInfo = namedtuple('ObjectInfo',
-                            ['type', 'subframe_transforms', 'markers'])
+    class InstanceProperties(object):
+        def __init__(self, type):
+            self.type                = type
+            self.parent_id           = ''
+            self.subframe_transforms = []
+            self.markers             = []
 
     def __init__(self, ns='', synchronous=True):
         super().__init__()
@@ -121,8 +188,8 @@ class CollisionObjectManager(object):
                 obj_props.visual_mesh_colors.append(ColorRGBA(*mesh['color']))
 
             for mesh in props.get('collision_meshes', []):
-                obj_props.collision_meshes.append(
-                    self._load_mesh(mesh['url'], mesh['scale']))
+                obj_props.collision_meshes.append(_load_mesh(mesh['url'],
+                                                             mesh['scale']))
                 mesh_pose = mesh['pose']
                 obj_props.collision_mesh_poses.append(
                     Pose(Point(*mesh_pose[0:3]),
@@ -133,16 +200,18 @@ class CollisionObjectManager(object):
             self._obj_props_dict[type] = obj_props
             rospy.loginfo('(CollisionObjectManager) properties of object[%s] loaded', type)
 
-        self._psi             = psi.PlanningSceneInterface(ns, synchronous)
-        self._obj_info_dict   = {}
-        self._marker_id_min   = 0
-        self._marker_id_lists = {}
-        self._marker_pub      = rospy.Publisher('~collision_marker',
-                                                Marker, queue_size=10)
-        self._broadcaster = TransformBroadcaster()
-        self._lock        = threading.Lock()
-        self._timer       = rospy.Timer(rospy.Duration(0.1),
-                                        self._subframes_and_markers_cb)
+        self._psi                 = psi.PlanningSceneInterface(ns, synchronous)
+        self._instance_props_dict = {}
+        self._marker_id_min       = 0
+        self._marker_id_lists     = {}
+        self._marker_pub          = rospy.Publisher('~collision_marker',
+                                                    Marker, queue_size=10)
+        self._buffer              = Buffer(None, debug=False)
+        self._listener            = TransformListener(self._buffer)
+        self._broadcaster         = TransformBroadcaster()
+        self._lock                = threading.Lock()
+        self._timer               = rospy.Timer(rospy.Duration(0.1),
+                                                self._subframes_and_markers_cb)
         self._get_mesh_resource \
             = rospy.Service('~get_mesh_resource', GetMeshResource,
                             self._get_mesh_resource_cb)
@@ -150,14 +219,17 @@ class CollisionObjectManager(object):
             = rospy.Service('~manage_collision_object', ManageCollisionObject,
                             self._manage_collision_object_cb)
 
+    def __del__(self):
+        self._remove_object('', '')
+
     # timer callbacks
     def _subframes_and_markers_cb(self, event):
         with self._lock:
-            for obj_info in self._obj_info_dict.values():
-                for subframe_transform in obj_info.subframe_transforms:
+            for instance_props in self._instance_props_dict.values():
+                for subframe_transform in instance_props.subframe_transforms:
                     subframe_transform.header.stamp = rospy.Time.now()
                     self._broadcaster.sendTransform(subframe_transform)
-                for marker in obj_info.markers:
+                for marker in instance_props.markers:
                     self._marker_pub.publish(marker)
 
     # service callbacks
@@ -166,7 +238,7 @@ class CollisionObjectManager(object):
         res.mesh_resource = req.mesh_resource
         for obj_props in self._obj_props_dict.values():
             if req.mesh_resource in obj_props.visual_mesh_urls:
-                with open(self._url_to_filepath(req.mesh_resource), 'rb') as f:
+                with open(_url_to_filepath(req.mesh_resource), 'rb') as f:
                     res.data = f.read()
                 rospy.loginfo('(ObjectDatabaseServer) Send response to GetMeshResource request for the mesh_url[%s]', req.mesh_resource)
                 return res
@@ -180,13 +252,13 @@ class CollisionObjectManager(object):
             self._remove_object(req.object_id, req.attach_link)
             return res
         elif req.op == ManageCollisionObjectRequest.GET_OBJECT_TYPE:
-            obj_info = self._obj_info_dict.get(req.object_id, None)
-            if obj_info is None:
+            instance_props = self._instance_props_dict.get(req.object_id, None)
+            if instance_props is None:
                 rospy.logerr('(CollisionObjectManager) unknown attached object[%s]',
                              req.object_id)
                 res.success = False
             else:
-                res.retval = obj_info.type
+                res.retval = instance_props.type
             return res
 
         if req.object_type != '':
@@ -240,17 +312,17 @@ class CollisionObjectManager(object):
         aco.object.operation      = CollisionObject.ADD
 
         # Create info for this object.
-        obj_info = CollisionObjectManager.ObjectInfo(object_type, [], [])
+        instance_props = CollisionObjectManager.InstanceProperties(object_type)
 
         # Create subframe transforms.
         base_link = aco.object.id + '/base_link'
-        obj_info.subframe_transforms.append(
+        instance_props.subframe_transforms.append(
             TransformStamped(Header(), base_link,
                              Transform(Vector3(0, 0, 0),
                                        Quaternion(0, 0, 0, 1))))
         for subframe_name, subframe_pose in zip(obj_props.subframe_names,
                                                 obj_props.subframe_poses):
-            obj_info.subframe_transforms.append(
+            instance_props.subframe_transforms.append(
                 TransformStamped(Header(frame_id=base_link),
                                  aco.object.id + '/' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
@@ -284,29 +356,23 @@ class CollisionObjectManager(object):
             marker.lifetime        = rospy.Duration(0)
             marker.frame_locked    = False
             marker.mesh_resource   = mesh_url
-            obj_info.markers.append(marker)
+            instance_props.markers.append(marker)
 
         # Store object info.
         with self._lock:
-            self._obj_info_dict[aco.object.id] = obj_info
+            self._instance_props_dict[aco.object.id] = instance_props
 
         rospy.loginfo("(CollisionObjectManager) created object '%s' of type[%s]",
                       aco.object.id, object_type)
         return aco
 
     def _attach_object(self, aco, attach_link, pose, touch_links):
-        detach_link = aco.link_name
-        aco.object.header.frame_id = attach_link
-        aco.object.pose            = pose
-        aco.object.operation       = CollisionObject.ADD
-        self._psi.attach_object(aco, attach_link, touch_links)
-
-        rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                      aco.object.id, aco.link_name, aco.touch_links)
+        # Get information of the given collision object.
+        instance_props = self._instance_props_dict[aco.object.id]
 
         # Replace the transform from the object base_link to the attached link.
-        self._obj_info_dict[aco.object.id].subframe_transforms[0] \
-            = TransformStamped(aco.object.header,
+        instance_props.subframe_transforms[0] \
+            = TransformStamped(Header(frame_id=attach_link),
                                aco.object.id + '/base_link',
                                Transform(Vector3(pose.position.x,
                                                  pose.position.y,
@@ -316,7 +382,52 @@ class CollisionObjectManager(object):
                                                     pose.orientation.z,
                                                     pose.orientation.w)))
 
+        # If 'attach_link' belongs to any other collision object, replace it
+        # with the link to which the object attached.
+        #   - tokens[0]: object_id, tokens[1]: subframe
+        tokens = attach_link.rsplit('/', 1)
+        parent_aco = self._psi.get_attached_objects().get(tokens[0], None)
+        if parent_aco is not None:
+            instance_props.parent_id = parent_aco.object.id
+            T = _pose_matrix(parent_aco.object.pose)
+            if tokens[1] != 'base_link':
+                T = tfs.concatenate_matrices(
+                        T,
+                        _pose_matrix(
+                            parent_aco.object.subframe_poses[
+                                parent_aco.object.subframe_names.index(
+                                    tokens[1])]))
+            pose = _transform_pose(T, pose)
+            attach_link = parent_aco.link_name
+        else:
+            instance_props.parent_id = ''
+
+        # Keep the current attach link
+        # and set the new one to the specified object and its descendants.
+        detach_link = aco.link_name
+        self._set_attach_link(aco, attach_link, pose, touch_links)
         return detach_link
+
+    def _set_attach_link(self, aco, attach_link, pose, touch_links):
+        # Get a transform from the old attach link to the new one.
+        T = tfs.concatenate_matrices(_pose_matrix(pose),
+                                     tfs.inverse_matrix(
+                                         _pose_matrix(aco.object.pose)))
+
+        # Attach 'aco' to 'attach_link' with 'pose'.
+        aco.object.header.frame_id = attach_link
+        aco.object.pose            = pose
+        aco.object.operation       = CollisionObject.ADD
+        self._psi.attach_object(aco, attach_link, touch_links)
+        rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
+                      aco.object.id, aco.link_name, aco.touch_links)
+
+        for child_id, child_aco in self._psi.get_attached_objects().items():
+            if self._instance_props_dict[child_id].parent_id == aco.object.id:
+                self._set_attach_link(child_aco, attach_link,
+                                      _transform_pose(T,
+                                                      child_aco.object.pose),
+                                      child_aco.touch_links)
 
     def _set_touch_links(self, aco, touch_links):
         self._psi.attach_object(aco, touch_links=touch_links)
@@ -348,58 +459,17 @@ class CollisionObjectManager(object):
         return marker_id_list
 
     def _delete_markers_and_subframes(self, object_id):
-        obj_info = self._obj_info_dict.get(object_id, None)
-        if obj_info is None:
+        instance_props = self._instance_props_dict.get(object_id, None)
+        if instance_props is None:
             rospy.logerr('(CollisionObjectManager) unknown object[%s]',
                          object_id)
             return
-        for marker in obj_info.markers:
+        for marker in instance_props.markers:
             marker.action = Marker.DELETE
             self._marker_pub.publish(marker)
-        del self._obj_info_dict[object_id]
+        with self._lock:
+            del self._instance_props_dict[object_id]
         rospy.loginfo("(CollisionObjectManager) removed '%s'", object_id)
-
-    def _load_mesh(self, url, scale=(0.001, 0.001, 0.001)):
-        try:
-            scene = pyassimp.load(self._url_to_filepath(url))
-            if not scene.meshes or len(scene.meshes) == 0:
-                raise Exception("There are no meshes in the file")
-            if len(scene.meshes[0].faces) == 0:
-                raise Exception("There are no faces in the mesh")
-
-            mesh = Mesh()
-            first_face = scene.meshes[0].faces[0]
-            if hasattr(first_face, '__len__'):
-                for face in scene.meshes[0].faces:
-                    if len(face) == 3:
-                        triangle = MeshTriangle()
-                        triangle.vertex_indices = [face[0], face[1], face[2]]
-                        mesh.triangles.append(triangle)
-            elif hasattr(first_face, 'indices'):
-                for face in scene.meshes[0].faces:
-                    if len(face.indices) == 3:
-                        triangle = MeshTriangle()
-                        triangle.vertex_indices = [face.indices[0],
-                                                   face.indices[1],
-                                                   face.indices[2]]
-                        mesh.triangles.append(triangle)
-            else:
-                raise Exception("Unable to build triangles from mesh due to mesh object structure")
-            for vertex in scene.meshes[0].vertices:
-                mesh.vertices.append(Point(vertex[0]*scale[0],
-                                           vertex[1]*scale[1],
-                                           vertex[2]*scale[2]))
-            pyassimp.release(scene)
-            return mesh
-        except Exception as e:
-            rospy.logerr('(CollisionObjectManager) failed to load mesh: %s', e)
-            return None
-
-    def _url_to_filepath(self, url):
-        tokens = url.split('/')
-        if len(tokens) < 2 or tokens[0] != 'package:' or tokens[1] != '':
-            raise('Illegal URL: ' + url)
-        return os.path.join(rospkg.RosPack().get_path(tokens[2]), *tokens[3:])
 
 #########################################################################
 #  Entry point                                                          #

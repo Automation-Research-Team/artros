@@ -34,7 +34,7 @@
 #
 # Author: Toshio Ueshiba
 #
-import rospy, re
+import rospy
 from std_msgs.msg                  import Header
 from geometry_msgs.msg             import PoseStamped
 from aist_routines.ur              import URRoutines

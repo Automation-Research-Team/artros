@@ -4,6 +4,7 @@
 <!-- |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED                                 | -->
 <!-- =================================================================================== -->
 <robot name="a_bot_base_scene">
+    <!-- or "VelocityJointInterface" -->
     <!-- ground -->
     <link name="ground" />
     <link name="cage_front_left_pillar">
@@ -469,7 +470,7 @@
     <joint name="cage_tool_bar" type="fixed">
         <parent link="cage_workspace_bar" />
         <child link="cage_tool_bar" />
-        <origin rpy="0 0 0" xyz="0 0 0.27" />
+        <origin rpy="0 0 0" xyz="0 0 0.24" />
     </joint>
     <link name="workspace_table_base_link">
         <!-- w is in x, l is in y, h is in z -->
@@ -768,7 +769,7 @@
     <!-- A link representing the gripper and a joint attaching it to parnet -->
     <link name="suction_tool_holder_base_link">
         <visual>
-            <origin rpy="0 0 0" xyz="-0.008 0 0" />
+            <origin rpy="0 0 3.141592653589793" xyz="0.040 0 0" />
             <geometry>
                 <mesh filename="package://aist_description/objects/meshes/suction_tool_holder.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -778,7 +779,7 @@
         </visual>
         <collision>
             <!-- avoid collision -->
-            <origin rpy="0 0 0" xyz="-0.008 0 0" />
+            <origin rpy="0 0 3.141592653589793" xyz="0.040 0 0" />
             <geometry>
                 <mesh filename="package://aist_description/objects/meshes/suction_tool_holder.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -800,7 +801,7 @@
     <joint name="suction_tool_holder_joint" type="fixed">
         <parent link="suction_tool_holder_base_link" />
         <child link="suction_tool_holder_link" />
-        <origin rpy="0 0 0" xyz="0.050 0 0.007" />
+        <origin rpy="0 0.5235987755982988 0" xyz="0.11032 0.000 0.03784" />
     </joint>
     <!--
     Main xacro macro definition of the "Gazebo robot" model.
