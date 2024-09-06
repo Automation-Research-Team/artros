@@ -1,6 +1,6 @@
 #
 # - If 'object_type' is emtpy, attach the existing collision object
-#   with 'object_id' to the 'attach_link' at the 'pose'. Current attach
+#   with 'object_id' to the 'target_link' at the 'pose'. Current target
 #   link before attaching new one is returned in 'retval'.
 # - If 'object_type' is not empty, a new object with 'object_id'
 #   of 'object_type' will be created and then attached.
@@ -18,9 +18,9 @@ uint8 APPEND_TOUCH_LINKS=2
 uint8 REMOVE_TOUCH_LINKS=3
 #
 # - Delete the collision object with 'object_id'.
-# - If 'object_id' is empty, all collision objects attached to 'attach_link'
+# - If 'object_id' is empty, all collision objects attached to 'target_link'
 #   will be deleted.
-# - If 'attach_link' is also empty, all collision objects in the scene
+# - If 'target_link' is also empty, all collision objects in the scene
 #   will be deleted.
 #
 uint8 REMOVE_OBJECT=5
@@ -33,7 +33,8 @@ uint8 GET_OBJECT_TYPE=6
 uint8              op
 string             object_type
 string             object_id
-string             attach_link
+string             target_link
+string             source_subframe
 geometry_msgs/Pose pose
 string[]           touch_links
 ---

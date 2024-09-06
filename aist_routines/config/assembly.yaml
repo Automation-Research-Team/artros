@@ -1,25 +1,26 @@
 initial_object_poses:
   precision_tool:
-    holder: precision_tool_holder_link
-    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    target_link: precision_tool_holder_link
   screw_tool_m3:
-    holder: screw_tool_m3_holder_link
-    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    target_link: screw_tool_m3_holder_link
   screw_tool_m4:
-    holder: screw_tool_m4_holder_link
-    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    target_link: screw_tool_m4_holder_link
   suction_tool:
-    holder: suction_tool_holder_link
-    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    target_link: suction_tool_holder_link
   base:
-    holder: workbench_holder_link
-    offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    target_link: workbench_holder_link
+#  panel_motor:
+#    target_link: base/base_link
+#    offset: [0.075, 0.013, 0.008, 90.0, 0.0, 180.0]
+#  panel_bearing:
+#    target_link: base/base_link
+#    offset: [0.200, 0.015, 0.008, 90.0, 0.0, 180.0]
   panel_motor:
-    holder: base/base_link
-    offset: [0.075, 0.013, 0.008, 90.0, 0.0, 180.0]
+    target_link:     base/panel_motor_screw_hole_1
+    source_subframe: bottom_screw_hole_aligner_1
   panel_bearing:
-    holder: base/base_link
-    offset: [0.200, 0.015, 0.008, 90.0, 0.0, 180.0]
+    target_link:     base/panel_bearing_screw_hole_1
+    source_subframe: bottom_screw_hole_aligner_1
 
 picking_parameters:
   precision_tool:
