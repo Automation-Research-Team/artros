@@ -750,8 +750,7 @@ class AISTBaseRoutines(object):
         except Exception as e:
             rospy.logerr('AISTBaseRoutines.lookup_pose(): %s', str(e))
             return None
-        return PoseStamped(Header(frame_id=target_frame),
-                           Pose(Point(*t), Quaternion(*q)))
+        return Pose(Point(*t), Quaternion(*q))
 
     def correct_orientation(self, pose):
         poses = self.correct_orientations(PoseArray(pose.header, [pose.pose]))

@@ -52,23 +52,27 @@ class CollisionObjectManagerClient(object):
         except rospy.ROSException as e:
             rospy.logerr(e)
 
-    def create_object(self, object_type, pose, object_id=''):
+    def create_object(self, object_type, target_link, pose,
+                      source_subframe='base_link', object_id=''):
         req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.ATTACH_OBJECT
-        req.object_type = object_type
-        req.object_id   = object_id
-        req.attach_link = pose.header.frame_id
-        req.pose        = pose.pose
-        req.touch_links = self._touch_links.get(req.attach_link, [])
+        req.op              = ManageCollisionObjectRequest.ATTACH_OBJECT
+        req.object_type     = object_type
+        req.object_id       = object_id
+        req.target_link     = target_link
+        req.source_subframe = source_subframe
+        req.pose            = pose
+        req.touch_links = self._touch_links.get(req.target_link, [])
         return self._send(req).success
 
-    def attach_object(self, object_id, pose):
+    def attach_object(self, object_id, target_link, pose,
+                      source_subframe='base_link'):
         req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.ATTACH_OBJECT
-        req.object_id   = object_id
-        req.attach_link = pose.header.frame_id
-        req.pose        = pose.pose
-        req.touch_links = self._touch_links.get(req.attach_link, [])
+        req.op              = ManageCollisionObjectRequest.ATTACH_OBJECT
+        req.object_id       = object_id
+        req.target_link     = target_link
+        req.source_subframe = source_subframe
+        req.pose            = pose
+        req.touch_links     = self._touch_links.get(req.target_link, [])
         res = self._send(req)
         return res.retval if res.success else None
 
@@ -86,11 +90,11 @@ class CollisionObjectManagerClient(object):
         req.touch_links = self._touch_links.get(untouch_link, [])
         return self._send(req).success
 
-    def remove_object(self, object_id='', attach_link=''):
+    def remove_object(self, object_id='', target_link=''):
         req = ManageCollisionObjectRequest()
         req.op          = ManageCollisionObjectRequest.REMOVE_OBJECT
         req.object_id   = object_id
-        req.attach_link = attach_link
+        req.target_link = target_link
         return self._send(req).success
 
     def get_object_type(self, object_id):

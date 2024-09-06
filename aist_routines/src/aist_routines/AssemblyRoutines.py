@@ -89,15 +89,15 @@ class AssemblyRoutines(URRoutines):
         elif key == 'T':
             self.place_tool(robot_name)
         elif key == 's':
-            screw_name = raw_input('  screw name? ')
-            self.pick_screw(robot_name, screw_name)
+            screw_type = raw_input('  screw name? ')
+            self.pick_screw(robot_name, screw_type)
         elif key == 'i':
             self._initialize_collision_objects()
         elif key == 'r':
             object_id   = raw_input('  object_id? ')
-            attach_link = raw_input('  attach_link? ') if object_id == '' else\
+            target_link = raw_input('  target_link? ') if object_id == '' else\
                           ''
-            self.com.remove_object(object_id, attach_link)
+            self.com.remove_object(object_id, target_link)
             self._num_screw_m3 = 0
             self._num_screw_m4 = 0
         elif key == 'H':
@@ -132,43 +132,42 @@ class AssemblyRoutines(URRoutines):
             return False
         return True
 
-    def pick_screw(self, robot_name, screw_name):
-        tool_name = 'screw_tool_' + screw_name[-2:]
+    def pick_screw(self, robot_name, screw_type):
+        tool_name = 'screw_tool_' + screw_type[-2:]
         if not self.pick_tool(robot_name, tool_name):
             return False
-        feeder_name = 'screw_feeder_' + screw_name[-2:]
-        screw_id    = self._screw_id(screw_name)
+        feeder_name = 'screw_feeder_' + screw_type[-2:]
+        screw_id    = self._screw_id(screw_type)
         if self.pick_at_frame(robot_name, screw_id + '/screw_head',
                               screw_id, attach=True):
             return False
-        self._generate_screw(screw_name)
+        self._generate_screw(screw_type)
         return True
 
     def _initialize_collision_objects(self):
         for object_type, pose \
             in rospy.get_param('~initial_object_poses', {}).items():
-            self.com.create_object(object_type,
-                                   PoseStamped(
-                                       Header(frame_id=pose['holder']),
-                                       self.pose_from_offset(pose['offset'])))
+            self.com.create_object(object_type, pose['target_link'],
+                                   self.pose_from_offset(
+                                       pose.get('offset',
+                                                [.0, .0, .0, .0, .0, .0])),
+                                   pose.get('source_subframe', 'base_link'))
         self._screw_m3_id = 0
         self._screw_m4_id = 0
         self._generate_screw('screw_m3')
         self._generate_screw('screw_m4')
 
-    def _generate_screw(self, screw_name):
-        if screw_name == 'screw_m3':
+    def _generate_screw(self, screw_type):
+        if screw_type == 'screw_m3':
             self._screw_m3_id += 1
         else:
             self._screw_m4_id += 1
-        feeder_name = 'screw_feeder_' + screw_name[-2:]
-        self.com.create_object(screw_name,
-                               PoseStamped(
-                                   Header(frame_id=feeder_name + '_outlet_link'),
-                                   self.pose_from_offset()),
-                               self._screw_id(screw_name))
+        feeder_name = 'screw_feeder_' + screw_type[-2:]
+        self.com.create_object(screw_type, feeder_name + '_outlet_link',
+                               self.pose_from_offset(),
+                               object_id=self._screw_id(screw_type))
 
-    def _screw_id(self, screw_name):
-        return screw_name + '_' + str(self._screw_m3_id) \
-               if screw_name == 'screw_m3' else \
-               screw_name + '_' + str(self._screw_m4_id)
+    def _screw_id(self, screw_type):
+        return screw_type + '_' + str(self._screw_m3_id) \
+               if screw_type == 'screw_m3' else \
+               screw_type + '_' + str(self._screw_m4_id)
