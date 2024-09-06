@@ -48,6 +48,23 @@
         <joint name="a_bot_wrist_2_joint" value="-1.064"/>
         <joint name="a_bot_wrist_3_joint" value="1.757"/>
     </group_state>
+    <group_state name="fasten_horizontal_screw_ready" group="a_bot">
+        <joint name="a_bot_elbow_joint" value="1.301"/>
+        <joint name="a_bot_shoulder_lift_joint" value="-1.699"/>
+        <joint name="a_bot_shoulder_pan_joint" value="1.266"/>
+        <joint name="a_bot_wrist_1_joint" value="-1.172"/>
+        <joint name="a_bot_wrist_2_joint" value="-1.579"/>
+        <!-- <joint name="a_bot_wrist_3_joint" value="-1.864"/> -->
+        <joint name="a_bot_wrist_3_joint" value="4.419"/>
+    </group_state>
+    <group_state name="fasten_vertical_screw_ready" group="a_bot">
+        <joint name="a_bot_elbow_joint" value="1.472"/>
+        <joint name="a_bot_shoulder_lift_joint" value="-1.915"/>
+        <joint name="a_bot_shoulder_pan_joint" value="1.572"/>
+        <joint name="a_bot_wrist_1_joint" value="-1.651"/>
+        <joint name="a_bot_wrist_2_joint" value="-1.582"/>
+        <joint name="a_bot_wrist_3_joint" value="3.1456"/>
+    </group_state>
     <group_state name="release" group="a_bot_gripper">
         <joint name="a_bot_gripper_finger_joint" value="0"/>
     </group_state>

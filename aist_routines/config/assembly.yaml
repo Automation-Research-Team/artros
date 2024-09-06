@@ -14,6 +14,12 @@ initial_object_poses:
   base:
     holder: workbench_holder_link
     offset: [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+  panel_motor:
+    holder: base/base_link
+    offset: [0.075, 0.013, 0.008, 90.0, 0.0, 180.0]
+  panel_bearing:
+    holder: base/base_link
+    offset: [0.200, 0.015, 0.008, 90.0, 0.0, 180.0]
 
 picking_parameters:
   precision_tool:
@@ -62,14 +68,14 @@ picking_parameters:
       max_effort:       5.0
   screw_m3:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
-    grasp_offset:     [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000,  0.003, 0.0, 0.0, 0.0]
     place_offset:     [0.000, 0.000,  0.019, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
   screw_m4:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
-    grasp_offset:     [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000,  0.004, 0.0, 0.0, 0.0]
     place_offset:     [0.000, 0.000,  0.019, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       1.0
