@@ -38,7 +38,7 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                              import degrees, sqrt
+from math                              import degrees, sqrt, pi
 from tf                                import (TransformListener,
                                                transformations as tfs)
 from std_msgs.msg                      import Header
@@ -318,6 +318,8 @@ class AISTBaseRoutines(object):
             self.stop(robot_name)
         elif key == 'jvalues':
             print(self.get_current_joint_values(robot_name))
+        elif key == 'fix':
+            self.fix_wrist_joint_value(robot_name)
 
         # Gripper stuffs
         elif key == 'gripper':
@@ -381,6 +383,17 @@ class AISTBaseRoutines(object):
         group = self._cmd.get_group(robot_name)
         group.set_joint_value_target(joint_values)
         return self._go(group, speed, accel)
+
+    def clip_wrist_joint_value(self, robot_name, speed=1.0, accel=1.0):
+        joint_values = self.get_current_joint_values(robot_name)
+        if joint_values[-1] >= -pi:
+            if joint_values[-1] <= pi:
+                return True
+            joint_values[-1] -= 2*pi
+        else:
+            joint_values[-1] += 2*pi
+        return self.go_to_joint_value_target(robot_name, joint_values,
+                                             speed, accel)
 
     def go_directly_to_joint_value_target(self, robot_name,
                                           joint_values, duration):
