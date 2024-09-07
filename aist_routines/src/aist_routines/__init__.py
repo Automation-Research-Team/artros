@@ -194,6 +194,7 @@ class AISTBaseRoutines(object):
         print('  back:        move arm to the back position')
         print('  named:       move arm to the pose specified by name')
         print('  frame:       move arm to the pose specified by frame')
+        print('  clip:        make wrist angle within [-180, 180] deg.')
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
         print('  jvalues:     get current joint values')
@@ -312,14 +313,14 @@ class AISTBaseRoutines(object):
                 self.go_to_frame(robot_name, frame, offset)
             except Exception as e:
                 rospy.logerr('Unknown frame: %s', frame)
+        elif key == 'clip':
+            self.clip_wrist_joint_value(robot_name)
         elif key == 'speed':
-            speed = float(raw_input('  speed value? '))
+           speed = float(raw_input('  speed value? '))
         elif key == 'stop':
             self.stop(robot_name)
         elif key == 'jvalues':
             print(self.get_current_joint_values(robot_name))
-        elif key == 'fix':
-            self.fix_wrist_joint_value(robot_name)
 
         # Gripper stuffs
         elif key == 'gripper':
