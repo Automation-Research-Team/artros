@@ -263,6 +263,15 @@ class CollisionObjectManager(object):
             else:
                 res.retval = instance_props.type
             return res
+        elif req.op == ManageCollisionObjectRequest.GET_OBJECT_PARENT:
+            instance_props = self._instance_props_dict.get(req.object_id, None)
+            if instance_props is None:
+                rospy.logerr('(CollisionObjectManager) unknown attached object[%s]',
+                             req.object_id)
+                res.success = False
+            else:
+                res.retval = instance_props.parent_id
+            return res
 
         if req.object_type != '':
             aco = self._create_object(req.object_type, req.object_id)
@@ -283,7 +292,8 @@ class CollisionObjectManager(object):
         if req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
             res.retval = self._attach_object(aco, req.target_link,
                                              req.source_subframe,
-                                             req.pose, req.touch_links)
+                                             req.pose, req.touch_links,
+                                             req.preserve_ascendants)
         elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
             self._set_touch_links(aco, list(set(aco.touch_links) |
                                             set(req.touch_links)))
@@ -371,7 +381,7 @@ class CollisionObjectManager(object):
         return aco
 
     def _attach_object(self, aco, target_link, source_subframe, pose,
-                       touch_links):
+                       touch_links, preserve_ascendants):
         if source_subframe != 'base_link':
             pose = _transform_pose(tfs.inverse_matrix(
                                        _pose_matrix(
@@ -400,6 +410,8 @@ class CollisionObjectManager(object):
         tokens = target_link.rsplit('/', 1)
         parent_aco = self._psi.get_attached_objects().get(tokens[0], None)
         if parent_aco is not None:
+            if preserve_ascendants:
+                self._rotate_tree(aco.object.id)
             instance_props.parent_id = parent_aco.object.id
             T = _pose_matrix(parent_aco.object.pose)
             if tokens[1] != 'base_link':
@@ -416,6 +428,12 @@ class CollisionObjectManager(object):
         detach_link = aco.link_name
         self._set_target_link(aco, target_link, pose, touch_links)
         return detach_link
+
+    def _rotate_tree(self, object_id):
+        parent_id = self._instance_props_dict[object_id].parent_id
+        if parent_id != '':
+            self._instance_props_dict[parent_id] = object_id
+            self._rotate_tree(parent_id)
 
     def _set_target_link(self, aco, target_link, pose, touch_links):
         # Get a transform from the old attach link to the new one.

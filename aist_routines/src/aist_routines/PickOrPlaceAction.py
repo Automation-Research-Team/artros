@@ -167,12 +167,14 @@ class PickOrPlace(SimpleActionClient):
                                                 gripper.tip_link,
                                                 routines.lookup_pose(
                                                     gripper.tip_link,
-                                                    goal.pose.header.frame_id))
+                                                    goal.pose.header.frame_id),
+                                                goal.pose.header.frame_id)
                 com.append_touch_links(goal.object_id, holder_link)
         else:
             gripper.release()
             if goal.object_id != '':
-                com.attach_object(goal.object_id, goal.pose.header.frame_id,
+                com.attach_object(goal.object_id,
+                                  goal.pose.header.frame_id,
                                   routines.lookup_pose(
                                       goal.pose.header.frame_id,
                                       goal.object_id + '/base_link'))
@@ -198,7 +200,8 @@ class PickOrPlace(SimpleActionClient):
                     com.attach_object(goal.object_id, holder_link,
                                       routines.lookup_pose(
                                           holder_link,
-                                          goal.object_id + '/base_link'))
+                                          goal.pose.header.frame_id),
+                                      goal.pose.header.frame_id)
             if not success:
                 self._set_aborted(PickOrPlaceResult.DEPARTURE_FAILURE,
                                   'Failed to depart from target')

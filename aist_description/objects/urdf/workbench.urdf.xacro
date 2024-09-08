@@ -64,6 +64,7 @@
 		 height="${height - bar_thickness}"
 		 table_thickness="${table_thickness}"
 		 table_leg_thickness="${bar_thickness}"
+                 rgba="0.5 0.5 0.5 1"
 		 parent="${prefix}base_link">
       <origin xyz="${bar_width - width} 0  ${bar_thickness}" rpy="0 0 0"/>
     </xacro:table>

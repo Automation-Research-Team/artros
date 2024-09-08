@@ -77,6 +77,8 @@ class AssemblyRoutines(URRoutines):
         print('  t: Pick tool')
         print('  T: Place tool')
         print('  s: Pick screw')
+        print('  p: Pick part')
+        print('  P: Place part')
         print('  i: Initialize all collision objects')
         print('  r: Remove specified collision objects')
         print('  H: Move all robots to home')
@@ -91,6 +93,13 @@ class AssemblyRoutines(URRoutines):
         elif key == 's':
             screw_type = raw_input('  screw name? ')
             self.pick_screw(robot_name, screw_type)
+        elif key == 'p':
+            part_id = raw_input('  part ID? ')
+            self.pick_part(robot_name, part_id)
+        elif key == 'P':
+            place_frame = raw_input('  place frame? ')
+            part_id     = raw_input('  part ID? ')
+            self.place_part(robot_name, place_frame, part_id)
         elif key == 'i':
             self._initialize_collision_objects()
         elif key == 'r':
@@ -144,6 +153,20 @@ class AssemblyRoutines(URRoutines):
         self._generate_screw(screw_type)
         return True
 
+    def pick_part(self, robot_name, part_id):
+        if self.gripper(robot_name).name != \
+           self.default_gripper_name(robot_name):
+            self.place_tool(robot_name)
+        return self.pick_at_frame(robot_name, part_id + '/default_grasp',
+                                  part_id, attach=True)
+
+    def place_part(self, robot_name, place_frame, part_id):
+        if self.gripper(robot_name).name != \
+           self.default_gripper_name(robot_name):
+            return False
+        return self.place_at_frame(robot_name, place_frame,
+                                   part_id, attach=True)
+
     def _initialize_collision_objects(self):
         for object_type, pose \
             in rospy.get_param('~initial_object_poses', {}).items():
@@ -151,7 +174,7 @@ class AssemblyRoutines(URRoutines):
                                    self.pose_from_offset(
                                        pose.get('offset',
                                                 [.0, .0, .0, .0, .0, .0])),
-                                   pose.get('source_subframe', 'base_link'))
+                                   pose.get('source_link', ''))
         self._screw_m3_id = 0
         self._screw_m4_id = 0
         self._generate_screw('screw_m3')

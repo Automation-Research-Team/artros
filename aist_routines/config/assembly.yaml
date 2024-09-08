@@ -16,11 +16,11 @@ initial_object_poses:
 #    target_link: base/base_link
 #    offset: [0.200, 0.015, 0.008, 90.0, 0.0, 180.0]
   panel_motor:
-    target_link:     base/panel_motor_screw_hole_1
-    source_subframe: bottom_screw_hole_aligner_1
+    target_link: base/panel_motor_screw_hole_1
+    source_link: panel_motor/bottom_screw_hole_aligner_1
   panel_bearing:
-    target_link:     base/panel_bearing_screw_hole_1
-    source_subframe: bottom_screw_hole_aligner_1
+    target_link: base/panel_bearing_screw_hole_1
+    source_link: panel_bearing/bottom_screw_hole_aligner_1
 
 picking_parameters:
   precision_tool:
@@ -66,6 +66,39 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.085
+      max_effort:       5.0
+  base:
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.1
+    gripper_parameters:
+      grasp_position:   0.000
+      release_position: 0.0402
+      max_effort:       5.0
+  panel_motor:
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.1
+    gripper_parameters:
+      grasp_position:   0.000
+      release_position: 0.025
+      max_effort:       5.0
+  panel_bearing:
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.1
+    gripper_parameters:
+      grasp_position:   0.000
+      release_position: 0.025
       max_effort:       5.0
   screw_m3:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
@@ -122,3 +155,18 @@ touch_links:
   screw_feeder_m4_outlet_link:
     - screw_feeder_m4_front_side
     - screw_feeder_m4_gap
+  base/default_grasp:
+    - base/base_link
+  base/panel_motor_screw_hole_1:
+    - base/base_link
+  base/panel_motor_screw_hole_2:
+    - base/base_link
+  base/panel_bearing_screw_hole_1:
+    - base/base_link
+  base/panel_bearing_screw_hole_2:
+    - base/base_link
+  workbench_holder_link:
+    - workbench_table_top
+    - workbench_front_border
+    - workbench_right_border
+    - base_fixture_piston

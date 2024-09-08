@@ -53,7 +53,9 @@ class CollisionObjectManagerClient(object):
             rospy.logerr(e)
 
     def create_object(self, object_type, target_link, pose,
-                      source_subframe='base_link', object_id=''):
+                      source_link='', object_id=''):
+        source_subframe = 'base_link' if source_link == '' else \
+                          source_link.rsplit('/', 1)[1]
         req = ManageCollisionObjectRequest()
         req.op              = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_type     = object_type
@@ -61,18 +63,23 @@ class CollisionObjectManagerClient(object):
         req.target_link     = target_link
         req.source_subframe = source_subframe
         req.pose            = pose
-        req.touch_links = self._touch_links.get(req.target_link, [])
+        req.touch_links     = self._get_touch_links(req.target_link)
+        print('### target_link=%s, touch_links=%s' % (req.target_link,
+                                                      req.touch_links))
         return self._send(req).success
 
     def attach_object(self, object_id, target_link, pose,
-                      source_subframe='base_link'):
+                      source_link='', preserve_ascendants=False):
+        source_subframe = 'base_link' if source_link == '' else \
+                          source_link.rsplit('/', 1)[1]
         req = ManageCollisionObjectRequest()
-        req.op              = ManageCollisionObjectRequest.ATTACH_OBJECT
-        req.object_id       = object_id
-        req.target_link     = target_link
-        req.source_subframe = source_subframe
-        req.pose            = pose
-        req.touch_links     = self._touch_links.get(req.target_link, [])
+        req.op                  = ManageCollisionObjectRequest.ATTACH_OBJECT
+        req.object_id           = object_id
+        req.target_link         = target_link
+        req.source_subframe     = source_subframe
+        req.pose                = pose
+        req.touch_links         = self._get_touch_links(req.target_link)
+        req.preserve_ascendants = preserve_ascendants
         res = self._send(req)
         return res.retval if res.success else None
 
@@ -103,3 +110,19 @@ class CollisionObjectManagerClient(object):
         req.object_id = object_id
         res = self._send(req)
         return res.retval if res.success else None
+
+    def get_object_parent(self, object_id):
+        req           = ManageCollisionObjectRequest()
+        req.op        = ManageCollisionObjectRequest.GET_OBJECT_PARENT
+        req.object_id = object_id
+        res = self._send(req)
+        return res.retval if res.success else None
+
+    def _get_touch_links(self, target_link):
+        tokens = target_link.rsplit('/', 1)
+        if len(tokens) == 1:
+            return self._touch_links.get(target_link, [])
+        else:
+            d = self._touch_links.get(tokens[0], {})
+            print(d)
+            return d.get(tokens[1], [])

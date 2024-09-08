@@ -4,7 +4,8 @@
 #   link before attaching new one is returned in 'retval'.
 # - If 'object_type' is not empty, a new object with 'object_id'
 #   of 'object_type' will be created and then attached.
-# -
+# - If 'preserve_ascendats' is true, keep ascendants of the object as
+#   descendants instead of detaching them.
 uint8 ATTACH_OBJECT=1
 #
 # - Append 'touch_links' to the existing touch links of the object
@@ -29,6 +30,11 @@ uint8 REMOVE_OBJECT=5
 #   in 'retval'.
 #
 uint8 GET_OBJECT_TYPE=6
+#
+# - Return parent of the existing collision object with 'object_id'
+#   in 'retval'.
+#
+uint8 GET_OBJECT_PARENT=7
 
 uint8              op
 string             object_type
@@ -37,6 +43,7 @@ string             target_link
 string             source_subframe
 geometry_msgs/Pose pose
 string[]           touch_links
+bool               preserve_ascendants
 ---
 bool               success
 string             retval
