@@ -196,12 +196,12 @@ class PickOrPlace(SimpleActionClient):
         if not self._server.is_active() or not success:
             if goal.pick:
                 gripper.release()
-                if goal.object_id != '':
-                    com.attach_object(goal.object_id, holder_link,
-                                      routines.lookup_pose(
-                                          holder_link,
-                                          goal.pose.header.frame_id),
-                                      goal.pose.header.frame_id)
+                # if goal.object_id != '':
+                #     com.attach_object(goal.object_id, holder_link,
+                #                       routines.lookup_pose(
+                #                           holder_link,
+                #                           goal.pose.header.frame_id),
+                #                       goal.pose.header.frame_id)
             if not success:
                 self._set_aborted(PickOrPlaceResult.DEPARTURE_FAILURE,
                                   'Failed to depart from target')

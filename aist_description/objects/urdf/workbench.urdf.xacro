@@ -64,7 +64,7 @@
 		 height="${height - bar_thickness}"
 		 table_thickness="${table_thickness}"
 		 table_leg_thickness="${bar_thickness}"
-                 rgba="0.5 0.5 0.5 1"
+                 rgba="0.4 0.4 0.4 1"
 		 parent="${prefix}base_link">
       <origin xyz="${bar_width - width} 0  ${bar_thickness}" rpy="0 0 0"/>
     </xacro:table>
@@ -74,7 +74,6 @@
 		    width="${border_length}"
 		    length="${border_width}"
 		    height="${border_height}"
-		    rgba="0.2 0.2 0.2 1.0" color_name="black"
 		    parent="${prefix}table_top_origin">
       <origin xyz="${width - border_length} 0 0" rpy="0 0 0"/>
     </xacro:aist_box>
@@ -83,7 +82,6 @@
 		    width="${border_width}"
 		    length="${border_length - border_width}"
 		    height="${border_height}"
-		    rgba="0.2 0.2 0.2 1.0" color_name="black"
 		    parent="${prefix}table_top_origin">
       <origin xyz="${width - border_width} ${border_width} 0" rpy="0 0 0"/>
     </xacro:aist_box>
