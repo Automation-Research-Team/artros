@@ -215,9 +215,9 @@
 
   <!-- RealSense cameras -->
   <xacro:include filename="$(find aist_description
-  			   )/devices/urdf/wrist_cameras.urdf.xacro" />
-  <xacro:wrist_cameras prefix="a_bot_"
-  		       parent="a_bot_gripper_base_link"
+  			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
+  <xacro:sr305_on_2f85 prefix="b_bot_"
+  		       parent="b_bot_gripper_base_link"
   		       use_nominal_extrinsics="true"/>
 
   <!-- live camera -->
