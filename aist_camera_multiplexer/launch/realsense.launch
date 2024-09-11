@@ -2,9 +2,8 @@
 <launch>
 
   <arg name="multiplexer_name"		default="camera_multiplexer"/>
-  <arg name="camera_names"		default="a_bot_inside_camera
-  						 a_bot_outside_camera"/>
-  <arg name="active_camera_name"	default="a_bot_inside_camera"/>
+  <arg name="camera_names"		default="b_bot_camera"/>
+  <arg name="active_camera_name"	default="b_bot_camera"/>
   <arg name="config_dir"		default="$(dirname)/../config"/>
   <arg name="manager"			default=""/>
   <arg name="camera_no"			default="0"/>

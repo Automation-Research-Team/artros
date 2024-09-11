@@ -38,6 +38,7 @@ import rospy, numpy as np
 from math                           import pi, radians, degrees, cos, sin, sqrt
 from geometry_msgs.msg              import Quaternion
 from aist_routines.ur               import URRoutines
+from aist_routines.AssemblyRoutines import AssemblyRoutines
 from aist_routines.AttemptBinAction import AttemptBin
 from aist_utility.compat            import *
 from tf                             import transformations as tfs
@@ -45,7 +46,7 @@ from tf                             import transformations as tfs
 ######################################################################
 #  class KittingRoutines                                             #
 ######################################################################
-class KittingRoutines(URRoutines):
+class KittingRoutines(AssemblyRoutines):
     """Implements kitting routines for aist robot system."""
 
     def __init__(self, do_error_recovery=None, cancel_error_recovery=None):
@@ -58,7 +59,8 @@ class KittingRoutines(URRoutines):
 
     @property
     def current_robot_name(self):
-        return self._attempt_bin.current_robot_name
+        #return self._attempt_bin.current_robot_name
+        return 'b_bot'
 
     def run(self):
         axis = 'Y'
