@@ -36,6 +36,8 @@ grippers:
   suction_tool:
     type:          SuctionGripper
     controller_ns: suction_tool_controller
+    base_link:     suction_tool/base_link
+    tip_link:      suction_tool/tip_link
   base_fixture:
     type:          SuctionGripper
     controller_ns: base_fixture_controller

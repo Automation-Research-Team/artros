@@ -4,10 +4,10 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1/Scene Robot1
+        - /MotionPlanning1/Planning Request1
         - /TF1
         - /TF1/Frames1
-      Splitter Ratio: 0.6159420013427734
+      Splitter Ratio: 0.7746478915214539
     Tree Height: 341
   - Class: rviz/Selection
     Name: Selection
@@ -1144,7 +1144,7 @@ Visualization Manager:
         Interactive Marker Size: 0.15000000596046448
         Joint Violation Color: 255; 0; 255
         Planning Group: b_bot
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -2408,21 +2408,23 @@ Visualization Manager:
           Value: false
         base/corner_4:
           Value: false
-        base/screw_hole_panel1_1:
-          Value: true
-        base/screw_hole_panel1_2:
-          Value: true
-        base/screw_hole_panel1_3:
+        base/default_grasp:
           Value: false
-        base/screw_hole_panel1_4:
-          Value: false
-        base/screw_hole_panel2_1:
+        base/panel_bearing_screw_hole_1:
           Value: true
-        base/screw_hole_panel2_2:
+        base/panel_bearing_screw_hole_2:
           Value: true
-        base/screw_hole_panel2_3:
+        base/panel_bearing_screw_hole_aligner_1:
           Value: false
-        base/screw_hole_panel2_4:
+        base/panel_bearing_screw_hole_aligner_2:
+          Value: false
+        base/panel_motor_screw_hole_1:
+          Value: true
+        base/panel_motor_screw_hole_2:
+          Value: true
+        base/panel_motor_screw_hole_aligner_1:
+          Value: false
+        base/panel_motor_screw_hole_aligner_2:
           Value: false
         base/terminal_top:
           Value: false
@@ -2576,6 +2578,84 @@ Visualization Manager:
           Value: false
         live_camera_optical_frame:
           Value: false
+        panel_bearing/base_link:
+          Value: false
+        panel_bearing/bearing_screw_hole_1:
+          Value: false
+        panel_bearing/bearing_screw_hole_2:
+          Value: false
+        panel_bearing/bearing_screw_hole_3:
+          Value: false
+        panel_bearing/bearing_screw_hole_4:
+          Value: false
+        panel_bearing/bottom_corner_1:
+          Value: false
+        panel_bearing/bottom_corner_2:
+          Value: false
+        panel_bearing/bottom_screw_hole_1:
+          Value: true
+        panel_bearing/bottom_screw_hole_2:
+          Value: true
+        panel_bearing/bottom_screw_hole_aligner_1:
+          Value: false
+        panel_bearing/bottom_screw_hole_aligner_2:
+          Value: false
+        panel_bearing/default_grasp:
+          Value: true
+        panel_bearing/front_hole:
+          Value: false
+        panel_bearing/pulley_ridge_bottom:
+          Value: false
+        panel_bearing/pulley_ridge_middle:
+          Value: false
+        panel_bearing/pulley_ridge_top:
+          Value: false
+        panel_motor/back_hole:
+          Value: false
+        panel_motor/back_hole_bottom:
+          Value: false
+        panel_motor/base_link:
+          Value: false
+        panel_motor/bottom_corner_1:
+          Value: false
+        panel_motor/bottom_corner_2:
+          Value: false
+        panel_motor/bottom_screw_hole_1:
+          Value: true
+        panel_motor/bottom_screw_hole_2:
+          Value: true
+        panel_motor/bottom_screw_hole_aligner_1:
+          Value: false
+        panel_motor/bottom_screw_hole_aligner_2:
+          Value: false
+        panel_motor/center:
+          Value: false
+        panel_motor/default_grasp:
+          Value: false
+        panel_motor/motor_screw_hole_1:
+          Value: false
+        panel_motor/motor_screw_hole_2:
+          Value: false
+        panel_motor/motor_screw_hole_3:
+          Value: false
+        panel_motor/motor_screw_hole_4:
+          Value: false
+        panel_motor/motor_screw_hole_5:
+          Value: false
+        panel_motor/motor_screw_hole_6:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_1:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_2:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_3:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_4:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_5:
+          Value: false
+        panel_motor/motor_screw_hole_aligner_6:
+          Value: false
         plate:
           Value: false
         plate_lower_left_corner:
@@ -2612,15 +2692,11 @@ Visualization Manager:
           Value: true
         screw_m3_1/screw_head:
           Value: false
-        screw_m3_1/screw_inserted:
-          Value: false
         screw_m3_1/screw_tip:
           Value: false
         screw_m4_1/base_link:
           Value: false
         screw_m4_1/screw_head:
-          Value: false
-        screw_m4_1/screw_inserted:
           Value: false
         screw_m4_1/screw_tip:
           Value: false
@@ -2767,7 +2843,7 @@ Visualization Manager:
         world:
           Value: false
       Marker Alpha: 1
-      Marker Scale: 0.20000000298023224
+      Marker Scale: 0.15000000596046448
       Name: TF
       Show Arrows: false
       Show Axes: true
@@ -2923,8 +2999,6 @@ Visualization Manager:
                             screw_m3_1/base_link:
                               screw_m3_1/screw_head:
                                 {}
-                              screw_m3_1/screw_inserted:
-                                {}
                               screw_m3_1/screw_tip:
                                 {}
                       screw_feeder_m3_inlet_link:
@@ -2935,8 +3009,6 @@ Visualization Manager:
                             screw_feeder_m4_outlet_link:
                               screw_m4_1/base_link:
                                 screw_m4_1/screw_head:
-                                  {}
-                                screw_m4_1/screw_inserted:
                                   {}
                                 screw_m4_1/screw_tip:
                                   {}
@@ -2991,21 +3063,97 @@ Visualization Manager:
                                 {}
                               base/corner_4:
                                 {}
-                              base/screw_hole_panel1_1:
+                              base/default_grasp:
                                 {}
-                              base/screw_hole_panel1_2:
+                              base/panel_bearing_screw_hole_1:
+                                panel_bearing/base_link:
+                                  panel_bearing/bearing_screw_hole_1:
+                                    {}
+                                  panel_bearing/bearing_screw_hole_2:
+                                    {}
+                                  panel_bearing/bearing_screw_hole_3:
+                                    {}
+                                  panel_bearing/bearing_screw_hole_4:
+                                    {}
+                                  panel_bearing/bottom_corner_1:
+                                    {}
+                                  panel_bearing/bottom_corner_2:
+                                    {}
+                                  panel_bearing/bottom_screw_hole_1:
+                                    {}
+                                  panel_bearing/bottom_screw_hole_2:
+                                    {}
+                                  panel_bearing/bottom_screw_hole_aligner_1:
+                                    {}
+                                  panel_bearing/bottom_screw_hole_aligner_2:
+                                    {}
+                                  panel_bearing/default_grasp:
+                                    {}
+                                  panel_bearing/front_hole:
+                                    {}
+                                  panel_bearing/pulley_ridge_bottom:
+                                    {}
+                                  panel_bearing/pulley_ridge_middle:
+                                    {}
+                                  panel_bearing/pulley_ridge_top:
+                                    {}
+                              base/panel_bearing_screw_hole_2:
                                 {}
-                              base/screw_hole_panel1_3:
+                              base/panel_bearing_screw_hole_aligner_1:
                                 {}
-                              base/screw_hole_panel1_4:
+                              base/panel_bearing_screw_hole_aligner_2:
                                 {}
-                              base/screw_hole_panel2_1:
+                              base/panel_motor_screw_hole_1:
+                                panel_motor/base_link:
+                                  panel_motor/back_hole:
+                                    {}
+                                  panel_motor/back_hole_bottom:
+                                    {}
+                                  panel_motor/bottom_corner_1:
+                                    {}
+                                  panel_motor/bottom_corner_2:
+                                    {}
+                                  panel_motor/bottom_screw_hole_1:
+                                    {}
+                                  panel_motor/bottom_screw_hole_2:
+                                    {}
+                                  panel_motor/bottom_screw_hole_aligner_1:
+                                    {}
+                                  panel_motor/bottom_screw_hole_aligner_2:
+                                    {}
+                                  panel_motor/center:
+                                    {}
+                                  panel_motor/default_grasp:
+                                    {}
+                                  panel_motor/motor_screw_hole_1:
+                                    {}
+                                  panel_motor/motor_screw_hole_2:
+                                    {}
+                                  panel_motor/motor_screw_hole_3:
+                                    {}
+                                  panel_motor/motor_screw_hole_4:
+                                    {}
+                                  panel_motor/motor_screw_hole_5:
+                                    {}
+                                  panel_motor/motor_screw_hole_6:
+                                    {}
+                                  panel_motor/motor_screw_hole_aligner_1:
+                                    {}
+                                  panel_motor/motor_screw_hole_aligner_2:
+                                    {}
+                                  panel_motor/motor_screw_hole_aligner_3:
+                                    {}
+                                  panel_motor/motor_screw_hole_aligner_4:
+                                    {}
+                                  panel_motor/motor_screw_hole_aligner_5:
+                                    {}
+                                  panel_motor/motor_screw_hole_aligner_6:
+                                    {}
+                              base/panel_motor_screw_hole_2:
                                 {}
-                              base/screw_hole_panel2_2:
+                              base/panel_motor_screw_hole_aligner_1:
                                 {}
-                              base/screw_hole_panel2_3:
-                                {}
-                              base/screw_hole_panel2_4:
+                              base/panel_motor_screw_hole_aligner_2:
                                 {}
                               base/terminal_top:
                                 {}
@@ -3393,7 +3541,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.2325488328933716
+      Distance: 1.4017395973205566
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -3401,17 +3549,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.38509637117385864
-        Y: -0.08132120966911316
-        Z: 0.7839149236679077
+        X: -0.3522506356239319
+        Y: -0.1203087642788887
+        Z: 0.9041778445243835
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5673288106918335
+      Pitch: 0.28732872009277344
       Target Frame: <Fixed Frame>
-      Yaw: 0.5414740443229675
+      Yaw: 1.4714739322662354
     Saved: ~
 Window Geometry:
   CameraMultiplexerImage:
