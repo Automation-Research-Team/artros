@@ -57,15 +57,19 @@ class CollisionObjectManagerClient(object):
         source_subframe = 'base_link' if source_link == '' else \
                           source_link.rsplit('/', 1)[1]
         req = ManageCollisionObjectRequest()
-        req.op              = ManageCollisionObjectRequest.ATTACH_OBJECT
+        req.op              = ManageCollisionObjectRequest.CREATE_OBJECT
         req.object_type     = object_type
         req.object_id       = object_id
         req.target_link     = target_link
         req.source_subframe = source_subframe
         req.pose            = pose
-        req.touch_links     = self._get_touch_links(req.target_link)
-        print('### target_link=%s, touch_links=%s' % (req.target_link,
-                                                      req.touch_links))
+        return self._send(req).success
+
+    def remove_object(self, object_id='', target_link=''):
+        req = ManageCollisionObjectRequest()
+        req.op          = ManageCollisionObjectRequest.REMOVE_OBJECT
+        req.object_id   = object_id
+        req.target_link = target_link
         return self._send(req).success
 
     def attach_object(self, object_id, target_link, pose,
@@ -83,6 +87,19 @@ class CollisionObjectManagerClient(object):
         res = self._send(req)
         return res.retval if res.success else None
 
+    def detach_object(self, object_id, target_link, pose,
+                      source_link='', preserve_ascendants=False):
+        source_subframe = 'base_link' if source_link == '' else \
+                          source_link.rsplit('/', 1)[1]
+        req = ManageCollisionObjectRequest()
+        req.op              = ManageCollisionObjectRequest.DETACH_OBJECT
+        req.object_id       = object_id
+        req.target_link     = target_link
+        req.source_subframe = source_subframe
+        req.pose            = pose
+        res = self._send(req)
+        return res.retval if res.success else None
+
     def append_touch_links(self, object_id, touch_link):
         req = ManageCollisionObjectRequest()
         req.op          = ManageCollisionObjectRequest.APPEND_TOUCH_LINKS
@@ -95,13 +112,6 @@ class CollisionObjectManagerClient(object):
         req.op          = ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS
         req.object_id   = object_id
         req.touch_links = self._touch_links.get(untouch_link, [])
-        return self._send(req).success
-
-    def remove_object(self, object_id='', target_link=''):
-        req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.REMOVE_OBJECT
-        req.object_id   = object_id
-        req.target_link = target_link
         return self._send(req).success
 
     def get_object_type(self, object_id):
