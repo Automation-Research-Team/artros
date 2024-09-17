@@ -17,7 +17,8 @@
 
   <!-- Start live camera -->
   <node unless="$(arg sim)"
-  	name="live_camera" pkg="usb_cam" type="usb_cam_node" output="screen">
+  	name="live_camera" pkg="usb_cam" type="usb_cam_node"
+	clear_params="true" output="screen">
       <rosparam file="$(dirname)/../config/live_camera.yaml"/>
   </node>
 

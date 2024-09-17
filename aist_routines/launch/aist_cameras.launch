@@ -3,7 +3,7 @@
 
   <arg name="sim"			default="false"/>
 
-  <arg name="camera_names"		default="b_bot_camera"/>
+  <arg name="camera_names"		default="a_bot_camera b_bot_camera"/>
   <arg name="active_camera_name"	default="b_bot_camera"/>
   <arg name="manager"			default="camera_manager"/>
   <arg name="manager_threads"		default="4"/>
