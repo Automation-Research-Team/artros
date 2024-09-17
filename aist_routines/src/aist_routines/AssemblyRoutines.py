@@ -137,7 +137,7 @@ class AssemblyRoutines(URRoutines):
         self.set_gripper(robot_name, default_gripper_name)
         if self.place_at_frame(robot_name, tool_name + '_holder_link',
                                tool_name, attach=True):
-            self.set_gripper(robot_name, tool_name)
+            # self.set_gripper(robot_name, tool_name)
             return False
         return True
 
