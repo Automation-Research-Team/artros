@@ -57,11 +57,11 @@ picking_parameters:
       release_position: 0.035
       max_effort:       5.0
   suction_tool:
-    approach_offset:  [-0.002, 0.000, 0.045, 0.0, 0.0, 0.0]
+    approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
     grasp_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
-    departure_offset: [-0.002, 0.000, 0.045, 0.0, 0.0, 0.0]
-    speed_fast:       0.1
+    departure_offset: [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
+    speed_fast:       1.0
     speed_slow:       0.1
     gripper_parameters:
       grasp_position:   0.000
