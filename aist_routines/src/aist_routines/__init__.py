@@ -324,6 +324,7 @@ class AISTBaseRoutines(object):
 
         # Gripper stuffs
         elif key == 'gripper':
+            print('  current: %s' % self.gripper(robot_name).name)
             gripper_name = raw_input('  gripper name? ')
             try:
                 self.set_gripper(robot_name, gripper_name)

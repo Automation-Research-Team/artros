@@ -146,12 +146,6 @@ class PickOrPlace(SimpleActionClient):
 
         # Check success of going to pick/place pose.
         if not self._server.is_active() or not success:
-            if goal.object_id != '':
-                if goal.pick:
-                    com.remove_touch_links(goal.object_id, gripper.tip_link)
-                else:
-                    com.remove_touch_links(goal.object_id,
-                                           goal.pose.header.frame_id)
             if not success:
                 self._set_aborted(PickOrPlaceResult.APPROACH_FAILURE,
                                   'Failed to approach target')
@@ -173,7 +167,7 @@ class PickOrPlace(SimpleActionClient):
         else:
             gripper.release()
             if goal.object_id != '':
-                com.attach_object(goal.object_id,
+                com.detach_object(goal.object_id,
                                   goal.pose.header.frame_id,
                                   routines.lookup_pose(
                                       goal.pose.header.frame_id,

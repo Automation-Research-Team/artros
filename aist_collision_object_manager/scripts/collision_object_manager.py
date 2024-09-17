@@ -118,6 +118,13 @@ def _pose_matrix(pose):
                                                            pose.orientation.z,
                                                            pose.orientation.w]))
 
+def _get_object_id_and_subframe(link_name):
+    tokens = link_name.rsplit('/', 1)
+    if len(tokens) == 2:
+        return tokens[0], tokens[1]
+    else:
+        return '', link_name
+
 def _pose_from_matrix(T):
     return Pose(Point(*tfs.translation_from_matrix(T)),
                 Quaternion(*tfs.quaternion_from_matrix(T)))
@@ -141,9 +148,9 @@ class CollisionObjectManager(object):
                                    'collision_mesh_scales',
                                    'subframe_names', 'subframe_poses'])
     class InstanceProperties(object):
-        def __init__(self, type):
+        def __init__(self, type, parent_link):
             self.type                = type
-            self.parent_id           = ''
+            self.parent_link         = parent_link
             self.subframe_transforms = []
             self.markers             = []
 
@@ -223,7 +230,7 @@ class CollisionObjectManager(object):
                             self._manage_collision_object_cb)
 
     def __del__(self):
-        self._remove_object('', '')
+        self._psi.clear()
 
     # timer callbacks
     def _subframes_and_markers_cb(self, event):
@@ -251,94 +258,96 @@ class CollisionObjectManager(object):
     def _manage_collision_object_cb(self, req):
         res = ManageCollisionObjectResponse(True, '')
 
-        if req.op == ManageCollisionObjectRequest.REMOVE_OBJECT:
-            self._remove_object(req.object_id, req.target_link)
-            return res
-        elif req.op == ManageCollisionObjectRequest.GET_OBJECT_TYPE:
-            instance_props = self._instance_props_dict.get(req.object_id, None)
-            if instance_props is None:
-                rospy.logerr('(CollisionObjectManager) unknown attached object[%s]',
-                             req.object_id)
-                res.success = False
-            else:
+        try:
+            if req.op == ManageCollisionObjectRequest.CREATE_OBJECT:
+                self._create_object(req.object_type, req.object_id,
+                                    req.target_link, req.source_subframe,
+                                    req.pose)
+            elif req.op == ManageCollisionObjectRequest.REMOVE_OBJECT:
+                self._remove_object(req.object_id, req.target_link)
+            elif req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
+                res.retval = self._attach_object(req.object_id,
+                                                 req.target_link,
+                                                 req.source_subframe,
+                                                 req.pose, req.touch_links,
+                                                 req.preserve_ascendants)
+            elif req.op == ManageCollisionObjectRequest.DETACH_OBJECT:
+                self._detach_object(req.object_id, req.target_link,
+                                    req.source_subframe, req.pose)
+            elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
+                self._append_touch_links(req.object_id, req.touch_links)
+            elif req.op == ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS:
+                self._remove_touch_links(req.object_id, req.touch_links)
+            elif req.op == ManageCollisionObjectRequest.GET_OBJECT_TYPE:
+                instance_props = self._instance_props_dict.get(req.object_id,
+                                                               None)
+                if instance_props is None:
+                    raise Exception('unknown attached object[%s]'
+                                    % req.object_id)
                 res.retval = instance_props.type
-            return res
-        elif req.op == ManageCollisionObjectRequest.GET_OBJECT_PARENT:
-            instance_props = self._instance_props_dict.get(req.object_id, None)
-            if instance_props is None:
-                rospy.logerr('(CollisionObjectManager) unknown attached object[%s]',
-                             req.object_id)
-                res.success = False
+            elif req.op == ManageCollisionObjectRequest.GET_OBJECT_PARENT:
+                instance_props = self._instance_props_dict.get(req.object_id,
+                                                               None)
+                if instance_props is None:
+                    raise Exception('unknown attached object[%s]'
+                                    % req.object_id)
+                res.retval = instance_props.parent_link
             else:
-                res.retval = instance_props.parent_id
-            return res
-
-        if req.object_type != '':
-            aco = self._create_object(req.object_type, req.object_id)
-            if aco is None:
-                rospy.logerr('(CollisionObjectManger) unknown object type[%s]',
-                             req.object_type)
-                res.success = False
-                return res
-        else:
-            aco = self._psi.get_attached_objects([req.object_id]) \
-                           .get(req.object_id, None)
-            if aco is None:
-                rospy.logerr('(CollisionObjectManager) unknown attached object[%s]',
-                             req.object_id)
-                res.success = False
-                return res
-
-        if req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
-            res.retval = self._attach_object(aco, req.target_link,
-                                             req.source_subframe,
-                                             req.pose, req.touch_links,
-                                             req.preserve_ascendants)
-        elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
-            self._set_touch_links(aco, list(set(aco.touch_links) |
-                                            set(req.touch_links)))
-        elif req.op == ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS:
-            self._set_touch_links(aco, list(set(aco.touch_links) -
-                                            set(req.touch_links)))
-        else:
-            rospy.logerr('(CollisionObjectManager) unknown operation[%d]',
-                         req.op)
+                raise Exception('unknown operation[%d]' % req.op)
+        except Exception as e:
+            rospy.logerr('(CollisionObjectManager) %s', str(e))
             res.success = False
         return res
 
     # operations
-    def _create_object(self, object_type, object_id):
-        # Create an attached collision object.
+    def _create_object(self, object_type,
+                       object_id, target_link, source_subframe, pose):
         obj_props = self._obj_props_dict.get(object_type, None)
         if obj_props is None:
-            return None
+            raise Exception('unknown object type[%s]' % req.object_type)
 
-        aco = AttachedCollisionObject()
-        aco.object.id = object_id if object_id != '' else object_type
+        # Create an attached collision object.
+        co = CollisionObject()
+        co.id = object_id if object_id != '' else object_type
         if obj_props.collision_meshes != []:
-            aco.object.meshes     = obj_props.collision_meshes
-            aco.object.mesh_poses = obj_props.collision_mesh_poses
+            co.meshes     = obj_props.collision_meshes
+            co.mesh_poses = obj_props.collision_mesh_poses
         else:
-            aco.object.primitives      = obj_props.primitives
-            aco.object.primitive_poses = obj_props.primitive_poses
-        aco.object.subframe_names = obj_props.subframe_names
-        aco.object.subframe_poses = obj_props.subframe_poses
-        aco.object.operation      = CollisionObject.ADD
+            co.primitives      = obj_props.primitives
+            co.primitive_poses = obj_props.primitive_poses
+        co.subframe_names = obj_props.subframe_names
+        co.subframe_poses = obj_props.subframe_poses
+        co.operation      = CollisionObject.ADD
+        if source_subframe != 'base_link':
+            pose = _transform_pose(tfs.inverse_matrix(
+                                       _pose_matrix(
+                                           _subframe_pose(co,
+                                                          source_subframe))),
+                                   pose)
+        co.header.frame_id = target_link
+        co.pose            = pose
+        self._psi.add_object(co)
 
         # Create info for this object.
-        instance_props = CollisionObjectManager.InstanceProperties(object_type)
+        instance_props = CollisionObjectManager.InstanceProperties(object_type,
+                                                                   target_link)
 
         # Create subframe transforms.
-        base_link = aco.object.id + '/base_link'
+        base_link = co.id + '/base_link'
         instance_props.subframe_transforms.append(
-            TransformStamped(Header(), base_link,
-                             Transform(Vector3(0, 0, 0),
-                                       Quaternion(0, 0, 0, 1))))
+            TransformStamped(Header(frame_id=target_link), base_link,
+                             Transform(Vector3(pose.position.x,
+                                               pose.position.y,
+                                               pose.position.z),
+                                       Quaternion(pose.orientation.x,
+                                                  pose.orientation.y,
+                                                  pose.orientation.z,
+                                                  pose.orientation.w))))
         for subframe_name, subframe_pose in zip(obj_props.subframe_names,
                                                 obj_props.subframe_poses):
             instance_props.subframe_transforms.append(
                 TransformStamped(Header(frame_id=base_link),
-                                 aco.object.id + '/' + subframe_name,
+                                 co.id + '/' + subframe_name,
                                  Transform(Vector3(subframe_pose.position.x,
                                                    subframe_pose.position.y,
                                                    subframe_pose.position.z),
@@ -349,15 +358,15 @@ class CollisionObjectManager(object):
                                                subframe_pose.orientation.w))))
 
         # Create new marker IDs if not exit for this object.
-        if aco.object.id not in self._marker_id_lists:
-            self._marker_id_lists[aco.object.id] \
+        if co.id not in self._marker_id_lists:
+            self._marker_id_lists[co.id] \
               = self._generate_marker_id_list(len(obj_props.visual_mesh_urls))
 
         # Create markers for visualization.
         for mesh_url, mesh_pose, mesh_scale, mesh_color, marker_id \
             in zip(obj_props.visual_mesh_urls,   obj_props.visual_mesh_poses,
                    obj_props.visual_mesh_scales, obj_props.visual_mesh_colors,
-                   self._marker_id_lists[aco.object.id]):
+                   self._marker_id_lists[co.id]):
             marker = Marker()
             marker.header.frame_id = base_link
             marker.ns              = ''
@@ -374,14 +383,38 @@ class CollisionObjectManager(object):
 
         # Store object info.
         with self._lock:
-            self._instance_props_dict[aco.object.id] = instance_props
+            self._instance_props_dict[co.id] = instance_props
 
         rospy.loginfo("(CollisionObjectManager) created object '%s' of type[%s]",
-                      aco.object.id, object_type)
-        return aco
+                      co.id, object_type)
 
-    def _attach_object(self, aco, target_link, source_subframe, pose,
+    def _remove_object(self, object_id, target_link):
+        if object_id != '':
+            self._delete_markers_and_subframes(object_id)
+        elif target_link != '':
+            object_id = None
+            for aco_id, aco in self._psi.get_attached_objects().items():
+                if aco.link_name == target_link:
+                    self._delete_markers_and_subframes(aco_id)
+        else:
+            object_id = None
+            target_link = None
+            for aco_id in self._psi.get_attached_objects().keys():
+                self._delete_markers_and_subframes(aco_id)
+        self._psi.remove_attached_object(target_link, object_id)
+        self._psi.remove_world_object(object_id)
+
+    def _attach_object(self, object_id, target_link, source_subframe, pose,
                        touch_links, preserve_ascendants):
+        co = self._psi.get_objects([object_id]).get(object_id, None)
+        if co is None:
+            raise Exception("unknown collision object '%s'" % object_id)
+        aco = AttachedCollisionObject()
+        aco.object = co
+
+        # If any subframe of the object other than 'base_link' is to be
+        # attached to 'target_link', transform the given pose to that
+        # with respect to 'base_link'.
         if source_subframe != 'base_link':
             pose = _transform_pose(tfs.inverse_matrix(
                                        _pose_matrix(
@@ -389,7 +422,7 @@ class CollisionObjectManager(object):
                                                           source_subframe))),
                                    pose)
 
-        # Get information of the given collision object.
+        # Get information of the given collision object and set target link.
         instance_props = self._instance_props_dict[aco.object.id]
 
         # Replace the transform from the object base_link to the attached link.
@@ -406,31 +439,60 @@ class CollisionObjectManager(object):
 
         # If 'target_link' belongs to any other collision object, replace it
         # with the link to which the object attached.
-        #   - tokens[0]: object_id, tokens[1]: subframe
-        tokens = target_link.rsplit('/', 1)
-        parent_aco = self._psi.get_attached_objects().get(tokens[0], None)
-        if parent_aco is not None:
+        parent_id, subframe = _get_object_id_and_subframe(target_link)
+        target_aco = self._psi.get_attached_objects().get(parent_id, None)
+        if target_aco is not None:
             if preserve_ascendants:
                 self._rotate_tree(aco.object.id)
-            instance_props.parent_id = parent_aco.object.id
-            T = _pose_matrix(parent_aco.object.pose)
-            if tokens[1] != 'base_link':
+            T = _pose_matrix(target_aco.object.pose)
+            if subframe != 'base_link':
                 T = tfs.concatenate_matrices(
-                        T, _pose_matrix(_subframe_pose(parent_aco.object,
-                                                       tokens[1])))
+                        T, _pose_matrix(_subframe_pose(target_aco.object,
+                                                       subframe)))
             pose = _transform_pose(T, pose)
-            target_link = parent_aco.link_name
-        else:
-            instance_props.parent_id = ''
+            target_link = target_aco.link_name
 
         # Keep the current attach link
         # and set the new one to the specified object and its descendants.
-        detach_link = aco.link_name
         self._set_target_link(aco, target_link, pose, touch_links)
-        return detach_link
 
+        # Keep the current parent link of this collision object
+        # and set the new one.
+        old_parent_link = instance_props.parent_link
+        instance_props.parent_link = target_link
+        return old_parent_link
+
+    def _detach_object(self, object_id, target_link, source_subframe, pose):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
+        if aco is None:
+            return
+
+        old_link_name = aco.link_name
+        self._psi.remove_attached_object(None, aco.object.id)
+        rospy.loginfo("(CollisionObjectManager) detach '%s' from '%s'",
+                      aco.object.id, old_link_name)
+
+    def _append_touch_links(self, object_id, touch_links):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
+        if aco is None:
+            return
+        self._psi.attach_object(aco, touch_links=list(set(aco.touch_links) |
+                                                      set(touch_links)))
+        rospy.loginfo("(CollisionObjectManager) set touch links%s to '%s' attached to '%s'",
+                      aco.touch_links, aco.object.id, aco.link_name)
+
+    def _remove_touch_links(self, object_id, touch_links):
+        aco = self._psi.get_attached_objects([object_id]).get(object_id, None)
+        if aco is None:
+            return
+        self._psi.attach_object(aco, touch_links=list(set(aco.touch_links) -
+                                                      set(touch_links)))
+        rospy.loginfo("(CollisionObjectManager) set touch links%s to '%s' attached to '%s'",
+                      aco.touch_links, aco.object.id, aco.link_name)
+
+    # utilities
     def _rotate_tree(self, object_id):
-        parent_id = self._instance_props_dict[object_id].parent_id
+        parent_id = self._get_parent_id(object_id)
         if parent_id != '':
             self._instance_props_dict[parent_id] = object_id
             self._rotate_tree(parent_id)
@@ -450,34 +512,16 @@ class CollisionObjectManager(object):
                       aco.object.id, aco.link_name, aco.touch_links)
 
         for child_id, child_aco in self._psi.get_attached_objects().items():
-            if self._instance_props_dict[child_id].parent_id == aco.object.id:
+            if self._get_parent_id(child_id) == aco.object.id:
                 self._set_target_link(child_aco, target_link,
                                       _transform_pose(T,
                                                       child_aco.object.pose),
                                       child_aco.touch_links)
 
-    def _set_touch_links(self, aco, touch_links):
-        self._psi.attach_object(aco, touch_links=touch_links)
-        rospy.loginfo("(CollisionObjectManager) set touch links%s to '%s' attached to '%s'",
-                      aco.touch_links, aco.object.id, aco.link_name)
+    def _get_parent_id(self, object_id):
+        return _get_object_id_and_subframe(
+                   self._instance_props_dict[object_id].parent_link)[0]
 
-    def _remove_object(self, object_id, target_link):
-        if object_id != '':
-            self._delete_markers_and_subframes(object_id)
-        elif target_link != '':
-            object_id = None
-            for aco_id, aco in self._psi.get_attached_objects().items():
-                if aco.link_name == target_link:
-                    self._delete_markers_and_subframes(aco_id)
-        else:
-            object_id = None
-            target_link = None
-            for aco_id in self._psi.get_attached_objects().keys():
-                self._delete_markers_and_subframes(aco_id)
-        self._psi.remove_attached_object(target_link, object_id)
-        self._psi.remove_world_object(object_id)
-
-    # utilities
     def _generate_marker_id_list(self, n):
         marker_id_list = []
         for i in range(n):
