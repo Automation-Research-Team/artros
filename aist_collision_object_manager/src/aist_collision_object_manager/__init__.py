@@ -41,9 +41,10 @@ from aist_msgs.srv import ManageCollisionObject, ManageCollisionObjectRequest
 #  class CollisionObjectManagerClient                                   #
 #########################################################################
 class CollisionObjectManagerClient(object):
-    def __init__(self, server='collision_object_manager'):
+    def __init__(self, listener, server='collision_object_manager'):
         super().__init__()
 
+        self._listener    = listener
         self._touch_links = rospy.get_param('~touch_links', {})
         try:
             service = server + '/manage_collision_object'
@@ -54,8 +55,9 @@ class CollisionObjectManagerClient(object):
 
     def create_object(self, object_type, target_link, pose,
                       source_link='', object_id=''):
-        source_subframe = 'base_link' if source_link == '' else \
-                          source_link.rsplit('/', 1)[1]
+        if source_link != '':
+            pose = self._base_pose_from_subframe_pose(pose,
+                                                      target_link, source_link)
         req = ManageCollisionObjectRequest()
         req.op              = ManageCollisionObjectRequest.CREATE_OBJECT
         req.object_type     = object_type
@@ -136,3 +138,9 @@ class CollisionObjectManagerClient(object):
             d = self._touch_links.get(tokens[0], {})
             print(d)
             return d.get(tokens[1], [])
+
+    def _base_pose_from_subframe_pose(self, object_id,
+                                      target_link, source_link, pose):
+        t, q = self._listener.lookupTransform(source_link,
+                                              object_id + '/base_link',
+                                              rospy.Time(0))

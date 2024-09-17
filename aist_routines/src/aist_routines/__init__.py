@@ -102,7 +102,7 @@ class AISTBaseRoutines(object):
                       self.planning_frame, self.reference_frame, self.eef_step)
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
-        self._com = CollisionObjectManagerClient()
+        self._com = CollisionObjectManagerClient(self._listener)
 
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)

@@ -135,7 +135,6 @@ def _transform_pose(T, pose):
 def _subframe_pose(co, subframe_name):
     return co.subframe_poses[co.subframe_names.index(subframe_name)]
 
-
 #########################################################################
 #  class CollisionObjectManager                                         #
 #########################################################################
@@ -319,11 +318,12 @@ class CollisionObjectManager(object):
         co.subframe_poses = obj_props.subframe_poses
         co.operation      = CollisionObject.ADD
         if source_subframe != 'base_link':
-            pose = _transform_pose(tfs.inverse_matrix(
-                                       _pose_matrix(
-                                           _subframe_pose(co,
-                                                          source_subframe))),
-                                   pose)
+            pose = _pose_from_matrix(
+                       tfs.concatenate_matrices(
+                           _pose_matrix(pose),
+                           tfs.inverse_matrix(
+                               _pose_matrix(_subframe_pose(co,
+                                                           source_subframe)))))
         co.header.frame_id = target_link
         co.pose            = pose
         self._psi.add_object(co)
@@ -406,6 +406,8 @@ class CollisionObjectManager(object):
 
     def _attach_object(self, object_id, target_link, source_subframe, pose,
                        touch_links, preserve_ascendants):
+        print('### target_link=%s, source_subframe=%s, relative_pose=%s'
+              % (target_link, source_subframe, pose))
         co = self._psi.get_objects([object_id]).get(object_id, None)
         if co is None:
             raise Exception("unknown collision object '%s'" % object_id)
@@ -416,11 +418,13 @@ class CollisionObjectManager(object):
         # attached to 'target_link', transform the given pose to that
         # with respect to 'base_link'.
         if source_subframe != 'base_link':
-            pose = _transform_pose(tfs.inverse_matrix(
-                                       _pose_matrix(
-                                           _subframe_pose(aco.object,
-                                                          source_subframe))),
-                                   pose)
+            pose = _pose_from_matrix(
+                       tfs.concatenate_matrices(
+                           _pose_matrix(pose),
+                           tfs.inverse_matrix(
+                               _pose_matrix(_subframe_pose(aco.object,
+                                                           source_subframe)))))
+        print('### pose from base_link to target_link=%s'  % pose)
 
         # Get information of the given collision object and set target link.
         instance_props = self._instance_props_dict[aco.object.id]
