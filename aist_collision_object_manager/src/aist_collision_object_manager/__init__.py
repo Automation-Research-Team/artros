@@ -55,15 +55,13 @@ class CollisionObjectManagerClient(object):
 
     def create_object(self, object_type, target_link, pose,
                       source_link='', object_id=''):
-        if source_link != '':
-            pose = self._base_pose_from_subframe_pose(pose,
-                                                      target_link, source_link)
         req = ManageCollisionObjectRequest()
         req.op              = ManageCollisionObjectRequest.CREATE_OBJECT
         req.object_type     = object_type
         req.object_id       = object_id
         req.target_link     = target_link
-        req.source_subframe = source_subframe
+        req.source_subframe = CollisionObjectManagerClient._source_subframe(
+                                  source_link)
         req.pose            = pose
         return self._send(req).success
 
@@ -76,13 +74,12 @@ class CollisionObjectManagerClient(object):
 
     def attach_object(self, object_id, target_link, pose,
                       source_link='', preserve_ascendants=False):
-        source_subframe = 'base_link' if source_link == '' else \
-                          source_link.rsplit('/', 1)[1]
         req = ManageCollisionObjectRequest()
         req.op                  = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_id           = object_id
         req.target_link         = target_link
-        req.source_subframe     = source_subframe
+        req.source_subframe     = CollisionObjectManagerClient._source_subframe(
+                                      source_link)
         req.pose                = pose
         req.touch_links         = self._get_touch_links(req.target_link)
         req.preserve_ascendants = preserve_ascendants
@@ -91,13 +88,12 @@ class CollisionObjectManagerClient(object):
 
     def detach_object(self, object_id, target_link, pose,
                       source_link='', preserve_ascendants=False):
-        source_subframe = 'base_link' if source_link == '' else \
-                          source_link.rsplit('/', 1)[1]
         req = ManageCollisionObjectRequest()
         req.op              = ManageCollisionObjectRequest.DETACH_OBJECT
         req.object_id       = object_id
         req.target_link     = target_link
-        req.source_subframe = source_subframe
+        req.source_subframe = CollisionObjectManagerClient._source_subframe(
+                                  source_link)
         req.pose            = pose
         res = self._send(req)
         return res.retval if res.success else None
@@ -139,8 +135,9 @@ class CollisionObjectManagerClient(object):
             print(d)
             return d.get(tokens[1], [])
 
-    def _base_pose_from_subframe_pose(self, object_id,
-                                      target_link, source_link, pose):
-        t, q = self._listener.lookupTransform(source_link,
-                                              object_id + '/base_link',
-                                              rospy.Time(0))
+    @staticmethod
+    def _source_subframe(source_link):
+        if source_link == '':
+            return 'base_link'
+        tokens = source_link.rsplit('/', 1)
+        return tokens[0] if len(tokens) == 1 else tokens[1]

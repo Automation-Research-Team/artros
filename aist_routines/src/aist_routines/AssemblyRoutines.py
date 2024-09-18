@@ -172,6 +172,13 @@ class AssemblyRoutines(URRoutines):
                                        pose.get('offset',
                                                 [.0, .0, .0, .0, .0, .0])),
                                    pose.get('source_link', ''))
+            if object_type == 'panel_bearing':
+                self.com.attach_object(object_type, pose['target_link'],
+                                       self.pose_from_offset(
+                                           pose.get('offset',
+                                                    [.0, .0, .0, .0, .0, .0])),
+                                       pose.get('source_link', ''))
+
         self._screw_m3_id = 0
         self._screw_m4_id = 0
         self._generate_screw('screw_m3')
