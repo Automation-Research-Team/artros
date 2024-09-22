@@ -46,11 +46,10 @@ uint8 GET_OBJECT_PARENT=8
 uint8              op
 string             object_type
 string             object_id
-string             target_link
-string             source_subframe
+string             frame_id
+string             subframe
 geometry_msgs/Pose pose
 string[]           touch_links
-bool               preserve_ascendants
 ---
 bool               success
 string             retval

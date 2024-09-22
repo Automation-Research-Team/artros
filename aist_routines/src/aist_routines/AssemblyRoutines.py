@@ -172,6 +172,7 @@ class AssemblyRoutines(URRoutines):
                                        pose.get('offset',
                                                 [.0, .0, .0, .0, .0, .0])),
                                    pose.get('source_link', ''))
+            rospy.sleep(0.5)
             if object_type == 'panel_bearing':
                 self.com.attach_object(object_type, pose['target_link'],
                                        self.pose_from_offset(

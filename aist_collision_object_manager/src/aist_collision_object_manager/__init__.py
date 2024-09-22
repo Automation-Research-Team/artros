@@ -53,48 +53,45 @@ class CollisionObjectManagerClient(object):
         except rospy.ROSException as e:
             rospy.logerr(e)
 
-    def create_object(self, object_type, target_link, pose,
-                      source_link='', object_id=''):
+    def create_object(self, object_type, frame_id, pose,
+                      subframe_link='', object_id=''):
         req = ManageCollisionObjectRequest()
-        req.op              = ManageCollisionObjectRequest.CREATE_OBJECT
-        req.object_type     = object_type
-        req.object_id       = object_id
-        req.target_link     = target_link
-        req.source_subframe = CollisionObjectManagerClient._source_subframe(
-                                  source_link)
-        req.pose            = pose
+        req.op          = ManageCollisionObjectRequest.CREATE_OBJECT
+        req.object_type = object_type
+        req.object_id   = object_id if object_id != '' else object_type
+        req.frame_id    = frame_id
+        req.subframe    = CollisionObjectManagerClient \
+                         ._subframe_name(subframe_link)
+        req.pose        = pose
         return self._send(req).success
 
-    def remove_object(self, object_id='', target_link=''):
+    def remove_object(self, object_id='', frame_id=''):
         req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.REMOVE_OBJECT
+        req.op        = ManageCollisionObjectRequest.REMOVE_OBJECT
+        req.object_id = object_id
+        req.frame_id  = frame_id
+        return self._send(req).success
+
+    def attach_object(self, object_id, frame_id, pose, subframe_link=''):
+        req = ManageCollisionObjectRequest()
+        req.op          = ManageCollisionObjectRequest.ATTACH_OBJECT
         req.object_id   = object_id
-        req.target_link = target_link
-        return self._send(req).success
-
-    def attach_object(self, object_id, target_link, pose,
-                      source_link='', preserve_ascendants=False):
-        req = ManageCollisionObjectRequest()
-        req.op                  = ManageCollisionObjectRequest.ATTACH_OBJECT
-        req.object_id           = object_id
-        req.target_link         = target_link
-        req.source_subframe     = CollisionObjectManagerClient._source_subframe(
-                                      source_link)
-        req.pose                = pose
-        req.touch_links         = self._get_touch_links(req.target_link)
-        req.preserve_ascendants = preserve_ascendants
+        req.frame_id    = frame_id
+        req.subframe    = CollisionObjectManagerClient \
+                         ._subframe_name(subframe_link)
+        req.pose        = pose
+        req.touch_links = self._get_touch_links(req.frame_id)
         res = self._send(req)
         return res.retval if res.success else None
 
-    def detach_object(self, object_id, target_link, pose,
-                      source_link='', preserve_ascendants=False):
+    def detach_object(self, object_id, frame_id, pose, subframe_link=''):
         req = ManageCollisionObjectRequest()
-        req.op              = ManageCollisionObjectRequest.DETACH_OBJECT
-        req.object_id       = object_id
-        req.target_link     = target_link
-        req.source_subframe = CollisionObjectManagerClient._source_subframe(
-                                  source_link)
-        req.pose            = pose
+        req.op        = ManageCollisionObjectRequest.DETACH_OBJECT
+        req.object_id = object_id
+        req.frame_id  = frame_id
+        req.subframe  = CollisionObjectManagerClient \
+                       ._subframe_name(subframe_link)
+        req.pose      = pose
         res = self._send(req)
         return res.retval if res.success else None
 
@@ -126,18 +123,18 @@ class CollisionObjectManagerClient(object):
         res = self._send(req)
         return res.retval if res.success else None
 
-    def _get_touch_links(self, target_link):
-        tokens = target_link.rsplit('/', 1)
+    def _get_touch_links(self, frame_id):
+        tokens = frame_id.rsplit('/', 1)
         if len(tokens) == 1:
-            return self._touch_links.get(target_link, [])
+            return self._touch_links.get(frame_id, [])
         else:
             d = self._touch_links.get(tokens[0], {})
             print(d)
             return d.get(tokens[1], [])
 
     @staticmethod
-    def _source_subframe(source_link):
-        if source_link == '':
+    def _subframe_name(subframe_link):
+        if subframe_link == '':
             return 'base_link'
-        tokens = source_link.rsplit('/', 1)
+        tokens = subframe_link.rsplit('/', 1)
         return tokens[0] if len(tokens) == 1 else tokens[1]

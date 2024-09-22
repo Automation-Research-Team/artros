@@ -15,9 +15,9 @@ initial_object_poses:
 #  panel_bearing:
 #    target_link: base/base_link
 #    offset: [0.200, 0.015, 0.008, 90.0, 0.0, 180.0]
-  panel_motor:
-    target_link: base/panel_motor_screw_hole_1
-    source_link: panel_motor/bottom_screw_hole_aligner_1
+#  panel_motor:
+#    target_link: base/panel_motor_screw_hole_1
+#    source_link: panel_motor/bottom_screw_hole_aligner_1
   panel_bearing:
     target_link: base/panel_bearing_screw_hole_1
     source_link: panel_bearing/bottom_screw_hole_aligner_1
