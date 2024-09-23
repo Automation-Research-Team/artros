@@ -459,7 +459,6 @@ class CollisionObjectManager(object):
         with self._lock:
             self._instance_props_dict[object_id] = instance_props
 
-
         rospy.loginfo("(CollisionObjectManager) created object '%s' of type[%s]",
                       co.id, object_type)
 
@@ -476,6 +475,8 @@ class CollisionObjectManager(object):
             frame_id = None
             for co_id in self._psi.get_objects().keys():
                 self._delete_markers_and_subframes(co_id)
+            for aco_id in self._psi.get_attached_objects().keys():
+                self._delete_markers_and_subframes(aco_id)
         self._psi.remove_attached_object(frame_id, object_id)
         self._psi.remove_world_object(object_id)
 
@@ -506,10 +507,12 @@ class CollisionObjectManager(object):
         # with respect to 'base_link'.
         link, pose = self._get_parent_link_and_pose(aco.object,
                                                     link, subframe, pose)
+        attach_link, attach_pose = self._get_attach_link_and_pose(link, pose)
         print('### parent=%s, me=%s' % (link, aco.object.id))
 
         # Make this object root of the tree attached to link.
-        self._rotate_tree(aco.object)
+        if attach_link != aco.object.header.frame_id:
+            self._rotate_tree(aco.object)
 
         # Keep the current parent link and update transform to the one
         # from 'base_link' to the new parent link.
@@ -526,12 +529,11 @@ class CollisionObjectManager(object):
                                                     pose.orientation.w)))
 
         # Set the new one to the specified object and its descendants.
-        link, pose = self._get_attach_link_and_pose(link, pose)
-        T = tfs.concatenate_matrices(_pose_matrix(pose),
+        T = tfs.concatenate_matrices(_pose_matrix(attach_pose),
                                      tfs.inverse_matrix(
                                          _pose_matrix(aco.object.pose)))
         #aco.object.pose = Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1))
-        self._attach_descendants(aco, link, touch_links, T)
+        self._attach_descendants(aco, attach_link, touch_links, T)
 
         return old_parent_link
 
@@ -598,6 +600,9 @@ class CollisionObjectManager(object):
 
     def _attach_descendants(self, aco, link, touch_links, T):
         for child_aco in self._psi.get_attached_objects().values():
+            print('### child_aco[%s]: parent=%s'
+                  % (child_aco.object.id,
+                     self._get_parent_id(child_aco.object.id)))
             if self._get_parent_id(child_aco.object.id) == aco.object.id:
                 self._attach_descendants(child_aco,
                                          link, child_aco.touch_links, T)
