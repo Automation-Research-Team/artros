@@ -1694,7 +1694,7 @@
     <joint name="a_bot_gripper_coupling_base_joint" type="fixed">
         <parent link="a_bot_flange" />
         <child link="a_bot_gripper_coupling_base_link" />
-        <origin rpy="0 0 0" xyz="0 0 0" />
+        <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
     </joint>
     <link name="a_bot_gripper_coupling_flange_link" />
     <joint name="a_bot_gripper_coupling_flange_joint" type="fixed">
@@ -2136,7 +2136,7 @@
     <joint name="b_bot_gripper_coupling_base_joint" type="fixed">
         <parent link="b_bot_flange" />
         <child link="b_bot_gripper_coupling_base_link" />
-        <origin rpy="0 0 0" xyz="0 0 0" />
+        <origin rpy="3.141592653589793 0 0" xyz="0 0 0" />
     </joint>
     <link name="b_bot_gripper_coupling_flange_link" />
     <joint name="b_bot_gripper_coupling_flange_joint" type="fixed">

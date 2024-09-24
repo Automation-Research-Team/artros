@@ -15,7 +15,7 @@
   				       -J a_bot_wrist_2_joint -1.5708
   				       -J a_bot_wrist_3_joint 0.0"/>
   <arg name="prefixes"		value="a_bot_, a_bot_gripper_"/>
-  <arg name="devices"		value="ur5, robotiq_140"/>
+  <arg name="devices"		value="ur5e, robotiq_140"/>
   <arg name="controllers"	value="ur, cmodel"/>
   <arg name="drivers"		value="ur, cmodel"/>
   <arg name="driver_args"	value="163.220.51.110,
@@ -45,12 +45,12 @@
   </include>
 
   <!-- Launch precision tool controller -->
-  <include file="$(find aist_precision_gripper)/launch/run.launch">
-    <arg name="prefix"			value="precision_tool_"/>
-    <arg name="sim"			value="$(arg sim)"/>
-    <arg name="usb_port"		value="/dev/ttyUSB0"/>
-    <arg name="publish_joint_states"	value="false"/>
-  </include>
+  <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->
+  <!--   <arg name="prefix"			value="precision_tool_"/> -->
+  <!--   <arg name="sim"			value="$(arg sim)"/> -->
+  <!--   <arg name="usb_port"		value="/dev/ttyUSB0"/> -->
+  <!--   <arg name="publish_joint_states"	value="false"/> -->
+  <!-- </include> -->
 
   <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
   <!-- <arg name="camera_names"		default="a_bot_inside_camera -->
@@ -73,14 +73,6 @@
 
   <!-- Launch calibration publisher and other hardware drivers -->
   <group unless="$(arg sim)">
-
-    <!-- Drivers for the force sensors -->
-    <include ns="a_bot_ftsensor"
-    	     file="$(find aist_robotiq)/launch/ft300.launch">
-      <arg name="calib_file"		value="a_bot_ftsensor"/>
-      <arg name="frame_id"		value="a_bot_ftsensor_wrench_link"/>
-      <arg name="hostname"		value="a_bot"/>
-    </include>
 
     <!-- Launch Zivid camera -->
     <!-- <include file="$(dirname)/zivid_camera.launch"> -->
