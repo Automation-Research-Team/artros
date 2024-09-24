@@ -117,13 +117,13 @@ def _decompose_link_name(link_name):
         return '', link_name
 
 def _pose_matrix(pose):
-    return tfs.concatenate_matrices(tfs.translation_matrix([pose.position.x,
+    return tfs.concatenate_matrices(tfs.translation_matrix((pose.position.x,
                                                             pose.position.y,
-                                                            pose.position.z]),
-                                    tfs.quaternion_matrix([pose.orientation.x,
+                                                            pose.position.z)),
+                                    tfs.quaternion_matrix((pose.orientation.x,
                                                            pose.orientation.y,
                                                            pose.orientation.z,
-                                                           pose.orientation.w]))
+                                                           pose.orientation.w)))
 
 def _pose_from_matrix(T):
     return Pose(Point(*tfs.translation_from_matrix(T)),
@@ -573,14 +573,14 @@ class CollisionObjectManager(object):
             T = tfs.inverse_matrix(
                     tfs.concatenate_matrices(
                         tfs.translation_matrix(
-                            [transform.transform.translation.x,
+                            (transform.transform.translation.x,
                              transform.transform.translation.y,
-                             transform.transform.translation.z]),
+                             transform.transform.translation.z)),
                         tfs.quaternion_matrix(
-                            [transform.transform.rotation.x,
+                            (transform.transform.rotation.x,
                              transform.transform.rotation.y,
                              transform.transform.rotation.z,
-                             transform.transform.rotation.w])))
+                             transform.transform.rotation.w))))
             return TransformStamped(
                        Header(frame_id=transform.child_frame_id),
                        transform.header.frame_id,
@@ -606,6 +606,22 @@ class CollisionObjectManager(object):
             if self._get_parent_id(child_aco.object.id) == aco.object.id:
                 self._attach_descendants(child_aco,
                                          link, child_aco.touch_links, T)
+
+        for child_co in self._psi.get_objects().values():
+            print('### child_co[%s]: parent=%s'
+                  % (child_co.id, self._get_parent_id(child_co.id)))
+            if self._get_parent_id(child_co.id) == aco.object.id:
+                child_co.header.frame_id = link
+                child_co.pose = _pose_from_matrix(
+                                    tfs.concatenate_matrices(
+                                        T, _pose_matrix(child_co.pose)))
+                child_aco = AttachedCollisionObject()
+                child_aco.object = child_co
+                self._psi.attach_object(child_aco, link,
+                                        [aco.object.id + '/base_link'])
+                rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
+                              child_aco.object.id, link,
+                              [aco.object.id + '/base_link'])
 
         # Attach 'aco' to 'link' with 'pose'.
         aco.object.header.frame_id = link

@@ -45,12 +45,12 @@
   </include>
 
   <!-- Launch precision tool controller -->
-  <!-- <include file="$(find aist_precision_gripper)/launch/run.launch"> -->
-  <!--   <arg name="prefix"			value="precision_tool_"/> -->
-  <!--   <arg name="sim"			value="$(arg sim)"/> -->
-  <!--   <arg name="usb_port"		value="/dev/ttyUSB0"/> -->
-  <!--   <arg name="publish_joint_states"	value="false"/> -->
-  <!-- </include> -->
+  <include file="$(find aist_precision_gripper)/launch/run.launch">
+    <arg name="prefix"			value="precision_tool_"/>
+    <arg name="sim"			value="$(arg sim)"/>
+    <arg name="usb_port"		value="/dev/ttyUSB0"/>
+    <arg name="publish_joint_states"	value="false"/>
+  </include>
 
   <!-- Launch nodelet manager, camera multiplexer and Realsense cameras -->
   <!-- <arg name="camera_names"		default="a_bot_inside_camera -->

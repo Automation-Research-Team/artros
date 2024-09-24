@@ -10,12 +10,6 @@ initial_object_poses:
   base:
     target_link: workbench_holder_link
 #  panel_motor:
-#    target_link: base/base_link
-#    offset: [0.075, 0.013, 0.008, 90.0, 0.0, 180.0]
-#  panel_bearing:
-#    target_link: base/base_link
-#    offset: [0.200, 0.015, 0.008, 90.0, 0.0, 180.0]
-#  panel_motor:
 #    target_link: base/panel_motor_screw_hole_1
 #    source_link: panel_motor/bottom_screw_hole_aligner_1
   panel_bearing:
@@ -157,14 +151,14 @@ touch_links:
     - screw_feeder_m4_gap
   base/default_grasp:
     - base/base_link
-  base/panel_motor_screw_hole_1:
-    - base/base_link
-  base/panel_motor_screw_hole_2:
-    - base/base_link
-  base/panel_bearing_screw_hole_1:
-    - base/base_link
-  base/panel_bearing_screw_hole_2:
-    - base/base_link
+#  base/panel_motor_screw_hole_1:
+#    - base/base_link
+#  base/panel_motor_screw_hole_2:
+#    - base/base_link
+#  base/panel_bearing_screw_hole_1:
+#    - base/base_link
+#  base/panel_bearing_screw_hole_2:
+#    - base/base_link
   workbench_holder_link:
     - workbench_table_top
     - workbench_front_border
