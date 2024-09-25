@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="calibration">
+
+  <!-- import assembly scene -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/assembly.urdf.xacro"/>
+
   <!-- Add AR markers -->
   <xacro:include filename="$(find aist_aruco_ros)/urdf/ar_marker.urdf.xacro"/>
 
