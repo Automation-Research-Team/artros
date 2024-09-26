@@ -532,7 +532,6 @@ class CollisionObjectManager(object):
         T = tfs.concatenate_matrices(_pose_matrix(attach_pose),
                                      tfs.inverse_matrix(
                                          _pose_matrix(aco.object.pose)))
-        #aco.object.pose = Pose(Point(0, 0, 0), Quaternion(0, 0, 0, 1))
         self._attach_descendants(aco, attach_link, touch_links, T)
 
         return old_root_link
@@ -590,16 +589,24 @@ class CollisionObjectManager(object):
         parent_aco = self._get_attached_object(self._get_parent_id(
                                                    aco.object.id))
         if parent_aco is None:
-            return self._get_parent_link(aco.object.id)
+            print('### parent_aco is None')
+            parent_co = self._get_object(self._get_parent_id(aco.object.id))
+            if parent_co is None:
+                print('### parent_co is None')
+                return self._get_parent_link(aco.object.id)
+            print('### parent_co = %s' % parent_co.id)
+            old_root_link = self._get_parent_link(parent_co.id)
+        else:
+            print('### parent_aco = %s' % parent_aco.object.id)
+            parent_co = parent_aco.object
+            old_root_link = self._rotate_tree(parent_aco)
 
-        old_root_link = self._rotate_tree(parent_aco)
         self._instance_props_dict[parent_co.id].subframe_transforms[0] \
-            = _inverse_transform(
-                self._instance_props_dict[parent_aco.object.id] \
-                    .subframe_transforms[0])
-        tmp = self._instance_props_dict[parent_aco.object.id].subframe_transforms[0]
+            = _inverse_transform(self._instance_props_dict[aco.object.id] \
+                                     .subframe_transforms[0])
+        tmp = self._instance_props_dict[parent_co.id].subframe_transforms[0]
         print('### rotate_tree: %s <= %s' % (tmp.header.frame_id,
-                                                 tmp.child_frame_id))
+                                             tmp.child_frame_id))
         return old_root_link
 
     def _attach_descendants(self, aco, link, touch_links, T):
