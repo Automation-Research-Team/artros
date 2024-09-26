@@ -7,14 +7,14 @@ initial_object_poses:
     target_link: screw_tool_m4_holder_link
   suction_tool:
     target_link: suction_tool_holder_link
-#  base:
-#    target_link: workbench_holder_link
+  base:
+    target_link: workbench_holder_link
 #  panel_motor:
 #    target_link: base/panel_motor_screw_hole_1
 #    source_link: panel_motor/bottom_screw_hole_aligner_1
-#  panel_bearing:
-#    target_link: base/panel_bearing_screw_hole_1
-#    source_link: panel_bearing/bottom_screw_hole_aligner_1
+  panel_bearing:
+    target_link: base/panel_bearing_screw_hole_1
+    source_link: panel_bearing/bottom_screw_hole_aligner_1
 
 picking_parameters:
   precision_tool:

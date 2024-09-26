@@ -494,32 +494,28 @@ class CollisionObjectManager(object):
           touch_links (list): list of external links allowing collisions
                               against the object
         """
-        aco = self._get_attached_object(object_id)
-        if aco is None:
-            co = self._get_object(object_id)
-            if co is None:
+        co = self._get_object(object_id)
+        if co is None:
+            aco = self._get_attached_object(object_id)
+            if aco is None:
                 raise Exception("unknown collision object '%s'" % object_id)
-            aco = AttachedCollisionObject(object=co)
+            co = aco.object
 
         # If any subframe of the object other than 'base_link' is to be
         # attached to 'link', transform the given pose to that
         # with respect to 'base_link'.
-        link, pose = self._get_parent_link_and_pose(aco.object,
-                                                    link, subframe, pose)
+        link, pose = self._get_parent_link_and_pose(co, link, subframe, pose)
         attach_link, attach_pose = self._get_attach_link_and_pose(link, pose)
-        print('### parent_link=%s, my_id=%s' % (link, aco.object.id))
+        print('### parent_link=%s, my_id=%s' % (link, co.id))
 
         # Make this object root of the tree attached to link.
-        if attach_link != aco.object.header.frame_id:
-            old_root_link = self._rotate_tree(aco)
-        else:
-            old_root_link = self._get_parent_link(object_id)
+        old_root_link = self._rotate_tree(co)
 
         # Keep the current parent link and update transform to the one
         # from 'base_link' to the new parent link.
-        self._instance_props_dict[object_id].subframe_transforms[0] \
+        self._instance_props_dict[co.id].subframe_transforms[0] \
             = TransformStamped(Header(frame_id=link),
-                               object_id + '/base_link',
+                               co.id + '/base_link',
                                Transform(Vector3(pose.position.x,
                                                  pose.position.y,
                                                  pose.position.z),
@@ -531,8 +527,8 @@ class CollisionObjectManager(object):
         # Set the new one to the specified object and its descendants.
         T = tfs.concatenate_matrices(_pose_matrix(attach_pose),
                                      tfs.inverse_matrix(
-                                         _pose_matrix(aco.object.pose)))
-        self._attach_descendants(aco, attach_link, touch_links, T)
+                                         _pose_matrix(co.pose)))
+        self._attach_descendants(co, attach_link, touch_links, T)
 
         return old_root_link
 
@@ -567,7 +563,7 @@ class CollisionObjectManager(object):
     #
     # Utilities
     #
-    def _rotate_tree(self, aco):
+    def _rotate_tree(self, co):
         def _inverse_transform(transform):
             T = tfs.inverse_matrix(
                     tfs.concatenate_matrices(
@@ -586,61 +582,51 @@ class CollisionObjectManager(object):
                        Transform(Vector3(*tfs.translation_from_matrix(T)),
                                  Quaternion(*tfs.quaternion_from_matrix(T))))
 
-        parent_aco = self._get_attached_object(self._get_parent_id(
-                                                   aco.object.id))
-        if parent_aco is None:
-            print('### parent_aco is None')
-            parent_co = self._get_object(self._get_parent_id(aco.object.id))
-            if parent_co is None:
-                print('### parent_co is None')
-                return self._get_parent_link(aco.object.id)
-            print('### parent_co = %s' % parent_co.id)
-            old_root_link = self._get_parent_link(parent_co.id)
-        else:
-            print('### parent_aco = %s' % parent_aco.object.id)
-            parent_co = parent_aco.object
-            old_root_link = self._rotate_tree(parent_aco)
+        old_root_link = self._get_parent_link(co.id)
 
-        self._instance_props_dict[parent_co.id].subframe_transforms[0] \
-            = _inverse_transform(self._instance_props_dict[aco.object.id] \
-                                     .subframe_transforms[0])
-        tmp = self._instance_props_dict[parent_co.id].subframe_transforms[0]
-        print('### rotate_tree: %s <= %s' % (tmp.header.frame_id,
-                                             tmp.child_frame_id))
+        if self._get_attached_object(co.id) is not None:
+            parent_co = self._get_object(self._get_parent_id(co.id))
+            if parent_co is not None:
+                print('### parent_co = %s' % parent_co.id)
+                old_root_link = self._rotate_tree(parent_co)
+
+                self._instance_props_dict[parent_co.id].subframe_transforms[0]\
+                    = _inverse_transform(self._instance_props_dict[co.id]\
+                                             .subframe_transforms[0])
+                tmp = self._instance_props_dict[parent_co.id]\
+                          .subframe_transforms[0]
+                print('### rotate_tree: %s <= %s' % (tmp.header.frame_id,
+                                                     tmp.child_frame_id))
         return old_root_link
 
-    def _attach_descendants(self, aco, link, touch_links, T):
+    def _attach_descendants(self, co, link, touch_links, T):
         for child_aco in self._psi.get_attached_objects().values():
             print('### child_aco[%s]: parent_link=%s'
                   % (child_aco.object.id,
                      self._get_parent_link(child_aco.object.id)))
-            if self._get_parent_id(child_aco.object.id) == aco.object.id:
-                self._attach_descendants(child_aco,
+            if self._get_parent_id(child_aco.object.id) == co.id:
+                self._attach_descendants(child_aco.object,
                                          link, child_aco.touch_links, T)
 
         for child_co in self._psi.get_objects().values():
             print('### child_co[%s]: parent_link=%s'
                   % (child_co.id, self._get_parent_link(child_co.id)))
-            if self._get_parent_id(child_co.id) == aco.object.id:
+            if self._get_parent_id(child_co.id) == co.id:
                 child_co.header.frame_id = link
                 child_co.pose = _pose_from_matrix(
                                     tfs.concatenate_matrices(
                                         T, _pose_matrix(child_co.pose)))
-                child_aco = AttachedCollisionObject(object=child_co)
-                self._psi.attach_object(child_aco, link,
-                                        [aco.object.id + '/base_link'])
+                self._psi.attach_object(child_co, link, [co.id + '/base_link'])
                 rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                              child_aco.object.id, link,
-                              [aco.object.id + '/base_link'])
+                              child_co.id, link, [co.id + '/base_link'])
 
         # Attach 'aco' to 'link' with 'pose'.
-        aco.object.header.frame_id = link
-        aco.object.pose = _pose_from_matrix(
-                              tfs.concatenate_matrices(
-                                  T, _pose_matrix(aco.object.pose)))
-        self._psi.attach_object(aco, link, touch_links)
+        co.header.frame_id = link
+        co.pose = _pose_from_matrix(tfs.concatenate_matrices(
+                                        T, _pose_matrix(co.pose)))
+        self._psi.attach_object(co, link, touch_links)
         rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                      aco.object.id, link, touch_links)
+                      co.id, link, touch_links)
 
     def _get_object(self, object_id):
         return self._psi.get_objects([object_id]).get(object_id)
