@@ -608,25 +608,23 @@ class CollisionObjectManager(object):
                 self._attach_descendants(child_aco.object,
                                          link, child_aco.touch_links, T)
 
-        for child_co in self._psi.get_objects().values():
-            print('### child_co[%s]: parent_link=%s'
-                  % (child_co.id, self._get_parent_link(child_co.id)))
-            if self._get_parent_id(child_co.id) == co.id:
-                child_co.header.frame_id = link
-                child_co.pose = _pose_from_matrix(
-                                    tfs.concatenate_matrices(
-                                        T, _pose_matrix(child_co.pose)))
-                self._psi.attach_object(child_co, link, [co.id + '/base_link'])
-                rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                              child_co.id, link, [co.id + '/base_link'])
+        if self._get_attached_object(co.id) is not None:
+            for child_co in self._psi.get_objects().values():
+                print('### child_co[%s]: parent_link=%s'
+                      % (child_co.id, self._get_parent_link(child_co.id)))
+                if self._get_parent_id(child_co.id) == co.id:
+                    self._attach_descendants(
+                        child_co, link,
+                        [self._get_parent_link(child_co.id)], T)
 
-        # Attach 'aco' to 'link' with 'pose'.
+        # Attach 'co' to 'link' with 'pose'.
         co.header.frame_id = link
         co.pose = _pose_from_matrix(tfs.concatenate_matrices(
                                         T, _pose_matrix(co.pose)))
         self._psi.attach_object(co, link, touch_links)
+        aco = self._get_attached_object(co.id)
         rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                      co.id, link, touch_links)
+                      aco.object.id, aco.link_name, aco.touch_links)
 
     def _get_object(self, object_id):
         return self._psi.get_objects([object_id]).get(object_id)
