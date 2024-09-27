@@ -2,8 +2,8 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="kitting">
 
   <!-- import assembly scene -->
-  <xacro:include filename="$(find aist_description
-  			   )/scenes/urdf/assembly.urdf.xacro"/>
+  <!-- <xacro:include filename="$(find aist_description -->
+  <!-- 			   )/scenes/urdf/assembly.urdf.xacro"/> -->
 
   <xacro:property name="plate_w" value="0.42"/>
   <xacro:property name="plate_l" value="0.68"/>
