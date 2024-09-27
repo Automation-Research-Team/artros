@@ -112,7 +112,7 @@ picking_parameters:
   05_MBRFA30-2-P6:
     approach_offset: [0.0, 0.0, 0.12]
     grasp_offset: [0.0, 0.0, -0.006]
-    place_offset: [0.0, 0.0, 0.03]
+    place_offset: [0.0, 0.0, 0.05]
     departure_offset: [0.0, 0.0, 0.12]
     speed_fast: 1.0
     speed_slow: 1.0

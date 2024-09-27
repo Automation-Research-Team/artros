@@ -182,8 +182,8 @@ class AssemblyRoutines(URRoutines):
 
         self._screw_m3_id = 0
         self._screw_m4_id = 0
-        self._generate_screw('screw_m3')
-        self._generate_screw('screw_m4')
+        # self._generate_screw('screw_m3')
+        # self._generate_screw('screw_m4')
 
     def _generate_screw(self, screw_type):
         if screw_type == 'screw_m3':
