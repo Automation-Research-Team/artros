@@ -133,8 +133,8 @@ touch_links:
     - screw_tool_m4/base_link
   suction_tool/tip_link:
     - suction_tool/base_link
-  base_fixture_tip_link:
-    - base_fixture_cylinder
+#  base_fixture_tip_link:
+#    - base_fixture_cylinder
   precision_tool_holder_link:
     - precision_tool_holder_base_link
   screw_tool_m3_holder_link:
@@ -143,14 +143,14 @@ touch_links:
     - screw_tool_m4_holder_base_link
   suction_tool_holder_link:
     - suction_tool_holder_base_link
-  screw_feeder_m3_outlet_link:
-    - screw_feeder_m3_front_side
-    - screw_feeder_m3_gap
-  screw_feeder_m4_outlet_link:
-    - screw_feeder_m4_front_side
-    - screw_feeder_m4_gap
-  base/default_grasp:
-    - base/base_link
+#  screw_feeder_m3_outlet_link:
+#    - screw_feeder_m3_front_side
+#    - screw_feeder_m3_gap
+#  screw_feeder_m4_outlet_link:
+#    - screw_feeder_m4_front_side
+#    - screw_feeder_m4_gap
+#  base/default_grasp:
+#    - base/base_link
 #  base/panel_motor_screw_hole_1:
 #    - base/base_link
 #  base/panel_motor_screw_hole_2:
@@ -159,8 +159,8 @@ touch_links:
 #    - base/base_link
 #  base/panel_bearing_screw_hole_2:
 #    - base/base_link
-  workbench_holder_link:
-    - workbench_table_top
-    - workbench_front_border
-    - workbench_right_border
-    - base_fixture_piston
+#  workbench_holder_link:
+#    - workbench_table_top
+#    - workbench_front_border
+#    - workbench_right_border
+#    - base_fixture_piston

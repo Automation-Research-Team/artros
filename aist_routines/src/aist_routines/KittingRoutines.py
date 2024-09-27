@@ -104,9 +104,13 @@ class KittingRoutines(AssemblyRoutines):
             self.search_bin(bin_id)
         elif key == 'a':
             bin_id = 'bin_' + raw_input('  bin id? ')
+            self.pick_tool(self.current_robot_name, 'suction_tool')
+            self.go_to_named_pose(self.current_robot_name, 'home')
             self._attempt_bin.send_goal(bin_id, False, 5, self._done_cb)
         elif key == 'A':
             bin_id = 'bin_' + raw_input('  bin id? ')
+            self.pick_tool(self.current_robot_name, 'suction_tool')
+            self.go_to_named_pose(self.current_robot_name, 'home')
             self._attempt_bin.send_goal(bin_id, True, 5, self._done_cb)
         elif key == 'c':
             self._attempt_bin.cancel_goal()
@@ -175,4 +179,6 @@ class KittingRoutines(AssemblyRoutines):
     def _done_cb(self, state, result):
         rospy.sleep(1)          # Pause required after cancelling arm motion
         if self.current_robot_name:
+            self.go_to_named_pose(self.current_robot_name, 'home')
+            self.place_tool(self.current_robot_name)
             self.go_to_named_pose(self.current_robot_name, 'home')

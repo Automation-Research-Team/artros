@@ -1125,7 +1125,7 @@
     <joint name="a_bot_shoulder_pan_joint" type="revolute">
         <parent link="a_bot_base_link_inertia" />
         <child link="a_bot_shoulder_link" />
-        <origin rpy="0 0 -1.372428740606553e-05" xyz="0 0 0.0892795739838422" />
+        <origin rpy="0 0 -5.177237632787018e-08" xyz="0 0 0.1624627332606759" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1134,7 +1134,7 @@
     <joint name="a_bot_shoulder_lift_joint" type="revolute">
         <parent link="a_bot_shoulder_link" />
         <child link="a_bot_upper_arm_link" />
-        <origin rpy="1.570642973887296 0 1.159216330228952e-05" xyz="0.0001298333079647873 0 0" />
+        <origin rpy="1.569681751143315 0 -1.352648194785644e-06" xyz="8.788153815819401e-05 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1143,7 +1143,7 @@
     <joint name="a_bot_elbow_joint" type="revolute">
         <parent link="a_bot_upper_arm_link" />
         <child link="a_bot_forearm_link" />
-        <origin rpy="3.141544575566677 3.141258056989769 -3.141547941357519" xyz="-0.4249927407255726 0 0" />
+        <origin rpy="0.0001294236600466273 0.001858609261143651 -4.979143810580205e-06" xyz="-0.4253508875158793 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-3.141592653589793" upper="3.141592653589793" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-2.991592653589793" soft_upper_limit="2.991592653589793" />
@@ -1152,7 +1152,7 @@
     <joint name="a_bot_wrist_1_joint" type="revolute">
         <parent link="a_bot_forearm_link" />
         <child link="a_bot_wrist_1_link" />
-        <origin rpy="3.131098971659387 3.138979604311949 3.141566100969229" xyz="-0.3919582400771999 0.001161330843866965 0.1106654674396762" />
+        <origin rpy="0.001266774894043083 0.002283680502966099 -2.790835998010338e-06" xyz="-0.3920143281595951 -0.0001699948279098181 0.1341949053284107" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1161,7 +1161,7 @@
     <joint name="a_bot_wrist_2_joint" type="revolute">
         <parent link="a_bot_wrist_1_link" />
         <child link="a_bot_wrist_2_link" />
-        <origin rpy="1.570125949318306 0 1.99895973980563e-05" xyz="-0.0002553647085556869 -0.09473296389451868 6.350685479905706e-05" />
+        <origin rpy="1.570263971229506 0 3.819060986690049e-07" xyz="7.722700116607085e-06 -0.09967585911395602 5.306300334710042e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1170,7 +1170,7 @@
     <joint name="a_bot_wrist_3_joint" type="revolute">
         <parent link="a_bot_wrist_2_link" />
         <child link="a_bot_wrist_3_link" />
-        <origin rpy="1.571145759762365 3.141592653589793 -3.141518379713017" xyz="0.0002769113618036503 0.08232662392091306 2.876763766918989e-05" />
+        <origin rpy="1.571496169534783 3.141592653589793 -3.141592584993698" xyz="2.292172573610794e-05 0.09946890294491517 6.961260093541284e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1521,7 +1521,7 @@
     <joint name="b_bot_shoulder_pan_joint" type="revolute">
         <parent link="b_bot_base_link_inertia" />
         <child link="b_bot_shoulder_link" />
-        <origin rpy="0 0 -3.84310363891486e-05" xyz="0 0 0.08930249127205304" />
+        <origin rpy="0 0 1.059019818887286e-07" xyz="0 0 0.162562140016384" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1530,7 +1530,7 @@
     <joint name="b_bot_shoulder_lift_joint" type="revolute">
         <parent link="b_bot_shoulder_link" />
         <child link="b_bot_upper_arm_link" />
-        <origin rpy="1.570672010212541 0 -1.780951514773129e-05" xyz="0.0002107684237541585 0 0" />
+        <origin rpy="1.57107250805896 0 3.903724705512494e-06" xyz="0.0001547286037767951 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1539,7 +1539,7 @@
     <joint name="b_bot_elbow_joint" type="revolute">
         <parent link="b_bot_upper_arm_link" />
         <child link="b_bot_forearm_link" />
-        <origin rpy="3.140570057931126 3.1411819229226 -3.141490411428018" xyz="-0.4250579069933035 0 0" />
+        <origin rpy="3.141491900534354 3.139174779924852 3.141584207915057" xyz="-0.4254007797241973 0 0" />
         <axis xyz="0 0 1" />
         <limit effort="150.0" lower="-3.141592653589793" upper="3.141592653589793" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-2.991592653589793" soft_upper_limit="2.991592653589793" />
@@ -1548,7 +1548,7 @@
     <joint name="b_bot_wrist_1_joint" type="revolute">
         <parent link="b_bot_forearm_link" />
         <child link="b_bot_wrist_1_link" />
-        <origin rpy="0.001805834030692282 0.001152183699033996 -1.809064648861627e-05" xyz="-0.3921267877371463 -0.0002003326875048412 0.1109362578929376" />
+        <origin rpy="0.002411735570303671 0.0008031027282546156 4.878289526670351e-06" xyz="-0.3921670303947003 -0.0003240755197429875 0.1343741392746988" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1557,7 +1557,7 @@
     <joint name="b_bot_wrist_2_joint" type="revolute">
         <parent link="b_bot_wrist_1_link" />
         <child link="b_bot_wrist_2_link" />
-        <origin rpy="1.569912360458026 0 0.0001143050112676717" xyz="-0.000381384831384591 -0.09479573044857525 8.379625642165081e-05" />
+        <origin rpy="1.570507897550281 0 -1.232576915498329e-07" xyz="-4.98866785623302e-05 -0.09969492467843541 2.875493261443601e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -1566,7 +1566,7 @@
     <joint name="b_bot_wrist_3_joint" type="revolute">
         <parent link="b_bot_wrist_2_link" />
         <child link="b_bot_wrist_3_link" />
-        <origin rpy="1.571178983493138 3.141592653589793 -3.141552268542566" xyz="0.0003716291223639085 0.08245499418900931 3.155195736993613e-05" />
+        <origin rpy="1.571174891818668 3.141592653589793 -3.141592566216859" xyz="2.96236030674356e-05 0.09962093212121005 3.771300233813919e-05" />
         <axis xyz="0 0 1" />
         <limit effort="28.0" lower="-6.283185307179586" upper="6.283185307179586" velocity="3.141592653589793" />
         <safety_controller k_position="20" k_velocity="0.0" soft_lower_limit="-6.133185307179586" soft_upper_limit="6.133185307179586" />
@@ -2542,7 +2542,7 @@
     <joint name="a_motioncam_link_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="a_motioncam_link" />
-        <origin rpy="0.08314875444590407 1.0661814021341067 -3.0606137322137723" xyz="0.5273204178052611 -0.09837025272929169 0.6624180668081472" />
+        <origin rpy="0.08450640838509203 1.0689731022296014 -3.047472137518003" xyz="0.5264331391465542 -0.10089186963870693 0.6628505002312947" />
     </joint>
     <joint name="a_motioncam_reference_joint" type="fixed">
         <parent link="a_motioncam_link" />
@@ -2952,7 +2952,7 @@
     <joint name="workspace_live_camera_joint" type="fixed">
         <parent link="workspace_center" />
         <child link="live_camera_optical_frame" />
-        <origin rpy="-2.655694361220333 0.05917472246881731 1.613355025035372" xyz="0.4411927402377287 -0.1035554662373815 0.7339914909084881" />
+        <origin rpy="-2.6534537924083277 0.05764023800141899 1.623811236576318" xyz="0.43314679324975547 -0.10556504271980752 0.7460823474831381" />
     </joint>
     <!-- virtual screen -->
     <link name="virtual_screen" />
@@ -2968,21 +2968,24 @@
         <child link="ground" />
         <origin rpy="0 0 0" xyz="0 0 0" />
     </joint>
-    <link name="workbench_base_link">
+    <!-- import assembly scene -->
+    <!-- <xacro:include filename="$(find aist_description -->
+    <!-- 			   )/scenes/urdf/assembly.urdf.xacro"/> -->
+    <link name="plate">
         <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.24 0.01 0.01" />
+            <origin rpy="0 0 0" xyz="0.21 0.34 0.0075" />
             <geometry>
-                <box size="0.48 0.02 0.02" />
+                <box size="0.42 0.68 0.015" />
             </geometry>
             <material name="aist_color">
                 <color rgba="0.7 0.7 0.7 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.24 0.01 0.01" />
+            <origin rpy="0 0 0" xyz="0.21 0.34 0.0075" />
             <geometry>
-                <box size="0.48 0.02 0.02" />
+                <box size="0.42 0.68 0.015" />
             </geometry>
         </collision>
         <!-- This is required for Gazebo. -->
@@ -2993,675 +2996,762 @@
             <origin xyz="0 0 0" rpy="0 0 0" />
         </inertial>
     </link>
-    <gazebo reference="workbench_base_link">
+    <gazebo reference="plate">
         <material>Gazebo/aist_color</material>
     </gazebo>
-    <joint name="workbench_base_link" type="fixed">
-        <parent link="cage_workspace_bar" />
-        <child link="workbench_base_link" />
-        <origin rpy="0 0 0" xyz="0.04    0.63    0.01" />
+    <joint name="plate" type="fixed">
+        <parent link="workspace_center" />
+        <child link="plate" />
+        <origin rpy="0 0 0" xyz="-0.062 -0.34 0" />
     </joint>
-    <link name="workbench_back_bar">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.24 0.01 0.01" />
-            <geometry>
-                <box size="0.48 0.02 0.02" />
-            </geometry>
-            <material name="aist_color">
-                <color rgba="0.7 0.7 0.7 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.24 0.01 0.01" />
-            <geometry>
-                <box size="0.48 0.02 0.02" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
+    <link name="plate_lower_left_corner" />
+    <joint name="plate_corner_joint" type="fixed">
+        <parent link="plate" />
+        <child link="plate_lower_left_corner" />
+        <origin rpy="0 0 0" xyz="0 0 0.015" />
+    </joint>
+    <!-- ========== This file defines the trays for the assembly and kitting task -->
+    <!-- ========== -->
+    <!-- ========== The partitions as separate macros -->
+    <link name="bin_1_part_5">
         <inertial>
+            <origin rpy="0 0 0" xyz="0 0 -0.005" />
             <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
-    </link>
-    <gazebo reference="workbench_back_bar">
-        <material>Gazebo/aist_color</material>
-    </gazebo>
-    <joint name="workbench_back_bar" type="fixed">
-        <parent link="workbench_base_link" />
-        <child link="workbench_back_bar" />
-        <origin rpy="0 0 0" xyz="0 0.3 0" />
-    </joint>
-    <link name="workbench_center_bar">
-        <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.01 0.14 0.01" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.005" />
             <geometry>
-                <box size="0.02 0.28 0.02" />
+                <mesh filename="package://aist_description/wrc/meshes/bin1_EA661CA-11.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="aist_color">
-                <color rgba="0.7 0.7 0.7 1" />
+            <material name="orange">
+                <color rgba="1 0.5088 0.0468 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.01 0.14 0.01" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.005" />
             <geometry>
-                <box size="0.02 0.28 0.02" />
+                <mesh filename="package://aist_description/wrc/meshes/bin1_EA661CA-11.vhacd.dae" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
-        <!-- This is required for Gazebo. -->
+    </link>
+    <gazebo reference="bin_1_part_5">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+    <joint name="bin_1_part_5" type="fixed">
+        <parent link="plate_lower_left_corner" />
+        <child link="bin_1_part_5" />
+        <origin rpy="0 0 0" xyz="0.364 0.503 0.005" />
+    </joint>
+    <joint name="bin_1_part_5_bottom_front_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_bottom_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_5_bottom_front_right_corner" />
+    <joint name="bin_1_part_5_bottom_back_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_bottom_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_5_bottom_back_right_corner" />
+    <joint name="bin_1_part_5_bottom_back_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_bottom_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 -0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_5_bottom_back_left_corner" />
+    <joint name="bin_1_part_5_bottom_front_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_bottom_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 -0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_5_bottom_front_left_corner" />
+    <joint name="bin_1_part_5_top_front_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_top_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_5_top_front_right_corner" />
+    <joint name="bin_1_part_5_top_back_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_top_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_5_top_back_right_corner" />
+    <joint name="bin_1_part_5_top_back_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_top_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 -0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_5_top_back_left_corner" />
+    <joint name="bin_1_part_5_top_front_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_5" />
+        <child link="bin_1_part_5_top_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 -0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_5_top_front_left_corner" />
+    <link name="bin_1_part_16">
         <inertial>
+            <origin rpy="0 0 0" xyz="0 0 -0.005" />
             <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
-    </link>
-    <gazebo reference="workbench_center_bar">
-        <material>Gazebo/aist_color</material>
-    </gazebo>
-    <joint name="workbench_center_bar" type="fixed">
-        <parent link="workbench_base_link" />
-        <child link="workbench_center_bar" />
-        <origin rpy="0 0 0" xyz="0.27 0.02 0" />
-    </joint>
-    <link name="workbench_right_bar">
-        <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.01 0.14 0.01" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.005" />
             <geometry>
-                <box size="0.02 0.28 0.02" />
+                <mesh filename="package://aist_description/wrc/meshes/bin1_EA661CA-11.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="aist_color">
-                <color rgba="0.7 0.7 0.7 1" />
+            <material name="orange">
+                <color rgba="1 0.5088 0.0468 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.01 0.14 0.01" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.005" />
             <geometry>
-                <box size="0.02 0.28 0.02" />
+                <mesh filename="package://aist_description/wrc/meshes/bin1_EA661CA-11.vhacd.dae" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
-        <!-- This is required for Gazebo. -->
+    </link>
+    <gazebo reference="bin_1_part_16">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+    <joint name="bin_1_part_16" type="fixed">
+        <parent link="plate_lower_left_corner" />
+        <child link="bin_1_part_16" />
+        <origin rpy="0 0 0" xyz="0.364 0.378 0.005" />
+    </joint>
+    <joint name="bin_1_part_16_bottom_front_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_bottom_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_16_bottom_front_right_corner" />
+    <joint name="bin_1_part_16_bottom_back_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_bottom_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_16_bottom_back_right_corner" />
+    <joint name="bin_1_part_16_bottom_back_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_bottom_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 -0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_16_bottom_back_left_corner" />
+    <joint name="bin_1_part_16_bottom_front_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_bottom_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 -0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_16_bottom_front_left_corner" />
+    <joint name="bin_1_part_16_top_front_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_top_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_16_top_front_right_corner" />
+    <joint name="bin_1_part_16_top_back_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_top_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_16_top_back_right_corner" />
+    <joint name="bin_1_part_16_top_back_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_top_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 -0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_16_top_back_left_corner" />
+    <joint name="bin_1_part_16_top_front_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_16" />
+        <child link="bin_1_part_16_top_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 -0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_16_top_front_left_corner" />
+    <link name="bin_1_part_17">
         <inertial>
+            <origin rpy="0 0 0" xyz="0 0 -0.005" />
             <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
-    </link>
-    <gazebo reference="workbench_right_bar">
-        <material>Gazebo/aist_color</material>
-    </gazebo>
-    <joint name="workbench_right_bar" type="fixed">
-        <parent link="workbench_base_link" />
-        <child link="workbench_right_bar" />
-        <origin rpy="0 0 0" xyz="0.45999999999999996 0.02 0" />
-    </joint>
-    <link name="workbench_table_base_link">
-        <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.005" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin1_EA661CA-11.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="workbench_table_table_color">
-                <color rgba="0.4 0.4 0.4 1" />
+            <material name="orange">
+                <color rgba="1 0.5088 0.0468 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.005" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin1_EA661CA-11.vhacd.dae" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
-        <!-- This is required for Gazebo. -->
+    </link>
+    <gazebo reference="bin_1_part_17">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+    <joint name="bin_1_part_17" type="fixed">
+        <parent link="plate_lower_left_corner" />
+        <child link="bin_1_part_17" />
+        <origin rpy="0 0 0" xyz="0.364 0.253 0.005" />
+    </joint>
+    <joint name="bin_1_part_17_bottom_front_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_bottom_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_17_bottom_front_right_corner" />
+    <joint name="bin_1_part_17_bottom_back_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_bottom_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_17_bottom_back_right_corner" />
+    <joint name="bin_1_part_17_bottom_back_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_bottom_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 -0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_17_bottom_back_left_corner" />
+    <joint name="bin_1_part_17_bottom_front_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_bottom_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 -0.055 0.0" />
+    </joint>
+    <link name="bin_1_part_17_bottom_front_left_corner" />
+    <joint name="bin_1_part_17_top_front_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_top_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_17_top_front_right_corner" />
+    <joint name="bin_1_part_17_top_back_right_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_top_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_17_top_back_right_corner" />
+    <joint name="bin_1_part_17_top_back_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_top_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.055 -0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_17_top_back_left_corner" />
+    <joint name="bin_1_part_17_top_front_left_corner_joint" type="fixed">
+        <parent link="bin_1_part_17" />
+        <child link="bin_1_part_17_top_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 -0.055 0.05" />
+    </joint>
+    <link name="bin_1_part_17_top_front_left_corner" />
+    <link name="bin_2_part_4">
         <inertial>
+            <origin rpy="0 0 0" xyz="0 0 -0.008" />
             <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
-    </link>
-    <gazebo reference="workbench_table_base_link">
-        <material>Gazebo/workbench_table_table_color</material>
-    </gazebo>
-    <joint name="workbench_table_base_link" type="fixed">
-        <parent link="workbench_base_link" />
-        <child link="workbench_table_base_link" />
-        <origin rpy="0 0 0" xyz="0.27 0  0.02" />
-    </joint>
-    <link name="workbench_table_leg1">
-        <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.008" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin2_SK-HL1-BL.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="workbench_table_table_color">
-                <color rgba="0.4 0.4 0.4 1" />
+            <material name="orange">
+                <color rgba="1 0.5088 0.0468 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.008" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin2_SK-HL1-BL.vhacd.dae" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
-        <!-- This is required for Gazebo. -->
+    </link>
+    <gazebo reference="bin_2_part_4">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+    <joint name="bin_2_part_4" type="fixed">
+        <parent link="plate_lower_left_corner" />
+        <child link="bin_2_part_4" />
+        <origin rpy="0 0 0" xyz="0.19949999999999998 0.49 0.008" />
+    </joint>
+    <joint name="bin_2_part_4_bottom_front_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_bottom_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_4_bottom_front_right_corner" />
+    <joint name="bin_2_part_4_bottom_back_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_bottom_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_4_bottom_back_right_corner" />
+    <joint name="bin_2_part_4_bottom_back_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_bottom_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 -0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_4_bottom_back_left_corner" />
+    <joint name="bin_2_part_4_bottom_front_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_bottom_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 -0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_4_bottom_front_left_corner" />
+    <joint name="bin_2_part_4_top_front_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_top_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_4_top_front_right_corner" />
+    <joint name="bin_2_part_4_top_back_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_top_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_4_top_back_right_corner" />
+    <joint name="bin_2_part_4_top_back_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_top_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 -0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_4_top_back_left_corner" />
+    <joint name="bin_2_part_4_top_front_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_4" />
+        <child link="bin_2_part_4_top_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 -0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_4_top_front_left_corner" />
+    <link name="bin_2_part_7">
         <inertial>
+            <origin rpy="0 0 0" xyz="0 0 -0.008" />
             <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
-    </link>
-    <gazebo reference="workbench_table_leg1">
-        <material>Gazebo/workbench_table_table_color</material>
-    </gazebo>
-    <joint name="workbench_table_leg1" type="fixed">
-        <parent link="workbench_table_base_link" />
-        <child link="workbench_table_leg1" />
-        <origin rpy="0 0 0" xyz="0.19 0 0" />
-    </joint>
-    <link name="workbench_table_leg2">
-        <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.008" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin2_SK-HL1-BL.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="workbench_table_table_color">
-                <color rgba="0.4 0.4 0.4 1" />
+            <material name="orange">
+                <color rgba="1 0.5088 0.0468 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.008" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin2_SK-HL1-BL.vhacd.dae" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
-        <!-- This is required for Gazebo. -->
+    </link>
+    <gazebo reference="bin_2_part_7">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+    <joint name="bin_2_part_7" type="fixed">
+        <parent link="plate_lower_left_corner" />
+        <child link="bin_2_part_7" />
+        <origin rpy="0 0 0" xyz="0.19949999999999998 0.378 0.008" />
+    </joint>
+    <joint name="bin_2_part_7_bottom_front_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_bottom_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_7_bottom_front_right_corner" />
+    <joint name="bin_2_part_7_bottom_back_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_bottom_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_7_bottom_back_right_corner" />
+    <joint name="bin_2_part_7_bottom_back_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_bottom_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 -0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_7_bottom_back_left_corner" />
+    <joint name="bin_2_part_7_bottom_front_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_bottom_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 -0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_7_bottom_front_left_corner" />
+    <joint name="bin_2_part_7_top_front_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_top_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_7_top_front_right_corner" />
+    <joint name="bin_2_part_7_top_back_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_top_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_7_top_back_right_corner" />
+    <joint name="bin_2_part_7_top_back_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_top_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 -0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_7_top_back_left_corner" />
+    <joint name="bin_2_part_7_top_front_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_7" />
+        <child link="bin_2_part_7_top_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 -0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_7_top_front_left_corner" />
+    <link name="bin_2_part_8">
         <inertial>
+            <origin rpy="0 0 0" xyz="0 0 -0.008" />
             <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
         </inertial>
-    </link>
-    <gazebo reference="workbench_table_leg2">
-        <material>Gazebo/workbench_table_table_color</material>
-    </gazebo>
-    <joint name="workbench_table_leg2" type="fixed">
-        <parent link="workbench_table_base_link" />
-        <child link="workbench_table_leg2" />
-        <origin rpy="0 0 0" xyz="0 0.3 0" />
-    </joint>
-    <link name="workbench_table_leg3">
-        <!-- w is in x, l is in y, h is in z -->
         <visual>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.008" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin2_SK-HL1-BL.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="workbench_table_table_color">
-                <color rgba="0.4 0.4 0.4 1" />
+            <material name="orange">
+                <color rgba="1 0.5088 0.0468 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.01 0.01 0.0625" />
+            <origin rpy="1.5707963267948966 0 -1.5707963267948966" xyz="0 0 -0.008" />
             <geometry>
-                <box size="0.02 0.02 0.125" />
+                <mesh filename="package://aist_description/wrc/meshes/bin2_SK-HL1-BL.vhacd.dae" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
-        <!-- This is required for Gazebo. -->
+    </link>
+    <gazebo reference="bin_2_part_8">
+        <material>Gazebo/Orange</material>
+    </gazebo>
+    <joint name="bin_2_part_8" type="fixed">
+        <parent link="plate_lower_left_corner" />
+        <child link="bin_2_part_8" />
+        <origin rpy="0 0 0" xyz="0.19949999999999998 0.266 0.008" />
+    </joint>
+    <joint name="bin_2_part_8_bottom_front_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_bottom_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_8_bottom_front_right_corner" />
+    <joint name="bin_2_part_8_bottom_back_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_bottom_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_8_bottom_back_right_corner" />
+    <joint name="bin_2_part_8_bottom_back_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_bottom_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 -0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_8_bottom_back_left_corner" />
+    <joint name="bin_2_part_8_bottom_front_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_bottom_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 -0.045 0.0" />
+    </joint>
+    <link name="bin_2_part_8_bottom_front_left_corner" />
+    <joint name="bin_2_part_8_top_front_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_top_front_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_8_top_front_right_corner" />
+    <joint name="bin_2_part_8_top_back_right_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_top_back_right_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_8_top_back_right_corner" />
+    <joint name="bin_2_part_8_top_back_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_top_back_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.09 -0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_8_top_back_left_corner" />
+    <joint name="bin_2_part_8_top_front_left_corner_joint" type="fixed">
+        <parent link="bin_2_part_8" />
+        <child link="bin_2_part_8_top_front_left_corner" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.06999999999999999 -0.045 0.07" />
+    </joint>
+    <link name="bin_2_part_8_top_front_left_corner" />
+    <link name="tray_2">
         <inertial>
+            <origin rpy="0 0 0" xyz="0.15 0.105 0" />
             <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <inertia ixx="1.0" ixy="0" ixz="0" iyy="1.0" iyz="0" izz="1.0" />
+        </inertial>
+        <visual>
+            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.105 0.15 0" />
+            <geometry>
+                <mesh filename="package://aist_description/wrc/meshes/tray_PZ-0006-B.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0.105 0.15 0" />
+            <geometry>
+                <mesh filename="package://aist_description/wrc/meshes/tray_PZ-0006-B.vhacd.dae" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+    </link>
+    <joint name="tray_2" type="fixed">
+        <parent link="plate_lower_left_corner" />
+        <child link="tray_2" />
+        <origin rpy="0 0 1.5707963267948966" xyz="0.3 0 0" />
+    </joint>
+    <link name="tray_2_divider2">
+        <visual>
+            <origin rpy="3.141592653589793 3.141592653589793 -1.5707963267948966" xyz="0.2 0.009999999999999981 0.0" />
+            <geometry>
+                <mesh filename="package://aist_description/wrc/meshes/divider2.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+            <material name="white">
+                <color rgba="1 1 1 1" />
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="3.141592653589793 3.141592653589793 -1.5707963267948966" xyz="0.2 0.009999999999999981 0.0" />
+            <geometry>
+                <mesh filename="package://aist_description/wrc/meshes/divider2.stl" scale="0.001 0.001 0.001" />
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1" />
             <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
-    <gazebo reference="workbench_table_leg3">
-        <material>Gazebo/workbench_table_table_color</material>
-    </gazebo>
-    <joint name="workbench_table_leg3" type="fixed">
-        <parent link="workbench_table_base_link" />
-        <child link="workbench_table_leg3" />
-        <origin rpy="0 0 0" xyz="0.19      0.3      0" />
+    <joint name="tray_2_divider2_joint" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_divider2" />
     </joint>
-    <link name="workbench_table_top">
-        <!-- w is in x, l is in y, h is in z -->
+    <link name="tray_2_screw_holder">
         <visual>
-            <origin rpy="0 0 0" xyz="0.105 0.16 0.0025" />
+            <origin rpy="3.141592653589793 3.141592653589793 -1.5707963267948966" xyz="0.2 0.2 0.0" />
             <geometry>
-                <box size="0.21 0.32 0.005" />
+                <mesh filename="package://aist_description/wrc/meshes/screw_holder.stl" scale="0.001 0.001 0.001" />
             </geometry>
-            <material name="workbench_table_table_color">
-                <color rgba="0.4 0.4 0.4 1" />
+            <material name="white">
+                <color rgba="1 1 1 1" />
             </material>
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="0.105 0.16 0.0025" />
+            <origin rpy="3.141592653589793 3.141592653589793 -1.5707963267948966" xyz="0.2 0.2 0.0" />
             <geometry>
-                <box size="0.21 0.32 0.005" />
+                <mesh filename="package://aist_description/wrc/meshes/screw_holder.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
-        <!-- This is required for Gazebo. -->
         <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+            <mass value="0.1" />
             <origin xyz="0 0 0" rpy="0 0 0" />
+            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
-    <gazebo reference="workbench_table_top">
-        <material>Gazebo/workbench_table_table_color</material>
-    </gazebo>
-    <joint name="workbench_table_top" type="fixed">
-        <parent link="workbench_table_base_link" />
-        <child link="workbench_table_top" />
-        <origin rpy="0 0 0" xyz="0 0 0.125" />
+    <joint name="tray_2_screw_holder_joint" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_holder" />
     </joint>
-    <joint name="workbench_table_top_origin_joint" type="fixed">
-        <parent link="workbench_table_top" />
-        <child link="workbench_table_top_origin" />
-        <origin rpy="0 0 0" xyz="0 0 0.005" />
+    <joint name="tray_2_partition_1" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_1" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.17 0.1375 0.02" />
     </joint>
-    <link name="workbench_table_top_origin" />
-    <joint name="workbench_table_top_center_joint" type="fixed">
-        <parent link="workbench_table_top_origin" />
-        <child link="workbench_table_top_center" />
-        <origin rpy="0 0 0" xyz="0.105 0.16 0" />
+    <link name="tray_2_partition_1" />
+    <joint name="tray_2_partition_2" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_2" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.105 0.1725 0.02" />
     </joint>
-    <link name="workbench_table_top_center" />
-    <link name="workbench_front_border">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.04 0.008 0.0015" />
-            <geometry>
-                <box size="0.08 0.016 0.003" />
-            </geometry>
-            <material name="aist_color">
-                <color rgba="0.7 0.7 0.7 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.04 0.008 0.0015" />
-            <geometry>
-                <box size="0.08 0.016 0.003" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="workbench_front_border">
-        <material>Gazebo/aist_color</material>
-    </gazebo>
-    <joint name="workbench_front_border" type="fixed">
-        <parent link="workbench_table_top_origin" />
-        <child link="workbench_front_border" />
-        <origin rpy="0 0 0" xyz="0.13 0 0" />
+    <link name="tray_2_partition_2" />
+    <joint name="tray_2_partition_3" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_3" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.1725 0.02" />
     </joint>
-    <link name="workbench_right_border">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.008 0.032 0.0015" />
-            <geometry>
-                <box size="0.016 0.064 0.003" />
-            </geometry>
-            <material name="aist_color">
-                <color rgba="0.7 0.7 0.7 1" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.008 0.032 0.0015" />
-            <geometry>
-                <box size="0.016 0.064 0.003" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="workbench_right_border">
-        <material>Gazebo/aist_color</material>
-    </gazebo>
-    <joint name="workbench_right_border" type="fixed">
-        <parent link="workbench_table_top_origin" />
-        <child link="workbench_right_border" />
-        <origin rpy="0 0 0" xyz="0.194 0.016 0" />
+    <link name="tray_2_partition_3" />
+    <joint name="tray_2_partition_4" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_4" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.105 0.1125 0.02" />
     </joint>
-    <transmission name="base_fixture_piston_joint_trans">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="base_fixture_piston_joint">
-            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="base_fixture_piston_joint_motor">
-            <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </actuator>
-    </transmission>
-    <joint name="base_fixture_base_joint" type="fixed">
-        <parent link="workbench_table_top_origin" />
-        <child link="base_fixture_base_link" />
-        <origin rpy="0 0 -1.0304423903774522" xyz="0.05729961772434791 0.24786931916155724 0" />
+    <link name="tray_2_partition_4" />
+    <joint name="tray_2_partition_5" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_5" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.1125 0.02" />
     </joint>
-    <link name="base_fixture_base_link">
-        <visual>
-            <origin rpy="0.0        0.0        3.141592653589793" xyz="0.0        0.0        0.013" />
-            <geometry>
-                <mesh filename="package://aist_fastening_tools/meshes/visual/MGPM12-20Z_body.stl" scale="0.001 0.001 0.001" />
-            </geometry>
-            <material name="Gazebo/Black">
-                <color rgba="0.8 0.8          0.8 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0.0        0.0        0.0" xyz="-0.0245        0.0        0.013" />
-            <geometry>
-                <box size="0.049 0.058 0.026" />
-            </geometry>
-        </collision>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <mass value="0.86387" />
-            <inertia ixx="1017560E-9" ixy="0" ixz="2235E-9" iyy="1028041E-9" iyz="0" izz="489810E-9" />
-        </inertial>
-    </link>
-    <joint name="base_fixture_piston_joint" type="prismatic">
-        <parent link="base_fixture_base_link" />
-        <child link="base_fixture_piston" />
-        <axis xyz="1 0 0" />
-        <limit effort="130" lower="0" upper="0.02" velocity="0.15" />
+    <link name="tray_2_partition_5" />
+    <joint name="tray_2_partition_6" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_6" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.17 0.0525 0.02" />
     </joint>
-    <link name="base_fixture_piston">
-        <visual>
-            <origin rpy="0.0              0.0              3.141592653589793" xyz="0.0              0.0              0.013" />
-            <geometry>
-                <mesh filename="package://aist_fastening_tools/meshes/visual/MGPM12-20Z_piston.stl" scale="0.001          0.001          0.001" />
-            </geometry>
-            <material name="Gazebo/Grey">
-                <color rgba="0.8 0.8                0.8 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0.0        0.0        0.0" xyz="0.0095        0.0        0.013" />
-            <geometry>
-                <box size="0.007        0.056        0.022" />
-            </geometry>
-        </collision>
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.02262 -0.00759 0.00738" />
-            <mass value="0.03804" />
-            <inertia ixx="13567E-9" ixy="1849E-9" ixz="3622E-9" iyy="15784E-9" iyz="3616E-9" izz="7478E-9" />
-        </inertial>
-    </link>
-    <joint name="base_fixture_tip_link_joint" type="fixed">
-        <parent link="base_fixture_base_link" />
-        <child link="base_fixture_tip_link" />
-        <origin rpy="0.0      0.0      0.0" xyz="0.033      0.0      0.013" />
+    <link name="tray_2_partition_6" />
+    <joint name="tray_2_partition_7" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_7" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.105 0.0525 0.02" />
     </joint>
-    <link name="base_fixture_tip_link" />
-    <joint name="base_fixture_piston_head_joint" type="fixed">
-        <parent link="base_fixture_piston" />
-        <child link="base_fixture_piston_head" />
-        <origin rpy="0.0      0.0      0.0" xyz="0.013      0.0      0.013" />
+    <link name="tray_2_partition_7" />
+    <joint name="tray_2_partition_8" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_partition_8" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.04 0.0525 0.02" />
     </joint>
-    <link name="base_fixture_piston_head" />
-    <gazebo reference="base_fixture_base_link">
-        <material>Gazebo/FlatBlack</material>
-    </gazebo>
-    <gazebo reference="base_fixture_piston">
-        <material>Gazebo/Grey</material>
-    </gazebo>
-    <!-- Improve grasping physics -->
-    <gazebo reference="base_fixture_piston">
-        <kp>1000000.0</kp>
-        <kd>1.0</kd>
-        <mu1>1.0</mu1>
-        <mu2>1.0</mu2>
-        <minDepth>0.001</minDepth>
-    </gazebo>
-    <joint name="workbench_holder_link_joint" type="fixed">
-        <parent link="workbench_table_top_origin" />
-        <child link="workbench_holder_link" />
-        <origin rpy="0 0 1.5707963267948966" xyz="0.194 0.016 0" />
+    <link name="tray_2_partition_8" />
+    <joint name="tray_2_partition_1_pickup" type="fixed">
+        <parent link="tray_2_partition_1" />
+        <child link="tray_2_partition_1_pickup" />
+        <origin rpy="0.0 0.0 -0.7853981633974483" xyz="-.007 -.024 0" />
     </joint>
-    <link name="workbench_holder_link" />
-    <link name="screw_feeder_m3_base_link">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.063 0.063 0.0735" />
-            <geometry>
-                <box size="0.126 0.126 0.147" />
-            </geometry>
-            <material name="black">
-                <color rgba="0.2 0.2 0.2 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.063 0.063 0.0735" />
-            <geometry>
-                <box size="0.126 0.126 0.147" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="screw_feeder_m3_base_link">
-        <material>Gazebo/black</material>
-    </gazebo>
-    <joint name="screw_feeder_m3_base_link" type="fixed">
-        <parent link="workbench_base_link" />
-        <child link="screw_feeder_m3_base_link" />
-        <origin rpy="0 0 0" xyz="0.01 0.03 0" />
+    <link name="tray_2_partition_1_pickup" />
+    <joint name="tray_2_partition_2_pickup" type="fixed">
+        <parent link="tray_2_partition_2" />
+        <child link="tray_2_partition_2_pickup" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.028499999999999998 -0.026 0" />
     </joint>
-    <link name="screw_feeder_m3_front_side">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.028 0.063 0.0395" />
-            <geometry>
-                <box size="0.056 0.126 0.079" />
-            </geometry>
-            <material name="black">
-                <color rgba="0.2 0.2 0.2 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.028 0.063 0.0395" />
-            <geometry>
-                <box size="0.056 0.126 0.079" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="screw_feeder_m3_front_side">
-        <material>Gazebo/black</material>
-    </gazebo>
-    <joint name="screw_feeder_m3_front_side" type="fixed">
-        <parent link="screw_feeder_m3_base_link" />
-        <child link="screw_feeder_m3_front_side" />
-        <origin rpy="0 0 0" xyz="0.126 0 0" />
+    <link name="tray_2_partition_2_pickup" />
+    <joint name="tray_2_partition_3_pickup" type="fixed">
+        <parent link="tray_2_partition_3" />
+        <child link="tray_2_partition_3_pickup" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.0255 -0.023 0" />
     </joint>
-    <link name="screw_feeder_m3_gap">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.028 0.01 0.001" />
-            <geometry>
-                <box size="0.056 0.02 0.002" />
-            </geometry>
-            <material name="grey">
-                <color rgba="0.6 0.6 0.6 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.028 0.01 0.001" />
-            <geometry>
-                <box size="0.056 0.02 0.002" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="screw_feeder_m3_gap">
-        <material>Gazebo/grey</material>
-    </gazebo>
-    <joint name="screw_feeder_m3_gap" type="fixed">
-        <parent link="screw_feeder_m3_front_side" />
-        <child link="screw_feeder_m3_gap" />
-        <origin rpy="0 0 0" xyz="0 0.053 0.079" />
+    <link name="tray_2_partition_3_pickup" />
+    <joint name="tray_2_partition_4_pickup" type="fixed">
+        <parent link="tray_2_partition_4" />
+        <child link="tray_2_partition_4_pickup" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.023 0.0205 0" />
     </joint>
-    <joint name="screw_feeder_m3_outlet_joint" type="fixed">
-        <parent link="screw_feeder_m3_gap" />
-        <child link="screw_feeder_m3_outlet_link" />
-        <origin rpy="0 0 0" xyz="0.046 0.01 0.002" />
+    <link name="tray_2_partition_4_pickup" />
+    <joint name="tray_2_partition_5_pickup" type="fixed">
+        <parent link="tray_2_partition_5" />
+        <child link="tray_2_partition_5_pickup" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.025249999999999998 0.022 0" />
     </joint>
-    <link name="screw_feeder_m3_outlet_link" />
-    <joint name="screw_feeder_m3_inlet_joint" type="fixed">
-        <parent link="screw_feeder_m3_base_link" />
-        <child link="screw_feeder_m3_inlet_link" />
-        <origin rpy="0 0 0" xyz="0.072 0.032 0.147" />
+    <link name="tray_2_partition_5_pickup" />
+    <joint name="tray_2_partition_6_pickup" type="fixed">
+        <parent link="tray_2_partition_6" />
+        <child link="tray_2_partition_6_pickup" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.015 0.0125 0" />
     </joint>
-    <link name="screw_feeder_m3_inlet_link" />
-    <link name="screw_feeder_m4_base_link">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.063 0.063 0.0735" />
-            <geometry>
-                <box size="0.126 0.126 0.147" />
-            </geometry>
-            <material name="black">
-                <color rgba="0.2 0.2 0.2 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.063 0.063 0.0735" />
-            <geometry>
-                <box size="0.126 0.126 0.147" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="screw_feeder_m4_base_link">
-        <material>Gazebo/black</material>
-    </gazebo>
-    <joint name="screw_feeder_m4_base_link" type="fixed">
-        <parent link="screw_feeder_m3_base_link" />
-        <child link="screw_feeder_m4_base_link" />
-        <origin rpy="0 0 0" xyz="0 0.126 0" />
+    <link name="tray_2_partition_6_pickup" />
+    <joint name="tray_2_partition_7_pickup" type="fixed">
+        <parent link="tray_2_partition_7" />
+        <child link="tray_2_partition_7_pickup" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.0215 0.019 0" />
     </joint>
-    <link name="screw_feeder_m4_front_side">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.028 0.063 0.0395" />
-            <geometry>
-                <box size="0.056 0.126 0.079" />
-            </geometry>
-            <material name="black">
-                <color rgba="0.2 0.2 0.2 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.028 0.063 0.0395" />
-            <geometry>
-                <box size="0.056 0.126 0.079" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="screw_feeder_m4_front_side">
-        <material>Gazebo/black</material>
-    </gazebo>
-    <joint name="screw_feeder_m4_front_side" type="fixed">
-        <parent link="screw_feeder_m4_base_link" />
-        <child link="screw_feeder_m4_front_side" />
-        <origin rpy="0 0 0" xyz="0.126 0 0" />
+    <link name="tray_2_partition_7_pickup" />
+    <joint name="tray_2_partition_8_pickup_1" type="fixed">
+        <parent link="tray_2_partition_8" />
+        <child link="tray_2_partition_8_pickup_1" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.024 0.0215 0" />
     </joint>
-    <link name="screw_feeder_m4_gap">
-        <!-- w is in x, l is in y, h is in z -->
-        <visual>
-            <origin rpy="0 0 0" xyz="0.028 0.01 0.001" />
-            <geometry>
-                <box size="0.056 0.02 0.002" />
-            </geometry>
-            <material name="grey">
-                <color rgba="0.6 0.6 0.6 1.0" />
-            </material>
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0.028 0.01 0.001" />
-            <geometry>
-                <box size="0.056 0.02 0.002" />
-            </geometry>
-        </collision>
-        <!-- This is required for Gazebo. -->
-        <inertial>
-            <mass value="1.0" />
-            <!-- <origin xyz="${width/2} ${length} ${height/2}" rpy="0 0 0"/> -->
-            <inertia ixx="0.0" ixy="0.0" ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
-            <origin xyz="0 0 0" rpy="0 0 0" />
-        </inertial>
-    </link>
-    <gazebo reference="screw_feeder_m4_gap">
-        <material>Gazebo/grey</material>
-    </gazebo>
-    <joint name="screw_feeder_m4_gap" type="fixed">
-        <parent link="screw_feeder_m4_front_side" />
-        <child link="screw_feeder_m4_gap" />
-        <origin rpy="0 0 0" xyz="0 0.053 0.079" />
+    <link name="tray_2_partition_8_pickup_1" />
+    <joint name="tray_2_partition_8_pickup_2" type="fixed">
+        <parent link="tray_2_partition_8" />
+        <child link="tray_2_partition_8_pickup_2" />
+        <origin rpy="0.0 0.0 0.0" xyz="-0.024 0.0215 0" />
     </joint>
-    <joint name="screw_feeder_m4_outlet_joint" type="fixed">
-        <parent link="screw_feeder_m4_gap" />
-        <child link="screw_feeder_m4_outlet_link" />
-        <origin rpy="0 0 0" xyz="0.046 0.01 0.002" />
+    <link name="tray_2_partition_8_pickup_2" />
+    <joint name="tray_2_screw_m4_1" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_1" />
+        <origin rpy="0 0 0" xyz="0.04 0.275 0.021" />
     </joint>
-    <link name="screw_feeder_m4_outlet_link" />
-    <joint name="screw_feeder_m4_inlet_joint" type="fixed">
-        <parent link="screw_feeder_m4_base_link" />
-        <child link="screw_feeder_m4_inlet_link" />
-        <origin rpy="0 0 0" xyz="0.072 0.032 0.147" />
+    <link name="tray_2_screw_m4_1" />
+    <joint name="tray_2_screw_m4_2" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_2" />
+        <origin rpy="0 0 0" xyz="0.04 0.24500000000000002 0.021" />
     </joint>
-    <link name="screw_feeder_m4_inlet_link" />
+    <link name="tray_2_screw_m4_2" />
+    <joint name="tray_2_screw_m4_3" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_3" />
+        <origin rpy="0 0 0" xyz="0.04 0.21500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m4_3" />
+    <joint name="tray_2_screw_m4_4" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_4" />
+        <origin rpy="0 0 0" xyz="0.07 0.275 0.021" />
+    </joint>
+    <link name="tray_2_screw_m4_4" />
+    <joint name="tray_2_screw_m4_5" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_5" />
+        <origin rpy="0 0 0" xyz="0.07 0.24500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m4_5" />
+    <joint name="tray_2_screw_m4_6" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_6" />
+        <origin rpy="0 0 0" xyz="0.07 0.21500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m4_6" />
+    <joint name="tray_2_screw_m4_7" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_7" />
+        <origin rpy="0 0 0" xyz="0.1 0.275 0.021" />
+    </joint>
+    <link name="tray_2_screw_m4_7" />
+    <joint name="tray_2_screw_m4_8" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_8" />
+        <origin rpy="0 0 0" xyz="0.1 0.24500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m4_8" />
+    <joint name="tray_2_screw_m4_9" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m4_9" />
+        <origin rpy="0 0 0" xyz="0.1 0.21500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m4_9" />
+    <joint name="tray_2_screw_m3_1" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m3_1" />
+        <origin rpy="0 0 0" xyz="0.14 0.275 0.021" />
+    </joint>
+    <link name="tray_2_screw_m3_1" />
+    <joint name="tray_2_screw_m3_2" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m3_2" />
+        <origin rpy="0 0 0" xyz="0.14 0.24500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m3_2" />
+    <joint name="tray_2_screw_m3_3" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m3_3" />
+        <origin rpy="0 0 0" xyz="0.14 0.21500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m3_3" />
+    <joint name="tray_2_screw_m3_4" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m3_4" />
+        <origin rpy="0 0 0" xyz="0.17 0.275 0.021" />
+    </joint>
+    <link name="tray_2_screw_m3_4" />
+    <joint name="tray_2_screw_m3_5" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m3_5" />
+        <origin rpy="0 0 0" xyz="0.17 0.24500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m3_5" />
+    <joint name="tray_2_screw_m3_6" type="fixed">
+        <parent link="tray_2" />
+        <child link="tray_2_screw_m3_6" />
+        <origin rpy="0 0 0" xyz="0.17 0.21500000000000002 0.021" />
+    </joint>
+    <link name="tray_2_screw_m3_6" />
     <transmission name="trans_a_bot_gripper_left_inner_knuckle_joint">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="a_bot_gripper_left_inner_knuckle_joint">
