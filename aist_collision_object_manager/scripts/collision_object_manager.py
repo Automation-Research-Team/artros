@@ -525,10 +525,11 @@ class CollisionObjectManager(object):
                                                     pose.orientation.w)))
 
         # Set the new one to the specified object and its descendants.
-        T = tfs.concatenate_matrices(_pose_matrix(attach_pose),
+        self._attach_descendants(co, attach_link, touch_links,
+                                 tfs.concatenate_matrices(
+                                     _pose_matrix(attach_pose),
                                      tfs.inverse_matrix(
-                                         _pose_matrix(co.pose)))
-        self._attach_descendants(co, attach_link, touch_links, T)
+                                         _pose_matrix(co.pose))))
 
         return old_root_link
 
@@ -537,10 +538,12 @@ class CollisionObjectManager(object):
         if aco is None:
             return
 
-        old_link_name = aco.link_name
-        self._psi.remove_attached_object(None, aco.object.id)
         rospy.loginfo("(CollisionObjectManager) detach '%s' from '%s'",
-                      aco.object.id, old_link_name)
+                      aco.object.id, aco.link_name)
+        co = aco.object
+        self._psi.remove_attached_object(name=aco.object.id)
+
+        old_root_link = self._rotate_tree(co)
 
     def _append_touch_links(self, object_id, touch_links):
         aco = self._get_attached_object(object_id)
@@ -625,6 +628,13 @@ class CollisionObjectManager(object):
         aco = self._get_attached_object(co.id)
         rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
                       aco.object.id, aco.link_name, aco.touch_links)
+
+    def _detach_descendants(self, aco):
+        rospy.loginfo("(CollisionObjectManager) detach '%s' from '%s'",
+                      aco.object.id, aco.link_name)
+        co = aco.object
+        self._psi.remove_attached_object(name=aco.object.id)
+
 
     def _get_object(self, object_id):
         return self._psi.get_objects([object_id]).get(object_id)
