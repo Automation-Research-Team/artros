@@ -296,13 +296,12 @@ class CollisionObjectManager(object):
         elif req.op == ManageCollisionObjectRequest.REMOVE_OBJECT:
             self._remove_object(req.object_id, req.frame_id)
         elif req.op == ManageCollisionObjectRequest.ATTACH_OBJECT:
-            res.retval = self._attach_object(req.object_id,
-                                                 req.frame_id,
-                                                 req.subframe,
-                                                 req.pose, req.touch_links)
+            res.retval = self._attach_or_detach(req.object_id, req.frame_id,
+                                                req.subframe, req.pose,
+                                                req.touch_links, True)
         elif req.op == ManageCollisionObjectRequest.DETACH_OBJECT:
-            self._detach_object(req.object_id, req.frame_id,
-                                req.subframe, req.pose)
+            self._attach_or_detach(req.object_id, req.frame_id,
+                                   req.subframe, req.pose, None, False)
         elif req.op == ManageCollisionObjectRequest.APPEND_TOUCH_LINKS:
             self._append_touch_links(req.object_id, req.touch_links)
         elif req.op == ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS:
@@ -480,7 +479,8 @@ class CollisionObjectManager(object):
         self._psi.remove_attached_object(frame_id, object_id)
         self._psi.remove_world_object(object_id)
 
-    def _attach_object(self, object_id, link, subframe, pose, touch_links):
+    def _attach_or_detach(self, object_id, link, subframe, pose, touch_links,
+                          attach):
         """Attach the object to the specified frame
 
         Attach the collision object 'object_id' to 'link'.
@@ -494,18 +494,23 @@ class CollisionObjectManager(object):
           touch_links (list): list of external links allowing collisions
                               against the object
         """
-        co = self._get_object(object_id)
-        if co is None:
-            aco = self._get_attached_object(object_id)
-            if aco is None:
+        aco = self._get_attached_object(object_id)
+        if aco is None:
+            if not attach:
+                raise Exception("unknown attached collision object '%s'"
+                                % object_id)
+            co = self._get_object(object_id)
+            if co is None:
                 raise Exception("unknown collision object '%s'" % object_id)
+        else:
             co = aco.object
 
         # If any subframe of the object other than 'base_link' is to be
         # attached to 'link', transform the given pose to that
         # with respect to 'base_link'.
+        print('### object_id=%s, link=%s, subframe=%s'
+              % (co.id, link, subframe))
         link, pose = self._get_parent_link_and_pose(co, link, subframe, pose)
-        attach_link, attach_pose = self._get_attach_link_and_pose(link, pose)
         print('### parent_link=%s, my_id=%s' % (link, co.id))
 
         # Make this object root of the tree attached to link.
@@ -525,25 +530,15 @@ class CollisionObjectManager(object):
                                                     pose.orientation.w)))
 
         # Set the new one to the specified object and its descendants.
+        attach_link, attach_pose = self._get_attach_link_and_pose(link, pose)
         self._attach_descendants(co, attach_link, touch_links,
                                  tfs.concatenate_matrices(
                                      _pose_matrix(attach_pose),
                                      tfs.inverse_matrix(
-                                         _pose_matrix(co.pose))))
+                                         _pose_matrix(co.pose))),
+                                 attach)
 
         return old_root_link
-
-    def _detach_object(self, object_id, link, subframe, pose):
-        aco = self._get_attached_object(object_id)
-        if aco is None:
-            return
-
-        rospy.loginfo("(CollisionObjectManager) detach '%s' from '%s'",
-                      aco.object.id, aco.link_name)
-        co = aco.object
-        self._psi.remove_attached_object(name=aco.object.id)
-
-        old_root_link = self._rotate_tree(co)
 
     def _append_touch_links(self, object_id, touch_links):
         aco = self._get_attached_object(object_id)
@@ -602,7 +597,7 @@ class CollisionObjectManager(object):
                                                      tmp.child_frame_id))
         return old_root_link
 
-    def _attach_descendants(self, co, link, touch_links, T):
+    def _attach_descendants(self, co, link, touch_links, T, attach=True):
         for child_aco in self._psi.get_attached_objects().values():
             print('### child_aco[%s]: parent_link=%s'
                   % (child_aco.object.id,
@@ -620,20 +615,20 @@ class CollisionObjectManager(object):
                         child_co, link,
                         [self._get_parent_link(child_co.id)], T)
 
-        # Attach 'co' to 'link' with 'pose'.
-        co.header.frame_id = link
-        co.pose = _pose_from_matrix(tfs.concatenate_matrices(
-                                        T, _pose_matrix(co.pose)))
-        self._psi.attach_object(co, link, touch_links)
-        aco = self._get_attached_object(co.id)
-        rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
-                      aco.object.id, aco.link_name, aco.touch_links)
-
-    def _detach_descendants(self, aco):
-        rospy.loginfo("(CollisionObjectManager) detach '%s' from '%s'",
-                      aco.object.id, aco.link_name)
-        co = aco.object
-        self._psi.remove_attached_object(name=aco.object.id)
+        if attach:
+            # Attach 'co' to 'link' with 'pose'.
+            co.header.frame_id = link
+            co.pose = _pose_from_matrix(tfs.concatenate_matrices(
+                                            T, _pose_matrix(co.pose)))
+            self._psi.attach_object(co, link, touch_links)
+            aco = self._get_attached_object(co.id)
+            rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s",
+                          aco.object.id, aco.link_name, aco.touch_links)
+        else:
+            aco = self._get_attached_object(co.id)
+            self._psi.remove_attached_object(name=co.id)
+            rospy.loginfo("(CollisionObjectManager) detached '%s' from '%s'",
+                          aco.object.id, aco.link_name)
 
 
     def _get_object(self, object_id):
@@ -641,6 +636,12 @@ class CollisionObjectManager(object):
 
     def _get_attached_object(self, object_id):
         return self._psi.get_attached_objects([object_id]).get(object_id)
+
+    def _get_any_object(self, object_id):
+        aco = self._get_attached_object(object_id)
+        if aco is None:
+            return self._get_object(object_id)
+        return aco.object
 
     def _get_parent_link(self, object_id):
         return self._instance_props_dict[object_id].parent_link
@@ -661,12 +662,13 @@ class CollisionObjectManager(object):
         parent_id, parent_subframe = _decompose_link_name(frame_id)
         if parent_id == '':
             return frame_id, pose
-
+        print('parent_id=%s, parent_subframe=%s' % (parent_id, parent_subframe))
         return (parent_id + '/base_link',
                 _pose_from_matrix(
                    tfs.concatenate_matrices(
-                       _pose_matrix(_subframe_pose(self._get_object(parent_id),
-                                                   parent_subframe)),
+                       _pose_matrix(
+                           _subframe_pose(self._get_any_object(parent_id),
+                                          parent_subframe)),
                        _pose_matrix(pose))))
 
     def _get_attach_link_and_pose(self, frame_id, pose):
