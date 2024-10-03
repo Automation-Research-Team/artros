@@ -33,15 +33,15 @@ uint8 APPEND_TOUCH_LINKS=5
 #
 uint8 REMOVE_TOUCH_LINKS=6
 #
-# - Return the object type of the existing collision object with 'object_id'
+# - Remove 'touch_links' accompanied with a link which is not the parent
+#   of the object with 'object_id'.
+#
+uint8 CLEAN_TOUCH_LINKS=7
+#
+# - Return infomation on the object with 'object_id'
 #   in 'retval'.
 #
-uint8 GET_OBJECT_TYPE=7
-#
-# - Return parent of the existing collision object with 'object_id'
-#   in 'retval'.
-#
-uint8 GET_OBJECT_PARENT=8
+uint8 GET_OBJECT_INFO=8
 
 uint8              op
 string             object_type
@@ -49,7 +49,6 @@ string             object_id
 string             frame_id
 string             subframe
 geometry_msgs/Pose pose
-string[]           touch_links
 ---
-bool               success
-string             retval
+bool                          success
+aist_msgs/CollisionObjectInfo info

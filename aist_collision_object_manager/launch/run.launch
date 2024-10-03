@@ -14,6 +14,8 @@
     <rosparam param="object_properties"
 	      file="$(find aist_description
 		    )/parts/config/parts_properties.yaml"/>
+    <rosparam param="touch_links"
+	      file="$(find aist_routines)/config/touch_links.yaml"/>
   </node>
 
 </launch>

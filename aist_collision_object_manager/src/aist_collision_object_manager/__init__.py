@@ -45,7 +45,6 @@ class CollisionObjectManagerClient(object):
         super().__init__()
 
         self._listener    = listener
-        self._touch_links = rospy.get_param('~touch_links', {})
         try:
             service = server + '/manage_collision_object'
             rospy.wait_for_service(service, timeout=5.0)
@@ -74,15 +73,13 @@ class CollisionObjectManagerClient(object):
 
     def attach_object(self, object_id, frame_id, pose, subframe_link=''):
         req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.ATTACH_OBJECT
-        req.object_id   = object_id
-        req.frame_id    = frame_id
-        req.subframe    = CollisionObjectManagerClient \
-                         ._subframe_name(subframe_link)
-        req.pose        = pose
-        req.touch_links = self._get_touch_links(req.frame_id)
-        res = self._send(req)
-        return res.retval if res.success else None
+        req.op        = ManageCollisionObjectRequest.ATTACH_OBJECT
+        req.object_id = object_id
+        req.frame_id  = frame_id
+        req.subframe  = CollisionObjectManagerClient \
+                       ._subframe_name(subframe_link)
+        req.pose      = pose
+        return self._send(req).success
 
     def detach_object(self, object_id, frame_id, pose, subframe_link=''):
         req = ManageCollisionObjectRequest()
@@ -92,45 +89,34 @@ class CollisionObjectManagerClient(object):
         req.subframe  = CollisionObjectManagerClient \
                        ._subframe_name(subframe_link)
         req.pose      = pose
-        res = self._send(req)
-        return res.retval if res.success else None
+        return self._send(req).success
 
     def append_touch_links(self, object_id, touch_link):
         req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.APPEND_TOUCH_LINKS
-        req.object_id   = object_id
-        req.touch_links = self._touch_links.get(touch_link, [])
+        req.op        = ManageCollisionObjectRequest.APPEND_TOUCH_LINKS
+        req.object_id = object_id
+        req.frame_id  = touch_link
         return self._send(req).success
 
     def remove_touch_links(self, object_id, untouch_link):
         req = ManageCollisionObjectRequest()
-        req.op          = ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS
-        req.object_id   = object_id
-        req.touch_links = self._touch_links.get(untouch_link, [])
+        req.op        = ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS
+        req.object_id = object_id
+        req.frame_id  = untouch_link
         return self._send(req).success
 
-    def get_object_type(self, object_id):
+    def clean_touch_links(self, object_id):
+        req = ManageCollisionObjectRequest()
+        req.op        = ManageCollisionObjectRequest.CLEAN_TOUCH_LINKS
+        req.object_id = object_id
+        return self._send(req).success
+
+    def get_object_info(self, object_id):
         req           = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.GET_OBJECT_TYPE
+        req.op        = ManageCollisionObjectRequest.GET_OBJECT_INFO
         req.object_id = object_id
         res = self._send(req)
-        return res.retval if res.success else None
-
-    def get_object_parent(self, object_id):
-        req           = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.GET_OBJECT_PARENT
-        req.object_id = object_id
-        res = self._send(req)
-        return res.retval if res.success else None
-
-    def _get_touch_links(self, frame_id):
-        tokens = frame_id.rsplit('/', 1)
-        if len(tokens) == 1:
-            return self._touch_links.get(frame_id, [])
-        else:
-            d = self._touch_links.get(tokens[0], {})
-            print(d)
-            return d.get(tokens[1], [])
+        return res.info if res.success else None
 
     @staticmethod
     def _subframe_name(subframe_link):

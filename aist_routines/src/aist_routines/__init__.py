@@ -231,6 +231,7 @@ class AISTBaseRoutines(object):
             self.go_to_named_pose(robot_name, 'home')  # Reset pose
             rospy.signal_shutdown('manual shutdown')
         elif key == 'robot':
+            print('  current: %s' % robot_name)
             robot_name = raw_input('  robot name? ')
         elif key == '?' or key == 'help':
             self.print_help_messages()
@@ -659,7 +660,8 @@ class AISTBaseRoutines(object):
         if part_id in self._picking_params:
             params = self._picking_params[part_id]
         else:
-            params = self._picking_params[self.com.get_object_type(part_id)]
+            params = self._picking_params[
+                         self.com.get_object_info(part_id).object_type]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
@@ -679,7 +681,8 @@ class AISTBaseRoutines(object):
         if part_id in self._picking_params:
             params = self._picking_params[part_id]
         else:
-            params = self._picking_params[self.com.get_object_type(part_id)]
+            params = self._picking_params[
+                         self.com.get_object_info(part_id).object_type]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:

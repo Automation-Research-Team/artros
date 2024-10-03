@@ -55,9 +55,6 @@ class AssemblyRoutines(URRoutines):
         axis       = 'Y'
 
         while not rospy.is_shutdown():
-            self.print_help_messages()
-            print('')
-
             prompt = '{:>5}:{}>> '.format(axis,
                                           self.format_pose(
                                               self.get_current_pose(
@@ -79,7 +76,8 @@ class AssemblyRoutines(URRoutines):
         print('  s: Pick screw')
         print('  p: Pick part')
         print('  P: Place part')
-        print('  i: Initialize all collision objects')
+        print('  i: Show infomation on collision objects')
+        print('  I: Initialize all collision objects')
         print('  r: Remove specified collision objects')
         print('  H: Move all robots to home')
         print('  B: Move all robots to back')
@@ -100,8 +98,13 @@ class AssemblyRoutines(URRoutines):
             place_frame = raw_input('  place frame? ')
             part_id     = raw_input('  part ID? ')
             self.place_part(robot_name, place_frame, part_id)
-        elif key == 'i':
+        elif key == 'I':
             self._initialize_collision_objects()
+        elif key == 'i':
+            object_id = raw_input('  object ID? ')
+            info = self.com.get_object_info(object_id)
+            if info is not None:
+                self._print_object_info(info)
         elif key == 'r':
             object_id   = raw_input('  object_id? ')
             target_link = raw_input('  target_link? ') if object_id == '' else\
@@ -165,6 +168,7 @@ class AssemblyRoutines(URRoutines):
                                    part_id, attach=True)
 
     def _initialize_collision_objects(self):
+        self.com.remove_object('', '')
         for object_type, pose \
             in rospy.get_param('~initial_object_poses', {}).items():
             self.com.create_object(object_type, pose['target_link'],
@@ -172,7 +176,6 @@ class AssemblyRoutines(URRoutines):
                                        pose.get('offset',
                                                 [.0, .0, .0, .0, .0, .0])),
                                    pose.get('source_link', ''))
-            rospy.sleep(0.5)
             if object_type == 'panel_bearing':
                 self.com.attach_object(object_type, pose['target_link'],
                                        self.pose_from_offset(
@@ -199,3 +202,8 @@ class AssemblyRoutines(URRoutines):
         return screw_type + '_' + str(self._screw_m3_id) \
                if screw_type == 'screw_m3' else \
                screw_type + '_' + str(self._screw_m4_id)
+
+    def _print_object_info(self, info):
+        print('    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s'
+              % (info.object_type, info.parent_link,
+                 info.attach_link, info.touch_links))
