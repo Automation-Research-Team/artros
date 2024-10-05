@@ -1,0 +1,8 @@
+uint8 r_act  # activate (0: deactivate, 1: activate)
+uint8 r_mod  # EPick gripper mode (0: auto mode, 1: advanced mode)
+uint8 r_gto  # go-to (0: stop, 1: move with values set in rPR, rSP and rFR)
+uint8 r_atr  # auto-release (0: normal, 1: emergency slow move)
+uint8 r_ard  # auto-release direction (0: toward closing, 1: toward opening)
+uint8 r_pr   # position request (0-255, 0 = open)
+uint8 r_sp   # speed request (0-255)
+uint8 r_fr   # force request (0-255)
