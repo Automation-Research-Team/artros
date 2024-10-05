@@ -10,17 +10,11 @@ initial_object_poses:
   base:
     target_link: workbench_holder_link
 #  panel_motor:
-#    target_link: base/base_link
-#    offset: [0.075, 0.013, 0.008, 90.0, 0.0, 180.0]
-#  panel_bearing:
-#    target_link: base/base_link
-#    offset: [0.200, 0.015, 0.008, 90.0, 0.0, 180.0]
-  panel_motor:
-    target_link:     base/panel_motor_screw_hole_1
-    source_subframe: bottom_screw_hole_aligner_1
+#    target_link: base/panel_motor_screw_hole_1
+#    source_link: panel_motor/bottom_screw_hole_aligner_1
   panel_bearing:
-    target_link:     base/panel_bearing_screw_hole_1
-    source_subframe: bottom_screw_hole_aligner_1
+    target_link: base/panel_bearing_screw_hole_1
+    source_link: panel_bearing/bottom_screw_hole_aligner_1
 
 picking_parameters:
   precision_tool:
@@ -35,10 +29,10 @@ picking_parameters:
       release_position: 0.065
       max_effort:       5.0
   screw_tool_m3:
-    approach_offset:  [ 0.050, 0.000, 0.010, 0.0, 30.0, 0.0]
-    grasp_offset:     [-0.005, 0.000, 0.008, 0.0, 30.0, 0.0]
-    place_offset:     [-0.005, 0.000, 0.009, 0.0, 30.0, 0.0]
-    departure_offset: [ 0.050, 0.000, 0.010, 0.0, 30.0, 0.0]
+    approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
+    grasp_offset:     [-0.005, 0.000, 0.008, 0.0, 15.0, 0.0]
+    place_offset:     [-0.005, 0.000, 0.009, 0.0, 15.0, 0.0]
+    departure_offset: [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
     gripper_parameters:
@@ -46,10 +40,10 @@ picking_parameters:
       release_position: 0.035
       max_effort:       5.0
   screw_tool_m4:
-    approach_offset:  [ 0.050, 0.000, 0.010, 0.0, 30.0, 0.0]
-    grasp_offset:     [-0.005, 0.000, 0.008, 0.0, 30.0, 0.0]
-    place_offset:     [-0.005, 0.000, 0.009, 0.0, 30.0, 0.0]
-    departure_offset: [ 0.050, 0.000, 0.010, 0.0, 30.0, 0.0]
+    approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
+    grasp_offset:     [-0.005, 0.000, 0.008, 0.0, 15.0, 0.0]
+    place_offset:     [-0.005, 0.000, 0.009, 0.0, 15.0, 0.0]
+    departure_offset: [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
     gripper_parameters:
@@ -57,15 +51,48 @@ picking_parameters:
       release_position: 0.035
       max_effort:       5.0
   suction_tool:
-    approach_offset:  [-0.002, 0.000, 0.060, 0.0, 0.0, 0.0]
-    grasp_offset:     [ 0.000, 0.000, 0.005, 0.0, 0.0, 0.0]
-    place_offset:     [ 0.000, 0.000, 0.006, 0.0, 0.0, 0.0]
-    departure_offset: [-0.002, 0.000, 0.060, 0.0, 0.0, 0.0]
-    speed_fast:       0.1
+    approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
+    grasp_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
+    departure_offset: [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
+    speed_fast:       1.0
     speed_slow:       0.1
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.085
+      max_effort:       5.0
+  base:
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000,  0.002, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.1
+    gripper_parameters:
+      grasp_position:   0.000
+      release_position: 0.0402
+      max_effort:       5.0
+  panel_motor:
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.1
+    gripper_parameters:
+      grasp_position:   0.000
+      release_position: 0.025
+      max_effort:       5.0
+  panel_bearing:
+    approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    grasp_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    place_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
+    departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
+    speed_fast:       0.1
+    speed_slow:       0.1
+    gripper_parameters:
+      grasp_position:   0.000
+      release_position: 0.025
       max_effort:       5.0
   screw_m3:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
@@ -81,44 +108,3 @@ picking_parameters:
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
-
-touch_links:
-  a_bot_gripper_tip_link:
-    - a_bot_gripper_left_inner_knuckle
-    - a_bot_gripper_left_inner_finger
-    - a_bot_gripper_left_inner_finger_pad
-    - a_bot_gripper_right_inner_knuckle
-    - a_bot_gripper_right_inner_finger
-    - a_bot_gripper_right_inner_finger_pad
-  b_bot_gripper_tip_link:
-    - b_bot_gripper_left_inner_knuckle
-    - b_bot_gripper_left_inner_finger
-    - b_bot_gripper_left_inner_finger_pad
-    - b_bot_gripper_right_inner_knuckle
-    - b_bot_gripper_right_inner_finger
-    - b_bot_gripper_right_inner_finger_pad
-  precision_tool/tip_link:
-    - precision_tool/left_finger
-    - precision_tool/right_finger
-  screw_tool_m3/tip_link:
-    - screw_tool_m3/base_link
-  screw_tool_m4/tip_link:
-    - screw_tool_m4/base_link
-  suction_tool/tip_link:
-    - suction_tool/base_link
-  base_fixture_tip_link:
-    - base_fixture_cylinder
-  precision_tool_holder_link:
-    - precision_tool_holder_base_link
-  screw_tool_m3_holder_link:
-    - screw_tool_m3_holder_base_link
-  screw_tool_m4_holder_link:
-    - screw_tool_m4_holder_base_link
-  suction_tool_holder_link:
-    - suction_tool_holder_base_link
-  screw_feeder_m3_outlet_link:
-    - screw_feeder_m3_front_side
-    - screw_feeder_m3_gap
-  screw_feeder_m4_outlet_link:
-    - screw_feeder_m4_front_side
-    - screw_feeder_m4_gap

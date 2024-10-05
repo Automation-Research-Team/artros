@@ -135,23 +135,11 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             gripper.pregrasp()                  # Pregrasp (not wait)
             gripper.wait()                      # Wait for pregrasp completed
-        if goal.object_id != '':
-            if goal.pick:
-                com.append_touch_links(goal.object_id, gripper.tip_link)
-            else:
-                com.append_touch_links(goal.object_id,
-                                       goal.pose.header.frame_id)
         success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
                                            goal.offset, goal.speed_slow)
 
         # Check success of going to pick/place pose.
         if not self._server.is_active() or not success:
-            if goal.object_id != '':
-                if goal.pick:
-                    com.remove_touch_links(goal.object_id, gripper.tip_link)
-                else:
-                    com.remove_touch_links(goal.object_id,
-                                           goal.pose.header.frame_id)
             if not success:
                 self._set_aborted(PickOrPlaceResult.APPROACH_FAILURE,
                                   'Failed to approach target')
@@ -163,16 +151,16 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             gripper.grasp()
             if goal.object_id != '':
-                holder_link = com.attach_object(goal.object_id,
-                                                gripper.tip_link,
-                                                routines.lookup_pose(
-                                                    gripper.tip_link,
-                                                    goal.pose.header.frame_id))
-                com.append_touch_links(goal.object_id, holder_link)
+                com.attach_object(goal.object_id, gripper.tip_link,
+                                  routines.lookup_pose(
+                                      gripper.tip_link,
+                                      goal.pose.header.frame_id),
+                                  goal.pose.header.frame_id)
         else:
             gripper.release()
             if goal.object_id != '':
-                com.attach_object(goal.object_id, goal.pose.header.frame_id,
+                com.detach_object(goal.object_id,
+                                  goal.pose.header.frame_id,
                                   routines.lookup_pose(
                                       goal.pose.header.frame_id,
                                       goal.object_id + '/base_link'))
@@ -194,11 +182,8 @@ class PickOrPlace(SimpleActionClient):
         if not self._server.is_active() or not success:
             if goal.pick:
                 gripper.release()
-                if goal.object_id != '':
-                    com.attach_object(goal.object_id, holder_link,
-                                      routines.lookup_pose(
-                                          holder_link,
-                                          goal.object_id + '/base_link'))
+                #if goal.object_id != '':
+                #    com.clean_touch_links()
             if not success:
                 self._set_aborted(PickOrPlaceResult.DEPARTURE_FAILURE,
                                   'Failed to depart from target')
@@ -207,7 +192,7 @@ class PickOrPlace(SimpleActionClient):
         # Check success of postgrasp.
         if goal.pick:
             if goal.object_id != '':
-                com.remove_touch_links(goal.object_id, holder_link)
+                com.clean_touch_links(goal.object_id)
             if rospy.get_param('use_real_robot', False) and \
                not gripper.wait():    # Wait for postgrasp completed
                 gripper.release()

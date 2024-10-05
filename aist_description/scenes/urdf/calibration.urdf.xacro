@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://wiki.ros.org/xacro" name="calibration">
+
+  <!-- import assembly scene -->
+  <xacro:include filename="$(find aist_description
+			   )/scenes/urdf/assembly.urdf.xacro"/>
+
   <!-- Add AR markers -->
   <xacro:include filename="$(find aist_aruco_ros)/urdf/ar_marker.urdf.xacro"/>
 
@@ -8,7 +13,7 @@
   		   marker_id="26"
 		   width="0.070" height="0.070" margin="0.005"
 		   thickness="0.005">
-    <origin xyz="0.063 0.0 0.0215" rpy="0 0 ${pi/2}"/>
+    <origin xyz="0.163 0.0 0.0215" rpy="0 0 ${pi/2}"/>
   </xacro:ar_marker>
 
   <xacro:ar_marker prefix="workspace_"

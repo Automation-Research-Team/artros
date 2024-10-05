@@ -3,9 +3,8 @@
 
   <arg name="sim"			default="false"/>
 
-  <arg name="camera_names"		default="a_bot_inside_camera
-						 a_bot_outside_camera"/>
-  <arg name="active_camera_name"	default="a_bot_inside_camera"/>
+  <arg name="camera_names"		default="a_bot_camera b_bot_camera"/>
+  <arg name="active_camera_name"	default="b_bot_camera"/>
   <arg name="manager"			default="camera_manager"/>
   <arg name="manager_threads"		default="4"/>
 
@@ -16,12 +15,12 @@
   </node>
 
   <!-- Launch camera multiplexer and Realsense cameras -->
-  <!-- <include file="$(find aist_camera_multiplexer)/launch/realsense.launch"> -->
-  <!--   <arg name="camera_names"		value="$(arg camera_names)"/> -->
-  <!--   <arg name="active_camera_name"	value="$(arg active_camera_name)"/> -->
-  <!--   <arg name="manager"			value="$(arg manager)"/> -->
-  <!--   <arg name="sim"			value="$(arg sim)"/> -->
-  <!-- </include> -->
+  <include file="$(find aist_camera_multiplexer)/launch/realsense.launch">
+    <arg name="camera_names"		value="$(arg camera_names)"/>
+    <arg name="active_camera_name"	value="$(arg active_camera_name)"/>
+    <arg name="manager"			value="$(arg manager)"/>
+    <arg name="sim"			value="$(arg sim)"/>
+  </include>
 
   <group unless="$(arg sim)">
 

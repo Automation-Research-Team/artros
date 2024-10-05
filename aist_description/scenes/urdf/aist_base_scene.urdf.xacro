@@ -90,11 +90,11 @@
   <xacro:ur_robot_gazebo
       prefix="a_bot_"
       joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5/joint_limits.yaml"
+				    )/config/ur5e/joint_limits.yaml"
       physical_parameters_file="$(find ur_description
-				)/config/ur5/physical_parameters.yaml"
+				)/config/ur5e/physical_parameters.yaml"
       visual_parameters_file="$(find ur_description
-			      )/config/ur5/visual_parameters.yaml"
+			      )/config/ur5e/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/a_bot_calibration.yaml"
       transmission_hw_interface="hardware_interface/PositionJointInterface"
@@ -104,11 +104,11 @@
   <xacro:ur_robot_gazebo
       prefix="b_bot_"
       joint_limits_parameters_file="$(find ur_description
-				    )/config/ur5/joint_limits.yaml"
+				    )/config/ur5e/joint_limits.yaml"
       physical_parameters_file="$(find ur_description
-				)/config/ur5/physical_parameters.yaml"
+				)/config/ur5e/physical_parameters.yaml"
       visual_parameters_file="$(find ur_description
-			      )/config/ur5/visual_parameters.yaml"
+			      )/config/ur5e/visual_parameters.yaml"
       kinematics_parameters_file="$(find aist_bringup
 				  )/config/b_bot_calibration.yaml"
       transmission_hw_interface="hardware_interface/PositionJointInterface"
@@ -147,20 +147,20 @@
   <!-- </xacro:zivid2plus> -->
 
   <!-- Spawn and attach force sensor -->
-  <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/>
-  <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
-  </xacro:ft300>
-  <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_flange">
-    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
-  </xacro:ft300>
+  <!-- <xacro:include filename="$(find aist_robotiq)/urdf/ft300.urdf.xacro"/> -->
+  <!-- <xacro:ft300 prefix="a_bot_ftsensor_" parent="a_bot_flange"> -->
+  <!--   <origin xyz="0 0 0" rpy="${pi} 0 0"/> -->
+  <!-- </xacro:ft300> -->
+  <!-- <xacro:ft300 prefix="b_bot_ftsensor_" parent="b_bot_flange"> -->
+  <!--   <origin xyz="0 0 0" rpy="${pi} 0 0"/> -->
+  <!-- </xacro:ft300> -->
 
   <!-- Spawn and attach gripper -->
   <xacro:include filename="$(find aist_robotiq
 			   )/urdf/robotiq_arg2f_coupling.urdf.xacro"/>
   <xacro:robotiq_arg2f_coupling prefix="a_bot_gripper_coupling_"
-				parent="a_bot_ftsensor_flange_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+				parent="a_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq
@@ -171,8 +171,8 @@
   </xacro:robotiq_140_gripper>
 
   <xacro:robotiq_arg2f_coupling prefix="b_bot_gripper_coupling_"
-				parent="b_bot_ftsensor_flange_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+				parent="b_bot_flange">
+    <origin xyz="0 0 0" rpy="${pi} 0 0"/>
   </xacro:robotiq_arg2f_coupling>
 
   <xacro:include filename="$(find aist_robotiq
@@ -215,9 +215,14 @@
 
   <!-- RealSense cameras -->
   <xacro:include filename="$(find aist_description
-  			   )/devices/urdf/wrist_cameras.urdf.xacro" />
-  <xacro:wrist_cameras prefix="a_bot_"
-  		       parent="a_bot_gripper_base_link"
+  			   )/devices/urdf/sr305_on_2f140.urdf.xacro" />
+  <xacro:sr305_on_2f140 prefix="a_bot_"
+  			parent="a_bot_gripper_base_link"
+  			use_nominal_extrinsics="true"/>
+  <xacro:include filename="$(find aist_description
+  			   )/devices/urdf/sr305_on_2f85.urdf.xacro" />
+  <xacro:sr305_on_2f85 prefix="b_bot_"
+  		       parent="b_bot_gripper_base_link"
   		       use_nominal_extrinsics="true"/>
 
   <!-- live camera -->

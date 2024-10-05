@@ -38,7 +38,7 @@ import rospy
 import numpy as np
 import moveit_commander
 
-from math                              import degrees, sqrt
+from math                              import degrees, sqrt, pi
 from tf                                import (TransformListener,
                                                transformations as tfs)
 from std_msgs.msg                      import Header
@@ -102,7 +102,7 @@ class AISTBaseRoutines(object):
                       self.planning_frame, self.reference_frame, self.eef_step)
 
         # CollisionObjectManager wrapping MoveIt PlanningSceneInterface
-        self._com = CollisionObjectManagerClient()
+        self._com = CollisionObjectManagerClient(self._listener)
 
         # MoveIt GetPositionIK service client
         self._compute_ik = rospy.ServiceProxy('/compute_ik', GetPositionIK)
@@ -194,6 +194,7 @@ class AISTBaseRoutines(object):
         print('  back:        move arm to the back position')
         print('  named:       move arm to the pose specified by name')
         print('  frame:       move arm to the pose specified by frame')
+        print('  clip:        make wrist angle within [-180, 180] deg.')
         print('  speed:       set speed')
         print('  stop:        stop arm immediately')
         print('  jvalues:     get current joint values')
@@ -230,6 +231,7 @@ class AISTBaseRoutines(object):
             self.go_to_named_pose(robot_name, 'home')  # Reset pose
             rospy.signal_shutdown('manual shutdown')
         elif key == 'robot':
+            print('  current: %s' % robot_name)
             robot_name = raw_input('  robot name? ')
         elif key == '?' or key == 'help':
             self.print_help_messages()
@@ -312,8 +314,10 @@ class AISTBaseRoutines(object):
                 self.go_to_frame(robot_name, frame, offset)
             except Exception as e:
                 rospy.logerr('Unknown frame: %s', frame)
+        elif key == 'clip':
+            self.clip_wrist_joint_value(robot_name)
         elif key == 'speed':
-            speed = float(raw_input('  speed value? '))
+           speed = float(raw_input('  speed value? '))
         elif key == 'stop':
             self.stop(robot_name)
         elif key == 'jvalues':
@@ -321,6 +325,7 @@ class AISTBaseRoutines(object):
 
         # Gripper stuffs
         elif key == 'gripper':
+            print('  current: %s' % self.gripper(robot_name).name)
             gripper_name = raw_input('  gripper name? ')
             try:
                 self.set_gripper(robot_name, gripper_name)
@@ -381,6 +386,17 @@ class AISTBaseRoutines(object):
         group = self._cmd.get_group(robot_name)
         group.set_joint_value_target(joint_values)
         return self._go(group, speed, accel)
+
+    def clip_wrist_joint_value(self, robot_name, speed=1.0, accel=1.0):
+        joint_values = self.get_current_joint_values(robot_name)
+        if joint_values[-1] >= -pi:
+            if joint_values[-1] <= pi:
+                return True
+            joint_values[-1] -= 2*pi
+        else:
+            joint_values[-1] += 2*pi
+        return self.go_to_joint_value_target(robot_name, joint_values,
+                                             speed, accel)
 
     def go_directly_to_joint_value_target(self, robot_name,
                                           joint_values, duration):
@@ -644,7 +660,8 @@ class AISTBaseRoutines(object):
         if part_id in self._picking_params:
             params = self._picking_params[part_id]
         else:
-            params = self._picking_params[self.com.get_object_type(part_id)]
+            params = self._picking_params[
+                         self.com.get_object_info(part_id).object_type]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
@@ -664,7 +681,8 @@ class AISTBaseRoutines(object):
         if part_id in self._picking_params:
             params = self._picking_params[part_id]
         else:
-            params = self._picking_params[self.com.get_object_type(part_id)]
+            params = self._picking_params[
+                         self.com.get_object_info(part_id).object_type]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:

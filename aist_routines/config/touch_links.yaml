@@ -1,0 +1,38 @@
+a_bot_gripper_tip_link:
+  - a_bot_gripper_left_inner_knuckle
+  - a_bot_gripper_left_inner_finger
+  - a_bot_gripper_left_inner_finger_pad
+  - a_bot_gripper_right_inner_knuckle
+  - a_bot_gripper_right_inner_finger
+  - a_bot_gripper_right_inner_finger_pad
+b_bot_gripper_tip_link:
+  - b_bot_gripper_left_inner_knuckle
+  - b_bot_gripper_left_inner_finger
+  - b_bot_gripper_left_inner_finger_pad
+  - b_bot_gripper_right_inner_knuckle
+  - b_bot_gripper_right_inner_finger
+  - b_bot_gripper_right_inner_finger_pad
+precision_tool/tip_link:
+  - precision_tool/left_finger
+  - precision_tool/right_finger
+base_fixture_tip_link:
+  - base_fixture_cylinder
+precision_tool_holder_link:
+  - precision_tool_holder_base_link
+screw_tool_m3_holder_link:
+  - screw_tool_m3_holder_base_link
+screw_tool_m4_holder_link:
+  - screw_tool_m4_holder_base_link
+suction_tool_holder_link:
+  - suction_tool_holder_base_link
+screw_feeder_m3_outlet_link:
+  - screw_feeder_m3_front_side
+  - screw_feeder_m3_gap
+screw_feeder_m4_outlet_link:
+  - screw_feeder_m4_front_side
+  - screw_feeder_m4_gap
+workbench_holder_link:
+  - workbench_table_top
+  - workbench_front_border
+  - workbench_right_border
+  - base_fixture_piston

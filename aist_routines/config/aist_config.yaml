@@ -36,15 +36,17 @@ grippers:
   suction_tool:
     type:          SuctionGripper
     controller_ns: suction_tool_controller
-  base_fixture:
-    type:          SuctionGripper
-    controller_ns: base_fixture_controller
+    base_link:     suction_tool/base_link
+    tip_link:      suction_tool/tip_link
+#  base_fixture:
+#    type:          SuctionGripper
+#    controller_ns: base_fixture_controller
 
 cameras:
-  a_motioncam:          PhoXiCamera
-#  a_bot_zivid:          ZividCamera
-#  a_bot_inside_camera:  CodedLightRealSenseCamera
-#  a_bot_outside_camera: CodedLightRealSenseCamera
+  a_motioncam:  PhoXiCamera
+  a_bot_camera: CodedLightRealSenseCamera
+  b_bot_camera: CodedLightRealSenseCamera
+#  a_bot_zivid:  ZividCamera
 
 fastening_tools:
   screw_tool_m3:

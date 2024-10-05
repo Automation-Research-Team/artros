@@ -1,7 +1,7 @@
-id: JKE-001
+id: LTR-066
 rate: 20.0
-#frame: a_motioncam_sensor
-#color_camera_frame: a_motioncam_color_camera_frame
+frame: a_motioncam_sensor
+color_camera_frame: a_motioncam_color_camera_frame
 send_point_cloud: true
 send_normal_map: true
 send_depth_map: true

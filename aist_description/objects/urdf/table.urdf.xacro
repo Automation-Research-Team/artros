@@ -4,6 +4,7 @@
   <xacro:macro name="table"
 	       params="prefix width length height parent
 		       table_thickness:=0.020 table_leg_thickness:=0.050
+		       rgba:='0.7 0.7 0.7 1'
 		       *origin">
 
     <xacro:include filename="$(find aist_description
@@ -13,7 +14,8 @@
 		    width="${table_leg_thickness}"
 		    length="${table_leg_thickness}"
 		    height="${height - table_thickness}"
-		    parent="${parent}">
+		    parent="${parent}"
+		    rgba="${rgba}" color_name="${prefix}table_color">
       <xacro:insert_block name="origin"/>
     </xacro:aist_box>
 
@@ -21,7 +23,8 @@
 		    width="${table_leg_thickness}"
 		    length="${table_leg_thickness}"
 		    height="${height - table_thickness}"
-		    parent="${prefix}base_link">
+		    parent="${prefix}base_link"
+		    rgba="${rgba}" color_name="${prefix}table_color">
       <origin xyz="${width - table_leg_thickness} 0 0" rpy="0 0 0"/>
     </xacro:aist_box>
 
@@ -29,7 +32,8 @@
 		    width="${table_leg_thickness}"
 		    length="${table_leg_thickness}"
 		    height="${height - table_thickness}"
-		    parent="${prefix}base_link">
+		    parent="${prefix}base_link"
+		    rgba="${rgba}" color_name="${prefix}table_color">
       <origin xyz="0 ${length - table_leg_thickness} 0" rpy="0 0 0"/>
     </xacro:aist_box>
 
@@ -37,7 +41,8 @@
 		    width="${table_leg_thickness}"
 		    length="${table_leg_thickness}"
 		    height="${height - table_thickness}"
-		    parent="${prefix}base_link">
+		    parent="${prefix}base_link"
+		    rgba="${rgba}" color_name="${prefix}table_color">
       <origin xyz="${width  - table_leg_thickness}
 		   ${length - table_leg_thickness}
 		   0"
@@ -48,7 +53,8 @@
 		    width="${width}"
 		    length="${length}"
 		    height="${table_thickness}"
-		    parent="${prefix}base_link">
+		    parent="${prefix}base_link"
+		    rgba="${rgba}" color_name="${prefix}table_color">
       <origin xyz="0 0 ${height - table_thickness}" rpy="0 0 0"/>
     </xacro:aist_box>
 

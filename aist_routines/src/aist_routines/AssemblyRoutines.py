@@ -55,9 +55,6 @@ class AssemblyRoutines(URRoutines):
         axis       = 'Y'
 
         while not rospy.is_shutdown():
-            self.print_help_messages()
-            print('')
-
             prompt = '{:>5}:{}>> '.format(axis,
                                           self.format_pose(
                                               self.get_current_pose(
@@ -77,7 +74,10 @@ class AssemblyRoutines(URRoutines):
         print('  t: Pick tool')
         print('  T: Place tool')
         print('  s: Pick screw')
-        print('  i: Initialize all collision objects')
+        print('  p: Pick part')
+        print('  P: Place part')
+        print('  i: Show infomation on collision objects')
+        print('  I: Initialize all collision objects')
         print('  r: Remove specified collision objects')
         print('  H: Move all robots to home')
         print('  B: Move all robots to back')
@@ -91,8 +91,20 @@ class AssemblyRoutines(URRoutines):
         elif key == 's':
             screw_type = raw_input('  screw name? ')
             self.pick_screw(robot_name, screw_type)
-        elif key == 'i':
+        elif key == 'p':
+            part_id = raw_input('  part ID? ')
+            self.pick_part(robot_name, part_id)
+        elif key == 'P':
+            place_frame = raw_input('  place frame? ')
+            part_id     = raw_input('  part ID? ')
+            self.place_part(robot_name, place_frame, part_id)
+        elif key == 'I':
             self._initialize_collision_objects()
+        elif key == 'i':
+            object_id = raw_input('  object ID? ')
+            info = self.com.get_object_info(object_id)
+            if info is not None:
+                self._print_object_info(info)
         elif key == 'r':
             object_id   = raw_input('  object_id? ')
             target_link = raw_input('  target_link? ') if object_id == '' else\
@@ -126,11 +138,8 @@ class AssemblyRoutines(URRoutines):
         if tool_name == default_gripper_name:
             return True
         self.set_gripper(robot_name, default_gripper_name)
-        if self.place_at_frame(robot_name, tool_name + '_holder_link',
-                               tool_name, attach=True):
-            self.set_gripper(robot_name, tool_name)
-            return False
-        return True
+        return self.place_at_frame(robot_name, tool_name + '_holder_link',
+                                   tool_name, attach=True)
 
     def pick_screw(self, robot_name, screw_type):
         tool_name = 'screw_tool_' + screw_type[-2:]
@@ -144,14 +153,36 @@ class AssemblyRoutines(URRoutines):
         self._generate_screw(screw_type)
         return True
 
+    def pick_part(self, robot_name, part_id):
+        if self.gripper(robot_name).name != \
+           self.default_gripper_name(robot_name):
+            self.place_tool(robot_name)
+        return self.pick_at_frame(robot_name, part_id + '/default_grasp',
+                                  part_id, attach=True)
+
+    def place_part(self, robot_name, place_frame, part_id):
+        if self.gripper(robot_name).name != \
+           self.default_gripper_name(robot_name):
+            return False
+        return self.place_at_frame(robot_name, place_frame,
+                                   part_id, attach=True)
+
     def _initialize_collision_objects(self):
+        self.com.remove_object('', '')
         for object_type, pose \
             in rospy.get_param('~initial_object_poses', {}).items():
             self.com.create_object(object_type, pose['target_link'],
                                    self.pose_from_offset(
                                        pose.get('offset',
                                                 [.0, .0, .0, .0, .0, .0])),
-                                   pose.get('source_subframe', 'base_link'))
+                                   pose.get('source_link', ''))
+            if object_type == 'panel_bearing':
+                self.com.attach_object(object_type, pose['target_link'],
+                                       self.pose_from_offset(
+                                           pose.get('offset',
+                                                    [.0, .0, .0, .0, .0, .0])),
+                                       pose.get('source_link', ''))
+
         self._screw_m3_id = 0
         self._screw_m4_id = 0
         self._generate_screw('screw_m3')
@@ -171,3 +202,8 @@ class AssemblyRoutines(URRoutines):
         return screw_type + '_' + str(self._screw_m3_id) \
                if screw_type == 'screw_m3' else \
                screw_type + '_' + str(self._screw_m4_id)
+
+    def _print_object_info(self, info):
+        print('    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s'
+              % (info.object_type, info.parent_link,
+                 info.attach_link, info.touch_links))
