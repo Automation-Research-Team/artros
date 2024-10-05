@@ -13,11 +13,19 @@ find_package(moveit_msgs REQUIRED)
 
 set(
   msg_files
+    msg/CollisionObjectInfo.msg
     msg/DisplayItem.msg
     msg/Float32Stamped.msg
+    msg/MeshResource.msg
     msg/Pointing.msg
     msg/RequestHelp.msg
     msg/UpsetResult.msg
+)
+
+set(
+  srv_files
+    srv/GetMeshResource.srv
+    srv/ManageCollisionObject.srv
 )
 
 set(
@@ -32,6 +40,7 @@ set(
 rosidl_generate_interfaces(
   ${PROJECT_NAME}
     ${msg_files}
+    ${srv_files}
     ${action_files}
   DEPENDENCIES
     std_msgs
