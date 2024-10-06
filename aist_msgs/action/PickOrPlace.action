@@ -1,6 +1,6 @@
 # Goal
 string                    robot_name
-string                    object_id
+string                    subframe_link
 geometry_msgs/PoseStamped pose
 bool                      pick
 float64[]                 offset

@@ -232,7 +232,9 @@ class AISTBaseRoutines(object):
             rospy.signal_shutdown('manual shutdown')
         elif key == 'robot':
             print('  current: %s' % robot_name)
-            robot_name = raw_input('  robot name? ')
+            new_robot_name = raw_input('  robot name? ')
+            if new_robot_name != '':
+                robot_name = new_robot_name
         elif key == '?' or key == 'help':
             self.print_help_messages()
             print('')
@@ -308,10 +310,12 @@ class AISTBaseRoutines(object):
             except rospy.ROSException as e:
                 rospy.logerr('Unknown pose: %s' % e)
         elif key == 'frame':
-            frame  = raw_input('  frame? ')
-            offset = _get_offset()
+            frame    = raw_input('  frame? ')
+            offset   = _get_offset()
+            eef_link = raw_input('  eef_link? ')
             try:
-                self.go_to_frame(robot_name, frame, offset)
+                self.go_to_frame(robot_name, frame, offset,
+                                 end_effector_link=eef_link)
             except Exception as e:
                 rospy.logerr('Unknown frame: %s', frame)
         elif key == 'clip':
@@ -327,10 +331,11 @@ class AISTBaseRoutines(object):
         elif key == 'gripper':
             print('  current: %s' % self.gripper(robot_name).name)
             gripper_name = raw_input('  gripper name? ')
-            try:
-                self.set_gripper(robot_name, gripper_name)
-            except KeyError as e:
-                rospy.logerr('Unknown gripper: %s' % e)
+            if gripper_name != '':
+                try:
+                    self.set_gripper(robot_name, gripper_name)
+                except KeyError as e:
+                    rospy.logerr('Unknown gripper: %s' % e)
         elif key == 'pregrasp':
             self.pregrasp(robot_name)
         elif key == 'grasp':
@@ -656,7 +661,7 @@ class AISTBaseRoutines(object):
 
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
-             attach=False, wait=True, done_cb=None, active_cb=None):
+             wait=True, done_cb=None, active_cb=None):
         if part_id in self._picking_params:
             params = self._picking_params[part_id]
         else:
@@ -668,16 +673,15 @@ class AISTBaseRoutines(object):
             self.set_gripper_parameters(robot_name,
                                         params['gripper_parameters'])
         return self._pick_or_place.send_goal(robot_name, target_pose, True,
-                                             params['grasp_offset'],
+                                             params['pick_offset'],
                                              params['approach_offset'],
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
-                                             part_id if attach else '',
-                                             wait, done_cb, active_cb)
+                                             '', wait, done_cb, active_cb)
 
     def place(self, robot_name, target_pose, part_id,
-              attach=False, wait=True, done_cb=None, active_cb=None):
+              subframe_link='', wait=True, done_cb=None, active_cb=None):
         if part_id in self._picking_params:
             params = self._picking_params[part_id]
         else:
@@ -694,22 +698,23 @@ class AISTBaseRoutines(object):
                                              params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
-                                             part_id if attach else '',
+                                             subframe_link,
                                              wait, done_cb, active_cb)
 
-    def pick_at_frame(self, robot_name, target_frame, part_id, offset=(),
-                      attach=False, wait=True, done_cb=None, active_cb=None):
+    def pick_at_frame(self, robot_name, target_frame, part_id,
+                      offset=(), wait=True, done_cb=None, active_cb=None):
         return self.pick(robot_name,
                          PoseStamped(Header(frame_id=target_frame),
                                      self.pose_from_offset(offset)),
-                         part_id, attach, wait, done_cb, active_cb)
+                         part_id, wait, done_cb, active_cb)
 
-    def place_at_frame(self, robot_name, target_frame, part_id, offset=(),
-                       attach=False, wait=True, done_cb=None, active_cb=None):
+    def place_at_frame(self, robot_name, target_frame, part_id,
+                       offset=(), subframe_link='',
+                       wait=True, done_cb=None, active_cb=None):
         return self.place(robot_name,
                           PoseStamped(Header(frame_id=target_frame),
                                       self.pose_from_offset(offset)),
-                          part_id, attach, wait, done_cb, active_cb)
+                          part_id, subframe_link, wait, done_cb, active_cb)
 
     def pick_or_place_wait_for_stage(self, stage, timeout=rospy.Duration()):
         return self._pick_or_place.wait_for_stage(stage, timeout)
