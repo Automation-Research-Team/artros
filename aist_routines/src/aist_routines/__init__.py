@@ -486,7 +486,7 @@ class AISTBaseRoutines(object):
 
         try:
             path, fraction = group.compute_cartesian_path(
-                                 transformed_poses.poses, self._eef_step, 0.0)
+                                 transformed_poses.poses, self._eef_step)
         except Exception as e:
             fraction = 0.0
             rospy.logerr(e)
