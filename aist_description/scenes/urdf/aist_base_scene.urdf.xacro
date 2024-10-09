@@ -9,7 +9,7 @@
   <xacro:property name="b_bot_y"	value="0.4875"/>
   <xacro:property name="b_bot_theta"	value="${pi}"/>
   <xacro:property name="bots_z"		value="0.770"/>
-  <xacro:property name="screen_z"	value="${bots_z + 0.040}"/>
+  <xacro:property name="screen_z"	value="${bots_z + 0.045}"/>
 
   <!-- ground -->
   <link name="ground"/>
