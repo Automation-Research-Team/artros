@@ -615,9 +615,6 @@ class AISTBaseRoutines(object):
                                      marker_lifetime=0):
         graspabilities = self._graspabilityClient.wait_for_result()
 
-        print('*** graspability stamp: [{:0>10}.{:0>9}]'
-              .format(graspabilities.poses.header.stamp.secs,
-                      graspabilities.poses.header.stamp.nsecs))
         #  We have to transform the poses to reference frame before moving
         #  because graspability poses are represented w.r.t. camera frame
         #  which will change while moving in the case of "eye on hand".
@@ -644,6 +641,10 @@ class AISTBaseRoutines(object):
             graspabilities.gscores        = gscores
             graspabilities.contact_points = contact_points
         self._graspability_publish_marker(graspabilities, marker_lifetime)
+        rospy.loginfo('{} graspabilities found with stamp: [{:0>10}.{:0>9}]'
+                      .format(len(graspabilities.poses.poses),
+                              graspabilities.poses.header.stamp.secs,
+                              graspabilities.poses.header.stamp.nsecs))
         return graspabilities
 
     def _graspability_publish_marker(self, graspabilities, marker_lifetime=0):

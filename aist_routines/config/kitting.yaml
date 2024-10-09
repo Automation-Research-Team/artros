@@ -219,7 +219,7 @@ sweep_parameters:
   05_MBRFA30-2-P6:
     sweep_length: 0.030
     approach_offset: [0.0, -0.015, 0.15]
-    sweep_offset: [0.0, -0.015, -0.005]
+    sweep_offset: [0.0, -0.015, -0.012]
     departure_offset: [0.0, 0.0, 0.15]
     speed_fast: 1.0
     speed_slow: 0.02
@@ -227,7 +227,7 @@ sweep_parameters:
 repeat_sweep_parameters:
   sweep_length: 0.030
   approach_offset: [0.0, -0.020, 0.15]
-  sweep_offset: [0.0, -0.018, -0.005]
+  sweep_offset: [0.0, -0.018, -0.012]
   departure_offset: [0.0, 0.0, 0.15]
   speed_fast: 0.02
   speed_slow: 0.02

@@ -87,16 +87,22 @@ class HMIRoutines(KittingRoutines):
     def print_help_messages(self):
         super().print_help_messages()
         print('=== HMI commands ===')
-        print('  w: sWeep')
-        print('  r: Request help')
+        print('  sh: Search graspabilities with HMI parameters')
+        print('  sw: sWeep')
+        print('  rh: Request help')
 
     def interactive(self, key, robot_name, axis, speed):
-        if key == 'w':
+        if key == 'sh':
+            bin_id = 'bin_' + raw_input('  bin id? ')
+            self.set_hmi_graspability_params(bin_id)
+            self.search_bin(bin_id)
+            self.restore_original_graspability_params(bin_id)
+        elif key == 'sw':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self._attempt_bin._clear_fail_poses()
             self.sweep_bin(bin_id)
             self.go_to_named_pose(robot_name, 'home')
-        elif key == 'r':
+        elif key == 'rh':
             bin_id = 'bin_' + raw_input('  bin id? ')
             self.request_help_bin(bin_id)
         else:
@@ -104,8 +110,9 @@ class HMIRoutines(KittingRoutines):
         return robot_name, axis, speed
 
     # Graspability stuffs
-    def search_bin(self, bin_id, min_height=0.004, max_slant=pi/4):
-        return super().search_bin(bin_id, min_height,
+    def search_bin(self, bin_id,
+                   min_height=0.004, max_height=0.045, max_slant=pi/4):
+        return super().search_bin(bin_id, min_height, max_height,
                                   0 if self.using_hmi_graspability_params else
                                   max_slant)
 

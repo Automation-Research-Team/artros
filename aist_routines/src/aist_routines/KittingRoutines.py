@@ -88,7 +88,7 @@ class KittingRoutines(AssemblyRoutines):
             super().print_help_messages()
         print('=== Kitting commands ===')
         print('  m: Create a mask image')
-        print('  s: Search graspabilities')
+        print('  s: Search graspabilities with normal parameters')
         print('  a: Attempt to pick and place')
         print('  A: Repeat attempts to pick and place')
         print('  c: Cancel attempts to pick and place')
@@ -125,7 +125,8 @@ class KittingRoutines(AssemblyRoutines):
         return robot_name, axis, speed
 
     # Commands
-    def search_bin(self, bin_id, min_height=0.004, max_slant=pi/4):
+    def search_bin(self, bin_id,
+                   min_height=0.004, max_height=0.045, max_slant=pi/4):
         bin_props  = self._bin_props[bin_id]
         part_id    = bin_props['part_id']
         part_props = self._part_props[part_id]
@@ -134,8 +135,9 @@ class KittingRoutines(AssemblyRoutines):
         self.camera(part_props['camera_name']).trigger_frame()
         return self.graspability_wait_for_result(
                    bin_props['name'],
-                   lambda pose, min_height=min_height, max_slant=max_slant:
-                       self._pose_filter(pose, min_height, max_slant))
+                   lambda pose, min_height=min_height, max_height=max_height, max_slant=max_slant:
+                       self._pose_filter(pose,
+                                         min_height, max_height, max_slant))
 
     def demo(self):
         bin_ids = ('bin_1', 'bin_4', 'bin_5')
@@ -153,8 +155,8 @@ class KittingRoutines(AssemblyRoutines):
         self.go_to_named_pose(self.current_robot_name, 'home')
 
     # Utilities
-    def _pose_filter(self, pose, min_height, max_slant):
-        if pose.position.z < min_height:
+    def _pose_filter(self, pose, min_height, max_height, max_slant):
+        if pose.position.z < min_height or pose.position.z > max_height:
             return None
 
         T = tfs.quaternion_matrix((pose.orientation.x, pose.orientation.y,
@@ -180,5 +182,5 @@ class KittingRoutines(AssemblyRoutines):
         rospy.sleep(1)          # Pause required after cancelling arm motion
         if self.current_robot_name:
             self.go_to_named_pose(self.current_robot_name, 'home')
-            self.place_tool(self.current_robot_name)
-            self.go_to_named_pose(self.current_robot_name, 'home')
+            # self.place_tool(self.current_robot_name)
+            # self.go_to_named_pose(self.current_robot_name, 'home')

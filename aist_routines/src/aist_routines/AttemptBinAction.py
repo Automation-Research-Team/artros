@@ -186,11 +186,9 @@ class AttemptBin(SimpleActionClient):
         # Here, no graspability poses remained or max_attempts attained.
         if self._do_error_recovery:
             if routines.using_hmi_graspability_params:
-                print('*** OK2')
                 routines.restore_original_graspability_params(bin_id)
                 return False, None
             else:
-                print('*** OK3')
                 routines.set_hmi_graspability_params(bin_id)
                 return True, None
         else:
