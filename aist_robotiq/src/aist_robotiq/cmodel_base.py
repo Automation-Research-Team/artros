@@ -60,10 +60,10 @@ class CModelBase(object):
 
     def _clip_command(self, command):
         command.rACT = clip(command.rACT, 0, 1)
-        command.rMOD = clip(command.rACT, 0, 3)
+        command.rMOD = clip(command.rMOD, 0, 3)
         command.rGTO = clip(command.rGTO, 0, 1)
         command.rATR = clip(command.rATR, 0, 1)
-        command.rARD = clip(command.rATR, 0, 1)
+        command.rARD = clip(command.rARD, 0, 1)
         command.rPR  = clip(command.rPR,  0, 255)
         command.rSP  = clip(command.rSP,  0, 255)
         command.rFR  = clip(command.rFR,  0, 255)
