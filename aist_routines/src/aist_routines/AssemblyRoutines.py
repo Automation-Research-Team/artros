@@ -103,7 +103,7 @@ class AssemblyRoutines(URRoutines):
             if subframe == '':
                 subframe = 'base_link'
             place_frame = raw_input('  place frame? ')
-            self.place_part(robot_name, place_frame, part_id, subframe)
+            self.place_part(robot_name, part_id, subframe, place_frame)
         elif key == 'I':
             self._initialize_collision_objects()
         elif key == 'i':
@@ -143,8 +143,8 @@ class AssemblyRoutines(URRoutines):
         if tool_name == default_gripper_name:
             return True
         self.set_gripper(robot_name, default_gripper_name)
-        return self.place_at_frame(robot_name, tool_name + '_holder_link',
-                                   tool_name,
+        return self.place_at_frame(robot_name,
+                                   tool_name + '_holder_link', tool_name,
                                    subframe_link=tool_name + '/base_link')
 
     def pick_screw(self, robot_name, screw_type):
@@ -162,10 +162,10 @@ class AssemblyRoutines(URRoutines):
         if self.gripper(robot_name).name != \
            self.default_gripper_name(robot_name):
             self.place_tool(robot_name)
-        return self.pick_at_frame(robot_name, part_id + '/' + subframe,
-                                  part_id)
+        return self.pick_at_frame(robot_name,
+                                  part_id + '/' + subframe, part_id)
 
-    def place_part(self, robot_name, place_frame, part_id, subframe):
+    def place_part(self, robot_name, part_id, subframe, place_frame):
         if self.gripper(robot_name).name != \
            self.default_gripper_name(robot_name):
             return False

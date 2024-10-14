@@ -115,13 +115,15 @@ class PickOrPlace(SimpleActionClient):
         object_id = PickOrPlace._get_object_id(
                         goal.pose.header.frame_id if goal.pick else \
                         goal.subframe_link)
+        eef_link  = '' if goal.pick else goal.subframe_link
 
         # Go to approach pose.
         self._publish_feedback(PickOrPlaceFeedback.MOVING,
                                'Go to approach pose')
         speed   = goal.speed_fast if goal.pick else goal.speed_slow
         success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                           goal.approach_offset, speed)
+                                           goal.approach_offset, speed,
+                                           end_effector_link=eef_link)
 
         # Check success of going to approach pose.
         if not self._server.is_active():
@@ -141,10 +143,9 @@ class PickOrPlace(SimpleActionClient):
         elif object_id != '':
             com.append_touch_links(object_id, goal.pose.header.frame_id)
 
-        eef_link = '' if goal.pick else goal.subframe_link
-        success  = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                            goal.offset, goal.speed_slow,
-                                            end_effector_link=eef_link)
+        success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           goal.offset, goal.speed_slow,
+                                           end_effector_link=eef_link)
 
         # Check success of going to pick/place pose.
         if not self._server.is_active() or not success:
@@ -178,13 +179,11 @@ class PickOrPlace(SimpleActionClient):
                                'Go back to departure pose')
         if goal.pick:
             gripper.postgrasp()                 # Postgrasp (not wait)
-            offset = goal.departure_offset
-            speed  = goal.speed_slow
+            speed = goal.speed_slow
         else:
-            offset = goal.approach_offset
-            speed  = goal.speed_fast
-        success = routines.go_to_pose_goal(goal.robot_name,
-                                           goal.pose, offset, speed)
+            speed = goal.speed_fast
+        success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                           goal.approach_offset, speed)
 
         # Check success of going back to departure/approach pose.
         if not self._server.is_active() or not success:

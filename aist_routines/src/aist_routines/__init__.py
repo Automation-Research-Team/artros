@@ -373,7 +373,7 @@ class AISTBaseRoutines(object):
         return [target_values[joint_name]
                 for joint_name in self.get_joint_names(robot_name)]
 
-    def remember_joint_values(self, robot_name, name, joint_values):
+    def remember_joint_values(self, robot_name, name, joint_values=None):
         self._cmd.get_group(robot_name).remember_joint_values(name,
                                                               joint_values)
 
@@ -663,11 +663,11 @@ class AISTBaseRoutines(object):
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
              wait=True, done_cb=None, active_cb=None):
-        if part_id in self._picking_params:
-            params = self._picking_params[part_id]
-        else:
-            params = self._picking_params[
-                         self.com.get_object_info(part_id).object_type]
+        params = self._picking_params.get(
+                     part_id,
+                     self._picking_params.get(
+                         self.com.get_object_info(part_id).object_type),
+                         self._picking_params['default'])
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
@@ -683,6 +683,14 @@ class AISTBaseRoutines(object):
 
     def place(self, robot_name, target_pose, part_id,
               subframe_link='', wait=True, done_cb=None, active_cb=None):
+        params = self._placing_params.get(
+                     target_pose.header.frame_id,
+                     self._picking_params.get(
+                         part_id,
+                         self._picking_params.get(
+                             self.com.get_object_info(part_id).object_type),
+                             self._picking_params['default']))
+
         if part_id in self._picking_params:
             params = self._picking_params[part_id]
         else:

@@ -16,6 +16,12 @@ initial_object_poses:
 #    target_link: base/panel_bearing_screw_hole_1
 #    source_link: panel_bearing/bottom_screw_hole_aligner_1
 
+placing_parameters:
+  precision_tool_holder_link:
+    approach_offset:  [ 0.000, 0.000,  0.050, 0.0, 15.0, 0.0]
+    place_offset:     [ 0.000, 0.000,  0.000, 0.0,  0.0, 0.0]
+    departure_offset: [ 0.000, 0.000,  0.050, 0.0, 15.0, 0.0]
+
 picking_parameters:
   precision_tool:
     approach_offset:  [-0.007, 0.000,  0.050, 0.0, 15.0, 0.0]
@@ -40,10 +46,10 @@ picking_parameters:
       release_position: 0.035
       max_effort:       5.0
   screw_tool_m4:
-    approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
-    pick_offset:      [-0.005, 0.000, 0.008, 0.0, 15.0, 0.0]
-    place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
-    departure_offset: [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
+    approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 10.0, 0.0]
+    pick_offset:      [-0.005, 0.000, 0.008, 0.0, 10.0, 0.0]
+    place_offset:     [ 0.000, 0.000, 0.000, 0.0,  0.0, 0.0]
+    departure_offset: [ 0.140, 0.000, 0.010, 0.0, 10.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
     gripper_parameters:
