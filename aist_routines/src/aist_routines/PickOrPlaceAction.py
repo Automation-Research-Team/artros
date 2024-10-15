@@ -168,6 +168,8 @@ class PickOrPlace(SimpleActionClient):
         else:
             gripper.release()
             if object_id != '':
+                inhand_pose = routines.lookup_pose(goal.subframe_link,
+                                                   gripper.tip_link)
                 com.detach_object(object_id, goal.pose.header.frame_id,
                                   routines.lookup_pose(
                                       goal.pose.header.frame_id,
@@ -180,10 +182,16 @@ class PickOrPlace(SimpleActionClient):
         if goal.pick:
             gripper.postgrasp()                 # Postgrasp (not wait)
             speed = goal.speed_slow
+            offset = goal.departure_offset
         else:
             speed = goal.speed_fast
+            if object_id != '':
+                offset = ()
+
+            else:
+                offset = goal.approach_offset
         success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                           goal.approach_offset, speed)
+                                           offset, speed)
 
         # Check success of going back to departure/approach pose.
         if not self._server.is_active() or not success:
