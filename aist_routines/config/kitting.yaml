@@ -249,7 +249,7 @@ graspability_parameters:
     nz: 0.6
     object_size: 8
     min_distance: 30
-    contact_radius: 10
+    contact_radius: 12
     open_width: 45
     finger_width: 1
     finger_thickness: 5
