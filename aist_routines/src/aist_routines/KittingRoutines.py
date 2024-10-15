@@ -182,5 +182,6 @@ class KittingRoutines(AssemblyRoutines):
         rospy.sleep(1)          # Pause required after cancelling arm motion
         if self.current_robot_name:
             self.go_to_named_pose(self.current_robot_name, 'home')
-            # self.place_tool(self.current_robot_name)
-            # self.go_to_named_pose(self.current_robot_name, 'home')
+            rospy.sleep(1)
+            self.place_tool(self.current_robot_name)
+            self.go_to_named_pose(self.current_robot_name, 'home')
