@@ -34,10 +34,27 @@
 # Author: Toshio Ueshiba
 #
 import rospy, threading
+from tf                 import transformations as tfs
 from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from aist_msgs.msg      import (PickOrPlaceAction, PickOrPlaceGoal,
                                 PickOrPlaceResult, PickOrPlaceFeedback)
+
+######################################################################
+#  local functions                                                   #
+######################################################################
+def _pose_matrix(pose):
+    return tfs.concatenate_matrices(tfs.translation_matrix((pose.position.x,
+                                                            pose.position.y,
+                                                            pose.position.z)),
+                                    tfs.quaternion_matrix((pose.orientation.x,
+                                                           pose.orientation.y,
+                                                           pose.orientation.z,
+                                                           pose.orientation.w)))
+
+def _pose_from_matrix(T):
+    return Pose(Point(*tfs.translation_from_matrix(T)),
+                Quaternion(*tfs.quaternion_from_matrix(T)))
 
 ######################################################################
 #  class PickOrPlace                                                 #

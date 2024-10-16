@@ -142,6 +142,7 @@ class AISTBaseRoutines(object):
         # Pick and place action
         if rospy.has_param('~picking_parameters'):
             self._picking_params = rospy.get_param('~picking_parameters')
+            self._placing_params = rospy.get_param('~placing_parameters', {})
             self._pick_or_place  = PickOrPlace(self)
         else:
             self._pick_or_place = None
@@ -663,11 +664,10 @@ class AISTBaseRoutines(object):
     # Pick and place action stuffs
     def pick(self, robot_name, target_pose, part_id,
              wait=True, done_cb=None, active_cb=None):
-        params = self._picking_params.get(
-                     part_id,
-                     self._picking_params.get(
-                         self.com.get_object_info(part_id).object_type),
-                         self._picking_params['default'])
+        params = self._picking_params.get(part_id)
+        if params is None:
+            params = self._picking_params[
+                         self.com.get_object_info(part_id).object_type]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
@@ -683,19 +683,12 @@ class AISTBaseRoutines(object):
 
     def place(self, robot_name, target_pose, part_id,
               subframe_link='', wait=True, done_cb=None, active_cb=None):
-        params = self._placing_params.get(
-                     target_pose.header.frame_id,
-                     self._picking_params.get(
-                         part_id,
-                         self._picking_params.get(
-                             self.com.get_object_info(part_id).object_type),
-                             self._picking_params['default']))
-
-        if part_id in self._picking_params:
-            params = self._picking_params[part_id]
-        else:
-            params = self._picking_params[
-                         self.com.get_object_info(part_id).object_type]
+        params = self._placing_params.get(target_pose.header.frame_id)
+        if params is None:
+            params = self._picking_params.get(part_id)
+            if params is None:
+                params = self._picking_params[
+                             self.com.get_object_info(part_id).object_type]
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
