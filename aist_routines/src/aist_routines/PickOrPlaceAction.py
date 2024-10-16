@@ -34,25 +34,27 @@
 # Author: Toshio Ueshiba
 #
 import rospy, threading
+import numpy as np
 from tf                 import transformations as tfs
 from actionlib          import SimpleActionServer, SimpleActionClient
 from actionlib_msgs.msg import GoalStatus
 from aist_msgs.msg      import (PickOrPlaceAction, PickOrPlaceGoal,
                                 PickOrPlaceResult, PickOrPlaceFeedback)
+from geometry_msgs.msg  import Point, Quaternion, Pose, PoseStamped
 
 ######################################################################
 #  local functions                                                   #
 ######################################################################
-def _pose_matrix(pose):
-    return tfs.concatenate_matrices(tfs.translation_matrix((pose.position.x,
-                                                            pose.position.y,
-                                                            pose.position.z)),
-                                    tfs.quaternion_matrix((pose.orientation.x,
-                                                           pose.orientation.y,
-                                                           pose.orientation.z,
-                                                           pose.orientation.w)))
-
-def _pose_from_matrix(T):
+def _concatenate_poses(*poses):
+    T = np.identity(4)
+    for pose in poses:
+        T = T @ tfs.translation_matrix((pose.position.x,
+                                        pose.position.y,
+                                        pose.position.z)) \
+              @ tfs.quaternion_matrix((pose.orientation.x,
+                                       pose.orientation.y,
+                                       pose.orientation.z,
+                                       pose.orientation.w))
     return Pose(Point(*tfs.translation_from_matrix(T)),
                 Quaternion(*tfs.quaternion_from_matrix(T)))
 
@@ -198,17 +200,24 @@ class PickOrPlace(SimpleActionClient):
                                'Go back to departure pose')
         if goal.pick:
             gripper.postgrasp()                 # Postgrasp (not wait)
-            speed = goal.speed_slow
+            speed  = goal.speed_slow
+            pose   = goal.pose
             offset = goal.departure_offset
         else:
             speed = goal.speed_fast
             if object_id != '':
                 offset = ()
-
+                pose   = PoseStamped(goal.pose.header,
+                                     _concatenate_poses(
+                                         goal.pose.pose,
+                                         routines.pose_from_offset(
+                                             goal.departure_offset),
+                                         inhand_pose))
             else:
                 offset = goal.approach_offset
-        success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                           offset, speed)
+                pose   = goal.pose
+        success = routines.go_to_pose_goal(goal.robot_name,
+                                           pose, offset, speed)
 
         # Check success of going back to departure/approach pose.
         if not self._server.is_active() or not success:
