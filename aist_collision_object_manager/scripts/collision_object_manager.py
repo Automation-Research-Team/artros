@@ -500,8 +500,9 @@ class CollisionObjectManager(object):
     def _clean_touch_links(self, object_id):
         aco = self._get_attached_object(object_id)
         if aco is None:
-            raise Exception("unknown attached collision object '%s'"
-                            % object_id)
+            rospy.logwarn("(CollisionObjectManager) unknown attached collision object '%s'"
+                          % object_id)
+            return
         self._clean_touch_links_of_descendants(aco)
 
     def _get_object_info(self, object_id):

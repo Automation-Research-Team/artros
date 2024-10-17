@@ -46,6 +46,11 @@ from geometry_msgs.msg  import Point, Quaternion, Pose, PoseStamped
 #  class PickOrPlace                                                 #
 ######################################################################
 class PickOrPlace(SimpleActionClient):
+    class Error(Exception):
+        def __init__(self, result, text):
+            super().__init__(text)
+            self.result = result
+
     def __init__(self, routines, ns='pick_or_place'):
         SimpleActionClient.__init__(self, ns, PickOrPlaceAction)
 
@@ -122,116 +127,115 @@ class PickOrPlace(SimpleActionClient):
             object_id = PickOrPlace._get_object_id(goal.subframe_link)
             eef_link  = goal.subframe_link
 
-        # Go to approach pose.
-        self._publish_feedback(PickOrPlaceFeedback.MOVING,
-                               'Go to approach pose')
-        speed   = goal.speed_fast if goal.pick else goal.speed_slow
-        success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                           goal.approach_offset, speed,
-                                           end_effector_link=eef_link)
+        try:
+            # Go to approach pose.
+            self._publish_feedback(PickOrPlaceFeedback.MOVING,
+                                   'Go to approach pose')
+            speed   = goal.speed_fast if goal.pick else goal.speed_slow
+            success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                               goal.approach_offset, speed,
+                                               end_effector_link=eef_link)
 
-        # Check success of going to approach pose.
-        if not self._server.is_active():
-            return
-        if not success:
-            self._set_aborted(PickOrPlaceResult.MOVE_FAILURE,
-                              'Failed to go to approach pose')
-            return
-
-        # Go to pick/place pose.
-        self._publish_feedback(PickOrPlaceFeedback.APPROACHING,
-                               'Go to %s pose' %
-                               ('pick' if goal.pick else 'place'))
-        if goal.pick:
-            gripper.pregrasp()  # Pregrasp (not wait)
-            gripper.wait()      # Wait for pregrasp completed
-        elif object_id != '':
-            com.append_touch_links(object_id, goal.pose.header.frame_id)
-
-        success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
-                                           goal.offset, goal.speed_slow,
-                                           end_effector_link=eef_link)
-
-        # Check success of going to pick/place pose.
-        if not self._server.is_active() or not success:
-            if object_id != '':
-                com.clean_touch_links(object_id)
+            # Check success of going to approach pose.
+            if not self._server.is_active():
+                return
             if not success:
-                self._set_aborted(PickOrPlaceResult.APPROACH_FAILURE,
-                                  'Failed to approach target')
-            return
+                raise PickOrPlace.Error(PickOrPlaceResult.MOVE_FAILURE,
+                                        'Failed to go to approach pose')
 
-        # Grasp/release at pick/place pose.
-        self._publish_feedback(PickOrPlaceFeedback.GRASPING_OR_RELEASING,
-                               'Pick' if goal.pick else 'Place')
-        if goal.pick:
-            gripper.grasp()
-            if object_id != '':
-                com.attach_object(object_id, gripper.tip_link,
-                                  routines.lookup_pose(
-                                      gripper.tip_link,
-                                      goal.pose.header.frame_id),
-                                  goal.pose.header.frame_id)
-        else:
-            gripper.release()
-            if object_id != '':
-                inhand_pose = routines.lookup_pose(goal.subframe_link,
-                                                   gripper.tip_link)
-                com.detach_object(object_id, goal.pose.header.frame_id,
-                                  routines.lookup_pose(
-                                      goal.pose.header.frame_id,
-                                      goal.subframe_link),
-                                  goal.subframe_link)
-
-        # Go back to departure(pick) or approach(place) pose.
-        self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
-                               'Go back to departure pose')
-        if goal.pick:
-            gripper.postgrasp()                 # Postgrasp (not wait)
-            speed  = goal.speed_slow
-            pose   = goal.pose
-            offset = goal.departure_offset
-        else:
-            speed = goal.speed_fast
-            if object_id != '':
-                offset = ()
-                pose   = PoseStamped(goal.pose.header,
-                                     PickOrPlace._concatenate_poses(
-                                         goal.pose.pose,
-                                         routines.pose_from_offset(
-                                             goal.departure_offset),
-                                         inhand_pose))
-            else:
-                offset = goal.approach_offset
-                pose   = goal.pose
-        success = routines.go_to_pose_goal(goal.robot_name,
-                                           pose, offset, speed)
-
-        # Check success of going back to departure/approach pose.
-        if not self._server.is_active() or not success:
+            # Go to pick/place pose.
+            self._publish_feedback(PickOrPlaceFeedback.APPROACHING,
+                                   'Go to %s pose' %
+                                   ('pick' if goal.pick else 'place'))
             if goal.pick:
-                gripper.release()
-            if not success:
-                self._set_aborted(PickOrPlaceResult.DEPARTURE_FAILURE,
-                                  'Failed to depart from target')
-            if object_id != '':
-                com.clean_touch_links(object_id)
-            return
+                gripper.pregrasp()  # Pregrasp (not wait)
+                gripper.wait()      # Wait for pregrasp completed
+            elif object_id != '':
+                com.append_touch_links(object_id, goal.pose.header.frame_id)
 
-        # Check success of postgrasp.
-        if goal.pick:
-            if object_id != '':
-                com.clean_touch_links(object_id)
-            if rospy.get_param('use_real_robot', False) and \
+            success = routines.go_to_pose_goal(goal.robot_name, goal.pose,
+                                               goal.offset, goal.speed_slow,
+                                               end_effector_link=eef_link)
+
+            # Check success of going to pick/place pose.
+            if not self._server.is_active():
+                return
+            if not success:
+                raise PickOrPlace.Error(PickOrPlaceResult.APPROACH_FAILURE,
+                                        'Failed to approach target')
+
+            # Grasp/release at pick/place pose.
+            self._publish_feedback(PickOrPlaceFeedback.GRASPING_OR_RELEASING,
+                                   'Pick' if goal.pick else 'Place')
+            if goal.pick:
+                gripper.grasp()
+                if object_id != '':
+                    com.attach_object(object_id, gripper.tip_link,
+                                      routines.lookup_pose(
+                                          gripper.tip_link,
+                                          goal.pose.header.frame_id),
+                                      goal.pose.header.frame_id)
+            else:
+                gripper.release()
+                if object_id != '':
+                    inhand_pose = routines.lookup_pose(goal.subframe_link,
+                                                       gripper.tip_link)
+                    com.detach_object(object_id, goal.pose.header.frame_id,
+                                      routines.lookup_pose(
+                                          goal.pose.header.frame_id,
+                                          goal.subframe_link),
+                                      goal.subframe_link)
+
+            # Go back to departure(pick) or approach(place) pose.
+            self._publish_feedback(PickOrPlaceFeedback.DEPARTING,
+                                   'Go back to departure pose')
+            if goal.pick:
+                gripper.postgrasp()                 # Postgrasp (not wait)
+                speed  = goal.speed_slow
+                pose   = goal.pose
+                offset = goal.departure_offset
+            else:
+                speed = goal.speed_fast
+                if object_id != '':
+                    offset = ()
+                    pose   = PoseStamped(goal.pose.header,
+                                         PickOrPlace._concatenate_poses(
+                                             goal.pose.pose,
+                                             routines.pose_from_offset(
+                                                 goal.departure_offset),
+                                             inhand_pose))
+                else:
+                    offset = goal.approach_offset
+                    pose   = goal.pose
+            success = routines.go_to_pose_goal(goal.robot_name,
+                                               pose, offset, speed)
+
+            # Check success of going back to departure/approach pose.
+            if not self._server.is_active():
+                return
+            if not success:
+                if goal.pick:
+                    gripper.release()
+                raise PickOrPlace.Error(PickOrPlaceResult.DEPARTURE_FAILURE,
+                                        'Failed to depart from target')
+
+            # Check success of postgrasp.
+            if goal.pick and \
+               rospy.get_param('use_real_robot', False) and \
                not gripper.wait():    # Wait for postgrasp completed
                 gripper.release()
-                self._set_aborted(PickOrPlaceResult.GRASP_FAILURE,
-                                  'Failed to grasp')
-                return
+                raise PickOrPlace.Error(PickOrPlaceResult.GRASP_FAILURE,
+                                        'Failed to grasp')
 
-        self._server.set_succeeded(PickOrPlaceResult(PickOrPlaceResult.SUCCESS))
-        rospy.loginfo('### %s succeeded. ###',
-                      'Pick' if goal.pick else 'Place')
+            self._server.set_succeeded(PickOrPlaceResult(
+                                           PickOrPlaceResult.SUCCESS))
+            rospy.loginfo('### %s succeeded. ###',
+                          'Pick' if goal.pick else 'Place')
+        except PickOrPlace.Error as err:
+            self._server.set_aborted(PickOrPlaceResult(err.result, str(err)))
+        finally:
+            if object_id != '':
+                com.clean_touch_links(object_id)
 
     def _preempt_cb(self):
         goal = self._server.current_goal.get_goal()
