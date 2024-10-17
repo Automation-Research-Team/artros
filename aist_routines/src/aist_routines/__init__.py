@@ -683,21 +683,23 @@ class AISTBaseRoutines(object):
 
     def place(self, robot_name, target_pose, part_id,
               subframe_link='', wait=True, done_cb=None, active_cb=None):
-        params = self._placing_params.get(target_pose.header.frame_id)
+        params = self._picking_params.get(part_id)
         if params is None:
-            params = self._picking_params.get(part_id)
-            if params is None:
-                params = self._picking_params[
-                             self.com.get_object_info(part_id).object_type]
+            params = self._picking_params[
+                self.com.get_object_info(part_id).object_type]
+        placing_params = self._placing_params.get(target_pose.header.frame_id,
+                                                  params)
+        if not placing_params.get('place_offset'):
+            placing_params = self._placing_params['default']
         if 'gripper_name' in params:
             self.set_gripper(robot_name, params['gripper_name'])
         if 'gripper_parameters' in params:
             self.set_gripper_parameters(robot_name,
                                         params['gripper_parameters'])
         return self._pick_or_place.send_goal(robot_name, target_pose, False,
-                                             params['place_offset'],
-                                             params['approach_offset'],
-                                             params['departure_offset'],
+                                             placing_params['place_offset'],
+                                             placing_params['approach_offset'],
+                                             placing_params['departure_offset'],
                                              params['speed_fast'],
                                              params['speed_slow'],
                                              subframe_link,

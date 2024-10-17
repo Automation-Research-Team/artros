@@ -43,22 +43,6 @@ from aist_msgs.msg      import (PickOrPlaceAction, PickOrPlaceGoal,
 from geometry_msgs.msg  import Point, Quaternion, Pose, PoseStamped
 
 ######################################################################
-#  local functions                                                   #
-######################################################################
-def _concatenate_poses(*poses):
-    T = np.identity(4)
-    for pose in poses:
-        T = T @ tfs.translation_matrix((pose.position.x,
-                                        pose.position.y,
-                                        pose.position.z)) \
-              @ tfs.quaternion_matrix((pose.orientation.x,
-                                       pose.orientation.y,
-                                       pose.orientation.z,
-                                       pose.orientation.w))
-    return Pose(Point(*tfs.translation_from_matrix(T)),
-                Quaternion(*tfs.quaternion_from_matrix(T)))
-
-######################################################################
 #  class PickOrPlace                                                 #
 ######################################################################
 class PickOrPlace(SimpleActionClient):
@@ -128,13 +112,15 @@ class PickOrPlace(SimpleActionClient):
 
     def _execute_cb(self, goal):
         rospy.loginfo('### Do %s ###', 'picking' if goal.pick else 'placing')
-        routines  = self._routines
-        com       = routines.com
-        gripper   = routines.gripper(goal.robot_name)
-        object_id = PickOrPlace._get_object_id(
-                        goal.pose.header.frame_id if goal.pick else \
-                        goal.subframe_link)
-        eef_link  = '' if goal.pick else goal.subframe_link
+        routines = self._routines
+        com      = routines.com
+        gripper  = routines.gripper(goal.robot_name)
+        if goal.pick:
+            object_id = PickOrPlace._get_object_id(goal.pose.header.frame_id)
+            eef_link  = ''
+        else:
+            object_id = PickOrPlace._get_object_id(goal.subframe_link)
+            eef_link  = goal.subframe_link
 
         # Go to approach pose.
         self._publish_feedback(PickOrPlaceFeedback.MOVING,
@@ -157,8 +143,8 @@ class PickOrPlace(SimpleActionClient):
                                'Go to %s pose' %
                                ('pick' if goal.pick else 'place'))
         if goal.pick:
-            gripper.pregrasp()                  # Pregrasp (not wait)
-            gripper.wait()                      # Wait for pregrasp completed
+            gripper.pregrasp()  # Pregrasp (not wait)
+            gripper.wait()      # Wait for pregrasp completed
         elif object_id != '':
             com.append_touch_links(object_id, goal.pose.header.frame_id)
 
@@ -168,6 +154,8 @@ class PickOrPlace(SimpleActionClient):
 
         # Check success of going to pick/place pose.
         if not self._server.is_active() or not success:
+            if object_id != '':
+                com.clean_touch_links(object_id)
             if not success:
                 self._set_aborted(PickOrPlaceResult.APPROACH_FAILURE,
                                   'Failed to approach target')
@@ -208,7 +196,7 @@ class PickOrPlace(SimpleActionClient):
             if object_id != '':
                 offset = ()
                 pose   = PoseStamped(goal.pose.header,
-                                     _concatenate_poses(
+                                     PickOrPlace._concatenate_poses(
                                          goal.pose.pose,
                                          routines.pose_from_offset(
                                              goal.departure_offset),
@@ -223,11 +211,11 @@ class PickOrPlace(SimpleActionClient):
         if not self._server.is_active() or not success:
             if goal.pick:
                 gripper.release()
-                #if object_id != '':
-                #    com.clean_touch_links()
             if not success:
                 self._set_aborted(PickOrPlaceResult.DEPARTURE_FAILURE,
                                   'Failed to depart from target')
+            if object_id != '':
+                com.clean_touch_links(object_id)
             return
 
         # Check success of postgrasp.
@@ -268,3 +256,17 @@ class PickOrPlace(SimpleActionClient):
     def _get_object_id(link_name):
         tokens = link_name.rsplit('/', 1)
         return tokens[0] if len(tokens) == 2 else ''
+
+    @staticmethod
+    def _concatenate_poses(*poses):
+        T = np.identity(4)
+        for pose in poses:
+            T = T @ tfs.translation_matrix((pose.position.x,
+                                            pose.position.y,
+                                            pose.position.z)) \
+                  @ tfs.quaternion_matrix((pose.orientation.x,
+                                           pose.orientation.y,
+                                           pose.orientation.z,
+                                           pose.orientation.w))
+        return Pose(Point(*tfs.translation_from_matrix(T)),
+                    Quaternion(*tfs.quaternion_from_matrix(T)))
