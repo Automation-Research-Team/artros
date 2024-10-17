@@ -48,8 +48,9 @@ from geometry_msgs.msg  import Point, Quaternion, Pose, PoseStamped
 class PickOrPlace(SimpleActionClient):
     class Error(Exception):
         def __init__(self, result, text):
-            super().__init__(text)
+            super().__init__()
             self.result = result
+            self.text   = text
 
     def __init__(self, routines, ns='pick_or_place'):
         SimpleActionClient.__init__(self, ns, PickOrPlaceAction)
@@ -232,7 +233,7 @@ class PickOrPlace(SimpleActionClient):
             rospy.loginfo('### %s succeeded. ###',
                           'Pick' if goal.pick else 'Place')
         except PickOrPlace.Error as err:
-            self._server.set_aborted(PickOrPlaceResult(err.result, str(err)))
+            self._server.set_aborted(PickOrPlaceResult(err.result, err.text))
         finally:
             if object_id != '':
                 com.clean_touch_links(object_id)
