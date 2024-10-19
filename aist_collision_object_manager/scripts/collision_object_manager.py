@@ -302,8 +302,8 @@ class CollisionObjectManager(object):
             elif req.op == ManageCollisionObjectRequest.REMOVE_TOUCH_LINKS:
                 self._append_or_remove_touch_links(req.object_id,
                                                    req.frame_id, False)
-            elif req.op == ManageCollisionObjectRequest.CLEAN_TOUCH_LINKS:
-                self._clean_touch_links(req.object_id)
+            elif req.op == ManageCollisionObjectRequest.RESET_TOUCH_LINKS:
+                self._reset_touch_links()
             elif req.op == ManageCollisionObjectRequest.GET_OBJECT_INFO:
                 res.info = self._get_object_info(req.object_id)
             else:
@@ -497,13 +497,12 @@ class CollisionObjectManager(object):
         rospy.loginfo("(CollisionObjectManager) protect '%s' attached to '%s' with touch links%s",
                       aco.object.id, aco.link_name, aco.touch_links)
 
-    def _clean_touch_links(self, object_id):
-        aco = self._get_attached_object(object_id)
-        if aco is None:
-            rospy.logwarn("(CollisionObjectManager) unknown attached collision object '%s'"
-                          % object_id)
-            return
-        self._clean_touch_links_of_descendants(aco)
+    def _reset_touch_links(self):
+        for aco in self._psi.get_attached_objects().values():
+            self._psi.attach_object(aco,
+                                    touch_links=self._get_parent_touch_links(
+                                                    aco.object.id))
+        rospy.loginfo('(CollisionObjectManager) reset touch links for all attached collision objects')
 
     def _get_object_info(self, object_id):
         info = CollisionObjectInfo()
@@ -515,6 +514,9 @@ class CollisionObjectManager(object):
                 raise Exception("unknown collision object '%s'" % object_id)
             info.attach_link = aco.link_name
             info.touch_links = aco.touch_links
+            info.pose        = aco.object.pose
+        else:
+            info.pose = co.pose
         info.object_type = self._instance_props_dict[object_id].type
         info.parent_link = self._get_parent_link(object_id)
         return info
@@ -563,6 +565,7 @@ class CollisionObjectManager(object):
                 #          self._get_parent_link(child_aco.object.id)))
                 self._attach_descendants(child_aco.object, link, T, True)
 
+        # If 'co' is an attached object, attach its descendants to new 'link'.
         if self._get_attached_object(co.id) is not None:
             for child_co in self._psi.get_objects().values():
                 if self._get_parent_id(child_co.id) == co.id:
@@ -584,15 +587,6 @@ class CollisionObjectManager(object):
             self._psi.remove_attached_object(name=co.id)
             rospy.loginfo("(CollisionObjectManager) detached '%s' from '%s'",
                           aco.object.id, aco.link_name)
-
-    def _clean_touch_links_of_descendants(self, aco):
-        self._psi.attach_object(aco, touch_links=self._get_parent_touch_links(
-                                                     aco.object.id))
-        rospy.loginfo("(CollisionObjectManager) clean '%s' attached to '%s' with touch links%s",
-                      aco.object.id, aco.link_name, aco.touch_links)
-        for child_aco in self._psi.get_attached_objects().values():
-            if self._get_parent_id(child_aco.object.id) == aco.object.id:
-                self._clean_touch_links_of_descendants(child_aco)
 
     def _get_object(self, object_id):
         return self._psi.get_objects([object_id]).get(object_id)
@@ -675,5 +669,5 @@ if __name__ == '__main__':
 
   rospy.init_node('collision_object_manager', anonymous=True)
 
-  server = CollisionObjectManager()
+  server = CollisionObjectManager(synchronous=False)
   rospy.spin()

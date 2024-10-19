@@ -236,7 +236,7 @@ class PickOrPlace(SimpleActionClient):
             self._server.set_aborted(PickOrPlaceResult(err.result, err.text))
         finally:
             if object_id != '':
-                com.clean_touch_links(object_id)
+                com.reset_touch_links()
 
     def _preempt_cb(self):
         goal = self._server.current_goal.get_goal()

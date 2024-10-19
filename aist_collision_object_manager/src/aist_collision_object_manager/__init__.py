@@ -105,10 +105,9 @@ class CollisionObjectManagerClient(object):
         req.frame_id  = untouch_link
         return self._send(req).success
 
-    def clean_touch_links(self, object_id):
+    def reset_touch_links(self):
         req = ManageCollisionObjectRequest()
-        req.op        = ManageCollisionObjectRequest.CLEAN_TOUCH_LINKS
-        req.object_id = object_id
+        req.op = ManageCollisionObjectRequest.RESET_TOUCH_LINKS
         return self._send(req).success
 
     def get_object_info(self, object_id):

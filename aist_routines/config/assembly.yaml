@@ -82,7 +82,6 @@ picking_parameters:
   base:
     approach_offset:  [0.000, 0.000, 0.060, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000, 0.002, 0.0, 0.0, 0.0]
-    place_offset:     [0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000, 0.060, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.1
@@ -93,7 +92,6 @@ picking_parameters:
   panel_motor:
     approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
-#    place_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.1
@@ -104,7 +102,6 @@ picking_parameters:
   panel_bearing:
     approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
-#    place_offset:     [0.000, 0.000, -0.020, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     speed_fast:       0.1
     speed_slow:       0.1
@@ -115,14 +112,12 @@ picking_parameters:
   screw_m3:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
-    place_offset:     [0.000, 0.000,  0.019, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1
   screw_m4:
     approach_offset:  [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     pick_offset:      [0.000, 0.000,  0.000, 0.0, 0.0, 0.0]
-    place_offset:     [0.000, 0.000,  0.019, 0.0, 0.0, 0.0]
     departure_offset: [0.000, 0.000,  0.080, 0.0, 0.0, 0.0]
     speed_fast:       1.0
     speed_slow:       0.1

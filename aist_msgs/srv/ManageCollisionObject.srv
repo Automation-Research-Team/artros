@@ -33,10 +33,9 @@ uint8 APPEND_TOUCH_LINKS=5
 #
 uint8 REMOVE_TOUCH_LINKS=6
 #
-# - Remove 'touch_links' accompanied with a link which is not the parent
-#   of the object with 'object_id'.
+# - Set 'touch_links' to the parent link for all attached collision object
 #
-uint8 CLEAN_TOUCH_LINKS=7
+uint8 RESET_TOUCH_LINKS=7
 #
 # - Return infomation on the object with 'object_id'
 #   in 'retval'.

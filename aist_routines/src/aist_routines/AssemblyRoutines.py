@@ -210,6 +210,6 @@ class AssemblyRoutines(URRoutines):
                screw_type + '_' + str(self._screw_m4_id)
 
     def _print_object_info(self, info):
-        print('    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s'
+        print('    type:        %s\n    parent_link: %s\n    attach_link: %s\n    touch_links: %s\n    pose:\n%s'
               % (info.object_type, info.parent_link,
-                 info.attach_link, info.touch_links))
+                 info.attach_link, info.touch_links, info.pose))
