@@ -40,7 +40,9 @@ import numpy as np
 
 from collections            import namedtuple
 from tf                     import transformations as tfs
-from tf2_ros                import TransformBroadcaster
+from tf2_ros                import (Buffer, TransformListner,
+                                    TransformBroadcaster)
+from tf2_geometry_msgs      import do_transform_pose
 from std_msgs.msg           import Header, ColorRGBA
 from geometry_msgs.msg      import (Point, Vector3, Quaternion, Pose,
                                     Transform, TransformStamped, PoseStamped)
@@ -229,6 +231,8 @@ class CollisionObjectManager(object):
         self._marker_id_lists     = {}
         self._marker_pub          = rospy.Publisher('~collision_marker',
                                                     Marker, queue_size=10)
+        self._buffer              = Buffer()
+        self._listener            = TrnasformListener(self._buffer)
         self._broadcaster         = TransformBroadcaster()
         self._lock                = threading.Lock()
         self._timer               = rospy.Timer(rospy.Duration(0.1),
@@ -349,9 +353,9 @@ class CollisionObjectManager(object):
         co.subframe_poses = obj_props.subframe_poses
         co.operation      = CollisionObject.ADD
 
-        # If 'subframe' is not base_link of the object with 'object_id'
-        # and/or 'frame_id' referes to any subframe of another object,
-        # convert 'pose' to the one with respect to 'base_link'.
+        # If the object pose is specified as that of subframe other than
+        # 'base_link', convert the given pose to that of 'base_link'.
+        # Then compute a transform from 'base_link' to the new parent link.
         frame_id, pose = self._convert_to_parent_link_and_pose(frame_id, pose,
                                                                co, subframe)
         co.header.frame_id = frame_id
@@ -477,12 +481,7 @@ class CollisionObjectManager(object):
 
         # Set the new attach link to the specified object and its descendants.
         link, pose = self._convert_to_attach_link_and_pose(link, pose)
-        self._attach_descendants(co, link,
-                                 tfs.concatenate_matrices(
-                                     _pose_matrix(pose),
-                                     tfs.inverse_matrix(
-                                         _pose_matrix(co.pose))),
-                                 attach)
+        self._attach_descendants(co, link, pose, attach)
         self._append_or_remove_touch_links(old_root_id, old_parent_link, True)
 
     def _append_or_remove_touch_links(self, object_id, link, append):
@@ -557,13 +556,13 @@ class CollisionObjectManager(object):
                                              .subframe_transforms[0])
         return old_root_id, old_parent_link
 
-    def _attach_descendants(self, co, link, T, attach):
+    def _attach_descendants(self, co, link, pose, attach):
         for child_aco in self._psi.get_attached_objects().values():
             if self._get_parent_id(child_aco.object.id) == co.id:
                 # print('### child_aco[%s]: parent_link=%s'
                 #       % (child_aco.object.id,
                 #          self._get_parent_link(child_aco.object.id)))
-                self._attach_descendants(child_aco.object, link, T, True)
+                self._attach_descendants(child_aco.object, link, pose, True)
 
         # If 'co' is an attached object, attach its descendants to new 'link'.
         if self._get_attached_object(co.id) is not None:
@@ -575,9 +574,13 @@ class CollisionObjectManager(object):
 
         if attach:
             # Attach 'co' to 'link' with 'pose'.
+            object_frame = co.id + '/base_link'
             co.header.frame_id = link
-            co.pose = _pose_from_matrix(tfs.concatenate_matrices(
-                                            T, _pose_matrix(co.pose)))
+            co.pose = do_transform_pose(
+                          PoseStamped(Header(frame_id=object_frame), pose),
+                          self._buffer.lookup_transform(link, object_frame,
+                                                        rospy.Time(0),
+                                                        rospy.Duration(1.0)))
             touch_links = self._get_parent_touch_links(co.id)
             self._psi.attach_object(co, link, touch_links)
             rospy.loginfo("(CollisionObjectManager) attached '%s' to '%s' with touch_links%s\n### attach_pose:\n%s",
