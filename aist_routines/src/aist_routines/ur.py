@@ -45,6 +45,7 @@ from ur_dashboard_msgs.msg           import SafetyMode
 from ur_msgs.srv                     import (SetPayload, SetSpeedSliderFraction,
                                              SetIO)
 from std_msgs.msg                    import Bool
+from aist_utility.compat             import *
 
 ######################################################################
 #  class URRobot                                                     #
@@ -112,19 +113,38 @@ class URRobot(object):
     ###
     ###  Switching controller stuffs
     ###
+    def list_controllers(self):
+        return self._list_controllers().controller
+
+    def current_controller(self):
+        for controller in self.list_controllers():
+            if controller.type \
+               in ('position_controllers/ScaledJointTrajectoryController',
+                   'velocity_controllers/ScaledJointTrajectoryController',
+                   'position_controllers/JointGroupPositionController',
+                   'velocity_controllers/JointGroupVelocityController') and \
+               controller.state == 'running':
+                return controller
+        return None
+
     def switch_controller(self, controller_name):
-        for controller in self._list_controllers().controller:
+        current_controller = self.current_controller()
+        if current_controller is not None and \
+           current_controller.name == controller_name:
+            return True
+        for controller in self.list_controllers():
             if controller.name == controller_name:
-                if controller.state == 'stopped':
+                if controller.state == 'initialized':
                     # Force restart
                     rospy.logwarn('Force restart of controller')
                     req = SwitchControllerRequest()
                     req.start_controllers = [controller_name]
-                    req.stop_controllers  = []
+                    req.stop_controllers  = [] if current_controller is None \
+                                            else [current_controller.name]
                     req.strictness        = SwitchControllerRequest.BEST_EFFORT
                     req.start_asap        = True
                     req.timeout           = 1.0
-                    res = self._switch_controller.call(req)
+                    res = self._switch_controller(req)
                     rospy.sleep(1)
                     return res.ok
                 else:
@@ -316,6 +336,7 @@ class URRoutines(AISTBaseRoutines):
         print('  stop_prog:   Stop running program')
         print('  connect:     Connect dashboard')
         print('  disconnect:  Disconnect dashboard')
+        print('  switch:      Switch controller')
 
     def interactive(self, key, robot_name, axis, speed=1.0):
         if key == 'activate':
@@ -330,6 +351,13 @@ class URRoutines(AISTBaseRoutines):
             self.connect_dashboard()
         elif key == 'disconnect':
             self.disconnect_dashboard()
+        elif key == 'switch':
+            controllers = self._ur_robots[robot_name].list_controllers()
+            print('  available controllers:')
+            for controller in controllers:
+                print('    ' + controller.name)
+            controller_name = raw_input('  controller name? ')
+            self._ur_robots[robot_name].switch_controller(controller_name)
         else:
             return super().interactive(key, robot_name, axis, speed)
         return robot_name, axis, speed

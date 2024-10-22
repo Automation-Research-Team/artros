@@ -53,6 +53,7 @@ class AssemblyRoutines(URRoutines):
     def run(self):
         robot_name = list(rospy.get_param('~robots').keys())[0]
         axis       = 'Y'
+        speed      = 1.0
 
         while not rospy.is_shutdown():
             prompt = '{:>5}:{}>> '.format(axis,
@@ -62,8 +63,8 @@ class AssemblyRoutines(URRoutines):
             key = raw_input(prompt)
 
             try:
-                robot_name, axis, _ = self.interactive(key, robot_name,
-                                                       axis, 1.0)
+                robot_name, axis, speed = self.interactive(key, robot_name,
+                                                           axis, speed)
             except Exception as e:
                 print(e)
 

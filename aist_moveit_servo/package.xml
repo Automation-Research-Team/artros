@@ -36,6 +36,7 @@
   <depend>rosparam_shortcuts</depend>
   <depend>control_toolbox</depend>
   <depend>ddynamic_reconfigure</depend>
+  <depend>rqt_controller_manager</depend>
   <depend>aist_utility</depend>
 
 </package>

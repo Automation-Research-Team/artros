@@ -22,13 +22,13 @@ placing_parameters:
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
     departure_offset: [-0.002, 0.000, 0.050, 0.0, 0.0, 0.0]
   screw_tool_m3_holder_link:
-    approach_offset:  [ 0.140, 0.000, 0.001, 0.0, 0.0, 0.0]
+    approach_offset:  [ 0.140, 0.000, 0.002, 0.0, 0.0, 0.0]
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
-    departure_offset: [ 0.140, 0.000, 0.001, 0.0, 0.0, 0.0]
+    departure_offset: [ 0.140, 0.000, 0.002, 0.0, 0.0, 0.0]
   screw_tool_m4_holder_link:
-    approach_offset:  [ 0.140, 0.000, 0.001, 0.0, 0.0, 0.0]
+    approach_offset:  [ 0.140, 0.000, 0.002, 0.0, 0.0, 0.0]
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]
-    departure_offset: [ 0.140, 0.000, 0.001, 0.0, 0.0, 0.0]
+    departure_offset: [ 0.140, 0.000, 0.002, 0.0, 0.0, 0.0]
   suction_tool_holder_link:
     approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
     place_offset:     [ 0.000, 0.000, 0.000, 0.0, 0.0, 0.0]

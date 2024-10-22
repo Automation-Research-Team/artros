@@ -7,19 +7,15 @@
   <arg name="unitless"		default="false"/>
   <arg name="traj"		default="true"/>
   <arg name="velocity_control"	default="false"/>
+  <arg name="publish_period"	default="0.002"/>
 
   <!-- Select server type -->
   <arg if="$(eval target_pose_topic == '')"
        name="server"		value="servo_server"/>
   <arg unless="$(eval target_pose_topic == '')"
        name="server"		value="pose_tracking_servo"/>
-  
-  <!-- Set parameters for servo_server or pose_tracking_servo -->
-  <arg if="$(eval robot_name in ('a_bot', 'b_bot'))"
-       name="publish_period"	value="0.008"/>
-  <arg unless="$(eval robot_name in ('a_bot', 'b_bot'))"
-       name="publish_period"	value="0.002"/>
 
+  <!-- Set parameters for servo_server or pose_tracking_servo -->
   <arg if="$(arg unitless)"
        name="command_in_type"	value="unitless"/>
   <arg unless="$(arg unitless)"
