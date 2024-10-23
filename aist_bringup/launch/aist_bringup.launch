@@ -70,8 +70,10 @@
     <include file="$(find aist_fastening_tools
     		   )/launch/suction_tool_controllers.launch">
       <arg name="driver_ns"		value="b_bot/ur_hardware_interface"/>
+      <!-- <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4 -->
+      <!-- 					       suction_tool base_fixture"/> -->
       <arg name="tool_names"		value="screw_tool_m3 screw_tool_m4
-      					       suction_tool base_fixture"/>
+      					       suction_tool"/>
     </include>
 
     <!-- Launch screw tool controllers -->
