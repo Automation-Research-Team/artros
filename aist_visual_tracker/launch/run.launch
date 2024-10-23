@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="camera_info_topic"	default="camera_info"/>
+  <arg name="image_topic"	default="texture"/>
+  <arg name="manager"		default=""/>
+
+  <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
+  <arg unless="$(eval manager == '')"	name="command"	value="load"/>
+
+  <node name="visual_tracker" pkg="nodelet" type="nodelet" output="screen"
+  	args="$(arg command) aist_visual_tracker/aist_visual_tracker
+	      $(arg manager)">
+    <remap from="/image"	to="$(arg image_topic)"/>
+  </node>
+
+</launch>
