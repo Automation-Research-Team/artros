@@ -1,0 +1,14 @@
+min_eigenvalue: 1.0
+min_determinant: 0.01
+min_displacement: 0.1
+mindist: 10
+window_radius: 3
+affine_window_radius: 7
+affine_consistency_check: 2  # -1: None, 0: Translation, 1: Similarity, 2: Affine
+nfeatures: 30
+nframes: 30
+marker_size: 10
+marker_thickness: 2
+lighting_insensitive: true
+smooth_before_selecting: true
+replace: true

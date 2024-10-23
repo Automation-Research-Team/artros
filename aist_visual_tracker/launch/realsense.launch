@@ -6,6 +6,7 @@
   <arg name="config_dir"	default="$(dirname)/../config"/>
   <arg name="manager"		default="camera_manager"/>
   <arg name="nthreads"		default="4"/>
+  <arg name="verbose"		default="0"/>
 
   <node if="$(eval manager != '')"
 	name="$(arg manager)" pkg ="nodelet" type="nodelet"
@@ -19,13 +20,15 @@
     <arg name="config_file"		value="$(arg config_dir
 					       )/$(arg camera_name).yaml"/>
     <arg name="external_manager"	value="$(eval manager != '')"/>
-      <arg name="manager"		value="/$(arg manager)"
-	   if="$(eval manager != '')"/>
+    <arg name="manager"			value="/$(arg manager)"
+	 if="$(eval manager != '')"/>
   </include>
 
   <include file="$(dirname)/run.launch">
+    <arg name="config_file"	value="$(arg config_dir)/visual_tracker.yaml"/>
     <arg name="image_topic"	value="$(arg camera_name)/color/image_raw"/>
     <arg name="manager"		value="$(arg manager)"/>
+    <arg name="verbose"		value="$(arg verbose)"/>
   </include>
 
   <node name="$(anon rviz)" pkg="rviz" type="rviz" output="screen"

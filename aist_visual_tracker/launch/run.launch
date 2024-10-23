@@ -1,16 +1,20 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="camera_info_topic"	default="camera_info"/>
   <arg name="image_topic"	default="texture"/>
   <arg name="manager"		default=""/>
+  <arg name="verbose"		default="0"/>
+  <arg name="config_file"	default="$(dirname
+					 )/../config/visual_tracker.yaml"/>
 
-  <arg if="$(eval manager == '')"	name="command"	value="standalone"/>
-  <arg unless="$(eval manager == '')"	name="command"	value="load"/>
+  <arg name="command"
+       value="$(eval 'standalone' if manager == '' else 'load')"/>
 
   <node name="visual_tracker" pkg="nodelet" type="nodelet" output="screen"
   	args="$(arg command) aist_visual_tracker/aist_visual_tracker
 	      $(arg manager)">
+    <rosparam file="$(arg config_file)"/>
+    <param name="verbose"	value="$(arg verbose)"/>
     <remap from="/image"	to="$(arg image_topic)"/>
   </node>
 

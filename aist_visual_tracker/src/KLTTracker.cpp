@@ -108,6 +108,7 @@ KLTTracker::KLTTracker(const ros::NodeHandle& nh)
 					     _ctx->min_determinant);
     _ctx->min_displacement = _nh.param<float>("min_displacement",
 					      _ctx->min_displacement);
+    KLTSetVerbosity(_nh.param<int>("verbose", 0));
 
   // Setup ROS parameters for the tracker context
   // and register callback for dynamic_reconfigure server
@@ -194,9 +195,6 @@ KLTTracker::KLTTracker(const ros::NodeHandle& nh)
 			       "Thickness of markers for tracked features",
 			       1, 10);
     _ddr.publishServicesTopicsAndUpdateConfigData();
-
-  // Set verbosity
-    KLTSetVerbosity(_nh.param<bool>("verbose", false));
 }
 
 KLTTracker::~KLTTracker()
