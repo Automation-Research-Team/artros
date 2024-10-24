@@ -1,0 +1,21 @@
+[0.035s] Invoking command in '/home/ueshiba/ros2_ws/build/ur_description': PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake /home/ueshiba/noetic/catkin_ws/src/artros/third_party/universal_robot/ur_description -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/ueshiba/ros2_ws/install
+[0.074s] -- Configuring incomplete, errors occurred!
+[0.074s] See also "/home/ueshiba/ros2_ws/build/ur_description/CMakeFiles/CMakeOutput.log".
+[0.074s] [31mCMake Error at CMakeLists.txt:4 (find_package):
+[0.074s]   By not providing "Findcatkin.cmake" in CMAKE_MODULE_PATH this project has
+[0.074s]   asked CMake to find a package configuration file provided by "catkin", but
+[0.075s]   CMake did not find one.
+[0.075s] 
+[0.075s]   Could not find a package configuration file provided by "catkin" with any
+[0.075s]   of the following names:
+[0.075s] 
+[0.075s]     catkinConfig.cmake
+[0.075s]     catkin-config.cmake
+[0.075s] 
+[0.075s]   Add the installation prefix of "catkin" to CMAKE_PREFIX_PATH or set
+[0.075s]   "catkin_DIR" to a directory containing one of the above files.  If "catkin"
+[0.076s]   provides a separate development package or SDK, be sure it has been
+[0.076s]   installed.
+[0.076s] 
+[0.076s] [0m
+[0.079s] Invoked command in '/home/ueshiba/ros2_ws/build/ur_description' returned '1': PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake /home/ueshiba/noetic/catkin_ws/src/artros/third_party/universal_robot/ur_description -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/ueshiba/ros2_ws/install

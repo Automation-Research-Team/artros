@@ -1,0 +1,224 @@
+[ 20%] [34m[1mBuilding NVCC (Device) object CMakeFiles/cu_bridge.dir/src/cu_bridge_generated_undistort_test.cu.o[0m
+[ 40%] [34m[1mBuilding NVCC (Device) object CMakeFiles/cu_bridge.dir/src/cu_bridge_generated_gauss_test.cu.o[0m
+[ 60%] [34m[1mBuilding NVCC (Device) object CMakeFiles/cu_bridge.dir/src/cu_bridge_generated_normal_test.cu.o[0m
+[ 80%] [34m[1mBuilding NVCC (Device) object CMakeFiles/cu_bridge.dir/src/cu_bridge_generated_recover_test.cu.o[0m
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+[100%] [32m[1mLinking CXX shared library libcu_bridge.so[0m
+[100%] Built target cu_bridge
+-- Install configuration: "Release"
+-- Execute custom install script
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/include/cu_bridge/cu_bridge.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge//launch/phoxi.rviz
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge//launch/realsense.rviz
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge//launch/test.launch.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/environment/library_path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/environment/library_path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/ament_index/resource_index/package_run_dependencies/cu_bridge
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/ament_index/resource_index/parent_prefix_path/cu_bridge
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/environment/path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/environment/path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/local_setup.bash
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/local_setup.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/local_setup.zsh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/local_setup.dsv
+-- Symlinking: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/package.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/ament_index/resource_index/packages/cu_bridge
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/ament_index/resource_index/rclcpp_components/cu_bridge
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/cmake/ament_cmake_export_libraries-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/cmake/cu_bridgeConfig.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/cmake/cu_bridgeConfig-version.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/cu_bridge/share/cu_bridge/package.xml
+-- Installing: /home/ueshiba/ros2_ws/install/cu_bridge/lib/libcu_bridge.so

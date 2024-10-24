@@ -1,0 +1,192 @@
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/logger.hpp(107): warning #970-D: the qualifier on this friend declaration is ignored
+    friend Logger rclcpp::get_logger(const std::string & name);
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(92): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator==(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(95): warning #970-D: the qualifier on this friend declaration is ignored
+    friend bool rclcpp::operator!=(
+                ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/network_flow_endpoint.hpp(100): warning #970-D: the qualifier on this friend declaration is ignored
+    friend std::ostream & rclcpp::operator<<(
+                          ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(67): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::MultiThreadedExecutor;
+        ^
+
+/opt/ros/rolling/include/rclcpp/rclcpp/executors.hpp(68): warning #737-D: using-declaration ignored -- it refers to the current namespace
+  using rclcpp::executors::SingleThreadedExecutor;
+        ^
+

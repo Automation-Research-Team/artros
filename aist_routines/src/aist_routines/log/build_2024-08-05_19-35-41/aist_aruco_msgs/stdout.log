@@ -1,0 +1,197 @@
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found ament_cmake: 2.3.2 (/opt/ros/rolling/share/ament_cmake/cmake)
+-- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+-- Override CMake install command with custom implementation using symlinks instead of copying resources
+-- Found rosidl_default_generators: 1.6.0 (/opt/ros/rolling/share/rosidl_default_generators/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found rosidl_adapter: 4.5.1 (/opt/ros/rolling/share/rosidl_adapter/cmake)
+-- Found rosidl_default_runtime: 1.6.0 (/opt/ros/rolling/share/rosidl_default_runtime/cmake)
+-- Found std_msgs: 5.3.0 (/opt/ros/rolling/share/std_msgs/cmake)
+-- Found geometry_msgs: 5.3.0 (/opt/ros/rolling/share/geometry_msgs/cmake)
+-- Found ament_cmake_ros: 0.12.0 (/opt/ros/rolling/share/ament_cmake_ros/cmake)
+-- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+-- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+-- Found PythonInterp: /usr/bin/python3 (found suitable version "3.10.12", minimum required is "3.6") 
+-- Found python_cmake_module: 0.11.0 (/opt/ros/rolling/share/python_cmake_module/cmake)
+-- Found PythonLibs: /usr/lib/x86_64-linux-gnu/libpython3.10.so (found suitable version "3.10.12", minimum required is "3.5") 
+-- Using PYTHON_EXECUTABLE: /usr/bin/python3
+-- Using PYTHON_INCLUDE_DIRS: /usr/include/python3.10
+-- Using PYTHON_LIBRARIES: /usr/lib/x86_64-linux-gnu/libpython3.10.so
+-- Found PythonExtra: .so  
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/ueshiba/ros2_ws/build/aist_aruco_msgs
+[  1%] Built target aist_aruco_msgs__rosidl_generator_type_description
+[  1%] Built target ament_cmake_python_symlink_aist_aruco_msgs
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_generator_c[0m
+[  3%] Built target aist_aruco_msgs__cpp
+[ 24%] Built target aist_aruco_msgs__rosidl_generator_c
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_c[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_fastrtps_c[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_fastrtps_cpp[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_introspection_c[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_introspection_cpp[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_cpp[0m
+[ 33%] Built target aist_aruco_msgs__rosidl_typesupport_c
+[ 42%] Built target aist_aruco_msgs__rosidl_typesupport_introspection_c
+[ 51%] Built target aist_aruco_msgs__rosidl_typesupport_fastrtps_c
+[ 61%] Built target aist_aruco_msgs__rosidl_typesupport_fastrtps_cpp
+[ 70%] Built target aist_aruco_msgs__rosidl_typesupport_introspection_cpp
+[ 79%] Built target aist_aruco_msgs__rosidl_typesupport_cpp
+[ 79%] Built target aist_aruco_msgs
+[ 81%] Built target aist_aruco_msgs__py
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_generator_py[0m
+[ 88%] Built target aist_aruco_msgs__rosidl_generator_py
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_fastrtps_c__pyext[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_c__pyext[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_aruco_msgs__rosidl_typesupport_introspection_c__pyext[0m
+[ 92%] Built target aist_aruco_msgs__rosidl_typesupport_fastrtps_c__pyext
+[ 96%] Built target aist_aruco_msgs__rosidl_typesupport_introspection_c__pyext
+[100%] Built target aist_aruco_msgs__rosidl_typesupport_c__pyext
+running egg_info
+writing aist_aruco_msgs.egg-info/PKG-INFO
+writing dependency_links to aist_aruco_msgs.egg-info/dependency_links.txt
+writing top-level names to aist_aruco_msgs.egg-info/top_level.txt
+reading manifest file 'aist_aruco_msgs.egg-info/SOURCES.txt'
+writing manifest file 'aist_aruco_msgs.egg-info/SOURCES.txt'
+[100%] Built target ament_cmake_python_build_aist_aruco_msgs_egg
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/ament_index/resource_index/rosidl_interfaces/aist_aruco_msgs
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondence.json
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondenceArray.json
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondenceArrayArray.json
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__functions.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__struct.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__type_support.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__functions.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__struct.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__type_support.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__functions.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__struct.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__type_support.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/point_correspondence.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/point_correspondence_array.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/point_correspondence_array_array.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/rosidl_generator_c__visibility_control.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/library_path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/library_path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__rosidl_typesupport_fastrtps_c.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__rosidl_typesupport_fastrtps_c.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__rosidl_typesupport_fastrtps_c.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__rosidl_typesupport_introspection_c.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__rosidl_typesupport_introspection_c.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__rosidl_typesupport_introspection_c.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__builder.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__struct.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__traits.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__type_support.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__builder.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__struct.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__traits.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__type_support.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__builder.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__struct.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__traits.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__type_support.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/point_correspondence.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/point_correspondence_array.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/point_correspondence_array_array.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/rosidl_generator_cpp__visibility_control.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__rosidl_typesupport_fastrtps_cpp.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__rosidl_typesupport_fastrtps_cpp.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__rosidl_typesupport_fastrtps_cpp.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence__rosidl_typesupport_introspection_cpp.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array__rosidl_typesupport_introspection_cpp.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/include/aist_aruco_msgs/aist_aruco_msgs/msg/detail/point_correspondence_array_array__rosidl_typesupport_introspection_cpp.hpp
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/pythonpath.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/pythonpath.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs-0.6.0-py3.10.egg-info/PKG-INFO
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs-0.6.0-py3.10.egg-info/SOURCES.txt
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs-0.6.0-py3.10.egg-info/dependency_links.txt
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs-0.6.0-py3.10.egg-info/top_level.txt
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/__init__.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/_aist_aruco_msgs_s.ep.rosidl_typesupport_c.c
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/_aist_aruco_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/_aist_aruco_msgs_s.ep.rosidl_typesupport_introspection_c.c
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg/__init__.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg/_point_correspondence.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg/_point_correspondence_array.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg/_point_correspondence_array_array.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg/_point_correspondence_array_array_s.c
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg/_point_correspondence_array_s.c
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg/_point_correspondence_s.c
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/aist_aruco_msgs_s__rosidl_typesupport_fastrtps_c.cpython-310-x86_64-linux-gnu.so
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/aist_aruco_msgs_s__rosidl_typesupport_introspection_c.cpython-310-x86_64-linux-gnu.so
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/aist_aruco_msgs_s__rosidl_typesupport_c.cpython-310-x86_64-linux-gnu.so
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondence.idl
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondenceArray.idl
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondenceArrayArray.idl
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondence.msg
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondenceArray.msg
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/msg/PointCorrespondenceArrayArray.msg
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/ament_index/resource_index/package_run_dependencies/aist_aruco_msgs
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/ament_index/resource_index/parent_prefix_path/aist_aruco_msgs
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/environment/path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/local_setup.bash
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/local_setup.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/local_setup.zsh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/local_setup.dsv
+-- Symlinking: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/package.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/ament_index/resource_index/packages/aist_aruco_msgs
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/rosidl_cmake-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/ament_cmake_export_dependencies-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/ament_cmake_export_include_directories-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/ament_cmake_export_libraries-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/ament_cmake_export_targets-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgsConfig.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgsConfig-version.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/package.xml
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_generator_c.so
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_typesupport_fastrtps_c.so
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_typesupport_introspection_c.so
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_typesupport_c.so
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_typesupport_fastrtps_cpp.so
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_typesupport_introspection_cpp.so
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_typesupport_cpp.so
+Listing '/home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs'...
+Compiling '/home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/__init__.py'...
+Listing '/home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages/aist_aruco_msgs/msg'...
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/libaist_aruco_msgs__rosidl_generator_py.so
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_generator_cExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_generator_cExport-noconfig.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_typesupport_fastrtps_cExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_introspection_cExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_introspection_cExport-noconfig.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_cExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_cExport-noconfig.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_generator_cppExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_typesupport_fastrtps_cppExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_introspection_cppExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_cppExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/aist_aruco_msgs__rosidl_typesupport_cppExport-noconfig.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_generator_pyExport.cmake
+-- Up-to-date: /home/ueshiba/ros2_ws/install/aist_aruco_msgs/share/aist_aruco_msgs/cmake/export_aist_aruco_msgs__rosidl_generator_pyExport-noconfig.cmake

@@ -1,0 +1,26 @@
+[2.412s] Invoking command in '/home/ueshiba/ros2_ws/build/ur_simulation_gz': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --build /home/ueshiba/ros2_ws/build/ur_simulation_gz -- -j24 -l24
+[2.936s] Invoked command in '/home/ueshiba/ros2_ws/build/ur_simulation_gz' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --build /home/ueshiba/ros2_ws/build/ur_simulation_gz -- -j24 -l24
+[3.260s] Invoking command in '/home/ueshiba/ros2_ws/build/ur_simulation_gz': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --install /home/ueshiba/ros2_ws/build/ur_simulation_gz
+[3.308s] -- Install configuration: ""
+[3.311s] -- Execute custom install script
+[3.316s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/config/ur_controllers.yaml
+[3.324s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_control.launch.py
+[3.325s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/launch/ur_sim_moveit.launch.py
+[3.326s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.ros2_control.xacro
+[3.326s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/urdf/ur_gz.urdf.xacro
+[3.327s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ament_index/resource_index/package_run_dependencies/ur_simulation_gz
+[3.328s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ament_index/resource_index/parent_prefix_path/ur_simulation_gz
+[3.329s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.sh
+[3.330s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/environment/ament_prefix_path.dsv
+[3.330s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.sh
+[3.331s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/environment/path.dsv
+[3.332s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.bash
+[3.333s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.sh
+[3.337s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.zsh
+[3.337s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/local_setup.dsv
+[3.338s] -- Symlinking: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/package.dsv
+[3.402s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ament_index/resource_index/packages/ur_simulation_gz
+[3.403s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig.cmake
+[3.403s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/cmake/ur_simulation_gzConfig-version.cmake
+[3.404s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/ur_simulation_gz/share/ur_simulation_gz/package.xml
+[3.410s] Invoked command in '/home/ueshiba/ros2_ws/build/ur_simulation_gz' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --install /home/ueshiba/ros2_ws/build/ur_simulation_gz

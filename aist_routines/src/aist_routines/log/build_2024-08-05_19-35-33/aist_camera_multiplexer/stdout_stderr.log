@@ -1,0 +1,48 @@
+[35m[1mConsolidate compiler generated dependencies of target aist_camera_multiplexer[0m
+[35m[1mConsolidate compiler generated dependencies of target aist_camera_multiplexer_node[0m
+[  0%] Built target ament_cmake_python_symlink_aist_camera_multiplexer
+[ 50%] Built target aist_camera_multiplexer
+[100%] Built target aist_camera_multiplexer_node
+running egg_info
+writing aist_camera_multiplexer.egg-info/PKG-INFO
+writing dependency_links to aist_camera_multiplexer.egg-info/dependency_links.txt
+writing top-level names to aist_camera_multiplexer.egg-info/top_level.txt
+reading manifest file 'aist_camera_multiplexer.egg-info/SOURCES.txt'
+writing manifest file 'aist_camera_multiplexer.egg-info/SOURCES.txt'
+[100%] Built target ament_cmake_python_build_aist_camera_multiplexer_egg
+-- Install configuration: ""
+-- Execute custom install script
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/aist_camera_multiplexer/aist_camera_multiplexer_node
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/libaist_camera_multiplexer.so
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer//launch/realsense.launch
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer//launch/test.rviz
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/pythonpath.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/pythonpath.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages/aist_camera_multiplexer-1.0.0-py3.10.egg-info/PKG-INFO
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages/aist_camera_multiplexer-1.0.0-py3.10.egg-info/SOURCES.txt
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages/aist_camera_multiplexer-1.0.0-py3.10.egg-info/dependency_links.txt
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages/aist_camera_multiplexer-1.0.0-py3.10.egg-info/top_level.txt
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages/aist_camera_multiplexer/__init__.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/aist_camera_multiplexer/drealsense.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/aist_camera_multiplexer/select_camera.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/aist_camera_multiplexer/select_realsense_camera.py
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/library_path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/library_path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/ament_index/resource_index/package_run_dependencies/aist_camera_multiplexer
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/ament_index/resource_index/parent_prefix_path/aist_camera_multiplexer
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/ament_prefix_path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/ament_prefix_path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/path.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/environment/path.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/local_setup.bash
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/local_setup.sh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/local_setup.zsh
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/local_setup.dsv
+-- Symlinking: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/package.dsv
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/ament_index/resource_index/packages/aist_camera_multiplexer
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/ament_index/resource_index/rclcpp_components/aist_camera_multiplexer
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/cmake/ament_cmake_export_libraries-extras.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/cmake/aist_camera_multiplexerConfig.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/cmake/aist_camera_multiplexerConfig-version.cmake
+-- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_camera_multiplexer/share/aist_camera_multiplexer/package.xml
+Listing '/home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages/aist_camera_multiplexer'...

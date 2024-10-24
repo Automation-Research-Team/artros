@@ -1,0 +1,241 @@
+In file included from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    6 | #pragma warning(push)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    7 | #pragma warning(disable:4251)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    6 | #pragma warning(push)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    7 | #pragma warning(disable:4251)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    6 | #pragma warning(push)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    7 | #pragma warning(disable:4251)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:21[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    6 | #pragma warning(push)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    7 | #pragma warning(disable:4251)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:21[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:1258:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+ 1258 | #pragma warning(pop)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:1280:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+ 1280 | #pragma warning(pop)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:14[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeature.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    6 | #pragma warning(push)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeature.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    7 | #pragma warning(disable:4251)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeature.h:200:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+  200 | #pragma warning(pop)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:15[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:2:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    2 | #pragma warning(push)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:3:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    3 | #pragma warning(disable:4251)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:161:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+  161 | #pragma warning(pop)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:20:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma region FEATURE_MACROS[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+   20 | #pragma region FEATURE_MACROS
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:39:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma endregion [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+   39 | #pragma endregion
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:307[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:2:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    2 | #pragma warning(push)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:3:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+    3 | #pragma warning(disable:4251)
+      | 
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:161:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+  161 | #pragma warning(pop)
+      | 
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:390:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+  390 | #pragma warning(pop)
+      | 
+In file included from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:728:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+  728 | #pragma warning(pop)
+      | 
+In file included from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:[m[K In member function ‘[01m[Kvoid aist_phoxi_camera::Camera::profiler_start(int)[m[K’:
+[01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:156:36:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[Kn[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+  156 |     void        profiler_start([01;35m[Kint n[m[K)
+      |                                [01;35m[K~~~~^[m[K
+[01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:[m[K In member function ‘[01m[Kvoid aist_phoxi_camera::Camera::profiler_print(std::ostream&) const[m[K’:
+[01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:162:46:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[Kout[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+  162 |     void        profiler_print([01;35m[Kstd::ostream& out[m[K) const
+      |                                [01;35m[K~~~~~~~~~~~~~~^~~[m[K
+In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:21[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+                 from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+                 from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Scalar<double>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<double>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+      |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<double>[m[K’ declared here
+  221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+      |       [01;36m[K^~~~~~[m[K
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Point3<float>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Point3<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+      |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:176:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Point3<float>[m[K’ declared here
+  176 | class [01;36m[KPoint3[m[K : public MatElementInterface<ChannelType, 3> {
+      |       [01;36m[K^~~~~~[m[K
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Scalar<float>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+      |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<float>[m[K’ declared here
+  221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+      |       [01;36m[K^~~~~~[m[K
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::ColorRGB<short unsigned int>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+      |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:314:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ declared here
+  314 | class [01;36m[KColorRGB[m[K : public MatElementInterface<ChannelType, 3> {
+      |       [01;36m[K^~~~~~~~[m[K
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kpho::api::MatInterface<ElementType, Dimension>::MatInterface(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Scalar<double>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:651:67:[m[K   required from ‘[01m[Kpho::api::Mat2D<ElementType>::Mat2D(const pho::api::Mat2D<ElementType>&) [with ElementType = pho::api::Scalar<double>][m[K’
+[01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:1461:62:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:487:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<double>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  487 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+      |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<double>[m[K’ declared here
+  221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+      |       [01;36m[K^~~~~~[m[K
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::ColorRGB<short unsigned int>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::ColorRGB<short unsigned int>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::ColorRGB<short unsigned int>, 2>::OwnershipTransfer][m[K’
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+      |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:314:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ declared here
+  314 | class [01;36m[KColorRGB[m[K : public MatElementInterface<ChannelType, 3> {
+      |       [01;36m[K^~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+  423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+      |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::Scalar<float>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::Scalar<float>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::Scalar<float>, 2>::OwnershipTransfer][m[K’
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+      |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<float>[m[K’ declared here
+  221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+      |       [01;36m[K^~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+  423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+      |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::Point3<float>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::Point3<float>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::Point3<float>, 2>::OwnershipTransfer][m[K’
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Point3<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+      |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:176:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Point3<float>[m[K’ declared here
+  176 | class [01;36m[KPoint3[m[K : public MatElementInterface<ChannelType, 3> {
+      |       [01;36m[K^~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+  423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+      |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+
+/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::Scalar<double>; int Dimension = 2][m[K’:
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::Scalar<double>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::Scalar<double>, 2>::OwnershipTransfer][m[K’
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<double>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+  418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+      |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<double>[m[K’ declared here
+  221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+      |       [01;36m[K^~~~~~[m[K
+[01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+  423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+      |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+
+[01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:[m[K At global scope:
+[01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:80:1:[m[K [01;35m[Kwarning: [m[K‘[01m[Kstd::ostream& aist_phoxi_camera::operator<<(std::ostream&, const Point3_64f&)[m[K’ defined but not used [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-function-Wunused-function]8;;[m[K]
+   80 | [01;35m[Koperator[m[K <<(std::ostream& out, const pho::api::Point3_64f& p)
+      | [01;35m[K^~~~~~~~[m[K
+[33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:62 (file):
+  Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+  symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+  Use the cmake_policy command to set the policy and suppress this warning.
+Call Stack (most recent call first):
+  ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:320 (ament_cmake_symlink_install_directory)
+  cmake_install.cmake:46 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m
+[33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:62 (file):
+  Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+  symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+  Use the cmake_policy command to set the policy and suppress this warning.
+Call Stack (most recent call first):
+  ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:326 (ament_cmake_symlink_install_directory)
+  cmake_install.cmake:46 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m

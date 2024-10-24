@@ -1,0 +1,40 @@
+[0.034s] Invoking command in '/home/ueshiba/ros2_ws/build/aist_msgs': PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake /home/ueshiba/noetic/catkin_ws/src/artros/aist_msgs -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/ueshiba/ros2_ws/install
+[0.073s] [0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+[0.073s]   Compatibility with CMake < 2.8.12 will be removed from a future version of
+[0.073s]   CMake.
+[0.074s] 
+[0.074s]   Update the VERSION argument <min> value or use a ...<max> suffix to tell
+[0.074s]   CMake that the project does not need compatibility with older versions.
+[0.074s] 
+[0.074s] [0m
+[0.081s] -- The C compiler identification is GNU 11.4.0
+[0.119s] -- The CXX compiler identification is GNU 11.4.0
+[0.126s] -- Detecting C compiler ABI info
+[0.170s] -- Detecting C compiler ABI info - done
+[0.179s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.179s] -- Detecting C compile features
+[0.180s] -- Detecting C compile features - done
+[0.183s] -- Detecting CXX compiler ABI info
+[0.236s] -- Detecting CXX compiler ABI info - done
+[0.246s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.246s] -- Detecting CXX compile features
+[0.247s] -- Detecting CXX compile features - done
+[0.256s] [31mCMake Error at CMakeLists.txt:4 (find_package):
+[0.256s]   By not providing "Findcatkin.cmake" in CMAKE_MODULE_PATH this project has
+[0.256s]   asked CMake to find a package configuration file provided by "catkin", but
+[0.256s]   CMake did not find one.
+[0.256s] 
+[0.256s]   Could not find a package configuration file provided by "catkin" with any
+[0.256s]   of the following names:
+[0.256s] 
+[0.256s]     catkinConfig.cmake
+[0.256s]     catkin-config.cmake
+[0.256s] 
+[0.256s]   Add the installation prefix of "catkin" to CMAKE_PREFIX_PATH or set
+[0.256s]   "catkin_DIR" to a directory containing one of the above files.  If "catkin"
+[0.256s]   provides a separate development package or SDK, be sure it has been
+[0.256s]   installed.
+[0.256s] 
+[0.256s] [0m
+[0.256s] -- Configuring incomplete, errors occurred!
+[0.256s] See also "/home/ueshiba/ros2_ws/build/aist_msgs/CMakeFiles/CMakeOutput.log".

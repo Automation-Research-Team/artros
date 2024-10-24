@@ -1,0 +1,72 @@
+[0.023s] Invoking command in '/home/ueshiba/ros2_ws/build/aruco': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake /home/ueshiba/ros2_ws/src/artros/third_party/aruco_ros/aruco -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/ueshiba/ros2_ws/install/aruco
+[0.177s] -- The C compiler identification is GNU 11.4.0
+[0.178s] -- The CXX compiler identification is GNU 11.4.0
+[0.178s] -- Detecting C compiler ABI info
+[0.178s] -- Detecting C compiler ABI info - done
+[0.178s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.178s] -- Detecting C compile features
+[0.178s] -- Detecting C compile features - done
+[0.178s] -- Detecting CXX compiler ABI info
+[0.201s] -- Detecting CXX compiler ABI info - done
+[0.211s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.211s] -- Detecting CXX compile features
+[0.212s] -- Detecting CXX compile features - done
+[0.215s] -- Found ament_cmake: 2.3.2 (/opt/ros/rolling/share/ament_cmake/cmake)
+[0.348s] -- Found Python3: /usr/bin/python3.10 (found version "3.10.12") found components: Interpreter 
+[0.388s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.423s] -- Found OpenCV: /usr (found suitable version "4.5.4", minimum required is "4.2.0") 
+[0.467s] -- Configuring done
+[0.475s] -- Generating done
+[0.476s] -- Build files have been written to: /home/ueshiba/ros2_ws/build/aruco
+[0.484s] Invoked command in '/home/ueshiba/ros2_ws/build/aruco' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake /home/ueshiba/ros2_ws/src/artros/third_party/aruco_ros/aruco -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/ueshiba/ros2_ws/install/aruco
+[0.485s] Invoking command in '/home/ueshiba/ros2_ws/build/aruco': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --build /home/ueshiba/ros2_ws/build/aruco -- -j24 -l24
+[0.526s] [35m[1mConsolidate compiler generated dependencies of target aruco[0m
+[0.540s] [100%] Built target aruco
+[0.546s] Invoked command in '/home/ueshiba/ros2_ws/build/aruco' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --build /home/ueshiba/ros2_ws/build/aruco -- -j24 -l24
+[0.587s] Invoking command in '/home/ueshiba/ros2_ws/build/aruco': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --install /home/ueshiba/ros2_ws/build/aruco
+[0.593s] -- Install configuration: ""
+[0.594s] -- Execute custom install script
+[0.594s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/lib/libaruco.so
+[0.594s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/aruco.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/aruco_cvversioning.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/aruco_export.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/cameraparameters.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/cvdrawingutils.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/debug.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/dictionary.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/dictionary_based.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/fractaldetector.h
+[0.595s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/fractallabelers/fractallabeler.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/fractallabelers/fractalmarker.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/fractallabelers/fractalmarkerset.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/fractallabelers/fractalposetracker.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/ippe.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/levmarq.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/marker.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/markerdetector.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/markerdetector_impl.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/markerlabeler.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/markermap.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/picoflann.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/posetracker.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/include/aruco/timers.h
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/environment/library_path.sh
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/environment/library_path.dsv
+[0.596s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/ament_index/resource_index/package_run_dependencies/aruco
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/ament_index/resource_index/parent_prefix_path/aruco
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/environment/ament_prefix_path.sh
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/environment/ament_prefix_path.dsv
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/environment/path.sh
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/environment/path.dsv
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/local_setup.bash
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/local_setup.sh
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/local_setup.zsh
+[0.597s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/local_setup.dsv
+[0.597s] -- Symlinking: /home/ueshiba/ros2_ws/install/aruco/share/aruco/package.dsv
+[0.602s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/ament_index/resource_index/packages/aruco
+[0.602s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/cmake/ament_cmake_export_include_directories-extras.cmake
+[0.602s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/cmake/ament_cmake_export_libraries-extras.cmake
+[0.603s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/cmake/arucoConfig.cmake
+[0.603s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/cmake/arucoConfig-version.cmake
+[0.603s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aruco/share/aruco/package.xml
+[0.605s] Invoked command in '/home/ueshiba/ros2_ws/build/aruco' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake --install /home/ueshiba/ros2_ws/build/aruco

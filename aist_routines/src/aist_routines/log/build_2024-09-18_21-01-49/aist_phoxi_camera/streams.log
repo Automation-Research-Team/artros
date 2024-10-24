@@ -1,0 +1,1067 @@
+[0.014s] Invoking command in '/home/ueshiba/ros2_ws/build/aist_phoxi_camera': CMAKE_PREFIX_PATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2:/home/ueshiba/ros2_ws/install/ur_simulation_gz:/home/ueshiba/ros2_ws/install/realsense2_description:/home/ueshiba/ros2_ws/install/realsense2_camera:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs:/home/ueshiba/ros2_ws/install/cu_bridge:/home/ueshiba/ros2_ws/install/aist_handeye_calibration:/home/ueshiba/ros2_ws/install/aist_aruco_ros:/home/ueshiba/ros2_ws/install/aist_utility:/home/ueshiba/ros2_ws/install/aist_phoxi_camera:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer:/home/ueshiba/ros2_ws/install/aruco_ros:/home/ueshiba/ros2_ws/install/aruco_msgs:/home/ueshiba/ros2_ws/install/aruco:/home/ueshiba/ros2_ws/install/aist_msgs:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs:/home/ueshiba/ros2_ws/install/aist_description:/home/ueshiba/ros2_ws/install/aist_aruco_msgs:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% PYTHONPATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/build/rqt_reconfigure/src:/home/ueshiba/ros2_ws/install/rqt_reconfigure/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aruco_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages:/opt/ros/rolling/lib/python3.10/site-packages /usr/bin/cmake --build /home/ueshiba/ros2_ws/build/aist_phoxi_camera -- -j24 -l24
+[0.074s] [ 25%] [32mBuilding CXX object CMakeFiles/aist_phoxi_camera_node.dir/rclcpp_components/node_main_aist_phoxi_camera_node.cpp.o[0m
+[0.074s] [ 50%] [32mBuilding CXX object CMakeFiles/aist_phoxi_camera.dir/src/Camera.cpp.o[0m
+[0.438s] In file included from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.438s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.438s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.438s]     6 | #pragma warning(push)
+[0.438s]       | 
+[0.438s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.438s]     7 | #pragma warning(disable:4251)
+[0.438s]       | 
+[0.438s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.438s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.439s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.439s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.439s]     6 | #pragma warning(push)
+[0.439s]       | 
+[0.439s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.441s]     7 | #pragma warning(disable:4251)
+[0.441s]       | 
+[0.441s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+[0.441s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.441s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.441s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.441s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.441s]     6 | #pragma warning(push)
+[0.441s]       | 
+[0.441s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.441s]     7 | #pragma warning(disable:4251)
+[0.442s]       | 
+[0.442s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:21[m[K,
+[0.442s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+[0.442s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.442s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.442s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.442s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.442s]     6 | #pragma warning(push)
+[0.442s]       | 
+[0.442s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.442s]     7 | #pragma warning(disable:4251)
+[0.442s]       | 
+[0.442s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:21[m[K,
+[0.442s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+[0.442s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.442s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.442s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.442s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:1258:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.442s]  1258 | #pragma warning(pop)
+[0.443s]       | 
+[0.443s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+[0.443s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.443s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.444s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.445s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:1280:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.445s]  1280 | #pragma warning(pop)
+[0.445s]       | 
+[0.445s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:14[m[K,
+[0.445s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.445s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.445s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.445s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeature.h:6:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.445s]     6 | #pragma warning(push)
+[0.446s]       | 
+[0.446s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeature.h:7:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.446s]     7 | #pragma warning(disable:4251)
+[0.446s]       | 
+[0.446s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeature.h:200:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.446s]   200 | #pragma warning(pop)
+[0.446s]       | 
+[0.446s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:15[m[K,
+[0.446s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.446s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.446s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.446s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:2:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.446s]     2 | #pragma warning(push)
+[0.447s]       | 
+[0.447s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:3:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.447s]     3 | #pragma warning(disable:4251)
+[0.447s]       | 
+[0.447s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:161:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.447s]   161 | #pragma warning(pop)
+[0.447s]       | 
+[0.447s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.447s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.447s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.447s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:20:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma region FEATURE_MACROS[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.447s]    20 | #pragma region FEATURE_MACROS
+[0.447s]       | 
+[0.447s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:39:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma endregion [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.448s]    39 | #pragma endregion
+[0.448s]       | 
+[0.448s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:307[m[K,
+[0.448s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.448s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.448s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.448s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:2:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.448s]     2 | #pragma warning(push)
+[0.448s]       | 
+[0.449s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:3:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.449s]     3 | #pragma warning(disable:4251)
+[0.449s]       | 
+[0.449s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureList.h:161:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.449s]   161 | #pragma warning(pop)
+[0.449s]       | 
+[0.449s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[0.449s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.449s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.449s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:390:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.449s]   390 | #pragma warning(pop)
+[0.449s]       | 
+[0.449s] In file included from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[0.449s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[0.450s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:728:[m[K [01;35m[Kwarning: [m[Kignoring ‘[01m[K#pragma warning [m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunknown-pragmas-Wunknown-pragmas]8;;[m[K]
+[0.450s]   728 | #pragma warning(pop)
+[0.450s]       | 
+[3.683s] In file included from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[3.683s] [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:[m[K In member function ‘[01m[Kvoid aist_phoxi_camera::Camera::profiler_start(int)[m[K’:
+[3.683s] [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:156:36:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[Kn[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+[3.683s]   156 |     void        profiler_start([01;35m[Kint n[m[K)
+[3.683s]       |                                [01;35m[K~~~~^[m[K
+[3.683s] [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:[m[K In member function ‘[01m[Kvoid aist_phoxi_camera::Camera::profiler_print(std::ostream&) const[m[K’:
+[3.683s] [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:162:46:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[Kout[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+[3.683s]   162 |     void        profiler_print([01;35m[Kstd::ostream& out[m[K) const
+[3.683s]       |                                [01;35m[K~~~~~~~~~~~~~~^~~[m[K
+[4.785s] In file included from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiFeatureTypes.h:21[m[K,
+[4.785s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiInterface.h:13[m[K,
+[4.785s]                  from [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXi.h:22[m[K,
+[4.785s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.h:48[m[K,
+[4.785s]                  from [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:61[m[K:
+[4.785s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Scalar<double>; int Dimension = 2][m[K’:
+[4.785s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[4.785s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<double>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[4.785s]   508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+[4.785s]       |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[4.785s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<double>[m[K’ declared here
+[4.785s]   221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+[4.785s]       |       [01;36m[K^~~~~~[m[K
+[4.787s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Point3<float>; int Dimension = 2][m[K’:
+[4.787s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[4.787s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Point3<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[4.787s]   508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+[4.787s]       |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[4.787s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:176:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Point3<float>[m[K’ declared here
+[4.787s]   176 | class [01;36m[KPoint3[m[K : public MatElementInterface<ChannelType, 3> {
+[4.787s]       |       [01;36m[K^~~~~~[m[K
+[4.787s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Scalar<float>; int Dimension = 2][m[K’:
+[4.787s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[4.787s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[4.787s]   508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+[4.788s]       |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[4.788s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<float>[m[K’ declared here
+[4.788s]   221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+[4.788s]       |       [01;36m[K^~~~~~[m[K
+[4.788s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::operator=(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::ColorRGB<short unsigned int>; int Dimension = 2][m[K’:
+[4.788s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:668:12:[m[K   required from here
+[4.788s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:508:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[4.788s]   508 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+[4.788s]       |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[4.788s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:314:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ declared here
+[4.788s]   314 | class [01;36m[KColorRGB[m[K : public MatElementInterface<ChannelType, 3> {
+[4.788s]       |       [01;36m[K^~~~~~~~[m[K
+[4.907s] [ 75%] [32m[1mLinking CXX executable aist_phoxi_camera_node[0m
+[5.082s] [ 75%] Built target aist_phoxi_camera_node
+[5.173s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kpho::api::MatInterface<ElementType, Dimension>::MatInterface(const pho::api::MatInterface<ElementType, Dimension>&) [with ElementType = pho::api::Scalar<double>; int Dimension = 2][m[K’:
+[5.173s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:651:67:[m[K   required from ‘[01m[Kpho::api::Mat2D<ElementType>::Mat2D(const pho::api::Mat2D<ElementType>&) [with ElementType = pho::api::Scalar<double>][m[K’
+[5.173s] [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:1461:62:[m[K   required from here
+[5.173s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:487:24:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<double>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[5.173s]   487 |             [01;35m[Kstd::memcpy(GetDataPtr(), Other.GetDataPtr(), GetDataSize())[m[K;
+[5.173s]       |             [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[5.173s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<double>[m[K’ declared here
+[5.173s]   221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+[5.173s]       |       [01;36m[K^~~~~~[m[K
+[7.460s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::ColorRGB<short unsigned int>; int Dimension = 2][m[K’:
+[7.460s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::ColorRGB<short unsigned int>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::ColorRGB<short unsigned int>, 2>::OwnershipTransfer][m[K’
+[7.461s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[7.461s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[7.461s]   418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+[7.461s]       |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[7.461s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:314:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::ColorRGB<short unsigned int>[m[K’ declared here
+[7.461s]   314 | class [01;36m[KColorRGB[m[K : public MatElementInterface<ChannelType, 3> {
+[7.461s]       |       [01;36m[K^~~~~~~~[m[K
+[7.461s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+[7.461s]   423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+[7.461s]       |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+[7.461s] 
+[7.464s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::Scalar<float>; int Dimension = 2][m[K’:
+[7.464s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::Scalar<float>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::Scalar<float>, 2>::OwnershipTransfer][m[K’
+[7.464s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[7.464s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[7.464s]   418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+[7.464s]       |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[7.464s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<float>[m[K’ declared here
+[7.464s]   221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+[7.464s]       |       [01;36m[K^~~~~~[m[K
+[7.464s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+[7.464s]   423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+[7.465s]       |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+[7.465s] 
+[7.467s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::Point3<float>; int Dimension = 2][m[K’:
+[7.467s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::Point3<float>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::Point3<float>, 2>::OwnershipTransfer][m[K’
+[7.467s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[7.467s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Point3<float>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[7.467s]   418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+[7.467s]       |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[7.467s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:176:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Point3<float>[m[K’ declared here
+[7.467s]   176 | class [01;36m[KPoint3[m[K : public MatElementInterface<ChannelType, 3> {
+[7.468s]       |       [01;36m[K^~~~~~[m[K
+[7.468s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+[7.468s]   423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+[7.468s]       |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+[7.468s] 
+[7.469s] /opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h: In instantiation of ‘[01m[Kbool pho::api::MatInterface<ElementType, Dimension>::AssignInternal(const std::vector<int>&, ElementType*, pho::api::MatInterface<ElementType, Dimension>::OwnershipTransfer) [with ElementType = pho::api::Scalar<double>; int Dimension = 2][m[K’:
+[7.469s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:699:60:[m[K   required from ‘[01m[Kbool pho::api::Mat2D<ElementType>::Assign(const std::vector<int>&, ElementType*, typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer) [with ElementType = pho::api::Scalar<double>; typename pho::api::MatInterface<ElementType, 2>::OwnershipTransfer = pho::api::MatInterface<pho::api::Scalar<double>, 2>::OwnershipTransfer][m[K’
+[7.469s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:696:18:[m[K   required from here
+[7.469s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:418:28:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid* memcpy(void*, const void*, size_t)[m[K’ writing to an object of type ‘[01m[Kclass pho::api::Scalar<double>[m[K’ with no trivial copy-assignment; use copy-assignment or copy-initialization instead [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wclass-memaccess-Wclass-memaccess]8;;[m[K]
+[7.469s]   418 |                 [01;35m[Kstd::memcpy(GetDataPtr(), Data_, GetDataSize())[m[K;
+[7.469s]       |                 [01;35m[K~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[7.470s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:221:7:[m[K [01;36m[Knote: [m[K‘[01m[Kclass pho::api::Scalar<double>[m[K’ declared here
+[7.470s]   221 | class [01;36m[KScalar[m[K : public MatElementInterface<ChannelType, 1>, public MatType<ChannelType> {
+[7.470s]       |       [01;36m[K^~~~~~[m[K
+[7.470s] [01m[K/opt/Photoneo/PhoXiControl-1.13.4/API/include/PhoXiDataTypes.h:423:71:[m[K [01;35m[Kwarning: [m[Kunused parameter ‘[01m[KPtr[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-parameter-Wunused-parameter]8;;[m[K]
+[7.470s]   423 |             < void(ElementType * ) >> (Data_, []([01;35m[KElementType *Ptr[m[K) {});
+[7.470s]       |                                                  [01;35m[K~~~~~~~~~~~~~^~~[m[K
+[7.470s] 
+[8.701s] [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:[m[K At global scope:
+[8.701s] [01m[K/home/ueshiba/ros2_ws/src/aist_phoxi_camera/src/Camera.cpp:80:1:[m[K [01;35m[Kwarning: [m[K‘[01m[Kstd::ostream& aist_phoxi_camera::operator<<(std::ostream&, const Point3_64f&)[m[K’ defined but not used [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-function-Wunused-function]8;;[m[K]
+[8.701s]    80 | [01;35m[Koperator[m[K <<(std::ostream& out, const pho::api::Point3_64f& p)
+[8.701s]       | [01;35m[K^~~~~~~~[m[K
+[13.577s] [100%] [32m[1mLinking CXX shared library libaist_phoxi_camera.so[0m
+[14.117s] [100%] Built target aist_phoxi_camera
+[14.127s] Invoked command in '/home/ueshiba/ros2_ws/build/aist_phoxi_camera' returned '0': CMAKE_PREFIX_PATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2:/home/ueshiba/ros2_ws/install/ur_simulation_gz:/home/ueshiba/ros2_ws/install/realsense2_description:/home/ueshiba/ros2_ws/install/realsense2_camera:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs:/home/ueshiba/ros2_ws/install/cu_bridge:/home/ueshiba/ros2_ws/install/aist_handeye_calibration:/home/ueshiba/ros2_ws/install/aist_aruco_ros:/home/ueshiba/ros2_ws/install/aist_utility:/home/ueshiba/ros2_ws/install/aist_phoxi_camera:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer:/home/ueshiba/ros2_ws/install/aruco_ros:/home/ueshiba/ros2_ws/install/aruco_msgs:/home/ueshiba/ros2_ws/install/aruco:/home/ueshiba/ros2_ws/install/aist_msgs:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs:/home/ueshiba/ros2_ws/install/aist_description:/home/ueshiba/ros2_ws/install/aist_aruco_msgs:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% PYTHONPATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/build/rqt_reconfigure/src:/home/ueshiba/ros2_ws/install/rqt_reconfigure/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aruco_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages:/opt/ros/rolling/lib/python3.10/site-packages /usr/bin/cmake --build /home/ueshiba/ros2_ws/build/aist_phoxi_camera -- -j24 -l24
+[14.154s] Invoking command in '/home/ueshiba/ros2_ws/build/aist_phoxi_camera': CMAKE_PREFIX_PATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2:/home/ueshiba/ros2_ws/install/ur_simulation_gz:/home/ueshiba/ros2_ws/install/realsense2_description:/home/ueshiba/ros2_ws/install/realsense2_camera:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs:/home/ueshiba/ros2_ws/install/cu_bridge:/home/ueshiba/ros2_ws/install/aist_handeye_calibration:/home/ueshiba/ros2_ws/install/aist_aruco_ros:/home/ueshiba/ros2_ws/install/aist_utility:/home/ueshiba/ros2_ws/install/aist_phoxi_camera:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer:/home/ueshiba/ros2_ws/install/aruco_ros:/home/ueshiba/ros2_ws/install/aruco_msgs:/home/ueshiba/ros2_ws/install/aruco:/home/ueshiba/ros2_ws/install/aist_msgs:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs:/home/ueshiba/ros2_ws/install/aist_description:/home/ueshiba/ros2_ws/install/aist_aruco_msgs:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% PYTHONPATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/build/rqt_reconfigure/src:/home/ueshiba/ros2_ws/install/rqt_reconfigure/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aruco_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages:/opt/ros/rolling/lib/python3.10/site-packages /usr/bin/cmake --install /home/ueshiba/ros2_ws/build/aist_phoxi_camera
+[14.159s] -- Install configuration: ""
+[14.159s] -- Execute custom install script
+[14.160s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/lib/aist_phoxi_camera/aist_phoxi_camera_node
+[14.160s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/lib/libaist_phoxi_camera.so
+[14.166s] [33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:62 (file):
+[14.166s]   Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+[14.166s]   symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+[14.166s]   Use the cmake_policy command to set the policy and suppress this warning.
+[14.166s] Call Stack (most recent call first):
+[14.166s]   ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:320 (ament_cmake_symlink_install_directory)
+[14.166s]   cmake_install.cmake:46 (include)
+[14.166s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[14.166s] [0m
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/aist_phoxi_camera.rviz
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/launch.py
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/COLCON_IGNORE
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_msgs/command.log
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_msgs/stderr.log
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_msgs/stdout.log
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_msgs/stdout_stderr.log
+[14.167s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_msgs/streams.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_ros/command.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_ros/stderr.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_ros/stdout.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_ros/stdout_stderr.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_aruco_ros/streams.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration/command.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration/stderr.log
+[14.168s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration/stdout.log
+[14.169s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration/stdout_stderr.log
+[14.169s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration/streams.log
+[14.169s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration_msgs/command.log
+[14.169s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration_msgs/stderr.log
+[14.169s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration_msgs/stdout.log
+[14.169s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.169s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_handeye_calibration_msgs/streams.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_msgs/command.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_msgs/stderr.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_msgs/stdout.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_msgs/stdout_stderr.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_msgs/streams.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_phoxi_camera/command.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_phoxi_camera/stderr.log
+[14.170s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_phoxi_camera/stdout.log
+[14.171s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_phoxi_camera/stdout_stderr.log
+[14.171s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_phoxi_camera/streams.log
+[14.171s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_utility/command.log
+[14.171s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_utility/stderr.log
+[14.171s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_utility/stdout.log
+[14.171s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_utility/stdout_stderr.log
+[14.171s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aist_utility/streams.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco/command.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco/stderr.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco/stdout.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco/stdout_stderr.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco/streams.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_msgs/command.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_msgs/stderr.log
+[14.172s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_msgs/stdout.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_msgs/stdout_stderr.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_msgs/streams.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_ros/command.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_ros/stderr.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_ros/stdout.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_ros/stdout_stderr.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/aruco_ros/streams.log
+[14.173s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/cu_bridge/command.log
+[14.174s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/cu_bridge/stderr.log
+[14.174s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/cu_bridge/stdout.log
+[14.174s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/cu_bridge/stdout_stderr.log
+[14.174s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/cu_bridge/streams.log
+[14.174s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/ddynamic_reconfigure2/command.log
+[14.174s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/ddynamic_reconfigure2/stderr.log
+[14.174s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/ddynamic_reconfigure2/stdout.log
+[14.175s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/ddynamic_reconfigure2/stdout_stderr.log
+[14.175s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/ddynamic_reconfigure2/streams.log
+[14.175s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/events.log
+[14.175s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/logger_all.log
+[14.175s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera/command.log
+[14.175s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera/stderr.log
+[14.175s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera/stdout.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera/stdout_stderr.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera/streams.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera_msgs/command.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera_msgs/stderr.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera_msgs/stdout.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera_msgs/stdout_stderr.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_camera_msgs/streams.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_description/command.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_description/stderr.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_description/stdout.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_description/stdout_stderr.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/realsense2_description/streams.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/rqt_reconfigure/command.log
+[14.176s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/rqt_reconfigure/stderr.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/rqt_reconfigure/stdout.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/rqt_reconfigure/stdout_stderr.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-43-36/rqt_reconfigure/streams.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_msgs/command.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_msgs/stderr.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_msgs/stdout.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_msgs/stdout_stderr.log
+[14.177s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_msgs/streams.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_ros/command.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_ros/stderr.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_ros/stdout.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_ros/stdout_stderr.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_aruco_ros/streams.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration/command.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration/stderr.log
+[14.178s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration/stdout.log
+[14.179s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration/stdout_stderr.log
+[14.179s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration/streams.log
+[14.179s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration_msgs/command.log
+[14.179s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration_msgs/stderr.log
+[14.179s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration_msgs/stdout.log
+[14.179s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.179s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_handeye_calibration_msgs/streams.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_msgs/command.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_msgs/stderr.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_msgs/stdout.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_msgs/stdout_stderr.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_msgs/streams.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_phoxi_camera/command.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_phoxi_camera/stderr.log
+[14.180s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_phoxi_camera/stdout.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_phoxi_camera/stdout_stderr.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_phoxi_camera/streams.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_utility/command.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_utility/stderr.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_utility/stdout.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_utility/stdout_stderr.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aist_utility/streams.log
+[14.181s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco/command.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco/stderr.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco/stdout.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco/stdout_stderr.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco/streams.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_msgs/command.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_msgs/stderr.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_msgs/stdout.log
+[14.182s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_msgs/stdout_stderr.log
+[14.183s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_msgs/streams.log
+[14.183s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_ros/command.log
+[14.183s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_ros/stderr.log
+[14.183s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_ros/stdout.log
+[14.183s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_ros/stdout_stderr.log
+[14.183s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/aruco_ros/streams.log
+[14.183s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/cu_bridge/command.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/cu_bridge/stderr.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/cu_bridge/stdout.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/cu_bridge/stdout_stderr.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/cu_bridge/streams.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/ddynamic_reconfigure2/command.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/ddynamic_reconfigure2/stderr.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/ddynamic_reconfigure2/stdout.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/ddynamic_reconfigure2/stdout_stderr.log
+[14.184s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/ddynamic_reconfigure2/streams.log
+[14.185s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/events.log
+[14.185s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/logger_all.log
+[14.185s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera/command.log
+[14.185s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera/stderr.log
+[14.185s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera/stdout.log
+[14.185s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera/stdout_stderr.log
+[14.185s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera/streams.log
+[14.186s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera_msgs/command.log
+[14.186s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera_msgs/stderr.log
+[14.186s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera_msgs/stdout.log
+[14.186s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera_msgs/stdout_stderr.log
+[14.186s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_camera_msgs/streams.log
+[14.186s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_description/command.log
+[14.186s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_description/stderr.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_description/stdout.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_description/stdout_stderr.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/realsense2_description/streams.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/rqt_reconfigure/command.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/rqt_reconfigure/stderr.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/rqt_reconfigure/stdout.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/rqt_reconfigure/stdout_stderr.log
+[14.187s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-22/rqt_reconfigure/streams.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_msgs/command.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_msgs/stderr.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_msgs/stdout.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_msgs/stdout_stderr.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_msgs/streams.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_ros/command.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_ros/stderr.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_ros/stdout.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_ros/stdout_stderr.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_aruco_ros/streams.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration/command.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration/stderr.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration/stdout.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration/stdout_stderr.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration/streams.log
+[14.188s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration_msgs/command.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration_msgs/stderr.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration_msgs/stdout.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_handeye_calibration_msgs/streams.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_msgs/command.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_msgs/stderr.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_msgs/stdout.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_msgs/stdout_stderr.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_msgs/streams.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_phoxi_camera/command.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_phoxi_camera/stderr.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_phoxi_camera/stdout.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_phoxi_camera/stdout_stderr.log
+[14.189s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_phoxi_camera/streams.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_utility/command.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_utility/stderr.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_utility/stdout.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_utility/stdout_stderr.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aist_utility/streams.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco/command.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco/stderr.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco/stdout.log
+[14.190s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco/stdout_stderr.log
+[14.191s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco/streams.log
+[14.191s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_msgs/command.log
+[14.191s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_msgs/stderr.log
+[14.191s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_msgs/stdout.log
+[14.191s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_msgs/stdout_stderr.log
+[14.191s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_msgs/streams.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_ros/command.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_ros/stderr.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_ros/stdout.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_ros/stdout_stderr.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/aruco_ros/streams.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/cu_bridge/command.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/cu_bridge/stderr.log
+[14.192s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/cu_bridge/stdout.log
+[14.193s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/cu_bridge/stdout_stderr.log
+[14.193s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/cu_bridge/streams.log
+[14.193s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/ddynamic_reconfigure2/command.log
+[14.193s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/ddynamic_reconfigure2/stderr.log
+[14.193s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/ddynamic_reconfigure2/stdout.log
+[14.193s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/ddynamic_reconfigure2/stdout_stderr.log
+[14.193s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/ddynamic_reconfigure2/streams.log
+[14.194s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/events.log
+[14.194s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/logger_all.log
+[14.194s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera/command.log
+[14.194s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera/stderr.log
+[14.194s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera/stdout.log
+[14.194s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera/stdout_stderr.log
+[14.194s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera/streams.log
+[14.195s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera_msgs/command.log
+[14.195s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera_msgs/stderr.log
+[14.195s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera_msgs/stdout.log
+[14.195s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera_msgs/stdout_stderr.log
+[14.195s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_camera_msgs/streams.log
+[14.195s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_description/command.log
+[14.195s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_description/stderr.log
+[14.196s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_description/stdout.log
+[14.196s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_description/stdout_stderr.log
+[14.196s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/realsense2_description/streams.log
+[14.196s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/rqt_reconfigure/command.log
+[14.196s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/rqt_reconfigure/stderr.log
+[14.196s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/rqt_reconfigure/stdout.log
+[14.196s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/rqt_reconfigure/stdout_stderr.log
+[14.197s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/build_2024-06-21_18-44-58/rqt_reconfigure/streams.log
+[14.197s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_msgs/command.log
+[14.197s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_msgs/stderr.log
+[14.197s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_msgs/stdout.log
+[14.197s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_msgs/stdout_stderr.log
+[14.197s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_msgs/streams.log
+[14.197s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_ros/command.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_ros/stderr.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_ros/stdout.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_ros/stdout_stderr.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_aruco_ros/streams.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration/command.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration/stderr.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration/stdout.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration/stdout_stderr.log
+[14.198s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration/streams.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration_msgs/command.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration_msgs/stderr.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration_msgs/stdout.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_handeye_calibration_msgs/streams.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_msgs/command.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_msgs/stderr.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_msgs/stdout.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_msgs/stdout_stderr.log
+[14.199s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_msgs/streams.log
+[14.200s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_phoxi_camera/command.log
+[14.200s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_phoxi_camera/stderr.log
+[14.200s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_phoxi_camera/stdout.log
+[14.200s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_phoxi_camera/stdout_stderr.log
+[14.200s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_phoxi_camera/streams.log
+[14.200s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_utility/command.log
+[14.200s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_utility/stderr.log
+[14.201s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_utility/stdout.log
+[14.201s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_utility/stdout_stderr.log
+[14.201s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aist_utility/streams.log
+[14.201s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco/command.log
+[14.201s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco/stderr.log
+[14.201s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco/stdout.log
+[14.201s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco/stdout_stderr.log
+[14.202s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco/streams.log
+[14.202s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_msgs/command.log
+[14.202s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_msgs/stderr.log
+[14.202s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_msgs/stdout.log
+[14.202s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_msgs/stdout_stderr.log
+[14.202s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_msgs/streams.log
+[14.202s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_ros/command.log
+[14.203s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_ros/stderr.log
+[14.203s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_ros/stdout.log
+[14.203s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_ros/stdout_stderr.log
+[14.203s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/aruco_ros/streams.log
+[14.203s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/cu_bridge/command.log
+[14.203s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/cu_bridge/stderr.log
+[14.203s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/cu_bridge/stdout.log
+[14.204s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/cu_bridge/stdout_stderr.log
+[14.204s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/cu_bridge/streams.log
+[14.204s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/ddynamic_reconfigure2/command.log
+[14.204s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/ddynamic_reconfigure2/stderr.log
+[14.204s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/ddynamic_reconfigure2/stdout.log
+[14.204s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/ddynamic_reconfigure2/stdout_stderr.log
+[14.204s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/ddynamic_reconfigure2/streams.log
+[14.205s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/events.log
+[14.205s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/logger_all.log
+[14.205s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera/command.log
+[14.205s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera/stderr.log
+[14.205s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera/stdout.log
+[14.205s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera/stdout_stderr.log
+[14.205s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera/streams.log
+[14.206s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera_msgs/command.log
+[14.206s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera_msgs/stderr.log
+[14.206s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera_msgs/stdout.log
+[14.206s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera_msgs/stdout_stderr.log
+[14.206s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_camera_msgs/streams.log
+[14.206s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_description/command.log
+[14.206s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_description/stderr.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_description/stdout.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_description/stdout_stderr.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/realsense2_description/streams.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/rqt_reconfigure/command.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/rqt_reconfigure/stderr.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/rqt_reconfigure/stdout.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/rqt_reconfigure/stdout_stderr.log
+[14.207s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest/rqt_reconfigure/streams.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_msgs/command.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_msgs/stderr.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_msgs/stdout.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_msgs/stdout_stderr.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_msgs/streams.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_ros/command.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_ros/stderr.log
+[14.208s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_ros/stdout.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_ros/stdout_stderr.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_aruco_ros/streams.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration/command.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration/stderr.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration/stdout.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration/stdout_stderr.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration/streams.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration_msgs/command.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration_msgs/stderr.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration_msgs/stdout.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_handeye_calibration_msgs/streams.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_msgs/command.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_msgs/stderr.log
+[14.209s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_msgs/stdout.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_msgs/stdout_stderr.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_msgs/streams.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_phoxi_camera/command.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_phoxi_camera/stderr.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_phoxi_camera/stdout.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_phoxi_camera/stdout_stderr.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_phoxi_camera/streams.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_utility/command.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_utility/stderr.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_utility/stdout.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_utility/stdout_stderr.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aist_utility/streams.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco/command.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco/stderr.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco/stdout.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco/stdout_stderr.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco/streams.log
+[14.210s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_msgs/command.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_msgs/stderr.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_msgs/stdout.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_msgs/stdout_stderr.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_msgs/streams.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_ros/command.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_ros/stderr.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_ros/stdout.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_ros/stdout_stderr.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/aruco_ros/streams.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/cu_bridge/command.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/cu_bridge/stderr.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/cu_bridge/stdout.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/cu_bridge/stdout_stderr.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/cu_bridge/streams.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/ddynamic_reconfigure2/command.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/ddynamic_reconfigure2/stderr.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/ddynamic_reconfigure2/stdout.log
+[14.211s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/ddynamic_reconfigure2/stdout_stderr.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/ddynamic_reconfigure2/streams.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/events.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/logger_all.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera/command.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera/stderr.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera/stdout.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera/stdout_stderr.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera/streams.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera_msgs/command.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera_msgs/stderr.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera_msgs/stdout.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera_msgs/stdout_stderr.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_camera_msgs/streams.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_description/command.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_description/stderr.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_description/stdout.log
+[14.212s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_description/stdout_stderr.log
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/realsense2_description/streams.log
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/rqt_reconfigure/command.log
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/rqt_reconfigure/stderr.log
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/rqt_reconfigure/stdout.log
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/rqt_reconfigure/stdout_stderr.log
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//launch/log/latest_build/rqt_reconfigure/streams.log
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//config/a_phoxi_m_camera.yaml
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//config/file_camera.yaml
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//config/file_camera_color.yaml
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//config/motioncam.yaml
+[14.213s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//config/phoxi.yaml
+[14.218s] [33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:62 (file):
+[14.218s]   Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+[14.218s]   symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+[14.218s]   Use the cmake_policy command to set the policy and suppress this warning.
+[14.218s] Call Stack (most recent call first):
+[14.218s]   ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:326 (ament_cmake_symlink_install_directory)
+[14.218s]   cmake_install.cmake:46 (include)
+[14.219s] This warning is for project developers.  Use -Wno-dev to suppress it.
+[14.219s] [0m
+[14.219s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/PhoXi3Dscanner_macro.xacro
+[14.219s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/PhoXi3Dscanner_values.xacro
+[14.219s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/COLCON_IGNORE
+[14.219s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_msgs/command.log
+[14.219s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_msgs/stderr.log
+[14.219s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_msgs/stdout.log
+[14.219s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_msgs/stdout_stderr.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_msgs/streams.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_ros/command.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_ros/stderr.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_ros/stdout.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_ros/stdout_stderr.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_aruco_ros/streams.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_camera_multiplexer/command.log
+[14.220s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_camera_multiplexer/stderr.log
+[14.221s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_camera_multiplexer/stdout.log
+[14.221s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_camera_multiplexer/stdout_stderr.log
+[14.221s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_camera_multiplexer/streams.log
+[14.221s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration/command.log
+[14.221s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration/stderr.log
+[14.221s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration/stdout.log
+[14.221s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration/stdout_stderr.log
+[14.222s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration/streams.log
+[14.222s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration_msgs/command.log
+[14.222s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration_msgs/stderr.log
+[14.222s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration_msgs/stdout.log
+[14.222s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.222s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_handeye_calibration_msgs/streams.log
+[14.222s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_msgs/command.log
+[14.223s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_msgs/stderr.log
+[14.223s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_msgs/stdout.log
+[14.223s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_msgs/stdout_stderr.log
+[14.223s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_msgs/streams.log
+[14.223s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_phoxi_camera/command.log
+[14.223s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_phoxi_camera/stderr.log
+[14.224s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_phoxi_camera/stdout.log
+[14.224s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_phoxi_camera/stdout_stderr.log
+[14.224s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_phoxi_camera/streams.log
+[14.224s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_utility/command.log
+[14.224s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_utility/stderr.log
+[14.224s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_utility/stdout.log
+[14.224s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_utility/stdout_stderr.log
+[14.225s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aist_utility/streams.log
+[14.225s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco/command.log
+[14.225s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco/stderr.log
+[14.225s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco/stdout.log
+[14.225s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco/stdout_stderr.log
+[14.225s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco/streams.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_msgs/command.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_msgs/stderr.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_msgs/stdout.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_msgs/stdout_stderr.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_msgs/streams.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_ros/command.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_ros/stderr.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_ros/stdout.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_ros/stdout_stderr.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/aruco_ros/streams.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/cu_bridge/command.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/cu_bridge/stderr.log
+[14.226s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/cu_bridge/stdout.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/cu_bridge/stdout_stderr.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/cu_bridge/streams.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/ddynamic_reconfigure2/command.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/ddynamic_reconfigure2/stderr.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/ddynamic_reconfigure2/stdout.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/ddynamic_reconfigure2/stdout_stderr.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/ddynamic_reconfigure2/streams.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/events.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/logger_all.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera/command.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera/stderr.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera/stdout.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera/stdout_stderr.log
+[14.227s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera/streams.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera_msgs/command.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera_msgs/stderr.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera_msgs/stdout.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera_msgs/stdout_stderr.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_camera_msgs/streams.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_description/command.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_description/stderr.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_description/stdout.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_description/stdout_stderr.log
+[14.228s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/realsense2_description/streams.log
+[14.229s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/rqt_reconfigure/command.log
+[14.229s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/rqt_reconfigure/stderr.log
+[14.229s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/rqt_reconfigure/stdout.log
+[14.229s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/rqt_reconfigure/stdout_stderr.log
+[14.229s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-52-53/rqt_reconfigure/streams.log
+[14.230s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_msgs/command.log
+[14.230s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_msgs/stderr.log
+[14.230s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_msgs/stdout.log
+[14.230s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_msgs/stdout_stderr.log
+[14.230s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_msgs/streams.log
+[14.230s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_ros/command.log
+[14.231s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_ros/stderr.log
+[14.231s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_ros/stdout.log
+[14.231s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_ros/stdout_stderr.log
+[14.231s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_aruco_ros/streams.log
+[14.231s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_camera_multiplexer/command.log
+[14.231s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_camera_multiplexer/stderr.log
+[14.231s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_camera_multiplexer/stdout.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_camera_multiplexer/stdout_stderr.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_camera_multiplexer/streams.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration/command.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration/stderr.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration/stdout.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration/stdout_stderr.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration/streams.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration_msgs/command.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration_msgs/stderr.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration_msgs/stdout.log
+[14.232s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_handeye_calibration_msgs/streams.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_msgs/command.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_msgs/stderr.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_msgs/stdout.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_msgs/stdout_stderr.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_msgs/streams.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_phoxi_camera/command.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_phoxi_camera/stderr.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_phoxi_camera/stdout.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_phoxi_camera/stdout_stderr.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_phoxi_camera/streams.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_utility/command.log
+[14.233s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_utility/stderr.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_utility/stdout.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_utility/stdout_stderr.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aist_utility/streams.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco/command.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco/stderr.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco/stdout.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco/stdout_stderr.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco/streams.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_msgs/command.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_msgs/stderr.log
+[14.234s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_msgs/stdout.log
+[14.235s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_msgs/stdout_stderr.log
+[14.235s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_msgs/streams.log
+[14.235s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_ros/command.log
+[14.235s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_ros/stderr.log
+[14.235s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_ros/stdout.log
+[14.236s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_ros/stdout_stderr.log
+[14.236s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/aruco_ros/streams.log
+[14.236s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/cu_bridge/command.log
+[14.236s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/cu_bridge/stderr.log
+[14.236s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/cu_bridge/stdout.log
+[14.236s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/cu_bridge/stdout_stderr.log
+[14.237s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/cu_bridge/streams.log
+[14.237s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/ddynamic_reconfigure2/command.log
+[14.237s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/ddynamic_reconfigure2/stderr.log
+[14.237s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/ddynamic_reconfigure2/stdout.log
+[14.237s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/ddynamic_reconfigure2/stdout_stderr.log
+[14.238s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/ddynamic_reconfigure2/streams.log
+[14.238s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/events.log
+[14.238s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/logger_all.log
+[14.239s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera/command.log
+[14.239s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera/stderr.log
+[14.239s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera/stdout.log
+[14.239s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera/stdout_stderr.log
+[14.239s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera/streams.log
+[14.239s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera_msgs/command.log
+[14.240s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera_msgs/stderr.log
+[14.240s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera_msgs/stdout.log
+[14.240s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera_msgs/stdout_stderr.log
+[14.240s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_camera_msgs/streams.log
+[14.240s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_description/command.log
+[14.240s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_description/stderr.log
+[14.240s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_description/stdout.log
+[14.241s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_description/stdout_stderr.log
+[14.241s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/realsense2_description/streams.log
+[14.241s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/rqt_reconfigure/command.log
+[14.241s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/rqt_reconfigure/stderr.log
+[14.241s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/rqt_reconfigure/stdout.log
+[14.241s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/rqt_reconfigure/stdout_stderr.log
+[14.242s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/build_2024-06-22_17-53-34/rqt_reconfigure/streams.log
+[14.242s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_msgs/command.log
+[14.242s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_msgs/stderr.log
+[14.242s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_msgs/stdout.log
+[14.242s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_msgs/stdout_stderr.log
+[14.242s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_msgs/streams.log
+[14.243s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_ros/command.log
+[14.243s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_ros/stderr.log
+[14.243s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_ros/stdout.log
+[14.243s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_ros/stdout_stderr.log
+[14.243s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_aruco_ros/streams.log
+[14.243s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_camera_multiplexer/command.log
+[14.243s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_camera_multiplexer/stderr.log
+[14.244s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_camera_multiplexer/stdout.log
+[14.244s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_camera_multiplexer/stdout_stderr.log
+[14.244s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_camera_multiplexer/streams.log
+[14.244s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration/command.log
+[14.244s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration/stderr.log
+[14.244s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration/stdout.log
+[14.244s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration/stdout_stderr.log
+[14.245s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration/streams.log
+[14.245s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration_msgs/command.log
+[14.245s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration_msgs/stderr.log
+[14.245s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration_msgs/stdout.log
+[14.245s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.245s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_handeye_calibration_msgs/streams.log
+[14.246s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_msgs/command.log
+[14.246s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_msgs/stderr.log
+[14.246s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_msgs/stdout.log
+[14.246s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_msgs/stdout_stderr.log
+[14.247s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_msgs/streams.log
+[14.247s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_phoxi_camera/command.log
+[14.247s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_phoxi_camera/stderr.log
+[14.247s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_phoxi_camera/stdout.log
+[14.247s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_phoxi_camera/stdout_stderr.log
+[14.248s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_phoxi_camera/streams.log
+[14.248s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_utility/command.log
+[14.248s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_utility/stderr.log
+[14.248s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_utility/stdout.log
+[14.248s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_utility/stdout_stderr.log
+[14.248s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aist_utility/streams.log
+[14.249s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco/command.log
+[14.249s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco/stderr.log
+[14.249s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco/stdout.log
+[14.249s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco/stdout_stderr.log
+[14.249s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco/streams.log
+[14.249s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_msgs/command.log
+[14.249s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_msgs/stderr.log
+[14.250s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_msgs/stdout.log
+[14.250s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_msgs/stdout_stderr.log
+[14.250s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_msgs/streams.log
+[14.250s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_ros/command.log
+[14.250s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_ros/stderr.log
+[14.251s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_ros/stdout.log
+[14.251s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_ros/stdout_stderr.log
+[14.251s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/aruco_ros/streams.log
+[14.251s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/cu_bridge/command.log
+[14.251s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/cu_bridge/stderr.log
+[14.252s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/cu_bridge/stdout.log
+[14.252s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/cu_bridge/stdout_stderr.log
+[14.252s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/cu_bridge/streams.log
+[14.252s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/ddynamic_reconfigure2/command.log
+[14.253s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/ddynamic_reconfigure2/stderr.log
+[14.253s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/ddynamic_reconfigure2/stdout.log
+[14.253s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/ddynamic_reconfigure2/stdout_stderr.log
+[14.253s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/ddynamic_reconfigure2/streams.log
+[14.253s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/events.log
+[14.253s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/logger_all.log
+[14.253s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera/command.log
+[14.254s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera/stderr.log
+[14.254s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera/stdout.log
+[14.254s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera/stdout_stderr.log
+[14.254s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera/streams.log
+[14.254s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera_msgs/command.log
+[14.254s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera_msgs/stderr.log
+[14.254s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera_msgs/stdout.log
+[14.255s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera_msgs/stdout_stderr.log
+[14.255s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_camera_msgs/streams.log
+[14.255s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_description/command.log
+[14.255s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_description/stderr.log
+[14.255s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_description/stdout.log
+[14.255s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_description/stdout_stderr.log
+[14.255s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/realsense2_description/streams.log
+[14.256s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/rqt_reconfigure/command.log
+[14.256s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/rqt_reconfigure/stderr.log
+[14.256s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/rqt_reconfigure/stdout.log
+[14.256s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/rqt_reconfigure/stdout_stderr.log
+[14.256s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest/rqt_reconfigure/streams.log
+[14.256s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_msgs/command.log
+[14.256s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_msgs/stderr.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_msgs/stdout.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_msgs/stdout_stderr.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_msgs/streams.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_ros/command.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_ros/stderr.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_ros/stdout.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_ros/stdout_stderr.log
+[14.257s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_aruco_ros/streams.log
+[14.258s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_camera_multiplexer/command.log
+[14.258s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_camera_multiplexer/stderr.log
+[14.258s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_camera_multiplexer/stdout.log
+[14.258s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_camera_multiplexer/stdout_stderr.log
+[14.258s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_camera_multiplexer/streams.log
+[14.258s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration/command.log
+[14.258s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration/stderr.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration/stdout.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration/stdout_stderr.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration/streams.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration_msgs/command.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration_msgs/stderr.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration_msgs/stdout.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration_msgs/stdout_stderr.log
+[14.259s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_handeye_calibration_msgs/streams.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_msgs/command.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_msgs/stderr.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_msgs/stdout.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_msgs/stdout_stderr.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_msgs/streams.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_phoxi_camera/command.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_phoxi_camera/stderr.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_phoxi_camera/stdout.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_phoxi_camera/stdout_stderr.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_phoxi_camera/streams.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_utility/command.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_utility/stderr.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_utility/stdout.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_utility/stdout_stderr.log
+[14.260s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aist_utility/streams.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco/command.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco/stderr.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco/stdout.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco/stdout_stderr.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco/streams.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_msgs/command.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_msgs/stderr.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_msgs/stdout.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_msgs/stdout_stderr.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_msgs/streams.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_ros/command.log
+[14.261s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_ros/stderr.log
+[14.262s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_ros/stdout.log
+[14.262s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_ros/stdout_stderr.log
+[14.262s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/aruco_ros/streams.log
+[14.262s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/cu_bridge/command.log
+[14.262s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/cu_bridge/stderr.log
+[14.262s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/cu_bridge/stdout.log
+[14.263s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/cu_bridge/stdout_stderr.log
+[14.263s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/cu_bridge/streams.log
+[14.263s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/ddynamic_reconfigure2/command.log
+[14.263s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/ddynamic_reconfigure2/stderr.log
+[14.263s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/ddynamic_reconfigure2/stdout.log
+[14.263s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/ddynamic_reconfigure2/stdout_stderr.log
+[14.263s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/ddynamic_reconfigure2/streams.log
+[14.264s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/events.log
+[14.264s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/logger_all.log
+[14.264s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera/command.log
+[14.264s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera/stderr.log
+[14.264s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera/stdout.log
+[14.264s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera/stdout_stderr.log
+[14.265s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera/streams.log
+[14.265s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera_msgs/command.log
+[14.265s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera_msgs/stderr.log
+[14.265s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera_msgs/stdout.log
+[14.265s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera_msgs/stdout_stderr.log
+[14.265s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_camera_msgs/streams.log
+[14.265s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_description/command.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_description/stderr.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_description/stdout.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_description/stdout_stderr.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/realsense2_description/streams.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/rqt_reconfigure/command.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/rqt_reconfigure/stderr.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/rqt_reconfigure/stdout.log
+[14.266s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/rqt_reconfigure/stdout_stderr.log
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/log/latest_build/rqt_reconfigure/streams.log
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/motioncam_m_camera.urdf
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/motioncam_m_camera.urdf.xacro
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_l_camera.urdf
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_l_camera.urdf.xacro
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_m_camera.urdf
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_m_camera.urdf.xacro
+[14.267s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_s_camera.urdf
+[14.268s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_s_camera.urdf.xacro
+[14.268s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_xl_camera.urdf
+[14.268s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_xl_camera.urdf.xacro
+[14.268s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_xs_camera.urdf
+[14.268s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//urdf/phoxi_xs_camera.urdf.xacro
+[14.269s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/collision/MotionCam3D_M.c.STL
+[14.269s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/collision/PhoXi_L.c.STL
+[14.269s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/collision/PhoXi_M.c.STL
+[14.269s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/collision/PhoXi_S.c.STL
+[14.269s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/collision/PhoXi_XL.c.STL
+[14.269s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/collision/PhoXi_XS.c.STL
+[14.269s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/visual/MotionCam3D_M.f.STL
+[14.270s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/visual/PhoXi_L.f.STL
+[14.270s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/visual/PhoXi_M.f.STL
+[14.270s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/visual/PhoXi_S.f.STL
+[14.270s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/visual/PhoXi_XL.f.STL
+[14.270s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera//meshes/visual/PhoXi_XS.f.STL
+[14.270s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/environment/library_path.sh
+[14.270s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/environment/library_path.dsv
+[14.271s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/ament_index/resource_index/package_run_dependencies/aist_phoxi_camera
+[14.271s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/ament_index/resource_index/parent_prefix_path/aist_phoxi_camera
+[14.271s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/environment/ament_prefix_path.sh
+[14.271s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/environment/ament_prefix_path.dsv
+[14.271s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/environment/path.sh
+[14.271s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/environment/path.dsv
+[14.272s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/local_setup.bash
+[14.272s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/local_setup.sh
+[14.272s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/local_setup.zsh
+[14.272s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/local_setup.dsv
+[14.272s] -- Symlinking: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/package.dsv
+[14.281s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/ament_index/resource_index/packages/aist_phoxi_camera
+[14.281s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/ament_index/resource_index/rclcpp_components/aist_phoxi_camera
+[14.281s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/cmake/ament_cmake_export_libraries-extras.cmake
+[14.281s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/cmake/aist_phoxi_cameraConfig.cmake
+[14.281s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/cmake/aist_phoxi_cameraConfig-version.cmake
+[14.281s] -- Up-to-date symlink: /home/ueshiba/ros2_ws/install/aist_phoxi_camera/share/aist_phoxi_camera/package.xml
+[14.284s] Invoked command in '/home/ueshiba/ros2_ws/build/aist_phoxi_camera' returned '0': CMAKE_PREFIX_PATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2:/home/ueshiba/ros2_ws/install/ur_simulation_gz:/home/ueshiba/ros2_ws/install/realsense2_description:/home/ueshiba/ros2_ws/install/realsense2_camera:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs:/home/ueshiba/ros2_ws/install/cu_bridge:/home/ueshiba/ros2_ws/install/aist_handeye_calibration:/home/ueshiba/ros2_ws/install/aist_aruco_ros:/home/ueshiba/ros2_ws/install/aist_utility:/home/ueshiba/ros2_ws/install/aist_phoxi_camera:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer:/home/ueshiba/ros2_ws/install/aruco_ros:/home/ueshiba/ros2_ws/install/aruco_msgs:/home/ueshiba/ros2_ws/install/aruco:/home/ueshiba/ros2_ws/install/aist_msgs:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs:/home/ueshiba/ros2_ws/install/aist_description:/home/ueshiba/ros2_ws/install/aist_aruco_msgs:/home/ueshiba/ros2_ws/install/rqt_reconfigure:/opt/ros/rolling PS1=\[\e]0;\u@\h: \w\a\]\h% PYTHONPATH=/home/ueshiba/ros2_ws/install/ddynamic_reconfigure2/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/build/rqt_reconfigure/src:/home/ueshiba/ros2_ws/install/rqt_reconfigure/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/realsense2_camera_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_camera_multiplexer/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aruco_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_handeye_calibration_msgs/lib/python3.10/site-packages:/home/ueshiba/ros2_ws/install/aist_aruco_msgs/lib/python3.10/site-packages:/opt/ros/rolling/lib/python3.10/site-packages /usr/bin/cmake --install /home/ueshiba/ros2_ws/build/aist_phoxi_camera

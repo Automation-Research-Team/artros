@@ -1,0 +1,32 @@
+/home/ueshiba/ros2_ws/src/artros/aist_handeye_calibration/aist_handeye_calibration/src/test_calibrator.cpp: In instantiation of ‘[01m[Kvoid TU::doJob(const string&, bool) [with T = double; std::string = std::__cxx11::basic_string<char>][m[K’:
+[01m[K/home/ueshiba/ros2_ws/src/artros/aist_handeye_calibration/aist_handeye_calibration/src/test_calibrator.cpp:92:19:[m[K   required from here
+[01m[K/home/ueshiba/ros2_ws/src/artros/aist_handeye_calibration/aist_handeye_calibration/src/test_calibrator.cpp:49:25:[m[K [01;35m[Kwarning: [m[Kunused variable ‘[01m[Keye_on_hand[m[K’ [[01;35m[K]8;;https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#index-Wunused-variable-Wunused-variable]8;;[m[K]
+   49 |     const auto          [01;35m[Keye_on_hand[m[K = node["eye_on_hand"].as<bool>();
+      |                         [01;35m[K^~~~~~~~~~~[m[K
+[33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:62 (file):
+  Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+  symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+  Use the cmake_policy command to set the policy and suppress this warning.
+Call Stack (most recent call first):
+  ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:323 (ament_cmake_symlink_install_directory)
+  cmake_install.cmake:46 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m
+[33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:73 (file):
+  Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+  symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+  Use the cmake_policy command to set the policy and suppress this warning.
+Call Stack (most recent call first):
+  ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:323 (ament_cmake_symlink_install_directory)
+  cmake_install.cmake:46 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m
+[33mCMake Warning (dev) at ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:73 (file):
+  Policy CMP0009 is not set: FILE GLOB_RECURSE calls should not follow
+  symlinks by default.  Run "cmake --help-policy CMP0009" for policy details.
+  Use the cmake_policy command to set the policy and suppress this warning.
+Call Stack (most recent call first):
+  ament_cmake_symlink_install/ament_cmake_symlink_install.cmake:323 (ament_cmake_symlink_install_directory)
+  cmake_install.cmake:46 (include)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+[0m

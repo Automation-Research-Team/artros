@@ -1,0 +1,3 @@
+gmake[2]: *** 'CMakeFiles/cu_bridge.dir/src/cu_bridge_generated_undistort_test.cu.o' に必要なターゲット '/usr/local/cuda/include/cub/detail/cpp_compatibility.cuh' を make するルールがありません.  中止.
+gmake[1]: *** [CMakeFiles/Makefile2:136: CMakeFiles/cu_bridge.dir/all] エラー 2
+gmake: *** [Makefile:146: all] エラー 2
