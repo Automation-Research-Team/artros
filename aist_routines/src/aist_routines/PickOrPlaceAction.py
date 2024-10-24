@@ -161,6 +161,8 @@ class PickOrPlace(SimpleActionClient):
             if not self._server.is_active():
                 return
             if not success:
+                if goal.pick:
+                    gripper.release()
                 raise PickOrPlace.Error(PickOrPlaceResult.APPROACH_FAILURE,
                                         'Failed to approach target')
 
