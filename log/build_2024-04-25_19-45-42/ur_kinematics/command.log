@@ -1,1 +1,0 @@
-Invoking command in '/home/ueshiba/ros2_ws/build/ur_kinematics': PS1=\[\e]0;\u@\h: \w\a\]\h% /usr/bin/cmake /home/ueshiba/noetic/catkin_ws/src/artros/third_party/universal_robot/ur_kinematics -DCATKIN_INSTALL_INTO_PREFIX_ROOT=0 -DCMAKE_INSTALL_PREFIX=/home/ueshiba/ros2_ws/install
