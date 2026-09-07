@@ -230,11 +230,3 @@ class KittingRoutines(BaseRoutines):
         graspabilities.gscores        = gscores
         graspabilities.contact_points = contact_points
         return graspabilities
-
-    # def _done_cb(self, state, result):
-    #     rospy.sleep(1)          # Pause required after cancelling arm motion
-    #     if self.current_robot_name:
-    #         self.go_to_named_pose(self.current_robot_name, 'home')
-    #         rospy.sleep(1)
-    #         self.place_tool(self.current_robot_name)
-    #         self.go_to_named_pose(self.current_robot_name, 'home')

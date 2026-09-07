@@ -75,3 +75,8 @@ def hmi_demo():
     from aist_routines import HMIRoutines
 
     _main('hmi_demo', HMIRoutines)
+
+def handeye_calibration():
+    from aist_handeye_calibration import HandEyeCalibrationRoutines
+
+    _main('handeye_calibration', HandEyeCalibrationRoutines)

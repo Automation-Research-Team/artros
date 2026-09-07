@@ -22,7 +22,7 @@ handeye_calibrator:
     pose_timeout:        5.0
     use_dual_quaternion: true
 
-run_calibration:
+handeye_calibration:
   ros__parameters:
     camera_name:         a_motioncam
     robot_name:          b_bot

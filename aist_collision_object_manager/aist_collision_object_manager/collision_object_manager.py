@@ -42,8 +42,8 @@ from rclpy.node                    import Node
 from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
 from rclpy.duration                import Duration
 from rclpy.time                    import Time
+from rclpy.parameter               import Parameter
 from tf2_ros.transform_broadcaster import TransformBroadcaster
-from rcl_interfaces.msg            import ParameterDescriptor, ParameterType
 from std_msgs.msg                  import Header, ColorRGBA
 from geometry_msgs.msg             import (Point, Vector3, Quaternion, Pose,
                                            PoseStamped, TransformStamped)
@@ -884,42 +884,49 @@ class CollisionObjectManager(object):
     #
     # Utilities
     #
-    @staticmethod
-    def _load_databases(urls: List[str])-> Dict:
+    def _load_databases(self, urls: List[str])-> Dict:
         databases = {}
         for url in urls:
-            with open(filepath_from_url(url), 'r') as f:
-                databases |= yaml.safe_load(f)
+            try:
+                with open(filepath_from_url(url), 'r') as f:
+                    databases |= yaml.safe_load(f)
+            except Exception as e:
+                self.logger.error('failed to load database: %s' % e)
         return databases
 
-    @staticmethod
-    def _load_mesh(url: str,
+    def _load_mesh(self, url: str,
                    scale: Tuple[float, float, float]=(0.001, 0.001, 0.001)) \
                    -> Mesh:
-        with pyassimp.load(filepath_from_url(url)) as scene:
-            if not scene.meshes or len(scene.meshes) == 0:
-                raise RuntimeError("no meshes in the file")
-            if len(scene.meshes[0].faces) == 0:
-                raise RuntimeError("no faces in the mesh")
+        try:
+            with pyassimp.load(filepath_from_url(url)) as scene:
+                if not scene.meshes or len(scene.meshes) == 0:
+                    raise RuntimeError("no meshes in the file[%s]" % url)
+                if len(scene.meshes[0].faces) == 0:
+                    raise RuntimeError("no faces in the mesh loaded from file[%s]"
+                                       % url)
 
-        mesh = Mesh()
-        first_face = scene.meshes[0].faces[0]
-        if hasattr(first_face, '__len__'):
-            for face in scene.meshes[0].faces:
-                if len(face) == 3:
-                    triangle = MeshTriangle()
-                    triangle.vertex_indices = [face[0], face[1], face[2]]
-                    mesh.triangles.append(triangle)
-        elif hasattr(first_face, 'indices'):
-            for face in scene.meshes[0].faces:
-                if len(face.indices) == 3:
-                    triangle = MeshTriangle()
-                    triangle.vertex_indices = [face.indices[0],
-                                               face.indices[1],
-                                               face.indices[2]]
-                    mesh.triangles.append(triangle)
-        else:
-            raise RuntimeError("unable to build triangles from mesh due to mesh object structure")
+            mesh = Mesh()
+            first_face = scene.meshes[0].faces[0]
+            if hasattr(first_face, '__len__'):
+                for face in scene.meshes[0].faces:
+                    if len(face) == 3:
+                        triangle = MeshTriangle()
+                        triangle.vertex_indices = [face[0], face[1], face[2]]
+                        mesh.triangles.append(triangle)
+            elif hasattr(first_face, 'indices'):
+                for face in scene.meshes[0].faces:
+                    if len(face.indices) == 3:
+                        triangle = MeshTriangle()
+                        triangle.vertex_indices = [face.indices[0],
+                                                   face.indices[1],
+                                                   face.indices[2]]
+                        mesh.triangles.append(triangle)
+            else:
+                raise RuntimeError("unable to build triangles from mesh with unknown structure")
+        except RuntimeError as e:
+            self.logger.error('failed to load mesh from file: %s' % e)
+            return None
+
         for vertex in scene.meshes[0].vertices:
             mesh.vertices.append(Point(x=vertex[0]*scale[0],
                                        y=vertex[1]*scale[1],

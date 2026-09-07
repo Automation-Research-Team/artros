@@ -12,7 +12,8 @@ launch_arguments = [
         'name':        'task',
         'default':     'base',
         'description': 'Name of the client',
-        'choices':     ['base', 'assembly', 'kitting', 'hmi_demo']
+        'choices':     ['base', 'assembly', 'kitting', 'hmi_demo',
+                        'handeye_calibration']
     },
     {
         'name':        'config',

@@ -48,6 +48,7 @@ from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
 from tf2_ros.buffer                import Buffer
 from tf2_ros.transform_listener    import TransformListener
 from std_msgs.msg                  import Header
+from rcl_interfaces.msg            import ParameterValue
 from geometry_msgs.msg             import (PoseStamped, Pose, PoseArray,
                                            PointStamped, Point, Quaternion,
                                            Vector3Stamped, Vector3)
@@ -180,19 +181,16 @@ class BaseRoutines(Node, Cmd):
         self._pick_or_place_tool = PickOrPlaceToolTask(self)
 
         # Interpreter stuffs
-        self._robot_name   = self.group_names[0]
-        self._axis         = 1  # Y-axis
-        self._speed        = 1.0
+        self._robot_name   = self.declare_parameter('initial_robot_name',
+                                                    self.group_names[0]).value
+        self._axis         = self.declare_parameter('initial_axis', 1).value
+        self._speed        = self.declare_parameter('initial_speed', 1.0).value
         self._recent_tasks = {}
         delims = readline.get_completer_delims()
         if '/' in delims:
             readline.set_completer_delims(delims.replace('/', ''))
 
         self.get_logger().info('BaseRoutines initialized.')
-
-    def declare_parameter_with_type(self, name, type_, value):
-        param = Parameter('tmp', type_=type_, value=value)
-        return self.declare_parameter(name, param.get_parameter_value())
 
     @property
     def tf2_buffer(self)-> Buffer:
@@ -310,8 +308,7 @@ class BaseRoutines(Node, Cmd):
                     self._settings = recursive_merge(self._settings,
                                                      yaml.safe_load(f))
             except Exception as e:
-                self.get_logger().error('failed to load setting file[%s]: %s'
-                                        % (url, e))
+                self.get_logger().error('failed to load setting file: %s' % e)
 
     #
     # CLI(command line interface) stuffs

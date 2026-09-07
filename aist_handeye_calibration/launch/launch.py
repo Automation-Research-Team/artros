@@ -86,9 +86,9 @@ def launch_setup(context):
                 ('detector_name', 'detector_3d'),
                 ('camera_type',   camera_type),
             ]),
-        Node(name='run_calibration',
-             package='aist_handeye_calibration',
-             executable='run_calibration.py',
+        Node(name='handeye_calibration',
+             package='aist_routines',
+             executable='handeye_calibration',
              parameters=[
                  LaunchConfiguration('param_file'),
                  {'config_file':
@@ -98,7 +98,7 @@ def launch_setup(context):
                   'use_sim_time': LaunchConfiguration('sim')}
              ],
              remappings=[('pose', 'detector_3d/pose')],
-             prefix=['gnome-terminal --geometry=80x60 --'],
+             prefix=['gnome-terminal --tab --wait --active --'],
              output=LaunchConfiguration('output'),
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')])
