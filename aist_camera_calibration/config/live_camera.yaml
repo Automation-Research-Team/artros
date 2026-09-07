@@ -19,7 +19,7 @@ camera_calibrator:
   ros__parameters:
     correspondences_timeout: 5.0
 
-run_calibration:
+camera_calibration:
   ros__parameters:
     robot_name:          b_bot
     end_effector_link:   b_bot_gripper_base_link

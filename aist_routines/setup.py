@@ -24,10 +24,13 @@ setup(
     license="BSD",
     entry_points={
         'console_scripts': [
-            'base     = ' + package_name + '.interactive:base',
-            'assembly = ' + package_name + '.interactive:assembly',
-            'kitting  = ' + package_name + '.interactive:kitting',
-            'hmi_demo = ' + package_name + '.interactive:hmi_demo',
+            'base                = ' + package_name + '.interactive:base',
+            'assembly            = ' + package_name + '.interactive:assembly',
+            'kitting             = ' + package_name + '.interactive:kitting',
+            'hmi_demo            = ' + package_name + '.interactive:hmi_demo',
+            'handeye_calibration = ' + package_name + '.interactive:handeye_calibration',
+            'camera_calibration  = ' + package_name + '.interactive:camera_calibration',
+            'plane_calibration   = ' + package_name + '.interactive:plane_calibration',
         ],
     },
 )

@@ -56,21 +56,6 @@ class AssemblyRoutines(BaseRoutines):
         return ('screw_m3', 'screw_m4')
 
     # Interactive stuffs
-    def process_command(self, command, robot_name, axis, speed):
-        if command == 'at':
-            pose_name = input('  viewing pose? ')
-            if pose_name == '':
-                pose_name = 'fasten_screw_m4_ready'
-            target_frame = input('  target frame? ')
-            if target_frame == '':
-                target_frame = 'base/panel_motor_screw_hole_1'
-            self.approach_target(robot_name, pose_name, target_frame)
-        elif command == 'AT':
-            self.cancel_approach_target(robot_name)
-        else:
-            return super().process_command(command, robot_name, axis, speed)
-        return robot_name, axis, speed
-
     def do_cmds(self, dummy):
         """      Print command list."""
         super().do_cmds(dummy)

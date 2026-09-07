@@ -7,6 +7,8 @@ float64[] initpose
 float64[] keyposes
 ---
 # Result
+string    stage
 bool      success
 ---
 # Feedback
+string    stage

@@ -51,12 +51,12 @@ target_link_libraries(
 ########################
 ament_python_install_package(${PROJECT_NAME})
 
-install(
-  PROGRAMS
-    scripts/run_calibration.py
-  DESTINATION
-    lib/${PROJECT_NAME}
-)
+# install(
+#   PROGRAMS
+#     scripts/run_calibration.py
+#   DESTINATION
+#     lib/${PROJECT_NAME}
+# )
 
 ##########
 #  Test  #

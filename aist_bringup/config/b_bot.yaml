@@ -57,5 +57,5 @@ cameras:
     type: PhoXiCamera
   b_bot_camera:
     type: CodedLightRealsenseCamera
-  # live_camera:
-  #   type: USBCamera
+  live_camera:
+    type: USBCamera

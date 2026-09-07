@@ -53,7 +53,6 @@ class ErrorRecoveryBySweepTaskClient(GroupedSimpleActionClient):
         super().__init__(node, ErrorRecoveryBySweep, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
-        self.wait_for_server()
 
     def send_goal(self, robot_name, pose, part_id, message,
                   *, timeout_sec=None):
@@ -144,5 +143,6 @@ class ErrorRecoveryBySweepTaskServer(ActionServer):
 #************************************************************************
 class ErrorRecoveryBySweepTask(ErrorRecoveryBySweepTaskClient):
     def __init__(self, node, server_ns='error_recovery_by_sweep'):
-        self._server = ErrorRecoveryBySweepTaskServer(node, server_ns)
         super().__init__(node, server_ns)
+        self._server = ErrorRecoveryBySweepTaskServer(node, server_ns)
+        self.wait_for_server()

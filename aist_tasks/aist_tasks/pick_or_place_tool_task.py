@@ -48,7 +48,6 @@ class PickOrPlaceToolTaskClient(GroupedSimpleActionClient):
         super().__init__(node, PickOrPlaceTool, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
-        self.wait_for_server()
 
     def send_goal(self, robot_name, tool_name, *, timeout_sec=0.0):
         return super().send_goal(PickOrPlaceTool.Goal(robot_name=robot_name,
@@ -120,5 +119,6 @@ class PickOrPlaceToolTaskServer(ActionServer):
 #************************************************************************
 class PickOrPlaceToolTask(PickOrPlaceToolTaskClient):
     def __init__(self, node, server_ns='pick_or_place_tool'):
-        self._server = PickOrPlaceToolTaskServer(node, server_ns)
         super().__init__(node, server_ns)
+        self._server = PickOrPlaceToolTaskServer(node, server_ns)
+        self.wait_for_server()

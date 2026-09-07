@@ -62,7 +62,6 @@ class RequestHelpTaskClient(SimpleActionClient):
         """
         super().__init__(node, RequestHelp, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup())
-        self.wait_for_server()
         self._marker_pub = node.create_publisher(Marker, 'pointing_marker', 1)
 
     def send_goal(self, robot_name: str, pose: PoseStamped, part_id: str,
@@ -187,5 +186,6 @@ class RequestHelpTaskServer(ActionServer):
 #************************************************************************
 class RequestHelpTask(RequestHelpTaskClient):
     def __init__(self, node, server_ns='request_help'):
-        self._server = RequestHelpTaskServer(node, server_ns)
         super().__init__(node, server_ns)
+        self._server = RequestHelpTaskServer(node, server_ns)
+        self.wait_for_server()

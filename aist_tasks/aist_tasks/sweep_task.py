@@ -47,7 +47,6 @@ class SweepTaskClient(GroupedSimpleActionClient):
         super().__init__(node, Sweep, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
-        self.wait_for_server()
 
     def send_goal(self, robot_name, pose, sweep_length, sweep_offset,
                   approach_offset, departure_offset, speed_fast, speed_slow,
@@ -120,5 +119,6 @@ class SweepTaskServer(ActionServer):
 #************************************************************************
 class SweepTask(SweepTaskClient):
     def __init__(self, node, server_ns='sweep'):
-        self._server = SweepTaskServer(node, server_ns)
         super().__init__(node, server_ns)
+        self._server = SweepTaskServer(node, server_ns)
+        self.wait_for_server()

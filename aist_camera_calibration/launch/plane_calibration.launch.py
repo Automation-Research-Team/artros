@@ -90,9 +90,9 @@ def launch_setup(context):
                 ('external_container', LaunchConfiguration('external_container')),
                 ('container',          LaunchConfiguration('container')),
             ]),
-        Node(name='run_plane_calibration',
-             package='aist_camera_calibration',
-             executable='run_plane_calibration.py',
+        Node(name='plane_calibration',
+             package='aist_routines',
+             executable='plane_calibration',
              parameters=[
                  LaunchConfiguration('param_file'),
                  {'param_file':
@@ -100,7 +100,7 @@ def launch_setup(context):
                       FindPackageShare('aist_bringup'), 'config',
                       [LaunchConfiguration('config'), '.yaml']])}
              ],
-             prefix=['xterm -fn 7x14 -sb -geometry 80x60 -e'],
+             prefix=['gnome-terminal --tab --wait --active --'],
              output=LaunchConfiguration('output'),
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')])
