@@ -33,39 +33,37 @@
 #
 # Author: Toshio Ueshiba
 #
-import time, copy
+import time, copy, yaml
 import numpy as np
 from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from aist_msgs.action            import HandEyeCalibration
+from aist_msgs.action            import CameraCalibration
 from task_wrappers.action_server import ActionServer
 from task_wrappers.action_client import SimpleActionClient
 
 #*********************************************************************
-#  class HandEyeCalibrationTaskClient                                *
+#  class CameraCalibrationTaskClient                                 *
 #*********************************************************************
-class HandEyeCalibrationTaskClient(SimpleActionClient):
-    def __init__(self, node, server_ns='handeye_calibration'):
-        super().__init__(node, HandEyeCalibration, server_ns,
+class CameraCalibrationTaskClient(SimpleActionClient):
+    def __init__(self, node, server_ns='camera_calibration'):
+        super().__init__(node, CameraCalibration, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup())
 
-    def send_goal(self, camera_name, robot_name, eye_on_hand,
-                  end_effector_link, initpose, keyposes, *, timeout_sec=None):
+    def send_goal(self, robot_name, end_effector_link, initpose, keyposes,
+                  *, timeout_sec=None):
         return super().send_goal(
-                   HandEyeCalibration.Goal(camera_name=camera_name,
-                                           robot_name=robot_name,
-                                           eye_on_hand=eye_on_hand,
-                                           end_effector_link=end_effector_link,
-                                           initpose=initpose,
-                                           keyposes=keyposes),
+                   CameraCalibration.Goal(robot_name=robot_name,
+                                          end_effector_link=end_effector_link,
+                                          initpose=initpose,
+                                          keyposes=keyposes),
                    feedback_callback=self.stage_feedback_cb,
                    timeout_sec=timeout_sec)
 
 #*********************************************************************
-#  class HandEyeCalibrationTaskServer                                *
+#  class CameraCalibrationTaskServer                                 *
 #*********************************************************************
-class HandEyeCalibrationTaskServer(ActionServer):
-    def __init__(self, node, server_ns='handeye_calibration'):
-        super().__init__(node, HandEyeCalibration, server_ns, self._execute_cb,
+class CameraCalibrationTaskServer(ActionServer):
+    def __init__(self, node, server_ns='camera_calibration'):
+        super().__init__(node, CameraCalibration, server_ns, self._execute_cb,
                          callback_group=MutuallyExclusiveCallbackGroup())
 
     def _execute_cb(self, goal_handle):
@@ -96,12 +94,8 @@ class HandEyeCalibrationTaskServer(ActionServer):
         keyposes = np.array(request.keyposes).reshape(-1, 6).tolist()
         for i, keypose in enumerate(keyposes, 1):
             print('\n*** Keypose [%d/%d]: Try! ***' % (i, len(keyposes)))
-            if request.eye_on_hand:
-                self._move_and_take_sample(goal_handle, keypose)
-            else:
-                self._visit_subposes_and_take_samples(goal_handle, keypose, i)
-                print('*** Keypose [%d/%d]: Completed. ***'
-                      % (i, len(keyposes)))
+            self._move_and_take_sample(goal_handle, keypose)
+            print('*** Keypose [%d/%d]: Completed. ***' % (i, len(keyposes)))
 
         # [4] 'go_back_home' stage: Go back to home pose.
         with ActionServer.Stage(self, goal_handle, 'go_back_home',
@@ -124,29 +118,6 @@ class HandEyeCalibrationTaskServer(ActionServer):
         goal_handle.succeed()
         return Sweep.Result(stage='')
 
-    def _visit_subposes_and_take_samples(self, goal_handle, keypose,
-                                         keypose_num):
-        subpose = copy.copy(keypose)
-        roll = subpose[3]
-        for i in range(3):
-            print('\n--- Subpose [%d/5]: Try! ---' % (i + 1))
-            if self._move_and_take_sample(goal_handle, subpose):
-                self.logger.info('Subpose [%d/5]: Succeeded.' % (i + 1))
-            else:
-                self.logger.error('Subpose [%d/5]: Failed.' % (i + 1))
-            subpose[3] -= 30.0
-
-        subpose[3]  = roll - 30.0
-        subpose[4] += 15.0
-
-        for i in range(2):
-            print('\n--- Subpose [%d/5]: Try! ---' % (i + 4))
-            if self._move_and_take_sample(goal_handle, subpose):
-                self.logger.info('Subpose [%d/5]: Succeeded.' % (i + 4))
-            else:
-                self.logger.error('Subpose [%d/5]: Failed.' % (i + 4))
-            subpose[4] -= 30.0
-
     def _move_and_take_sample(self, goal_handle, xyzrpy):
         self.logger.info('trying to move to %s' % xyzrpy)
 
@@ -168,7 +139,7 @@ class HandEyeCalibrationTaskServer(ActionServer):
 
             try:
                 node.take_sample(timeout_sec=0.0)
-                node.trigger_frame(request.camera_name)
+                #node.trigger_frame(request.camera_name)
                 res = node.wait_for_sample(timeout_sec=1.0)
             except Exception as ex:
                 self.logger.error(str(ex))
@@ -178,15 +149,16 @@ class HandEyeCalibrationTaskServer(ActionServer):
                 self.logger.error('failed to take sample: %s' % res.message)
                 return False
             else:
-                self.logger.info('  %d-th sample taken'
-                                 % len(node.get_sample_list().transform_cm))
+                self.logger.info(
+                    '  %d-th sample taken'
+                    % len(node.get_sample_list().correspondences_sets))
                 return True
 
 #************************************************************************
-#  class HandEyeCalibrationTask                                         *
+#  class CameraCalibrationTask                                          *
 #************************************************************************
-class HandEyeCalibrationTask(HandEyeCalibrationTaskClient):
-    def __init__(self, node, server_ns='handeye_calibration'):
+class CameraCalibrationTask(CameraCalibrationTaskClient):
+    def __init__(self, node, server_ns='camera_calibration'):
         super().__init__(node, server_ns)
-        self._server = HandEyeCalibrationTaskServer(node, server_ns)
+        self._server = CameraCalibrationTaskServer(node, server_ns)
         self.wait_for_server()

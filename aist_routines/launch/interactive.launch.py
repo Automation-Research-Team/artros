@@ -13,7 +13,8 @@ launch_arguments = [
         'default':     'base',
         'description': 'Name of the client',
         'choices':     ['base', 'assembly', 'kitting', 'hmi_demo',
-                        'handeye_calibration']
+                        'handeye_calibration',
+                        'camera_calibration', 'plane_calibration']
     },
     {
         'name':        'config',

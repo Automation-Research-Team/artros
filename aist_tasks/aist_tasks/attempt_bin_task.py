@@ -51,7 +51,6 @@ class AttemptBinTaskClient(GroupedSimpleActionClient):
         super().__init__(node, AttemptBin, server_ns,
                          callback_group=MutuallyExclusiveCallbackGroup(),
                          group_field='robot_name')
-        self.wait_for_server()
 
     def send_goal(self, robot_name: str, bin_id: str, pick_all: bool,
                   max_attempts: int, *, timeout_sec: Optional[float]=0.0):
@@ -301,8 +300,9 @@ class AttemptBinTaskServer(ActionServer):
 #************************************************************************
 class AttemptBinTask(AttemptBinTaskClient):
     def __init__(self, node, server_ns='attempt_bin'):
-        self._server = AttemptBinTaskServer(node, server_ns)
         super().__init__(node, server_ns)
+        self._server = AttemptBinTaskServer(node, server_ns)
+        self.wait_for_server()
 
     @property
     def server(self):

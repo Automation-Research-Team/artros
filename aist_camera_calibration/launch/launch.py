@@ -87,9 +87,9 @@ def launch_setup(context):
                 ('detector_name', 'multi_detector'),
                 ('camera_type',   camera_type),
             ]),
-        Node(name='run_calibration',
-             package='aist_camera_calibration',
-             executable='run_calibration.py',
+        Node(name='camera_calibration',
+             package='aist_routines',
+             executable='camera_calibration',
              parameters=[
                  LaunchConfiguration('param_file'),
                  {'config_file':
@@ -98,7 +98,7 @@ def launch_setup(context):
                       [LaunchConfiguration('config'), '.yaml']]),
                   'use_sim_time': LaunchConfiguration('sim')}
              ],
-             prefix=['gnome-terminal --geometry=80x60 --'],
+             prefix=['gnome-terminal --tab --wait --active --'],
              output=LaunchConfiguration('output'),
              arguments=['--ros-args', '--log-level',
                         LaunchConfiguration('log_level')])

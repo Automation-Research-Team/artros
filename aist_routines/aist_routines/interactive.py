@@ -80,3 +80,13 @@ def handeye_calibration():
     from aist_handeye_calibration import HandEyeCalibrationRoutines
 
     _main('handeye_calibration', HandEyeCalibrationRoutines)
+
+def camera_calibration():
+    from aist_camera_calibration import CameraCalibrationRoutines
+
+    _main('camera_calibration', CameraCalibrationRoutines)
+
+def plane_calibration():
+    from aist_camera_calibration import PlaneCalibrationRoutines
+
+    _main('plane_calibration', PlaneCalibrationRoutines)
