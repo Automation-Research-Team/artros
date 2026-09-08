@@ -504,7 +504,8 @@ class BaseRoutines(Node, Cmd):
         if frame_id not in self.frame_ids:
             print('      unknown frame ID[%s]!' % frame_id)
             return
-        if eef_link not in self.candidate_eef_links(self._robot_name):
+        if eef_link and \
+           eef_link not in self.candidate_eef_links(self._robot_name):
             print('      invalid end-effector link[%s]!' % eef_link)
             return
 
