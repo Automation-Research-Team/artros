@@ -8,8 +8,10 @@ Panels:
         - /MotionPlanning1/Planning Metrics1
         - /MotionPlanning1/Planned Path1
         - /TF1/Frames1
+        - /TF1/Frames1/bin_1_part_51
         - /a_motioncam_color1/Topic1
-      Splitter Ratio: 0.5071089863777161
+        - /pointing_marker1/Topic1
+      Splitter Ratio: 0.5777778029441833
     Tree Height: 436
   - Class: rviz_common/Selection
     Name: Selection
@@ -2979,13 +2981,12 @@ Visualization Manager:
                                                 a_bot_camera_connector_link:
                                                   a_bot_camera_link:
                                                     a_bot_camera_color_frame:
-                                                      {}
+                                                      a_bot_camera_color_optical_frame:
+                                                        {}
                                                     a_bot_camera_depth_frame:
                                                       a_bot_camera_depth_optical_frame:
                                                         {}
                                             a_bot_gripper_base_link:
-                                              a_bot_camera_color_optical_frame:
-                                                {}
                                               a_bot_gripper_robotiq_arg2f_base_link:
                                                 a_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -3045,13 +3046,12 @@ Visualization Manager:
                                                 b_bot_camera_connector_link:
                                                   b_bot_camera_link:
                                                     b_bot_camera_color_frame:
-                                                      {}
+                                                      b_bot_camera_color_optical_frame:
+                                                        {}
                                                     b_bot_camera_depth_frame:
                                                       b_bot_camera_depth_optical_frame:
                                                         {}
                                             b_bot_gripper_base_link:
-                                              b_bot_camera_color_optical_frame:
-                                                {}
                                               b_bot_gripper_robotiq_arg2f_base_link:
                                                 b_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -3527,7 +3527,7 @@ Visualization Manager:
       Enabled: true
       Name: Graspabilities
       Namespaces:
-        {}
+        graspability_markers: true
       Topic:
         Depth: 5
         Durability Policy: Volatile
@@ -3548,6 +3548,19 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /a_motioncam/color/image
+      Value: true
+    - Class: rviz_default_plugins/Marker
+      Enabled: true
+      Name: pointing_marker
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /pointing_marker
       Value: true
   Enabled: true
   Global Options:

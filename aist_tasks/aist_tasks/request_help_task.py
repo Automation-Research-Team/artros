@@ -97,14 +97,14 @@ class RequestHelpTaskClient(SimpleActionClient):
         """
         marker        = Marker()
         marker.action = Marker.DELETEALL
-        marker.ns     = 'pointing'
+        marker.ns     = 'pointing_marker'
         self._marker_pub.publish(marker)
 
     def _publish_marker(self, header: Header, pos: Point, lifetime: int=15):
         marker              = Marker()
         marker.header       = header
         marker.header.stamp = self.node.get_clock().now().to_msg()
-        marker.ns           = 'pointing'
+        marker.ns           = 'pointing_marker'
         marker.id           = 0
         marker.type         = Marker.ARROW
         marker.action       = Marker.ADD
