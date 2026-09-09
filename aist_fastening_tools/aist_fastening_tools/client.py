@@ -363,11 +363,11 @@ class PrecisionTool(SimpleActionClient):
 
     @property
     def base_link(self)-> str:
-        return self._name + '_base_link'
+        return self._name + '/base_link'
 
     @property
     def tip_link(self)-> str:
-        return self._name + '_tip_link'
+        return self._name + '/tip_link'
 
     @property
     def parameters(self)-> dict:

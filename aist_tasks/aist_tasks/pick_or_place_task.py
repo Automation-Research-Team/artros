@@ -96,11 +96,10 @@ class PickOrPlaceTaskServer(ActionServer):
         if request.pick:
             object_id   = _get_object_id(request.pose.header.frame_id)
             eef_link    = ''
-            old_root_id = ''
         else:
             object_id   = _get_object_id(request.end_effector_link)
             eef_link    = request.end_effector_link
-            old_root_id = gripper.tip_link
+        old_root_id = ''
 
         try:
             stop = lambda: node.stop(request.robot_name)

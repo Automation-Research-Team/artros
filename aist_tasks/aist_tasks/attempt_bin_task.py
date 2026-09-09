@@ -91,7 +91,7 @@ class AttemptBinTaskServer(ActionServer):
                                      stage='')
 
         tool_name = part_props['gripper_name']
-        if node.gripper(request.robot_name).name != gripper_name:
+        if node.gripper(request.robot_name).name != tool_name:
             # [1] 'pick_tool' stage: Pick suction tool.
             with ActionServer.Stage(self, goal_handle, 'pick_tool') as stage:
                 status, result = node.pick_tool(request.robot_name, tool_name)

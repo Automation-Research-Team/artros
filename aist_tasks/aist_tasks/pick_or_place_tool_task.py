@@ -86,10 +86,11 @@ class PickOrPlaceToolTaskServer(ActionServer):
                                      current_gname + '_holder_link',
                                      eef_link=current_gname + '/base_link')
                 if status is GoalStatus.STATUS_ABORTED:
+                    if result.stage in ('move', 'approach', 'release'):
+                        node.set_gripper(request.robot_name, current_gname)
                     raise ActionServer.Error('Failed to place tool',
                                              stage=stage.extend_name(
                                                        result.stage))
-                node.set_gripper(request.robot_name, default_gname)
 
         if request.tool_name == '':
             goal_handle.succeed()
