@@ -34,8 +34,8 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, time
-from ddynamic_reconfigure2.client import ParameterClient
-from std_srvs.srv                 import Trigger
+from ddynamic_reconfigure2 import ParameterClient
+from std_srvs.srv          import Trigger
 
 ######################################################################
 #  class CameraClient                                                #

@@ -63,7 +63,7 @@ from aist_utility.geometry_msgs    import (transform_matrix, pose_matrix,
                                            pose_from_matrix)
 from aist_tasks                    import PickOrPlaceTask, PickOrPlaceToolTask
 from aist_collision_object_manager import CollisionObjectManager
-from ddynamic_reconfigure2.utils   import declare_read_only_parameter
+from ddynamic_reconfigure2         import declare_read_only_parameter
 from .gripper_client               import create_gripper
 from .camera_client                import CameraClient
 
