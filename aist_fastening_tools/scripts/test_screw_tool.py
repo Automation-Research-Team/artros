@@ -2,8 +2,8 @@
 
 import rclpy, sys, threading
 import numpy as np
-from rclpy.node                  import Node
-from aist_fastening_tools.client import ScrewTool
+from rclpy.node           import Node
+from aist_fastening_tools import ScrewTool
 
 
 class TestScrewTool(Node):

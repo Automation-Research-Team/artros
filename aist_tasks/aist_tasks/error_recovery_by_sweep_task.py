@@ -35,15 +35,13 @@
 #
 import numpy as np
 import tf_transformations as tfs
-from rclpy.node                  import Node
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from action_msgs.msg             import GoalStatus
-from geometry_msgs.msg           import (PoseStamped, Pose, Quaternion,
-                                         PointStamped)
-from task_wrappers.action_server import ActionServer
-from task_wrappers.action_client import GroupedSimpleActionClient
-from aist_msgs.action            import ErrorRecoveryBySweep
-from aist_msgs.msg               import Pointing
+from rclpy.node            import Node
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from action_msgs.msg       import GoalStatus
+from geometry_msgs.msg     import PoseStamped, Pose, Quaternion, PointStamped
+from aist_msgs.msg         import Pointing
+from aist_msgs.action      import ErrorRecoveryBySweep
+from task_wrappers         import ActionServer, GroupedSimpleActionClient
 
 #*********************************************************************
 #  class ErrorRecoveryBySweepTaskClient                              *

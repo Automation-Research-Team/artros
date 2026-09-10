@@ -33,15 +33,14 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node                  import Node
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from action_msgs.msg             import GoalStatus
-from geometry_msgs.msg           import PoseStamped
-from aist_msgs.action            import AttemptBin
-from task_wrappers.action_client import GroupedSimpleActionClient
-from task_wrappers.action_server import ActionServer
+from rclpy.node            import Node
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from action_msgs.msg       import GoalStatus
+from geometry_msgs.msg     import PoseStamped
+from aist_msgs.action      import AttemptBin
+from task_wrappers         import GroupedSimpleActionClient, ActionServer
 
-from typing                      import Optional
+from typing                import Optional
 
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *

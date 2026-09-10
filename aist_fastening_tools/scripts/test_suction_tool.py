@@ -36,9 +36,9 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
-from rclpy.executors             import MultiThreadedExecutor
-from rclpy.node                  import Node
-from aist_fastening_tools.client import SuctionTool
+from rclpy.executors      import MultiThreadedExecutor
+from rclpy.node           import Node
+from aist_fastening_tools import SuctionTool
 
 
 class TestSuctionTool(Node):

@@ -33,11 +33,11 @@
 #
 # Author: Toshio Ueshiba
 #
-from action_msgs.msg             import GoalStatus
-from aist_robotiq.client         import RobotiqGripper, RobotiqSuction
-from aist_fastening_tools.client import (SuctionTool, SuctionGripper,
-                                         ScrewTool, PrecisionTool)
-from aist_barrett.client         import BarrettHand
+from action_msgs.msg      import GoalStatus
+from aist_robotiq         import RobotiqGripper, RobotiqSuction
+from aist_fastening_tools import (SuctionTool, SuctionGripper,
+                                  ScrewTool, PrecisionTool)
+from aist_barrett         import BarrettHand
 
 
 def create_gripper(node, name, gripper_type, client_args):

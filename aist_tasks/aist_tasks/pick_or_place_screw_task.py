@@ -33,12 +33,11 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node                  import Node
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from action_msgs.msg             import GoalStatus
-from task_wrappers.action_server import ActionServer
-from task_wrappers.action_client import GroupedSimpleActionClient
-from aist_msgs.action            import PickOrPlaceScrew
+from rclpy.node            import Node
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from action_msgs.msg       import GoalStatus
+from aist_msgs.action      import PickOrPlaceScrew
+from task_wrappers         import ActionServer, GroupedSimpleActionClient
 
 #*********************************************************************
 #  class PickOrPlaceScrewTaskClient                                  *

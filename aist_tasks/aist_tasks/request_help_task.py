@@ -35,19 +35,18 @@
 # Author: Toshio Ueshiba
 #
 import threading, collections
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from task_wrappers.action_client import SimpleActionClient
-from task_wrappers.action_server import ActionServer
-from aist_msgs.action            import RequestHelp
-from aist_msgs.msg               import RequestHelp as RequestHelpMsg, Pointing
-from geometry_msgs.msg           import PoseStamped, Point, Vector3
-from visualization_msgs.msg      import Marker
-from std_msgs.msg                import ColorRGBA
-from builtin_interfaces.msg      import Duration
+from rclpy.callback_groups  import MutuallyExclusiveCallbackGroup
+from task_wrappers          import SimpleActionClient, ActionServer
+from aist_msgs.action       import RequestHelp
+from aist_msgs.msg          import RequestHelp as RequestHelpMsg, Pointing
+from geometry_msgs.msg      import PoseStamped, Point, Vector3
+from visualization_msgs.msg import Marker
+from std_msgs.msg           import ColorRGBA
+from builtin_interfaces.msg import Duration
 
-from rclpy.node                  import Node
-from std_msgs.msg                import Header
-from typing                      import Optional
+from rclpy.node             import Node
+from std_msgs.msg           import Header
+from typing                 import Optional
 
 #*********************************************************************
 #  class RequestHelpTaskClient                                       *

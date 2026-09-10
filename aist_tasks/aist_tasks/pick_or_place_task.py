@@ -36,15 +36,14 @@
 import numpy as np
 import tf_transformations as tfs
 
-from rclpy.action                import GoalResponse, CancelResponse
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from action_msgs.msg             import GoalStatus
-from aist_msgs.action            import PickOrPlace
-from geometry_msgs.msg           import Point, Quaternion, Pose, PoseStamped
-from task_wrappers.action_server import ActionServer
-from task_wrappers.action_client import GroupedSimpleActionClient
-from aist_utility.geometry_msgs  import (pose_matrix, pose_from_matrix,
-                                         pose_from_xyzrpy)
+from rclpy.action               import GoalResponse, CancelResponse
+from rclpy.callback_groups      import MutuallyExclusiveCallbackGroup
+from action_msgs.msg            import GoalStatus
+from aist_msgs.action           import PickOrPlace
+from geometry_msgs.msg          import Point, Quaternion, Pose, PoseStamped
+from task_wrappers              import ActionServer, GroupedSimpleActionClient
+from aist_utility.geometry_msgs import (pose_matrix, pose_from_matrix,
+                                        pose_from_xyzrpy)
 
 #************************************************************************
 #  class PickOrPlaceTaskClient                                          *
