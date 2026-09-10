@@ -34,16 +34,16 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, yaml
-from rclpy.callback_groups        import MutuallyExclusiveCallbackGroup
-from aist_routines                import BaseRoutines
-from std_srvs.srv                 import Empty
-from aist_msgs.srv                import (CameraCalibrationTakeSample,
-                                          CameraCalibrationGetSampleList,
-                                          CameraCalibrationComputeCalibration)
-from task_wrappers.service_client import ServiceClient
-from aist_utility.fileio          import filepath_from_url
-from .camera_calibration_task     import CameraCalibrationTask
-from .utilities                   import dict_from_point_correspondences_sets
+from rclpy.callback_groups    import MutuallyExclusiveCallbackGroup
+from aist_routines            import BaseRoutines
+from std_srvs.srv             import Empty
+from aist_msgs.srv            import (CameraCalibrationTakeSample,
+                                      CameraCalibrationGetSampleList,
+                                      CameraCalibrationComputeCalibration)
+from task_wrappers            import ServiceClient
+from aist_utility.fileio      import filepath_from_url
+from .camera_calibration_task import CameraCalibrationTask
+from .utilities               import dict_from_point_correspondences_sets
 
 #*********************************************************************
 #  class CameraCalibrationRoutines                                   *

@@ -33,15 +33,14 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node                  import Node
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from action_msgs.msg             import GoalStatus
-from geometry_msgs.msg           import PoseStamped
-from aist_msgs.action            import AttemptBin
-from task_wrappers.action_client import GroupedSimpleActionClient
-from task_wrappers.action_server import ActionServer
+from rclpy.node            import Node
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from action_msgs.msg       import GoalStatus
+from geometry_msgs.msg     import PoseStamped
+from aist_msgs.action      import AttemptBin
+from task_wrappers         import GroupedSimpleActionClient, ActionServer
 
-from typing                      import Optional
+from typing                import Optional
 
 #*********************************************************************
 #  class AttemptBinTaskClient                                        *
@@ -91,7 +90,7 @@ class AttemptBinTaskServer(ActionServer):
                                      stage='')
 
         tool_name = part_props['gripper_name']
-        if node.gripper(request.robot_name).name != gripper_name:
+        if node.gripper(request.robot_name).name != tool_name:
             # [1] 'pick_tool' stage: Pick suction tool.
             with ActionServer.Stage(self, goal_handle, 'pick_tool') as stage:
                 status, result = node.pick_tool(request.robot_name, tool_name)

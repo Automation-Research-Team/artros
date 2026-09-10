@@ -33,11 +33,10 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node                  import Node
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from task_wrappers.action_server import ActionServer
-from task_wrappers.action_client import GroupedSimpleActionClient
-from aist_msgs.action            import Sweep
+from rclpy.node            import Node
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from task_wrappers         import ActionServer, GroupedSimpleActionClient
+from aist_msgs.action      import Sweep
 
 #*********************************************************************
 #  class SweepTaskClient                                             *

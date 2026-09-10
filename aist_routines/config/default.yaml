@@ -70,7 +70,6 @@ assembly:
   ros__parameters:
     reference_frame:    workspace_center
     moveit_eef_step:    0.002
-    initial_robot_name: b_bot
     initial_axis:       1
     initial_speed:      1.0
     setting_urls:

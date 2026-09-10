@@ -31,16 +31,16 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from action_msgs.msg             import GoalStatus
-from std_msgs.msg                import Bool
-from control_msgs.msg            import GripperCommand as GripperCommandMsg
-from control_msgs.action         import GripperCommand
-from aist_msgs.action            import ScrewToolCommand, SuctionToolCommand
-from task_wrappers.action_client import SimpleActionClient
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from action_msgs.msg       import GoalStatus
+from std_msgs.msg          import Bool
+from control_msgs.msg      import GripperCommand as GripperCommandMsg
+from control_msgs.action   import GripperCommand
+from aist_msgs.action      import ScrewToolCommand, SuctionToolCommand
+from task_wrappers         import SimpleActionClient
 
-from rclpy.node                  import Node
-from typing                      import Optional
+from rclpy.node            import Node
+from typing                import Optional
 
 #************************************************************************
 #  class SuctionTool                                                    *
@@ -363,11 +363,11 @@ class PrecisionTool(SimpleActionClient):
 
     @property
     def base_link(self)-> str:
-        return self._name + '_base_link'
+        return self._name + '/base_link'
 
     @property
     def tip_link(self)-> str:
-        return self._name + '_tip_link'
+        return self._name + '/tip_link'
 
     @property
     def parameters(self)-> dict:

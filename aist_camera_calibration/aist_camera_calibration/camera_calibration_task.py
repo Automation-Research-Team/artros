@@ -35,10 +35,9 @@
 #
 import time, copy, yaml
 import numpy as np
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from aist_msgs.action            import CameraCalibration
-from task_wrappers.action_server import ActionServer
-from task_wrappers.action_client import SimpleActionClient
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from aist_msgs.action      import CameraCalibration
+from task_wrappers         import ActionServer, SimpleActionClient
 
 #*********************************************************************
 #  class CameraCalibrationTaskClient                                 *

@@ -63,7 +63,7 @@ from aist_utility.geometry_msgs    import (transform_matrix, pose_matrix,
                                            pose_from_matrix)
 from aist_tasks                    import PickOrPlaceTask, PickOrPlaceToolTask
 from aist_collision_object_manager import CollisionObjectManager
-from ddynamic_reconfigure2.utils   import declare_read_only_parameter
+from ddynamic_reconfigure2         import declare_read_only_parameter
 from .gripper_client               import create_gripper
 from .camera_client                import CameraClient
 
@@ -504,7 +504,8 @@ class BaseRoutines(Node, Cmd):
         if frame_id not in self.frame_ids:
             print('      unknown frame ID[%s]!' % frame_id)
             return
-        if eef_link not in self.candidate_eef_links(self._robot_name):
+        if eef_link and \
+           eef_link not in self.candidate_eef_links(self._robot_name):
             print('      invalid end-effector link[%s]!' % eef_link)
             return
 

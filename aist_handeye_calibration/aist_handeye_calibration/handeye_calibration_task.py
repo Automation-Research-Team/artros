@@ -35,10 +35,9 @@
 #
 import time, copy
 import numpy as np
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from aist_msgs.action            import HandEyeCalibration
-from task_wrappers.action_server import ActionServer
-from task_wrappers.action_client import SimpleActionClient
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from aist_msgs.action      import HandEyeCalibration
+from task_wrappers         import ActionServer, SimpleActionClient
 
 #*********************************************************************
 #  class HandEyeCalibrationTaskClient                                *

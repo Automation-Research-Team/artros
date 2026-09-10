@@ -35,19 +35,18 @@
 # Author: Toshio Ueshiba
 #
 import threading, collections
-from rclpy.callback_groups       import MutuallyExclusiveCallbackGroup
-from task_wrappers.action_client import SimpleActionClient
-from task_wrappers.action_server import ActionServer
-from aist_msgs.action            import RequestHelp
-from aist_msgs.msg               import RequestHelp as RequestHelpMsg, Pointing
-from geometry_msgs.msg           import PoseStamped, Point, Vector3
-from visualization_msgs.msg      import Marker
-from std_msgs.msg                import ColorRGBA
-from builtin_interfaces.msg      import Duration
+from rclpy.callback_groups  import MutuallyExclusiveCallbackGroup
+from task_wrappers          import SimpleActionClient, ActionServer
+from aist_msgs.action       import RequestHelp
+from aist_msgs.msg          import RequestHelp as RequestHelpMsg, Pointing
+from geometry_msgs.msg      import PoseStamped, Point, Vector3
+from visualization_msgs.msg import Marker
+from std_msgs.msg           import ColorRGBA
+from builtin_interfaces.msg import Duration
 
-from rclpy.node                  import Node
-from std_msgs.msg                import Header
-from typing                      import Optional
+from rclpy.node             import Node
+from std_msgs.msg           import Header
+from typing                 import Optional
 
 #*********************************************************************
 #  class RequestHelpTaskClient                                       *
@@ -97,14 +96,14 @@ class RequestHelpTaskClient(SimpleActionClient):
         """
         marker        = Marker()
         marker.action = Marker.DELETEALL
-        marker.ns     = 'pointing'
+        marker.ns     = 'pointing_marker'
         self._marker_pub.publish(marker)
 
     def _publish_marker(self, header: Header, pos: Point, lifetime: int=15):
         marker              = Marker()
         marker.header       = header
         marker.header.stamp = self.node.get_clock().now().to_msg()
-        marker.ns           = 'pointing'
+        marker.ns           = 'pointing_marker'
         marker.id           = 0
         marker.type         = Marker.ARROW
         marker.action       = Marker.ADD

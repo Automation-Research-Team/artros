@@ -36,8 +36,8 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, sys, threading
-from rclpy.node                  import Node
-from aist_fastening_tools.client import PrecisionTool
+from rclpy.node           import Node
+from aist_fastening_tools import PrecisionTool
 
 
 class TestPrecisionTool(Node):
