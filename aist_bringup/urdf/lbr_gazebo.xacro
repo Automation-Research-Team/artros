@@ -9,6 +9,7 @@
                 <parameters>/tmp/${robot_name}_controllers.yaml</parameters>
                 <ros>
                     <namespace>/${robot_name}</namespace>
+                    <remapping>joint_states:=/joint_states</remapping>
                 </ros>
             </plugin>
         </gazebo>

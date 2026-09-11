@@ -17,24 +17,24 @@
   <xacro:property name ="mode"
 		  value="${config.get('mode', 'hardware')}"/>
   <xacro:property name ="sys_cfg_pkg"
-		  value="${config.get('sys_cfg_pkg', 'lbr_description')}"/>
+		  value="${config.get('sys_cfg_pkg', 'lbr_ros2_control')}"/>
   <xacro:property name ="sys_cfg"
 		  value="${config.get('sys_cfg',
-			 'ros2_control/lbr_system_config.yaml')}"/>
+			 'config/lbr_system_config.yaml')}"/>
   <xacro:property name ="system_config_path"
 		  value="$(find ${sys_cfg_pkg})/${sys_cfg}"/>
   <xacro:property name ="init_jnt_pos_pkg"
 		  value="${config.get('init_jnt_pos_pkg',
-			 'lbr_description')}"/>
+			 'lbr_ros2_control')}"/>
   <xacro:property name ="init_jnt_pos"
 		  value="${config.get('init_jnt_pos',
-			 'ros2_control/initial_joint_positions.yaml')}"/>
+			 'config/initial_joint_positions.yaml')}"/>
   <xacro:property name ="initial_joint_positions_path"
 		  value="$(find ${init_jnt_pos_pkg})/${init_jnt_pos}"/>
 
   <!-- ros2 control instance -->
-  <xacro:include filename="$(find lbr_description
-			   )/ros2_control/lbr_system_interface.xacro"/>
+  <xacro:include filename="$(find lbr_ros2_control
+			   )/urdf/lbr_system_interface.xacro"/>
   <xacro:if value="$(arg sim)">
     <xacro:lbr_system_interface
 	robot_name="${name}"

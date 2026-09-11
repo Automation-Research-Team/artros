@@ -3,8 +3,6 @@
 
   <xacro:arg name="scene"	default=""/>
   <xacro:arg name="sim"		default="false"/>
-  <xacro:arg name="joint_limits_path"
-	     default="$(find lbr_description)/urdf/iiwa14/joint_limits.yaml"/>
 
   <!-- location of robot arms -->
   <xacro:property name="left_lbr_x"	 value="-0.350"/>
@@ -49,15 +47,14 @@
   </xacro:lbr_mounter>
 
   <!-- left arm -->
-  <xacro:include filename="$(find lbr_description
-			   )/urdf/iiwa14/iiwa14.urdf.xacro"/>
+  <xacro:include filename="$(find lbr_iiwa14_r820_description
+			   )/urdf/lbr_iiwa14_r820_macro.xacro"/>
   <joint name="left_lbr_link_0_joint" type="fixed">
     <parent link = "left_mounter_top_origin"/>
     <child  link = "left_lbr_link_0"/>
     <origin xyz="0 0 0" rpy="0 0 ${left_lbr_theta}"/>
   </joint>
-  <xacro:iiwa14 robot_name="left_lbr"
-		joint_limits_path="$(arg joint_limits_path)"/>
+  <xacro:lbr_iiwa14_r820 robot_name="left_lbr"/>
 
   <!-- right arm -->
   <joint name="right_lbr_link_0_joint" type="fixed">
@@ -65,8 +62,7 @@
     <child  link = "right_lbr_link_0"/>
     <origin xyz="0 0 0" rpy="0 0 ${right_lbr_theta}"/>
   </joint>
-  <xacro:iiwa14 robot_name="right_lbr"
-		joint_limits_path="$(arg joint_limits_path)"/>
+  <xacro:lbr_iiwa14_r820 robot_name="right_lbr"/>
 
   <!-- barrett hand coupling -->
   <xacro:include filename="$(find aist_barrett
