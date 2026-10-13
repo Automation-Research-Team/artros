@@ -4,17 +4,18 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
+        - /MotionPlanning1
         - /MotionPlanning1/Scene Robot1
+        - /MotionPlanning1/Planning Request1
         - /TF1
         - /TF1/Frames1
         - /TF1/Frames1/b_bot_base_link_inertia1
-        - /TF1/Frames1/b_bot_gripper_tip_link1
-        - /TF1/Frames1/b_bot_wrist_3_link1
+        - /TF1/Frames1/b_bot_upper_arm_link1
         - /TF1/Frames1/b_bot_shoulder_link1
         - /a_motioncam1/Topic1
-        - /b_bot_camera1
-      Splitter Ratio: 0.5249621868133545
-    Tree Height: 398
+      Splitter Ratio: 0.5526315569877625
+    Tree Height: 368
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -665,7 +666,7 @@ Visualization Manager:
         Colliding Link Color: 255; 0; 0
         Goal State Alpha: 0.5
         Goal State Color: 250; 128; 0
-        Interactive Marker Size: 0.10000000149011612
+        Interactive Marker Size: 0.20000000298023224
         Joint Violation Color: 255; 0; 255
         Planning Group: b_bot
         Query Goal State: true
@@ -1281,7 +1282,7 @@ Visualization Manager:
         b_bot_base:
           Value: false
         b_bot_base_link:
-          Value: false
+          Value: true
         b_bot_base_link_inertia:
           Value: true
         b_bot_camera_bottom_screw_frame:
@@ -1311,7 +1312,7 @@ Visualization Manager:
         b_bot_flange:
           Value: false
         b_bot_forearm_link:
-          Value: false
+          Value: true
         b_bot_ft_frame:
           Value: false
         b_bot_gripper_base_link:
@@ -1363,7 +1364,7 @@ Visualization Manager:
         b_bot_tool0:
           Value: false
         b_bot_upper_arm_link:
-          Value: false
+          Value: true
         b_bot_usb_repeater_base_link:
           Value: false
         b_bot_usb_repeater_body:
@@ -1377,7 +1378,7 @@ Visualization Manager:
         b_bot_usb_repeater_right_leg:
           Value: false
         b_bot_wrist_1_link:
-          Value: false
+          Value: true
         b_bot_wrist_2_link:
           Value: false
         b_bot_wrist_3_link:
@@ -1773,25 +1774,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.9596041440963745
+      Distance: 1.6763584613800049
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.309887170791626
-        Y: -0.38914844393730164
-        Z: 0.9407574534416199
+        X: -0.27170172333717346
+        Y: -0.13999448716640472
+        Z: 1.3653587102890015
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2889338731765747
+      Pitch: 0.2303767055273056
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 3.1570076942443848
+      Yaw: 3.404649019241333
     Saved: ~
 Window Geometry:
   Displays:
@@ -1805,11 +1806,11 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002970000041bfc0200000006fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000001e80000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007300000002fd000000b5000000a400fffffffb000000160061005f006d006f00740069006f006e00630061006d010000022b000001240000001600fffffffb000000180062005f0062006f0074005f00630061006d0065007200610100000355000001030000001600ffffff000004800000041b00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd00000001000000000000023c00000371fc0200000005fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004400fffffffc0000003f000001cf000001b50100001efa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006f00fffffffb0000000a0056006900650077007300000002fd000000b5000000a900fffffffb000000160061005f006d006f00740069006f006e00630061006d01000002140000019c0000001700ffffff000004db0000037100000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1821
-  X: 739
+  X: 6663
   Y: 218
   a_motioncam:
     collapsed: false

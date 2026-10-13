@@ -17,22 +17,24 @@
   <xacro:property name ="kinematics_params"
 		  value="$(find aist_description
 			 )/scenes/calib/${name}.yaml"/>
-  <xacro:property name ="transmission_hw_interface"
-		  value="${config.get('transmission_hw_interface',
-			 'hw_interface/PositionJointInterface')}"/>
-  <xacro:property name ="headless_mode"
-		  value="${config.get('headless_mode', 'false')}" />
   <xacro:property name ="robot_ip"
 		  value="${config.get('robot_ip', '0.0.0.0')}" />
   <xacro:property name ="script_filename"
 		  value="$(find ur_client_library
 			 )/resources/external_control.urscript"/>
-  <xacro:property name ="output_recipe_filename"
-		  value="$(find ur_robot_driver
-			 )/resources/rtde_output_recipe.txt"/>
   <xacro:property name ="input_recipe_filename"
 		  value="$(find ur_robot_driver
 			 )/resources/rtde_input_recipe.txt"/>
+  <xacro:property name ="output_recipe_filename"
+		  value="$(find ur_robot_driver
+			 )/resources/rtde_output_recipe.txt"/>
+  <xacro:property name ="ur_type"
+		  value="${config.get('ur_type', 'ur5e')}"/>
+  <xacro:property name ="transmission_hw_interface"
+		  value="${config.get('transmission_hw_interface',
+			 'hw_interface/PositionJointInterface')}"/>
+  <xacro:property name ="headless_mode"
+		  value="${config.get('headless_mode', 'false')}" />
   <xacro:property name ="reverse_ip"
 		  value="${config.get('reverse_ip', '0.0.0.0')}"/>
   <xacro:property name ="script_command_port"
@@ -91,6 +93,11 @@
 	name="${name}"
 	tf_prefix="${name}_"
 	kinematics_parameters_file="${kinematics_params}"
+	robot_ip="${robot_ip}"
+	script_filename="${script_filename}"
+	input_recipe_filename="${input_recipe_filename}"
+	output_recipe_filename="${output_recipe_filename}"
+	ur_type="${ur_type}"
 	transmission_hw_interface="${transmission_hw_interface}"
 	use_mock_hardware="${use_mock_hardware}"
 	mock_sensor_commands="${mock_sensor_commands}"
@@ -105,10 +112,6 @@
 	tool_tx_idle_chars="${tool_tx_idle_chars}"
 	tool_device_name="${tool_device_name}"
 	tool_tcp_port="${tool_tcp_port}"
-	robot_ip="${robot_ip}"
-	script_filename="${script_filename}"
-	output_recipe_filename="${output_recipe_filename}"
-	input_recipe_filename="${input_recipe_filename}"
 	reverse_ip="${reverse_ip}"
 	script_command_port="${script_command_port}"
 	reverse_port="${reverse_port}"

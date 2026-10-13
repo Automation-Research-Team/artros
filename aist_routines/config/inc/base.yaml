@@ -29,7 +29,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.065
-      max_effort:       1.0
+      max_effort:       125.0
   screw_tool_m3:
     approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 15.0, 0.0]
     pick_offset:      [-0.006, 0.000, 0.005, 0.0, 15.0, 0.0]
@@ -39,7 +39,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.035
-      max_effort:       1.0
+      max_effort:       125.0
   screw_tool_m4:
     approach_offset:  [ 0.140, 0.000, 0.010, 0.0, 10.0, 0.0]
     pick_offset:      [-0.006, 0.000, 0.005, 0.0, 10.0, 0.0]
@@ -49,7 +49,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.035
-      max_effort:       1.0
+      max_effort:       125.0
   suction_tool:
     approach_offset:  [-0.002, 0.000, 0.055, 0.0, 0.0, 0.0]
     pick_offset:      [ 0.000, 0.000, 0.006, 0.0, 0.0, 0.0]
@@ -59,7 +59,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.085
-      max_effort:       1.0
+      max_effort:       125.0
   base:
     approach_offset:  [0.000, 0.000,  0.060, 0.0, 0.0, 0.0]
     #pick_offset:      [0.000, 0.000, -0.014, 0.0, 0.0, 0.0]
@@ -70,7 +70,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 3.140
-      max_effort:       1.0
+      max_effort:       125.0
   panel_motor:
     approach_offset:  [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
     pick_offset:      [0.000, 0.000, -0.020, 0.0, -20.0, 0.0]
@@ -80,7 +80,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.025
-      max_effort:       1.0
+      max_effort:       125.0
   panel_bearing:
     approach_offset:  [0.000, 0.000,  0.120, 0.0, -20.0, 0.0]
     pick_offset:      [0.000, 0.000, -0.020, 0.0, -20.0, 0.0]
@@ -90,7 +90,7 @@ picking_parameters:
     gripper_parameters:
       grasp_position:   0.000
       release_position: 0.025
-      max_effort:       1.0
+      max_effort:       125.0
 
 placing_parameters:
   precision_tool_holder_link:
