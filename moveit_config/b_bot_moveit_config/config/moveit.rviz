@@ -4,12 +4,17 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MotionPlanning1
         - /MotionPlanning1/Scene Robot1
+        - /TF1
         - /TF1/Frames1
+        - /TF1/Frames1/b_bot_base_link_inertia1
+        - /TF1/Frames1/b_bot_gripper_tip_link1
+        - /TF1/Frames1/b_bot_wrist_3_link1
+        - /TF1/Frames1/b_bot_shoulder_link1
         - /a_motioncam1/Topic1
-      Splitter Ratio: 0.5981651544570923
-    Tree Height: 375
+        - /b_bot_camera1
+      Splitter Ratio: 0.5249621868133545
+    Tree Height: 398
   - Class: rviz_common/Help
     Name: Help
   - Class: rviz_common/Views
@@ -82,11 +87,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           b_bot_base:
             Alpha: 1
             Show Axes: false
@@ -100,15 +100,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_connector_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -120,11 +120,19 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_camera_left_ir_frame:
+          b_bot_camera_infra1_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_camera_left_ir_optical_frame:
+          b_bot_camera_infra1_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_infra2_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_infra2_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -139,14 +147,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -536,11 +536,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workbench_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           workbench_back_bar:
             Alpha: 1
             Show Axes: false
@@ -672,7 +667,7 @@ Visualization Manager:
         Goal State Color: 250; 128; 0
         Interactive Marker Size: 0.10000000149011612
         Joint Violation Color: 255; 0; 255
-        Planning Group: b_bot_gripper
+        Planning Group: b_bot
         Query Goal State: true
         Query Start State: false
         Show Workspace: false
@@ -708,11 +703,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           b_bot_base:
             Alpha: 1
             Show Axes: false
@@ -726,15 +716,15 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          b_bot_camera_bottom_screw_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           b_bot_camera_color_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
           b_bot_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_connector_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -746,11 +736,19 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_camera_left_ir_frame:
+          b_bot_camera_infra1_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          b_bot_camera_left_ir_optical_frame:
+          b_bot_camera_infra1_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_infra2_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          b_bot_camera_infra2_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -765,14 +763,6 @@ Visualization Manager:
             Show Trail: false
             Value: true
           b_bot_camera_mount_flange:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          b_bot_camera_right_ir_optical_frame:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -1162,11 +1152,6 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
-          workbench_ar_marker:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           workbench_back_bar:
             Alpha: 1
             Show Axes: false
@@ -1293,37 +1278,35 @@ Visualization Manager:
           Value: false
         a_motioncam_sensor:
           Value: false
-        b_bot_ar_marker:
-          Value: true
         b_bot_base:
           Value: false
         b_bot_base_link:
           Value: false
         b_bot_base_link_inertia:
+          Value: true
+        b_bot_camera_bottom_screw_frame:
           Value: false
         b_bot_camera_color_frame:
           Value: false
         b_bot_camera_color_optical_frame:
           Value: false
-        b_bot_camera_connector_link:
-          Value: false
         b_bot_camera_depth_frame:
           Value: false
         b_bot_camera_depth_optical_frame:
           Value: false
-        b_bot_camera_left_ir_frame:
+        b_bot_camera_infra1_frame:
           Value: false
-        b_bot_camera_left_ir_optical_frame:
+        b_bot_camera_infra1_optical_frame:
+          Value: false
+        b_bot_camera_infra2_frame:
+          Value: false
+        b_bot_camera_infra2_optical_frame:
           Value: false
         b_bot_camera_link:
           Value: false
         b_bot_camera_mount:
           Value: false
         b_bot_camera_mount_flange:
-          Value: false
-        b_bot_camera_right_ir_frame:
-          Value: false
-        b_bot_camera_right_ir_optical_frame:
           Value: false
         b_bot_flange:
           Value: false
@@ -1362,7 +1345,7 @@ Visualization Manager:
         b_bot_gripper_tip_link:
           Value: true
         b_bot_shoulder_link:
-          Value: false
+          Value: true
         b_bot_table_base_link:
           Value: false
         b_bot_table_leg1:
@@ -1398,19 +1381,19 @@ Visualization Manager:
         b_bot_wrist_2_link:
           Value: false
         b_bot_wrist_3_link:
-          Value: false
+          Value: true
         base_fixture_base_link:
           Value: false
         base_fixture_head_base_link:
-          Value: true
+          Value: false
         base_fixture_head_tip_link:
           Value: false
         base_fixture_piston:
           Value: false
         base_fixture_piston_head:
-          Value: true
+          Value: false
         base_fixture_tip_link:
-          Value: true
+          Value: false
         cage_back_left_pillar:
           Value: false
         cage_back_right_pillar:
@@ -1484,13 +1467,11 @@ Visualization Manager:
         tray_1:
           Value: false
         tray_1_frame_1:
-          Value: true
+          Value: false
         tray_1_frame_2:
-          Value: true
+          Value: false
         virtual_screen:
           Value: false
-        workbench_ar_marker:
-          Value: true
         workbench_back_bar:
           Value: false
         workbench_base_link:
@@ -1500,7 +1481,7 @@ Visualization Manager:
         workbench_front_border:
           Value: false
         workbench_holder_link:
-          Value: true
+          Value: false
         workbench_right_bar:
           Value: false
         workbench_right_border:
@@ -1537,7 +1518,7 @@ Visualization Manager:
           Value: false
         world:
           Value: false
-      Marker Scale: 0.20000000298023224
+      Marker Scale: 0.4000000059604645
       Name: TF
       Show Arrows: false
       Show Axes: true
@@ -1581,23 +1562,21 @@ Visualization Manager:
                                           b_bot_gripper_coupling_flange_link:
                                             b_bot_camera_mount:
                                               b_bot_camera_mount_flange:
-                                                b_bot_camera_connector_link:
+                                                b_bot_camera_bottom_screw_frame:
                                                   b_bot_camera_link:
+                                                    b_bot_camera_color_frame:
+                                                      b_bot_camera_color_optical_frame:
+                                                        {}
                                                     b_bot_camera_depth_frame:
-                                                      b_bot_camera_color_frame:
-                                                        b_bot_camera_color_optical_frame:
-                                                          {}
                                                       b_bot_camera_depth_optical_frame:
                                                         {}
-                                                      b_bot_camera_left_ir_frame:
-                                                        b_bot_camera_left_ir_optical_frame:
-                                                          {}
-                                                      b_bot_camera_right_ir_frame:
-                                                        b_bot_camera_right_ir_optical_frame:
-                                                          {}
+                                                    b_bot_camera_infra1_frame:
+                                                      b_bot_camera_infra1_optical_frame:
+                                                        {}
+                                                    b_bot_camera_infra2_frame:
+                                                      b_bot_camera_infra2_optical_frame:
+                                                        {}
                                             b_bot_gripper_base_link:
-                                              b_bot_ar_marker:
-                                                {}
                                               b_bot_gripper_robotiq_arg2f_base_link:
                                                 b_bot_gripper_left_inner_knuckle:
                                                   {}
@@ -1685,8 +1664,6 @@ Visualization Manager:
                           base_fixture_base_link:
                             base_fixture_tip_link:
                               {}
-                          workbench_ar_marker:
-                            {}
                           workbench_front_border:
                             {}
                           workbench_holder_link:
@@ -1763,10 +1740,24 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /a_motioncam/texture
       Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: b_bot_camera
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /b_bot_camera/color/image_raw
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: world
+    Fixed Frame: b_bot_base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -1782,30 +1773,30 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.5814707279205322
+      Distance: 1.9596041440963745
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.5051341652870178
-        Y: 0.11732614040374756
-        Z: 0.9424852132797241
+        X: 0.309887170791626
+        Y: -0.38914844393730164
+        Z: 0.9407574534416199
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5753771066665649
+      Pitch: 0.2889338731765747
       Target Frame: world
       Value: Orbit (rviz_default_plugins)
-      Yaw: 0.05646384879946709
+      Yaw: 3.1570076942443848
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 975
+  Height: 1141
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -1814,11 +1805,13 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000022300000375fc0200000005fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000001d10000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007300000002fd000000b5000000a400fffffffb000000160061005f006d006f00740069006f006e00630061006d01000002140000019e0000001600ffffff000004f40000037500000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002970000041bfc0200000006fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000004100fffffffc0000003d000001e80000019a0100001cfa000000010100000002fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000000ffffffff000001ee00fffffffb000000100044006900730070006c0061007900730100000000000002b40000015600fffffffb0000000800480065006c0070000000029a0000006e0000006e00fffffffb0000000a0056006900650077007300000002fd000000b5000000a400fffffffb000000160061005f006d006f00740069006f006e00630061006d010000022b000001240000001600fffffffb000000180062005f0062006f0074005f00630061006d0065007200610100000355000001030000001600ffffff000004800000041b00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1821
   X: 739
-  Y: 239
+  Y: 218
   a_motioncam:
+    collapsed: false
+  b_bot_camera:
     collapsed: false

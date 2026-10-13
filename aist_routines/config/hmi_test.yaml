@@ -20,7 +20,7 @@ mesh_generator:
 ################
 nep_bridge:
   ros__parameters:
-    nep_ip:      192.168.10.106
+    nep_ip:      192.168.10.105
     wait_time:   7.0
     period:      0.1    # polling period of incoming NEP messages in seconds
     config_file: package://aist_routines/config/inc/nep_bridge_hmi_test.yaml

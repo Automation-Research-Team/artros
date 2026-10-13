@@ -12,6 +12,6 @@ robot_description_provider:
 nep_bridge:
   ros__parameters:
 #    nep_ip:      10.66.171.39
-    nep_ip:      192.168.10.106
+    nep_ip:      192.168.10.105
     period:      0.1    # polling period of incoming NEP messages in seconds
     config_file: package://nep_bridge/config/sample_config.yaml
