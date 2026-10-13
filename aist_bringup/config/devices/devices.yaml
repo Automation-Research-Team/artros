@@ -235,10 +235,10 @@ a_bot_camera:
       enable: true
 
     rgb_camera:
-      color_profile: "640x480x30"
+      color_profile: "640x360x60"
     depth_module:
-      depth_profile: "640x480x30"  # D405, D435
-      infra_profile: "640x480x30"  # D435
+      depth_profile: "640x360x60"  # D405, D435
+      infra_profile: "640x360x60"  # D435
     #  infra_profile: "848x480x60"  # D405
     # coded_light_depth_sensor:
     #   depth_profile: "640x480x30"  # SR305
@@ -286,10 +286,10 @@ b_bot_camera:
       enable: true
 
     rgb_camera:
-      color_profile: "640x480x30"
+      color_profile: "640x360x60"
     depth_module:
-      depth_profile: "640x480x30"  # D405, D435
-      infra_profile: "640x480x30"  # D435
+      depth_profile: "640x360x60"  # D405, D435
+      infra_profile: "640x360x60"  # D435
     #  infra_profile: "848x480x60"  # D405
     # coded_light_depth_sensor:
     #   depth_profile: "640x480x30"  # SR305
