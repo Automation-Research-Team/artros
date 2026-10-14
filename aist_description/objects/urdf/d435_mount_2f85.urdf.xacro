@@ -4,11 +4,18 @@
 <!-- The position of the TF frame has not been measured at all and needs to be calibrated. -->
 
 <robot name="d435_mount_2f85" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  <xacro:macro name="d435_mount_2f85" params="prefix parent">
+  <xacro:macro name="d435_mount_2f85"
+	       params="prefix parent color_camera_centered:=true">
 
     <xacro:property name="mesh_dir"
 		    value="package://aist_description/objects/meshes"/>
-
+    <xacro:if value="${color_camera_centered}">
+      <xacro:property name="camera_offset" value="0.0325"/>
+    </xacro:if>
+    <xacro:unless value="${color_camera_centered}">
+      <xacro:property name="camera_offset" value="0.0175"/>
+    </xacro:unless>
+    
     <link name="${prefix}camera_mount">
       <inertial>
         <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 ${radians(90.0)}"/>
@@ -43,7 +50,7 @@
     <joint name="${prefix}camera_mount_flange_joint" type="fixed">
       <parent link="${prefix}camera_mount" />
       <child  link="${prefix}camera_mount_flange" />
-      <origin xyz="-0.028 0.0175 0.0575"
+      <origin xyz="-0.028 ${camera_offset} 0.0575"
 	      rpy="${radians(180.0)} ${radians(15.0)} 0.0"/>
     </joint>
 
