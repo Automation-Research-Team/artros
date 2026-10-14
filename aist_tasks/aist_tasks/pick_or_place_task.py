@@ -120,7 +120,6 @@ class PickOrPlaceTaskServer(ActionServer):
                                     stop) as stage:
                 if request.pick:
                     gripper.pregrasp()  # Pregrasp (not wait)
-                    # gripper.wait()      # Wait for pregrasp completed
                     if object_id != '':
                         com.allow_collision(object_id, gripper.tip_link)
                 elif object_id != '':

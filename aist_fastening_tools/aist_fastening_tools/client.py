@@ -122,7 +122,7 @@ class SuctionTool(SimpleActionClient):
                    timeout_sec=timeout_sec)
 
     def postgrasp(self)-> None:
-        self.pregrasp()
+        self._suck_command(True, min_period=0.0, timeout_sec=0.0)
 
     def release(self, *, timeout_sec: Optional[float]=None):
         return self._suck_command(
@@ -288,7 +288,7 @@ class ScrewTool(SuctionTool):
                                    timeout_sec=timeout_sec)
 
     def pregrasp(self)-> None:
-        self._screw_command(self.parameters['speed'], timeout_sec=0.0)
+        self._screw_command(self.parameters['grasp_speed'], timeout_sec=0.0)
         super().pregrasp()
 
     def grasp(self, *, timeout_sec: Optional[float]=0.0):
@@ -380,7 +380,7 @@ class PrecisionTool(SimpleActionClient):
                                         params.items()))
 
     def pregrasp(self)-> None:
-        self.release(timeout_sec=0.0)
+        self.release()
 
     def grasp(self, *, timeout_sec: Optional[float]=None):
         """ Grasp an object with the gripper.
