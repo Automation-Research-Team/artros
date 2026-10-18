@@ -174,10 +174,12 @@ class PickOrPlaceTaskServer(ActionServer):
                                          pose_matrix(
                                              com.relative_frame_pose(
                                                  eef_link, old_root_id).pose)))
+                        eef_link = old_root_pose.header.frame_id
                     else:
                         offset = request.approach_offset
                 success = node.go_to_pose_goal(request.robot_name,
-                                               request.pose, offset, speed)
+                                               request.pose, offset, speed,
+                                               end_effector_link=eef_link)
                 if not success:
                     if request.pick:
                         gripper.release()
