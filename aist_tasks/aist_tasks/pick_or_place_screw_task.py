@@ -95,6 +95,7 @@ class PickOrPlaceScrewTaskServer(ActionServer):
             if status is GoalStatus.STATUS_ABORTED:
                 raise ActionServer.Error('Failed to pick screw!',
                                          stage=stage.extend_name(result.stage))
+            node._generate_screw(request.screw_type)
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
