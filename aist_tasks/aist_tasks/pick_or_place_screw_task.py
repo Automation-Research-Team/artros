@@ -33,11 +33,13 @@
 #
 # Author: Toshio Ueshiba
 #
-from rclpy.node            import Node
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from action_msgs.msg       import GoalStatus
-from aist_msgs.action      import PickOrPlaceScrew
-from task_wrappers         import ActionServer, GroupedSimpleActionClient
+from rclpy.node                    import Node
+from rclpy.callback_groups         import MutuallyExclusiveCallbackGroup
+from action_msgs.msg               import GoalStatus
+from aist_msgs.action              import PickOrPlaceScrew
+from task_wrappers                 import (ActionServer,
+                                           GroupedSimpleActionClient)
+from aist_collision_object_manager import decompose_link_name
 
 #*********************************************************************
 #  class PickOrPlaceScrewTaskClient                                  *
@@ -116,7 +118,7 @@ class PickOrPlaceScrewTaskServer(ActionServer):
         if screw_tip_link is None:
             raise ActionServer.Error('No screw grasped!', stage='')
 
-        screw_id    = node._get_object_id(screw_tip_link)
+        screw_id    = decompose_link_name(screw_tip_link)[0]
         screw_type  = screw_id.rsplit('_', 1)[0]
         feeder_name = 'screw_feeder_' + screw_type[-2:]
 

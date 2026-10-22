@@ -62,7 +62,8 @@ from aist_utility.fileio           import filepath_from_url
 from aist_utility.geometry_msgs    import (transform_matrix, pose_matrix,
                                            pose_from_matrix)
 from aist_tasks                    import PickOrPlaceTask, PickOrPlaceToolTask
-from aist_collision_object_manager import CollisionObjectManager
+from aist_collision_object_manager import (CollisionObjectManager,
+                                           decompose_link_name)
 from ddynamic_reconfigure2         import declare_read_only_parameter
 from .gripper_client               import create_gripper
 from .camera_client                import CameraClient
@@ -655,8 +656,8 @@ class BaseRoutines(Node, Cmd):
             return
         self._recent_tasks[self._robot_name] = self._pick_or_place
         self.pick_at_frame(self._robot_name,
-                           BaseRoutines._get_object_id(object_frame),
-                           object_frame, timeout_sec=0.0)
+                           decompose_link_name(object_frame)[0], object_frame,
+                           timeout_sec=0.0)
 
     def complete_pick(self, text, line, ib, ie):
         object_frames = list(set(self.object_frames) -
@@ -680,9 +681,8 @@ class BaseRoutines(Node, Cmd):
             return
         self._recent_tasks[self._robot_name] = self._pick_or_place
         self.place_at_frame(self._robot_name,
-                            BaseRoutines._get_object_id(object_frame),
-                            place_frame, eef_link=object_frame,
-                            timeout_sec=0.0)
+                            decompose_link_name(object_frame)[0], place_frame,
+                            eef_link=object_frame, timeout_sec=0.0)
 
     def complete_place(self, text, line, ib, ie):
         object_frames = self.candidate_eef_links(self._robot_name)
@@ -1414,8 +1414,3 @@ class BaseRoutines(Node, Cmd):
         q_corrected = tfs.quaternion_multiply(q, dq)
         return Quaternion(x=q_corrected.x, y=q_corrected.y,
                           z=q_corrected.z, w=q_corrected.w)
-
-    @staticmethod
-    def _get_object_id(link_name):
-        tokens = link_name.rsplit('/', 1)
-        return tokens[0] if len(tokens) == 2 else ''

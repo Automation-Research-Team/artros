@@ -33,10 +33,11 @@
 #
 # Author: Toshio Ueshiba
 #
-from geometry_msgs.msg import PoseStamped, WrenchStamped, Vector3
-from action_msgs.msg   import GoalStatus
-from aist_tasks        import PickOrPlaceScrewTask
-from .base_routines    import BaseRoutines
+from geometry_msgs.msg             import PoseStamped, WrenchStamped, Vector3
+from action_msgs.msg               import GoalStatus
+from aist_tasks                    import PickOrPlaceScrewTask
+from .base_routines                import BaseRoutines
+from aist_collision_object_manager import decompose_link_name
 #from cuda_feature_tracker_3d          import FeatureTrackerClient
 
 #*********************************************************************
@@ -81,7 +82,7 @@ class AssemblyRoutines(BaseRoutines):
     def do_fb(self, dummy):
         """      fb
         Fix base to the base fixture."""
-        self.fix_object('base/base_link')
+        self.fix_object('base')
 
     def do_FB(self, dummy):
         """      FB
@@ -104,18 +105,16 @@ class AssemblyRoutines(BaseRoutines):
         return self._pick_or_place_screw.send_goal(robot_name, '',
                                                    timeout_sec=timeout_sec)
 
-    def fix_object(self, object_frame, *, offset=()):
-        object_id = AssemblyRoutines._get_object_id(object_frame)
-        gripper   = self._grippers['base_fixture']
+    def fix_object(self, object_id, *, offset=()):
+        gripper = self._grippers['base_fixture']
         gripper.grasp()
         self.com.attach_object(object_id, gripper.tip_link)
-        self.com.move_object(object_id, self.pose_from_xyzrpy(offset),
-                             object_frame)
 
     def release_object(self, object_id):
         gripper = self._grippers['base_fixture']
         gripper.release()
-        self.com.detach_object(object_id, gripper.tip_link)
+        self.com.detach_object(object_id, 'workbench_holder_link',
+                               gripper.tip_link)
 
     def approach_target(self, robot_name,
                         pose_name, target_frame, target_force=(0, 0, -5)):
@@ -124,16 +123,16 @@ class AssemblyRoutines(BaseRoutines):
             'cartesian_compliance_controller')
 
         gripper_tip_link = self.gripper(robot_name).tip_link
-        object_id = AssemblyRoutines._get_object_id(target_frame)
+        object_id, _     = decompose_link_name(target_frame)
         self.com.allow_collision(object_id, gripper_tip_link)
 
         feature_names = [gripper_tip_link, target_frame]
         target_wrench = WrenchStamped()
         target_wrench.header.frame_id = robot_name + '_base_link'
-        target_wrench.wrench.force  = Vector3(x=target_force[0],
-                                              y=target_force[1],
-                                              z=target_force[2])
-        target_wrench.wrench.torque = Vector3(x=0, y=0, z=0)
+        target_wrench.wrench.force    = Vector3(x=target_force[0],
+                                                y=target_force[1],
+                                                z=target_force[2])
+        target_wrench.wrench.torque   = Vector3(x=0, y=0, z=0)
         self._feature_trackers[robot_name].send_goal(pose_name, feature_names,
                                                      target_wrench)
 

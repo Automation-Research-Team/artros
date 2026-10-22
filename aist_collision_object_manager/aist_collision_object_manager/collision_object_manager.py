@@ -68,9 +68,9 @@ from aist_utility.geometry_msgs    import (pose_matrix, pose_from_matrix,
 from typing                        import List, Dict, Tuple, Optional
 
 #************************************************************************
-#  local functions                                                      *
+#  global functions                                                     *
 #************************************************************************
-def _decompose_link_name(link_name: str)-> Tuple[str, str]:
+def decompose_link_name(link_name: str)-> Tuple[str, str]:
     """ Decompose the given link name into object_id and subframe.
 
     Args:
@@ -88,7 +88,7 @@ def _decompose_link_name(link_name: str)-> Tuple[str, str]:
     tokens = link_name.rsplit('/', 1)
     return tokens if len(tokens) == 2 else ('', link_name)
 
-def _get_base_link(link_name: str)-> str:
+def get_base_link(link_name: str)-> str:
     """ Convert the given link name to the fullname of the base subframe.
 
     Args:
@@ -103,7 +103,7 @@ def _get_base_link(link_name: str)-> str:
       * 'panel_bearing/base_screw_hole_1` => 'panel_bearing/base_link'
       * 'a_bot_gripper_tip_link' => 'a_bot_gripper_tip_link'
     """
-    object_id, _ = _decompose_link_name(link_name)
+    object_id, _ = decompose_link_name(link_name)
     return link_name if object_id == '' else object_id + '/base_link'
 
 #************************************************************************
@@ -505,7 +505,7 @@ class CollisionObjectManager(object):
 
         # If 'parent_link' is a subframe of another collision object,
         # get fullname of its 'base_link'.
-        parent_link = _get_base_link(parent_link)
+        parent_link = get_base_link(parent_link)
 
         # Lookup transform from 'base_link' of the current collision object
         # to the parent link. Don't lookup within the block locking
@@ -531,7 +531,7 @@ class CollisionObjectManager(object):
         #   of another object.
         # - It should be attach link of the parent object, otherwise.
         # A transform from 'co' to 'attach_link' is also computed.
-        parent_co = self._find_object(_decompose_link_name(parent_link)[0])
+        parent_co = self._find_object(decompose_link_name(parent_link)[0])
         if parent_co is None:
             attach_link = parent_link
             Tao = transform_matrix(Tpo.transform)
@@ -572,7 +572,7 @@ class CollisionObjectManager(object):
 
         # If 'parent_link' is a subframe of another collision object,
         # get fullname of its 'base_link'.
-        parent_link = _get_base_link(parent_link)
+        parent_link = get_base_link(parent_link)
 
         # Lookup transform from 'base_link' of the current collision object
         # to the parent link. Don't lookup within the block locking
@@ -783,7 +783,7 @@ class CollisionObjectManager(object):
           ValueError: if the attach link of the object to which `frame_id`
                       belongs is different from that of `object_id`.
         """
-        co_id, subframe = _decompose_link_name(frame_id)
+        co_id, subframe = decompose_link_name(frame_id)
         co = self._find_object(co_id)
         if co is None:
             raise ValueError('no object associated with specified frame[%s]'
@@ -955,7 +955,7 @@ class CollisionObjectManager(object):
         """
         def _decompose_transform(transform: TransformStamped) \
                 -> Tuple[str, PoseStamped]:
-            return (_decompose_link_name(transform.child_frame_id)[0],
+            return (decompose_link_name(transform.child_frame_id)[0],
                     PoseStamped(
                         header=transform.header,
                         pose=pose_from_transform(transform.transform)))
@@ -1086,7 +1086,7 @@ class CollisionObjectManager(object):
 
         # Separate the parent link 'pose.header.frame_id' into object ID
         # and subframe name.
-        parent_id, parent_subframe = _decompose_link_name(pose.header.frame_id)
+        parent_id, parent_subframe = decompose_link_name(pose.header.frame_id)
 
         # If the parent link is a subframe of any other collision object,
         # return its 'base_link' and the pose of 'base_link' of 'co'
@@ -1138,7 +1138,7 @@ class CollisionObjectManager(object):
             non-attached collision object.
           * An empty string, if not.
         """
-        return _decompose_link_name(self._get_parent_link(object_id))[0]
+        return decompose_link_name(self._get_parent_link(object_id))[0]
 
     def _get_touch_links(self, link: str)-> List[str]:
         """ Get touch links associated with the specified link.
@@ -1153,7 +1153,7 @@ class CollisionObjectManager(object):
           * Touch links associated with `link`, if `link` represents neither
             an attached nor a non-attached collision object.
         """
-        object_id, _ = _decompose_link_name(link)
+        object_id, _ = decompose_link_name(link)
         return self._touch_links.get(link, []) if object_id == '' else \
                [object_id]
 
