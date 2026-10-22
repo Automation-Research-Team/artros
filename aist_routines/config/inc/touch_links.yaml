@@ -17,6 +17,7 @@ precision_tool/tip_link:
   - precision_tool/right_finger
 base_fixture_tip_link:
   - base_fixture_cylinder
+  - base_fixture_head_base_link
 precision_tool_holder_link:
   - precision_tool_holder_base_link
 screw_tool_m3_holder_link:

@@ -107,7 +107,7 @@ class AssemblyRoutines(BaseRoutines):
 
     def fix_object(self, object_id, *, offset=()):
         gripper = self._grippers['base_fixture']
-        gripper.grasp()
+        gripper.pregrasp()  # Suck with zero min_period value.
         self.com.attach_object(object_id, gripper.tip_link)
 
     def release_object(self, object_id):
