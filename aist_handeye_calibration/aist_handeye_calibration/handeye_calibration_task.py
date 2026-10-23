@@ -121,7 +121,7 @@ class HandEyeCalibrationTaskServer(ActionServer):
 
         # [Final] Goal succeeded.
         goal_handle.succeed()
-        return Sweep.Result(stage='')
+        return HandEyeCalibration.Result(stage='')
 
     def _visit_subposes_and_take_samples(self, goal_handle, keypose,
                                          keypose_num):

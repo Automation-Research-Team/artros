@@ -34,15 +34,18 @@
 # Author: Toshio Ueshiba
 #
 import rclpy, yaml
-from rclpy.callback_groups     import MutuallyExclusiveCallbackGroup
-from aist_routines             import BaseRoutines
-from std_srvs.srv              import Empty
-from aist_msgs.srv             import (HandEyeCalibrationTakeSample,
-                                       HandEyeCalibrationGetSampleList,
-                                       HandEyeCalibrationComputeCalibration)
-from task_wrappers             import ServiceClient
-from aist_utility.fileio       import filepath_from_url
-from .handeye_calibration_task import HandEyeCalibrationTask
+import tf_transformations as tfs
+from math                       import degrees
+from rclpy.callback_groups      import MutuallyExclusiveCallbackGroup
+from aist_routines              import BaseRoutines
+from std_srvs.srv               import Empty
+from aist_msgs.srv              import (HandEyeCalibrationTakeSample,
+                                        HandEyeCalibrationGetSampleList,
+                                        HandEyeCalibrationComputeCalibration)
+from task_wrappers              import ServiceClient
+from aist_utility.fileio        import filepath_from_url
+from aist_utility.geometry_msgs import format_transform
+from .handeye_calibration_task  import HandEyeCalibrationTask
 
 #*********************************************************************
 #  class HandEyeCalibrationRoutines                                  *
@@ -121,7 +124,7 @@ class HandEyeCalibrationRoutines(BaseRoutines):
     def do_clist(self, dummy):
         """       clist
         Print list of sample points"""
-        print(self.get_sample_list())
+        self.print_sample_list(self.get_sample_list())
 
     def do_creset(self, dummy):
         """      creset
@@ -220,3 +223,12 @@ class HandEyeCalibrationRoutines(BaseRoutines):
         with open(filename, mode='w') as file:
             yaml.dump(data, file, default_flow_style=False)
         self.get_logger().info('saved calibration result in [%s]' % filename)
+
+    def print_sample_list(self, sample_list):
+        n = 0
+        for transform_cm, transform_we in zip(sample_list.transform_cm,
+                                              sample_list.transform_we):
+            print('-- [%d] --' % n)
+            print(format_transform(transform_cm))
+            print(format_transform(transform_we))
+            n += 1
